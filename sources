@@ -1,0 +1,51 @@
+TARGETNAME = wdbgark
+TARGETTYPE = DYNLINK
+DLLDEF     = wdbgark.def
+C_DEFINES  = $(C_DEFINES) -D_MBCS -DWIN32
+
+_NT_TARGET_VERSION=$(_NT_TARGET_VERSION_WINXP)
+
+DLLENTRY=_DllMainCRTStartup
+
+!if "$(DBGSDK_INC_PATH)" != ""
+INCLUDES = $(DBGSDK_INC_PATH);$(INCLUDES)
+!endif
+!if "$(DBGSDK_LIB_PATH)" == ""
+DBGSDK_LIB_PATH = $(SDK_LIB_PATH)
+!else
+DBGSDK_LIB_PATH = $(DBGSDK_LIB_PATH)\$(TARGET_DIRECTORY)
+!endif
+!if "$(DBGLIB_LIB_PATH)" == ""
+DBGLIB_LIB_PATH = $(SDKTOOLS_LIB_PATH)
+!else
+DBGLIB_LIB_PATH = $(DBGLIB_LIB_PATH)\$(TARGET_DIRECTORY)
+!endif
+
+LINKLIBS = $(DBGLIB_LIB_PATH)\engextcpp.lib
+
+TARGETLIBS = \
+        $(SDK_LIB_PATH)\kernel32.lib \
+        $(SDK_LIB_PATH)\advapi32.lib \
+		$(SDK_LIB_PATH)\wininet.lib \
+        $(DBGSDK_LIB_PATH)\dbgeng.lib
+
+USE_MSVCRT	      = 1
+USE_STL           = 1
+UMTYPE            = windows
+USE_NATIVE_EH     = 1
+MSC_WARNING_LEVEL = /W3 /WX
+
+SOURCES = \
+		 objtype.cpp\
+		 objtypeidx.cpp\
+		 systemcb.cpp\
+		 ver.cpp\
+		 wdbgark.cpp\
+		 callouts.cpp\
+		 pnptable.cpp\
+		 scan.cpp\
+		 sdt_w32p.cpp\
+		 ssdt.cpp\
+		 checkmsr.cpp\
+		 idt_gdt.cpp\
+         wdbgark.rc

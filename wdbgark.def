@@ -1,0 +1,26 @@
+EXPORTS
+
+;--------------------------------------------------------------------
+; Core exports provided by the ExtCpp framework.
+;--------------------------------------------------------------------
+
+    DebugExtensionInitialize
+    DebugExtensionUninitialize
+    DebugExtensionNotify
+    help
+
+;--------------------------------------------------------------------
+; Extension commands.
+;--------------------------------------------------------------------
+
+    ver
+	scan
+    systemcb
+	objtype
+	objtypeidx
+	callouts
+	pnptable
+	ssdt
+	w32psdt
+	checkmsr
+	idt

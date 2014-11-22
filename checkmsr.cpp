@@ -1,0 +1,58 @@
+/*
+    * WinDBG Anti-RootKit extension
+    * Copyright © 2013-2014  Vyacheslav Rusakoff
+    * 
+    * This program is free software: you can redistribute it and/or modify
+    * it under the terms of the GNU General Public License as published by
+    * the Free Software Foundation, either version 3 of the License, or
+    * (at your option) any later version.
+    * 
+    * This program is distributed in the hope that it will be useful,
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    * GNU General Public License for more details.
+    * 
+    * You should have received a copy of the GNU General Public License
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    * This work is licensed under the terms of the GNU GPL, version 3.  See
+    * the COPYING file in the top-level directory.
+*/
+
+#include "wdbgark.h"
+
+EXT_COMMAND(checkmsr,
+            "Output system MSRs (live debug only!)\n",
+            "")
+{
+    RequireKernelMode();
+
+    Init();
+
+    out << "******" << endlout;
+    out << "*    ";
+    out << std::left << std::setw( 16 ) << "Address" << std::right << std::setw( 6 ) << ' ';
+    out << std::left << std::setw( 40 ) << "MSR type" << std::right << std::setw( 12 ) << ' ';
+    out << std::left << std::setw( 70 ) << "Symbol" << std::right << std::setw( 4 ) << ' ';
+    out << std::left << std::setw( 30 ) << "Module" << std::right << std::setw( 1 ) << ' ';
+    out << "*" << endlout;
+    out << "******" << endlout;
+
+    try
+    {
+        unsigned __int64 msr_address = 0;
+        stringstream     expression;
+
+        ReadMsr( SYSENTER_EIP_MSR, &msr_address );
+
+        expression << std::showbase << std::hex << msr_address;
+
+        AnalyzeAddressAsRoutine( g_Ext->EvalExprU64( expression.str().c_str() ), "SYSENTER_EIP_MSR", "" );
+    }
+    catch( ... )
+    {
+        err << "Exception in " << __FUNCTION__ << endlerr;
+    }
+
+    out << "******" << endlout;
+}
