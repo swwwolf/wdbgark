@@ -4,7 +4,7 @@
 * [Supported commands](#supported-commands)
 * [Supported targets](#supported-targets)
 * [Sources and build](#sources-and-build)
-    * [Build using VS2010/VS2012](#build-using-vs2010vs2012)
+    * [Build using VS2012](#build-using-vs2012)
     * [Build using BUILD](#build-using-build)
 * [Using](#using)
 * [FAQ](#faq)
@@ -46,7 +46,7 @@ BETAs/RCs are supported by design. IA64/ARM unsupported.
 
 Sources are organized as a Visual Studio 2012 solution, but it's possible to build using BUILD (prior WDK 8.x).
 
-### Build using VS2010/VS2012
+### Build using VS2012
 
 * Download and install latest WDK (http://msdn.microsoft.com/en-us/windows/hardware/hh852365).
 * Define system environment variables (e.g. WDK 8.1).
