@@ -22,7 +22,7 @@
 #include "wdbgark.hpp"
 
 EXT_COMMAND(objtypeidx,
-            "Output the kernel-mode ObTypeIndexTable\n",
+            "Output kernel-mode ObTypeIndexTable\n",
             "")
 {
     RequireKernelMode();

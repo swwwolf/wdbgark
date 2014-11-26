@@ -22,7 +22,7 @@
 #include "wdbgark.hpp"
 
 EXT_COMMAND(objtype,
-            "Output the kernel-mode object type(s)\n",
+            "Output kernel-mode object type(s)\n",
             "{type;s;o;type,Object type name}")
 {
     string type = "";

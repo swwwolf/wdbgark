@@ -184,7 +184,7 @@ IopProfileNotifyList and IopDeviceClassNotifyList were replaced by PnpProfileNot
 */
 
 EXT_COMMAND(systemcb,
-            "Output the kernel-mode OS registered callback(s)\n",
+            "Output kernel-mode registered callback(s)\n",
             "{type;s;o;type,Callback type name:\n"\
             "image, process, thread, registry, bugcheck, bugcheckreason, powersetting, callbackdir, shutdown, "
             "shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, pnp, lego, "\

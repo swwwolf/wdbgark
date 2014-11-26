@@ -191,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="makefile" />
+    <None Include="README.md" />
     <None Include="sources" />
     <None Include="wdbgark.def" />
   </ItemGroup>

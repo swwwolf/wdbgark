@@ -19,6 +19,9 @@
     <Filter Include="Source Files\bprinter">
       <UniqueIdentifier>{d0d465b1-6342-47e4-82e2-2a7f6767b075}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\README">
+      <UniqueIdentifier>{3d3c9713-9633-499c-b568-47272d6c68a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -102,6 +105,9 @@
     </None>
     <None Include="sources">
       <Filter>Header Files\sources</Filter>
+    </None>
+    <None Include="README.md">
+      <Filter>Header Files\README</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
