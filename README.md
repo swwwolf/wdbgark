@@ -7,6 +7,9 @@
     * [Build using VS2010/VS2012](#build-using-vs2010vs2012)
     * [Build using BUILD](#build-using-build)
 * [Using](#using)
+* [FAQ](#faq)
+* [Help](#help)
+* [License](#license)
 
 ## Preface
 
