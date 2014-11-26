@@ -19,7 +19,7 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.h"
+#include "wdbgark.hpp"
 
 EXT_COMMAND(objtypeidx,
             "Output the kernel-mode ObTypeIndexTable\n",
@@ -29,35 +29,30 @@ EXT_COMMAND(objtypeidx,
 
     Init();
 
-    out << "******" << endlout;
-    out << "*    ";
-    out << std::left << std::setw( 16 ) << "Address" << std::right << std::setw( 6 ) << ' ';
-    out << std::left << std::setw( 40 ) << "Object type/Routine type" << std::right << std::setw( 12 ) << ' ';
-    out << std::left << std::setw( 70 ) << "Symbol" << std::right << std::setw( 4 ) << ' ';
-    out << std::left << std::setw( 30 ) << "Module" << std::right << std::setw( 1 ) << ' ';
-    out << "*" << endlout;
-    out << "******" << endlout;
+    WDbgArkAnalyze display;
+    stringstream   tmp_stream;
+    display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.PrintHeader();
 
     try
     {
-        if ( minor_build >= W7RTM_VER )
+        if ( m_minor_build >= W7RTM_VER )
         {
             unsigned __int64 offset = 0;
 
             if ( GetSymbolOffset( "nt!ObTypeIndexTable", true, &offset ) )
             {
-                for( int i = 0; i < 0x100; i++ )
+                for ( int i = 2; i < 0x100; i++ )
                 {
                     ExtRemoteData object_type_ptr( offset + i * m_PtrSize, m_PtrSize );
-
-                    if ( i >= 3 && !object_type_ptr.GetPtr() ) // look at ObpAllocateTypeIndex()
-                        break;
 
                     if ( object_type_ptr.GetPtr() )
                     {
                         ExtRemoteTyped object_type( "nt!_OBJECT_TYPE", object_type_ptr.GetPtr(), false, NULL, NULL );
-                        DirectoryObjectTypeCallback( this, object_type, NULL );
+                        DirectoryObjectTypeCallback( this, object_type, reinterpret_cast<void*>( &display ) );
                     }
+                    else
+                        break;
                 }
             }
 
@@ -68,5 +63,5 @@ EXT_COMMAND(objtypeidx,
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
 
-    out << "******" << endlout;
+    display.PrintFooter();
 }

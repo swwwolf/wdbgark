@@ -19,27 +19,54 @@
     * the COPYING file in the top-level directory.
 */
 
-#ifndef _WDBGARK_H_
-#define _WDBGARK_H_
+#if _MSC_VER > 1000
+#pragma once
+#endif
 
-#include "ddk.h"
-#include "sdt_w32p.h"
+#ifndef _WDBGARK_HPP_
+#define _WDBGARK_HPP_
 
 #include <string>
 #include <map>
 #include <sstream>
 #include <iomanip>
 #include <vector>
-
 using namespace std;
 
+#undef EXT_CLASS
 #define EXT_CLASS WDbgArk
 #include <engextcpp.hpp>
 
+#include "sdt_w32p.hpp"
+#include "process.hpp"
+#include "objhelper.hpp"
+#include "analyze.hpp"
+
+//////////////////////////////////////////////////////////////////////////
+// string routines
+//////////////////////////////////////////////////////////////////////////
+wstring __forceinline string_to_wstring(const string& str)
+{
+    return wstring( str.begin(), str.end() );
+}
+
+string __forceinline wstring_to_string(const wstring& wstr)
+{
+    return string( wstr.begin(), wstr.end() );
+}
+
+HRESULT UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &output_string);
+
+//////////////////////////////////////////////////////////////////////////
+// main class
+//////////////////////////////////////////////////////////////////////////
 class WDbgArk : public ExtExtension
 {
 public:
 
+    //////////////////////////////////////////////////////////////////////////
+    // class typedefs
+    //////////////////////////////////////////////////////////////////////////
     typedef struct SystemCbCommandTag
     {
         string        list_count_name;
@@ -47,6 +74,22 @@ public:
         unsigned long offset_to_routine;
     } SystemCbCommand;
 
+    //////////////////////////////////////////////////////////////////////////
+    typedef struct OutputWalkInfoTag
+    {
+        unsigned __int64 routine_address;
+        string           type;
+        string           info;
+    } OutputWalkInfo;
+
+    typedef vector<OutputWalkInfo> walkresType;
+
+    typedef struct WalkCallbackContextTag
+    {
+        string       type;
+        walkresType* output_list_pointer;
+    } WalkCallbackContext;
+    //////////////////////////////////////////////////////////////////////////
     typedef HRESULT (*pfn_object_directory_walk_callback_routine)(WDbgArk* wdbg_ark_class,
                                                                   ExtRemoteTyped &object,
                                                                   void* context);
@@ -59,7 +102,11 @@ public:
                                                              ExtRemoteTyped &device_node,
                                                              void* context);
 
-    WDbgArk();
+    //////////////////////////////////////////////////////////////////////////
+    // main commands
+    //////////////////////////////////////////////////////////////////////////
+    WDbgArk() { m_inited = false; }
+
     EXT_COMMAND_METHOD( ver );
     EXT_COMMAND_METHOD( scan );
     EXT_COMMAND_METHOD( systemcb );
@@ -72,28 +119,38 @@ public:
     EXT_COMMAND_METHOD( checkmsr );
     EXT_COMMAND_METHOD( idt );
 
-    void Init();
+    //////////////////////////////////////////////////////////////////////////
+    // init
+    //////////////////////////////////////////////////////////////////////////
+    bool Init(void);
+    bool IsInited(void){ return m_inited == true; }
+    bool IsLiveKernel(void){ return m_DebuggeeClass == DEBUG_KERNEL_CONNECTION; }
 
-    bool IsInited()
+    void RequireLiveKernelMode(void)
     {
-        return inited;
+        if ( !IsLiveKernel() )
+        {
+            throw ExtStatusException( S_OK, "live kernel-mode only" );
+        }
     }
 
-    unsigned long GetMinorBuild()
-    {
-        return minor_build;
-    };
+    //////////////////////////////////////////////////////////////////////////
+    // walk routines
+    //////////////////////////////////////////////////////////////////////////
+    void Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::const_iterator &citer,
+                                          walkresType &output_list);
 
-    /* walking routines */
     void WalkExCallbackList(const string &list_count_name,
                             const string &list_head_name,
-                            const string &type);
+                            const string &type,
+                            walkresType &output_list);
 
     void WalkAnyListWithOffsetToRoutine(const string &list_head_name,
                                         const unsigned __int64 offset_list_head,
                                         bool is_double,
                                         const unsigned long offset_to_routine,
-                                        const string &type);
+                                        const string &type,
+                                        walkresType &output_list);
 
     void WalkAnyListWithOffsetToObjectPointer(const string &list_head_name,
                                               const unsigned __int64 offset_list_head,
@@ -102,56 +159,31 @@ public:
                                               void* context,
                                               pfn_any_list_w_pobject_walk_callback_routine callback);
 
-    void WalkShutdownList(const string &list_head_name, const string &type);
-
-    void WalkPnpLists(const string &type);
-
-    void WalkCallbackDirectory(const string &type);   
-
-    void Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::const_iterator &citer);
-
     void WalkDeviceNode(const unsigned __int64 device_node_address,
                         void* context,
                         pfn_device_node_walk_callback_routine callback);
 
-    /* object manager routines */
+    void WalkShutdownList(const string &list_head_name, const string &type, walkresType &output_list);
+    void WalkPnpLists(const string &type, walkresType &output_list);
+    void WalkCallbackDirectory(const string &type, walkresType &output_list);
+
+    void AddSymbolPointer(const string &symbol_name,
+                          const string &type,
+                          const string &additional_info,
+                          walkresType &output_list);
+
     void WalkDirectoryObject(const unsigned __int64 directory_address,
                              void* context,
                              pfn_object_directory_walk_callback_routine callback);
-
-    unsigned __int64 FindObjectByName(const string &object_name, const unsigned __int64 directory_address);
-
-    HRESULT GetObjectHeader(const ExtRemoteTyped &object, ExtRemoteTyped &object_header);
-
-    HRESULT GetObjectHeaderNameInfo(ExtRemoteTyped &object_header, ExtRemoteTyped &object_header_name_info);
-
-    HRESULT GetObjectName(ExtRemoteTyped &object, string &object_name);
-
-    unsigned __int64 __forceinline ExFastRefGetObject(unsigned __int64 FastRef)
-    {
-        if ( IsCurMachine32() )
-            return FastRef & ~MAX_FAST_REFS_X86;
-        else
-            return FastRef & ~MAX_FAST_REFS_X64;
-    }
-
-    /* analyze routines */
-    void AnalyzeAddressAsSymbolPointer(const string &symbol_name,
-                                       const string &type,
-                                       const string &additional_info);
-
-    void AnalyzeAddressAsRoutine(const unsigned __int64 address,
-                                 const string &type,
-                                 const string &additional_info);
-
-    void AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info);
 
 private:
 
     map <string, SystemCbCommand> system_cb_commands;
     vector<string>                callout_names;
 
-    /* callback routines */
+    //////////////////////////////////////////////////////////////////////////
+    // callback routines
+    //////////////////////////////////////////////////////////////////////////
     static HRESULT DirectoryObjectCallback(WDbgArk* wdbg_ark_class,
                                            ExtRemoteTyped &object,
                                            void* context);
@@ -168,14 +200,9 @@ private:
                                       ExtRemoteTyped &device_node,
                                       void* context);
 
-    /* helpers */
-    HRESULT GetModuleNames(const unsigned __int64 address,
-                           string &image_name,
-                           string &module_name,
-                           string &loaded_image_name);
-
-    HRESULT GetNameByOffset(const unsigned __int64 address, string &name);
-
+    //////////////////////////////////////////////////////////////////////////
+    // helpers
+    //////////////////////////////////////////////////////////////////////////
     unsigned long GetCmCallbackItemFunctionOffset();
     unsigned long GetPowerCallbackItemFunctionOffset();
     unsigned long GetPnpCallbackItemFunctionOffset();
@@ -184,70 +211,26 @@ private:
                                                    unsigned long max_count,
                                                    char** service_table);
 
-    string get_service_table_routine_name(ServiceTableType type, unsigned long index);
+    string get_service_table_routine_name(ServiceTableType type, unsigned long index);  
 
-    /* string routines */
-    HRESULT UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &output_string);
+    //////////////////////////////////////////////////////////////////////////
+    // variables
+    //////////////////////////////////////////////////////////////////////////
+    bool             m_inited;
+    bool             m_is_cur_machine64;
+    unsigned long    m_platform_id;
+    unsigned long    m_major_build;
+    unsigned long    m_minor_build;
+    unsigned long    m_service_pack_number;
 
-    wstring string_to_wstring(const string& str)
-    {
-        return wstring( str.begin(), str.end() );
-    }
+    WDbgArkObjHelper m_obj_helper;
 
-    string wstring_to_string(const wstring& wstr)
-    {
-        return string( wstr.begin(), wstr.end() );
-    }
-
-    /* variables */
-    bool          inited;
-    bool          is_cur_machine64;
-    unsigned long platform_id;
-    unsigned long major_build;
-    unsigned long minor_build;
-    unsigned long service_pack_number;
-
-    /* output streams */
-    stringstream  out;
-    stringstream  warn;
-    stringstream  err;
+    //////////////////////////////////////////////////////////////////////////
+    // output streams
+    //////////////////////////////////////////////////////////////////////////
+    stringstream out;
+    stringstream warn;
+    stringstream err;
 };
 
-/* global stream manipulators */
-inline ostream& endlout(ostream& arg)
-{
-    stringstream ss;
-
-    arg << "\n";
-    ss << arg.rdbuf();
-    g_Ext->Dml( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
-}
-
-inline ostream& endlwarn(ostream& arg)
-{
-    stringstream ss;
-
-    arg << "\n";
-    ss << arg.rdbuf();
-    g_Ext->DmlWarn( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
-}
-
-inline ostream& endlerr(ostream& arg)
-{
-    stringstream ss;
-
-    arg << "\n";
-    ss << arg.rdbuf();
-    g_Ext->DmlErr( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
-}
-
-#endif // _WDBGARK_H_
+#endif // _WDBGARK_HPP_

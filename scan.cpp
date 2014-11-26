@@ -19,13 +19,11 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.h"
+#include "wdbgark.hpp"
 
-EXT_COMMAND(
-    scan,
-    "Run all commands\n",
-    "{log;s;o;log,Log file name}"
-    )
+EXT_COMMAND(scan,
+            "Run all commands\n",
+            "{log;s;o;log,Log file name}")
 {
     RequireKernelMode();
 
@@ -34,29 +32,61 @@ EXT_COMMAND(
     if ( HasArg( "log" ) )
         Execute( ".logopen /t %s", GetArgStr( "log" ) );
 
-    out << "!ssdt" << endlout;
-    ssdt();
+    try
+    {
+        out << "!ssdt" << endlout;
+        ssdt();
+    }
+    catch( ... ) {}
+    
+    try
+    {
+        out << "!w32psdt" << endlout;
+        w32psdt();
+    }
+    catch( ... ) {}
 
-    out << "!w32psdt" << endlout;
-    w32psdt();
+    try
+    {
+        out << "!checkmsr" << endlout;
+        checkmsr();
+    }
+    catch( ... ) {}
 
-    out << "!checkmsr" << endlout;
-    checkmsr();
+    try
+    {
+        out << "!systemcb" << endlout;
+        systemcb();
+    }
+    catch( ... ) {}
 
-    out << "!systemcb" << endlout;
-    systemcb();
+    try
+    {
+        out << "!objtype" << endlout;
+        objtype();
+    }
+    catch( ... ) {}
 
-    out << "!objtype" << endlout;
-    objtype();
+    try
+    {
+        out << "!objtypeidx" << endlout;
+        objtypeidx();
+    }
+    catch( ... ) {}
 
-    out << "!objtypeidx" << endlout;
-    objtypeidx();
+    try
+    {
+        out << "!callouts" << endlout;
+        callouts();
+    }
+    catch( ... ) {}
 
-    out << "!callouts" << endlout;
-    callouts();
-
-    out << "!pnptable" << endlout;
-    pnptable();
+    try
+    {
+        out << "!pnptable" << endlout;
+        pnptable();
+    }
+    catch( ... ) {}
 
     if ( HasArg( "log" ) )
         Execute( ".logclose" );

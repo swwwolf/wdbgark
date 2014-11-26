@@ -19,7 +19,7 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.h"
+#include "wdbgark.hpp"
 
 /*
 
@@ -82,18 +82,14 @@ EXT_COMMAND(callouts,
 
     Init();
 
-    out << "******" << endlout;
-    out << "*    ";
-    out << std::left << std::setw( 16 ) << "Address" << std::right << std::setw( 6 ) << ' ';
-    out << std::left << std::setw( 40 ) << "Routine" << std::right << std::setw( 12 ) << ' ';
-    out << std::left << std::setw( 70 ) << "Symbol" << std::right << std::setw( 4 ) << ' ';
-    out << std::left << std::setw( 30 ) << "Module" << std::right << std::setw( 1 ) << ' ';
-    out << "*" << endlout;
-    out << "******" << endlout;
+    WDbgArkAnalyze display;
+    stringstream   tmp_stream;
+    display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.PrintHeader();
 
     try
     {
-        if ( minor_build < W8RTM_VER)
+        if ( m_minor_build < W8RTM_VER)
         {
             for ( vector<string>::iterator iter = callout_names.begin(); iter < callout_names.end(); ++iter )
             {
@@ -102,7 +98,7 @@ EXT_COMMAND(callouts,
                 if ( GetSymbolOffset( (*iter).c_str(), true, &offset ) )
                 {
                     ExtRemoteData callout_routine( offset, m_PtrSize );
-                    AnalyzeAddressAsRoutine( callout_routine.GetPtr(), *iter, "" );
+                    display.AnalyzeAddressAsRoutine( callout_routine.GetPtr(), *iter, "" );
                 }
             }
         }
@@ -119,10 +115,10 @@ EXT_COMMAND(callouts,
                 if ( ex_callback_fast_ref )
                 {
                     ExtRemoteData routine_block(
-                        ExFastRefGetObject( ex_callback_fast_ref ) + GetTypeSize( "nt!_EX_RUNDOWN_REF" ),
+                        m_obj_helper.ExFastRefGetObject( ex_callback_fast_ref ) + GetTypeSize( "nt!_EX_RUNDOWN_REF" ),
                         m_PtrSize );
 
-                    AnalyzeAddressAsRoutine( routine_block.GetPtr(), "nt!PsWin32CallBack", "" );
+                    display.AnalyzeAddressAsRoutine( routine_block.GetPtr(), "nt!PsWin32CallBack", "" );
                 }
             }
         }
@@ -132,5 +128,5 @@ EXT_COMMAND(callouts,
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
 
-    out << "******" << endlout;
+    display.PrintFooter();
 }

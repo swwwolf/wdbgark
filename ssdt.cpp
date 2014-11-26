@@ -19,27 +19,21 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.h"
-#include "sdt_w32p.h"
+#include "wdbgark.hpp"
+#include "sdt_w32p.hpp"
 
-EXT_COMMAND(
-    ssdt,
-    "Output the System Service Descriptor Table\n",
-    ""
-    )
+EXT_COMMAND(ssdt,
+            "Output the System Service Descriptor Table\n",
+            "")
 {
     RequireKernelMode();
 
     Init();
 
-    out << "******" << endlout;
-    out << "*    ";
-    out << std::left << std::setw( 16 ) << "Address" << std::right << std::setw( 6 ) << ' ';
-    out << std::left << std::setw( 40 ) << "Routine name" << std::right << std::setw( 12 ) << ' ';
-    out << std::left << std::setw( 70 ) << "Symbol" << std::right << std::setw( 4 ) << ' ';
-    out << std::left << std::setw( 30 ) << "Module" << std::right << std::setw( 1 ) << ' ';
-    out << "*" << endlout;
-    out << "******" << endlout;
+    WDbgArkAnalyze display;
+    stringstream   tmp_stream;
+    display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.PrintHeader();
 
     try
     {
@@ -59,26 +53,26 @@ EXT_COMMAND(
             {
                 for ( unsigned long i = 0; i < ki_service_limit.GetUlong(); i++ )
                 {
-                    if ( is_cur_machine64 )
+                    if ( m_is_cur_machine64 )
                     {
                         string routine_name = get_service_table_routine_name( KiServiceTable_x64, i );
 
                         ExtRemoteData service_offset_full( offset + i * sizeof( long ), sizeof( long ) );
                         long service_offset = service_offset_full.GetLong();
 
-                        if ( minor_build >= VISTA_RTM_VER )
+                        if ( m_minor_build >= VISTA_RTM_VER )
                             service_offset >>= 4;
                         else
                             service_offset &= 0xFFFFFFF0;
 
-                        AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
+                        display.AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
                     }
                     else
                     {
                         string routine_name = get_service_table_routine_name( KiServiceTable_x86, i );
 
                         ExtRemoteData service_address( offset + i * m_PtrSize, m_PtrSize );
-                        AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
+                        display.AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
                     }
                 }
             }
@@ -89,27 +83,54 @@ EXT_COMMAND(
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
 
-    out << "******" << endlout;
+    display.PrintFooter();
 }
 
-EXT_COMMAND(
-    w32psdt,
-    "Output the Win32k Service Descriptor Table\n",
-    ""
-    )
+EXT_COMMAND(w32psdt,
+            "Output the Win32k Service Descriptor Table\n",
+            "{process;e64;o;process,Any GUI EPROCESS address (use explorer.exe)}")
 {
     RequireKernelMode();
 
     Init();
 
-    out << "******" << endlout;
-    out << "*    ";
-    out << std::left << std::setw( 16 ) << "Address" << std::right << std::setw( 6 ) << ' ';
-    out << std::left << std::setw( 40 ) << "Routine name" << std::right << std::setw( 12 ) << ' ';
-    out << std::left << std::setw( 70 ) << "Symbol" << std::right << std::setw( 4 ) << ' ';
-    out << std::left << std::setw( 30 ) << "Module" << std::right << std::setw( 1 ) << ' ';
-    out << "*" << endlout;
-    out << "******" << endlout;
+    unsigned __int64 set_eprocess     = 0;
+    unsigned __int64 current_eprocess = 0;
+
+    if ( HasArg( "process" ) )
+        set_eprocess = GetArgU64( "process" );
+
+    if ( !set_eprocess )
+    {
+        WDbgArkProcess process;
+        set_eprocess = process.FindEProcessByImageFileName( "explorer.exe" );
+
+        if ( !set_eprocess )
+        {
+            err << "Failed to find explorer process" << endlerr;
+            return;
+        }
+    }
+
+    if ( !SUCCEEDED( g_Ext->m_System2->GetImplicitProcessDataOffset( &current_eprocess ) ) )
+    {
+        err << "Failed to get current EPROCESS" << endlerr;
+        return;
+    }
+
+    if ( current_eprocess != set_eprocess )
+    {
+        if ( !SUCCEEDED( g_Ext->m_System2->SetImplicitProcessDataOffset( set_eprocess ) ) )
+        {
+            err << "Failed to set implicit process to " << std::hex << std::showbase << set_eprocess << endlerr;
+            return;
+        }
+    }
+
+    WDbgArkAnalyze display;
+    stringstream   tmp_stream;
+    display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.PrintHeader();
 
     try
     {
@@ -129,26 +150,26 @@ EXT_COMMAND(
             {
                 for ( unsigned long i = 0; i < w32_service_limit.GetUlong(); i++ )
                 {
-                    if ( is_cur_machine64 )
+                    if ( m_is_cur_machine64 )
                     {
                         string routine_name = get_service_table_routine_name( W32pServiceTable_x64, i );
 
                         ExtRemoteData service_offset_full( offset + i * sizeof( long ), sizeof( long ) );
                         long service_offset = service_offset_full.GetLong();
 
-                        if ( minor_build >= VISTA_RTM_VER )
+                        if ( m_minor_build >= VISTA_RTM_VER )
                             service_offset >>= 4;
                         else
                             service_offset &= 0xFFFFFFF0;
 
-                        AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
+                        display.AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
                     }
                     else
                     {
                         string routine_name = get_service_table_routine_name( W32pServiceTable_x86, i );
 
                         ExtRemoteData service_address( offset + i * m_PtrSize, m_PtrSize );
-                        AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
+                        display.AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
                     }
                 }
             }
@@ -159,5 +180,11 @@ EXT_COMMAND(
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
 
-    out << "******" << endlout;
+    display.PrintFooter();
+
+    if ( current_eprocess != set_eprocess )
+    {
+        if ( !SUCCEEDED( g_Ext->m_System2->SetImplicitProcessDataOffset( current_eprocess ) ) )
+            err << "Failed to revert implicit process to " << std::hex << std::showbase << current_eprocess << endlerr;
+    }
 }

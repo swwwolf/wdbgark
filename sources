@@ -48,4 +48,6 @@ SOURCES = \
 		 ssdt.cpp\
 		 checkmsr.cpp\
 		 idt_gdt.cpp\
+		 objhelper.cpp\
+		 analyze.cpp\
          wdbgark.rc

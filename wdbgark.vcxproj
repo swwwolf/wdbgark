@@ -80,7 +80,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WDBGARK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -100,7 +100,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WDBGARK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -118,14 +118,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WDBGARK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,14 +142,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WDBGARK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -161,16 +163,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="analyze.hpp" />
     <ClInclude Include="ddk.h" />
+    <ClInclude Include="objhelper.hpp" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="sdt_w32p.h" />
-    <ClInclude Include="ver.h" />
-    <ClInclude Include="wdbgark.h" />
+    <ClInclude Include="sdt_w32p.hpp" />
+    <ClInclude Include="ver.hpp" />
+    <ClInclude Include="wdbgark.hpp" />
+    <ClInclude Include="process.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="analyze.cpp" />
+    <ClCompile Include="bprinter\src\table_printer.cpp" />
     <ClCompile Include="callouts.cpp" />
     <ClCompile Include="checkmsr.cpp" />
     <ClCompile Include="idt_gdt.cpp" />
+    <ClCompile Include="objhelper.cpp" />
     <ClCompile Include="objtype.cpp" />
     <ClCompile Include="objtypeidx.cpp" />
     <ClCompile Include="pnptable.cpp" />
@@ -182,7 +190,6 @@
     <ClCompile Include="wdbgark.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="COPYING" />
     <None Include="makefile" />
     <None Include="sources" />
     <None Include="wdbgark.def" />

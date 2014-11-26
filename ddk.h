@@ -19,6 +19,10 @@
     * the COPYING file in the top-level directory.
 */
 
+#if _MSC_VER > 1000
+#pragma once
+#endif
+
 #ifndef _DDK_H_
 #define _DDK_H_
 

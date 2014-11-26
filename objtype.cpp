@@ -19,7 +19,7 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.h"
+#include "wdbgark.hpp"
 
 EXT_COMMAND(objtype,
             "Output the kernel-mode object type(s)\n",
@@ -36,7 +36,7 @@ EXT_COMMAND(objtype,
         type.assign( GetArgStr( "type" ) );
     }
 
-    unsigned __int64 object_types_directory_offset = FindObjectByName( "ObjectTypes", 0 );
+    unsigned __int64 object_types_directory_offset = m_obj_helper.FindObjectByName( "ObjectTypes", 0 );
 
     if ( !object_types_directory_offset )
     {
@@ -44,30 +44,28 @@ EXT_COMMAND(objtype,
         return;
     }
 
-    out << "******" << endlout;
-    out << "*    ";
-    out << std::left << std::setw( 16 ) << "Address" << std::right << std::setw( 6 ) << ' ';
-    out << std::left << std::setw( 40 ) << "Object type/Routine type" << std::right << std::setw( 12 ) << ' ';
-    out << std::left << std::setw( 70 ) << "Symbol" << std::right << std::setw( 4 ) << ' ';
-    out << std::left << std::setw( 30 ) << "Module" << std::right << std::setw( 1 ) << ' ';
-    out << "*" << endlout;
-    out << "******" << endlout;
+    WDbgArkAnalyze display;
+    stringstream   tmp_stream;
+    display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.PrintHeader();
 
     try
     {
         if ( type.empty() )
         {
-            WalkDirectoryObject( object_types_directory_offset, NULL, DirectoryObjectTypeCallback );
+            WalkDirectoryObject(object_types_directory_offset,
+                                reinterpret_cast<void*>( &display ),
+                                DirectoryObjectTypeCallback);
         }
         else
         {
             ExtRemoteTyped object_type("nt!_OBJECT_TYPE",
-                                       FindObjectByName( type, object_types_directory_offset ),
+                                       m_obj_helper.FindObjectByName( type, object_types_directory_offset ),
                                        false,
                                        NULL,
                                        NULL);
 
-            DirectoryObjectTypeCallback( this, object_type, NULL );
+            DirectoryObjectTypeCallback( this, object_type, reinterpret_cast<void*>( &display ) );
         }
     }
     catch( ... )
@@ -75,55 +73,38 @@ EXT_COMMAND(objtype,
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
 
-    out << "******" << endlout;
+    display.PrintFooter();
 }
 
+// TODO: refactor this
 HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &object, void* context)
 {
-    string object_name = "Unknown name";
+    string          object_name = "*UNKNOWN*";
+    WDbgArkAnalyze* display     = reinterpret_cast<WDbgArkAnalyze*>( context );
+    stringstream    loc;
 
     try
     {
-        if ( FAILED( wdbg_ark_class->GetObjectName( object, object_name ) ) )
-        {
-            wdbg_ark_class->warn << "Failed to get object name" << endlwarn;
-        }
+        if ( FAILED( wdbg_ark_class->m_obj_helper.GetObjectName( object, object_name ) ) )
+            loc << "Failed to get object name" << endlwarn;
 
-        wdbg_ark_class->out << "*    ";
-        wdbg_ark_class->out << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
-        wdbg_ark_class->out << std::hex << std::showbase << object.m_Offset << "</exec>";
-        wdbg_ark_class->out << std::right << std::setw( 4 ) << ' ' << "<b>" << object_name << "</b>" << endlout;
+        loc << "*    ";
+        loc << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
+        loc << std::hex << std::showbase << object.m_Offset << "</exec>";
+        loc << std::right << std::setw( 4 ) << ' ' << "<b>" << object_name << "</b>" << endlout;
 
         ExtRemoteTyped object_type( "nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL );
         ExtRemoteTyped type_info = object_type.Field( "TypeInfo" );
 
-        wdbg_ark_class->AnalyzeObjectTypeInfo( type_info );
+        display->AnalyzeObjectTypeInfo( type_info );
     }
     catch( ... )
     {
-        wdbg_ark_class->err << "Exception in " << __FUNCTION__ << " with object.m_Offset = ";
-        wdbg_ark_class->err << object.m_Offset << endlerr;
+        loc << "Exception in " << __FUNCTION__ << " with object.m_Offset = ";
+        loc << object.m_Offset << endlerr;
 
         return E_UNEXPECTED;
     }
 
     return S_OK;
-}
-
-void WDbgArk::AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info)
-{
-    try
-    {
-        AnalyzeAddressAsRoutine( type_info.Field( "DumpProcedure" ).GetPtr(), "DumpProcedure", "" );
-        AnalyzeAddressAsRoutine( type_info.Field( "OpenProcedure" ).GetPtr(), "OpenProcedure", "" );
-        AnalyzeAddressAsRoutine( type_info.Field( "CloseProcedure" ).GetPtr(), "CloseProcedure", "" );
-        AnalyzeAddressAsRoutine( type_info.Field( "DeleteProcedure" ).GetPtr(), "DeleteProcedure", "" );
-        AnalyzeAddressAsRoutine( type_info.Field( "ParseProcedure" ).GetPtr(), "ParseProcedure", "" );
-        AnalyzeAddressAsRoutine( type_info.Field( "SecurityProcedure" ).GetPtr(), "SecurityProcedure", "" );
-        AnalyzeAddressAsRoutine( type_info.Field( "SecurityProcedure" ).GetPtr(), "QueryNameProcedure", "" );
-    }
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with type_info.m_Offset = " << type_info.m_Offset << endlerr;
-    }
 }

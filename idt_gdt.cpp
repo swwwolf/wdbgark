@@ -112,7 +112,7 @@ typedef union _KGDTENTRY64 {
 
 */
 
-#include "wdbgark.h"
+#include "wdbgark.hpp"
 
 EXT_COMMAND(idt,
             "Output processors IDTs\n",
@@ -122,14 +122,10 @@ EXT_COMMAND(idt,
 
     Init();
 
-    out << "******" << endlout;
-    out << "*    ";
-    out << std::left << std::setw( 16 ) << "Address" << std::right << std::setw( 6 ) << ' ';
-    out << std::left << std::setw( 40 ) << "Processor(core)/Index" << std::right << std::setw( 12 ) << ' ';
-    out << std::left << std::setw( 70 ) << "Symbol" << std::right << std::setw( 4 ) << ' ';
-    out << std::left << std::setw( 30 ) << "Module" << std::right << std::setw( 1 ) << ' ';
-    out << "*" << endlout;
-    out << "******" << endlout;
+    WDbgArkAnalyze display;
+    stringstream   tmp_stream;
+    display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.PrintHeader();
 
     try
     {
@@ -147,7 +143,7 @@ EXT_COMMAND(idt,
 
             ExtRemoteTyped pcr( "nt!_KPCR", kpcr_offset, false, NULL, NULL );
 
-            if ( is_cur_machine64 )
+            if ( m_is_cur_machine64 )
             {
                 idt_entry_start = pcr.Field( "IdtBase" ).GetPtr(); // _KIDTENTRY64*
                 idt_entry_size = GetTypeSize( "nt!_KIDTENTRY64" );
@@ -165,7 +161,7 @@ EXT_COMMAND(idt,
                 stringstream processor_index;
                 processor_index << i << " / " << j;
 
-                if ( is_cur_machine64 )
+                if ( m_is_cur_machine64 )
                 {
                     KIDT_HANDLER_ADDRESS idt_handler = { 0 };
 
@@ -198,7 +194,7 @@ EXT_COMMAND(idt,
                     isr_address = g_Ext->EvalExprU64( expression.str().c_str() );
                 }
 
-                AnalyzeAddressAsRoutine( isr_address, processor_index.str(), "" );
+                display.AnalyzeAddressAsRoutine( isr_address, processor_index.str(), "" );
             }           
         }
     }
@@ -207,5 +203,5 @@ EXT_COMMAND(idt,
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
 
-    out << "******" << endlout;
+    display.PrintFooter();
 }

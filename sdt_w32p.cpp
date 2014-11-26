@@ -19,7 +19,7 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.h"
+#include "wdbgark.hpp"
 
 // TODO: check routine names (subXXX, unknown, etc...)
 
@@ -20770,23 +20770,23 @@ string WDbgArk::get_service_table_routine_name_internal(unsigned long index,
 
 string WDbgArk::get_service_table_routine_name(ServiceTableType type, unsigned long index)
 {
-    if ( minor_build >= WXP_VER && minor_build < W2K3_VER )
+    if ( m_minor_build >= WXP_VER && m_minor_build < W2K3_VER )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][0], Service_Tables[type][0] );
-    else if ( minor_build >= W2K3_VER && minor_build < VISTA_RTM_VER )
+    else if ( m_minor_build >= W2K3_VER && m_minor_build < VISTA_RTM_VER )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][1], Service_Tables[type][1] );
-    else if ( minor_build >= VISTA_RTM_VER && minor_build < VISTA_SP1_VER )
+    else if ( m_minor_build >= VISTA_RTM_VER && m_minor_build < VISTA_SP1_VER )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][2], Service_Tables[type][2] );
-    else if ( minor_build >= VISTA_SP1_VER && minor_build < VISTA_SP2_VER )
+    else if ( m_minor_build >= VISTA_SP1_VER && m_minor_build < VISTA_SP2_VER )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][3], Service_Tables[type][3] );
-    else if ( minor_build >= VISTA_SP2_VER && minor_build < W7RTM_VER )
+    else if ( m_minor_build >= VISTA_SP2_VER && m_minor_build < W7RTM_VER )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][4], Service_Tables[type][4] );
-    else if ( minor_build >= W7RTM_VER && minor_build < W7SP1_VER )
+    else if ( m_minor_build >= W7RTM_VER && m_minor_build < W7SP1_VER )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][5], Service_Tables[type][5] );
-    else if ( minor_build >= W7SP1_VER && minor_build < W8RTM_VER )
+    else if ( m_minor_build >= W7SP1_VER && m_minor_build < W8RTM_VER )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][6], Service_Tables[type][6] );
-    else if ( minor_build >= W8RTM_VER && minor_build < W81RTM_VER )
+    else if ( m_minor_build >= W8RTM_VER && m_minor_build < W81RTM_VER )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][7], Service_Tables[type][7] );
-    else if ( minor_build >= W81RTM_VER /*&& minor_build < XXX */ )
+    else if ( m_minor_build >= W81RTM_VER /*&& m_minor_build < XXX */ )
         return get_service_table_routine_name_internal( index, Service_Tables_countof[type][8], Service_Tables[type][8] );
     else
         return "*UNKNOWN*";

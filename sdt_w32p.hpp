@@ -19,8 +19,12 @@
     * the COPYING file in the top-level directory.
 */
 
-#ifndef _SDT_W32P_H_
-#define _SDT_W32P_H_
+#if _MSC_VER > 1000
+#pragma once
+#endif
+
+#ifndef _SDT_W32P_HPP_
+#define _SDT_W32P_HPP_
 
 enum ServiceTableType
 {
@@ -30,4 +34,4 @@ enum ServiceTableType
     W32pServiceTable_x64
 };
 
-#endif // _SDT_W32P_H_
+#endif // _SDT_W32P_HPP_

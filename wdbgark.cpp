@@ -19,227 +19,200 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.h"
+#include "wdbgark.hpp"
 
 #pragma warning(disable:4242)
 #include <algorithm>
 
 EXT_DECLARE_GLOBALS();
 
-WDbgArk::WDbgArk()
+HRESULT UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &output_string)
 {
-    inited = false;
-}
-
-void WDbgArk::Init()
-{
-    if ( !IsInited() )
-    {
-        // get system version
-        m_Control->GetSystemVersion(&platform_id,
-                                    &major_build,
-                                    &minor_build,
-                                    NULL,
-                                    0,
-                                    NULL,
-                                    &service_pack_number,
-                                    NULL,
-                                    0,
-                                    NULL);
-
-        is_cur_machine64 = IsCurMachine64();
-
-        // reloads kernel-mode modules
-        m_Symbols->Reload( "/f /n" );
-
-        // init systemcb map
-        SystemCbCommand command_info = { "nt!PspLoadImageNotifyRoutineCount", "nt!PspLoadImageNotifyRoutine", 0 };
-        system_cb_commands["image"] = command_info;
-
-        command_info.list_count_name = "nt!PspCreateProcessNotifyRoutineCount";
-        command_info.list_head_name = "nt!PspCreateProcessNotifyRoutine";
-        system_cb_commands["process"] = command_info;
-
-        command_info.list_count_name = "nt!PspCreateThreadNotifyRoutineCount";
-        command_info.list_head_name = "nt!PspCreateThreadNotifyRoutine";
-        system_cb_commands["thread"] = command_info;
-
-        command_info.list_count_name = "nt!CmpCallBackCount";
-        command_info.list_head_name = "nt!CmpCallBackVector";
-        command_info.offset_to_routine = GetCmCallbackItemFunctionOffset();
-        system_cb_commands["registry"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!KeBugCheckCallbackListHead";
-        command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" );
-        system_cb_commands["bugcheck"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!KeBugCheckReasonCallbackListHead";
-        command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" );
-        system_cb_commands["bugcheckreason"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!PopRegisteredPowerSettingCallbacks";
-        command_info.offset_to_routine = GetPowerCallbackItemFunctionOffset();
-        system_cb_commands["powersetting"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "";
-        command_info.offset_to_routine = 0;
-        system_cb_commands["callbackdir"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!IopNotifyShutdownQueueHead";
-        system_cb_commands["shutdown"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!IopNotifyLastChanceShutdownQueueHead";
-        system_cb_commands["shutdownlast"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!IopDriverReinitializeQueueHead";
-        command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + m_PtrSize;
-        system_cb_commands["drvreinit"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!IopBootDriverReinitializeQueueHead";
-        command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + m_PtrSize;
-        system_cb_commands["bootdrvreinit"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!IopFsNotifyChangeQueueHead";
-        command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + m_PtrSize;
-        system_cb_commands["fschange"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!KiNmiCallbackListHead";
-        command_info.offset_to_routine = m_PtrSize;
-        system_cb_commands["nmi"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!SeFileSystemNotifyRoutinesHead";
-        command_info.offset_to_routine = m_PtrSize;
-        system_cb_commands["logonsessionroutine"] = command_info;
-
-        command_info.list_count_name = "nt!IopUpdatePriorityCallbackRoutineCount";
-        command_info.list_head_name = "nt!IopUpdatePriorityCallbackRoutine";
-        command_info.offset_to_routine = 0;
-        system_cb_commands["prioritycallback"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "";
-        system_cb_commands["pnp"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!PspLegoNotifyRoutine"; // actually just a pointer
-        system_cb_commands["lego"] = command_info;
-
-        command_info.list_count_name = "";
-        command_info.list_head_name = "nt!RtlpDebugPrintCallbackList";
-        command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" );
-        system_cb_commands["debugprint"] = command_info;
-
-        command_info.offset_to_routine = 0;
-
-        if ( minor_build < W8RTM_VER )
-        {
-            callout_names.push_back( "nt!PspW32ProcessCallout" );
-            callout_names.push_back( "nt!PspW32ThreadCallout" );
-            callout_names.push_back( "nt!ExGlobalAtomTableCallout" );
-            callout_names.push_back( "nt!KeGdiFlushUserBatch" );
-            callout_names.push_back( "nt!PopEventCallout" );
-            callout_names.push_back( "nt!PopStateCallout" );
-            callout_names.push_back( "nt!PspW32JobCallout" );
-            callout_names.push_back( "nt!ExDesktopOpenProcedureCallout" );
-            callout_names.push_back( "nt!ExDesktopOkToCloseProcedureCallout" );
-            callout_names.push_back( "nt!ExDesktopCloseProcedureCallout" );
-            callout_names.push_back( "nt!ExDesktopDeleteProcedureCallout" );
-            callout_names.push_back( "nt!ExWindowStationOkToCloseProcedureCallout" );
-            callout_names.push_back( "nt!ExWindowStationCloseProcedureCallout" );
-            callout_names.push_back( "nt!ExWindowStationDeleteProcedureCallout" );
-            callout_names.push_back( "nt!ExWindowStationParseProcedureCallout" );
-            callout_names.push_back( "nt!ExWindowStationOpenProcedureCallout" );
-            callout_names.push_back( "nt!IopWin32DataCollectionProcedureCallout" );
-            callout_names.push_back( "nt!PopWin32InfoCallout" );
-        }
-
-        inited = true;
-    }
-}
-
-unsigned __int64 WDbgArk::FindObjectByName(const string &object_name,
-                                           const unsigned __int64 directory_address)
-{
-    unsigned __int64 offset       = directory_address;
-    string           compare_with = object_name;
-
-    if ( object_name.empty() )
-    {
-        err << "Invalid object name" << endlerr;
-        return 0;
-    }
-
-    transform( compare_with.begin(), compare_with.end(), compare_with.begin(), tolower );
-
     try
     {
-        if ( !offset )
+        ExtRemoteTyped buffer = *unicode_string.Field( "Buffer" );
+        unsigned short len = unicode_string.Field( "Length" ).GetUshort();
+        unsigned short maxlen = unicode_string.Field( "MaximumLength" ).GetUshort();
+
+        if ( len == 0 && maxlen == 1 )
         {
-            if ( !GetSymbolOffset( "nt!ObpRootDirectoryObject", true, &offset ) )
-            {
-                err << "Failed to get nt!ObpRootDirectoryObject" << endlerr;
-                return 0;
-            }
-            else
-            {
-                ExtRemoteData directory_object_ptr( offset, m_PtrSize );
-                offset = directory_object_ptr.GetPtr();
-            }
+            output_string = "";
+            return S_OK;
         }
 
-        ExtRemoteTyped directory_object( "nt!_OBJECT_DIRECTORY", offset, false, NULL, NULL );
-        ExtRemoteTyped buckets = directory_object.Field( "HashBuckets" );
-
-        for ( LONG64 i = 0; i < buckets.GetTypeSize() / m_PtrSize; i++ )
+        if ( maxlen >= sizeof( wchar_t ) && ( maxlen % sizeof( wchar_t ) == 0 ) )
         {
-            if ( !buckets.m_Offset )
-                continue;
+            unsigned short max_len_wide = maxlen / sizeof( wchar_t ) + 1;
+            wchar_t* test_name = new wchar_t[ max_len_wide ];
 
-            for ( ExtRemoteTyped directory_entry = *buckets[i];
-                  directory_entry.m_Offset;
-                  directory_entry = *directory_entry.Field( "ChainLink" ) )
-            {
-                ExtRemoteTyped object = *directory_entry.Field( "Object" );
+            ZeroMemory( test_name, max_len_wide * sizeof( wchar_t ) );
+            buffer.ReadBuffer( test_name, maxlen, true );
 
-                string check_object_name;
+            wstring wide_string_name( test_name );
+            delete test_name;
 
-                if ( SUCCEEDED( GetObjectName( object, check_object_name ) ) )
-                {
-                    transform( check_object_name.begin(), check_object_name.end(), check_object_name.begin(), tolower );
+            output_string = wstring_to_string( wide_string_name );
 
-                    if ( check_object_name == compare_with )
-                    {
-                        return object.m_Offset;
-                    }
-                }
-            }
+            return S_OK;
         }
     }
     catch( ... )
     {
-        err << "Exception in " << __FUNCTION__ << " with object_name = " << object_name << " offset = ";
-        err << std::hex << std::showbase << offset << endlerr;
+        //err << "Exception in " << __FUNCTION__ << " with unicode_string.m_Offset = ";
+        //err << std::hex << std::showbase << unicode_string.m_Offset << endlerr;
     }
 
-    return 0;
+    return E_INVALIDARG;
+}
+
+bool WDbgArk::Init()
+{
+    if ( IsInited() )
+        return true;
+
+    m_obj_helper.Init();
+
+    // get system version
+    m_Control->GetSystemVersion(&m_platform_id,
+                                &m_major_build,
+                                &m_minor_build,
+                                NULL,
+                                0,
+                                NULL,
+                                &m_service_pack_number,
+                                NULL,
+                                0,
+                                NULL);
+
+    m_is_cur_machine64 = IsCurMachine64();
+
+    // reloads kernel-mode modules
+    //m_Symbols->Reload( "/f /n" );
+
+    // TODO: optimize by calculating offsets in constructor only once
+    // init systemcb map
+    SystemCbCommand command_info = { "nt!PspLoadImageNotifyRoutineCount", "nt!PspLoadImageNotifyRoutine", 0 };
+    system_cb_commands["image"] = command_info;
+
+    command_info.list_count_name = "nt!PspCreateProcessNotifyRoutineCount";
+    command_info.list_head_name = "nt!PspCreateProcessNotifyRoutine";
+    system_cb_commands["process"] = command_info;
+
+    command_info.list_count_name = "nt!PspCreateThreadNotifyRoutineCount";
+    command_info.list_head_name = "nt!PspCreateThreadNotifyRoutine";
+    system_cb_commands["thread"] = command_info;
+
+    command_info.list_count_name = "nt!CmpCallBackCount";
+    command_info.list_head_name = "nt!CmpCallBackVector";
+    command_info.offset_to_routine = GetCmCallbackItemFunctionOffset();
+    system_cb_commands["registry"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!KeBugCheckCallbackListHead";
+    command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" );
+    system_cb_commands["bugcheck"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!KeBugCheckReasonCallbackListHead";
+    command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" );
+    system_cb_commands["bugcheckreason"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!PopRegisteredPowerSettingCallbacks";
+    command_info.offset_to_routine = GetPowerCallbackItemFunctionOffset();
+    system_cb_commands["powersetting"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "";
+    command_info.offset_to_routine = 0;
+    system_cb_commands["callbackdir"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!IopNotifyShutdownQueueHead";
+    system_cb_commands["shutdown"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!IopNotifyLastChanceShutdownQueueHead";
+    system_cb_commands["shutdownlast"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!IopDriverReinitializeQueueHead";
+    command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + m_PtrSize;
+    system_cb_commands["drvreinit"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!IopBootDriverReinitializeQueueHead";
+    command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + m_PtrSize;
+    system_cb_commands["bootdrvreinit"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!IopFsNotifyChangeQueueHead";
+    command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + m_PtrSize;
+    system_cb_commands["fschange"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!KiNmiCallbackListHead";
+    command_info.offset_to_routine = m_PtrSize;
+    system_cb_commands["nmi"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!SeFileSystemNotifyRoutinesHead";
+    command_info.offset_to_routine = m_PtrSize;
+    system_cb_commands["logonsessionroutine"] = command_info;
+
+    command_info.list_count_name = "nt!IopUpdatePriorityCallbackRoutineCount";
+    command_info.list_head_name = "nt!IopUpdatePriorityCallbackRoutine";
+    command_info.offset_to_routine = 0;
+    system_cb_commands["prioritycallback"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "";
+    system_cb_commands["pnp"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!PspLegoNotifyRoutine"; // actually just a pointer
+    system_cb_commands["lego"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!RtlpDebugPrintCallbackList";
+    command_info.offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" );
+    system_cb_commands["debugprint"] = command_info;
+
+    command_info.offset_to_routine = 0;
+
+    if ( m_minor_build < W8RTM_VER )
+    {
+        callout_names.push_back( "nt!PspW32ProcessCallout" );
+        callout_names.push_back( "nt!PspW32ThreadCallout" );
+        callout_names.push_back( "nt!ExGlobalAtomTableCallout" );
+        callout_names.push_back( "nt!KeGdiFlushUserBatch" );
+        callout_names.push_back( "nt!PopEventCallout" );
+        callout_names.push_back( "nt!PopStateCallout" );
+        callout_names.push_back( "nt!PspW32JobCallout" );
+        callout_names.push_back( "nt!ExDesktopOpenProcedureCallout" );
+        callout_names.push_back( "nt!ExDesktopOkToCloseProcedureCallout" );
+        callout_names.push_back( "nt!ExDesktopCloseProcedureCallout" );
+        callout_names.push_back( "nt!ExDesktopDeleteProcedureCallout" );
+        callout_names.push_back( "nt!ExWindowStationOkToCloseProcedureCallout" );
+        callout_names.push_back( "nt!ExWindowStationCloseProcedureCallout" );
+        callout_names.push_back( "nt!ExWindowStationDeleteProcedureCallout" );
+        callout_names.push_back( "nt!ExWindowStationParseProcedureCallout" );
+        callout_names.push_back( "nt!ExWindowStationOpenProcedureCallout" );
+        callout_names.push_back( "nt!IopWin32DataCollectionProcedureCallout" );
+        callout_names.push_back( "nt!PopWin32InfoCallout" );
+    }
+
+    m_inited = true;
+
+    return m_inited;
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
                                              const unsigned __int64 offset_list_head,
                                              bool is_double,
                                              const unsigned long offset_to_routine,
-                                             const string &type)
+                                             const string &type,
+                                             walkresType &output_list)
 {
     unsigned __int64 offset = offset_list_head;
 
@@ -267,7 +240,8 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
 
             if ( notify_routine )
             {
-                AnalyzeAddressAsRoutine( notify_routine, type, "" );
+                OutputWalkInfo info = { notify_routine, type };
+                output_list.push_back( info );
             }
         }
     }
@@ -342,7 +316,9 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
         ExtRemoteTyped directory_object( "nt!_OBJECT_DIRECTORY", directory_address, false, NULL, NULL );
         ExtRemoteTyped buckets = directory_object.Field( "HashBuckets" );
 
-        for ( __int64 i = 0; i < buckets.GetTypeSize() / m_PtrSize; i++ )
+        unsigned long num_buckets = buckets.GetTypeSize() / m_PtrSize;
+
+        for ( __int64 i = 0; i < num_buckets; i++ )
         {
             for ( ExtRemoteTyped directory_entry = *buckets[i];
                   directory_entry.m_Offset;
@@ -413,184 +389,10 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
     }
 }
 
-HRESULT WDbgArk::GetObjectHeader(const ExtRemoteTyped &object, ExtRemoteTyped &object_header)
-{
-    unsigned long offset = 0;
-
-    GetFieldOffset( "nt!_OBJECT_HEADER", "Body", &offset );
-
-    if ( !offset )
-    {
-        err << "Body field is missing in nt!_OBJECT_HEADER" << endlerr;
-        return E_UNEXPECTED;
-    }
-
-    object_header.Set( "nt!_OBJECT_HEADER", object.m_Offset - offset, false, NULL, NULL );
-
-    return S_OK;
-}
-
-HRESULT WDbgArk::GetObjectHeaderNameInfo(ExtRemoteTyped &object_header, ExtRemoteTyped &object_header_name_info)
-{
-    unsigned long type_index_offset = 0;
-
-    GetFieldOffset( "nt!_OBJECT_HEADER", "TypeIndex", &type_index_offset );
-
-    try
-    {
-        if ( !type_index_offset ) // old header format
-        {
-            ExtRemoteTyped name_info_offset = object_header.Field( "NameInfoOffset" );
-
-            if ( name_info_offset.GetUchar() )
-            {
-                object_header_name_info.Set("nt!_OBJECT_HEADER_NAME_INFO",
-                                            object_header.m_Offset - name_info_offset.GetUchar(),
-                                            false,
-                                            NULL,
-                                            NULL);
-                return S_OK;
-            }
-        }
-        else // new header format
-        {
-            unsigned __int64 offset = 0;
-
-            if ( GetSymbolOffset( "nt!ObpInfoMaskToOffset", true, &offset ) )
-            {
-                ExtRemoteTyped info_mask = object_header.Field( "InfoMask" );
-
-                if ( info_mask.GetUchar() & HeaderNameInfoFlag )
-                {
-                    ExtRemoteData name_info_mask_to_offset(
-                        offset + ( info_mask.GetUchar() & ( HeaderNameInfoFlag | ( HeaderNameInfoFlag - 1 ) ) ),
-                        sizeof( unsigned char ) );
-
-                    object_header_name_info.Set("nt!_OBJECT_HEADER_NAME_INFO",
-                                                object_header.m_Offset - name_info_mask_to_offset.GetUchar(),
-                                                false,
-                                                NULL,
-                                                NULL);
-
-                    return S_OK;
-                }
-            }
-        }
-    }
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with object_header.m_Offset = ";
-        err << std::hex << std::showbase << object_header.m_Offset << endlerr;
-    }
-
-    return E_UNEXPECTED;
-}
-
-HRESULT WDbgArk::GetObjectName(ExtRemoteTyped &object, string &object_name)
-{
-    ExtRemoteTyped object_header;
-    ExtRemoteTyped object_header_name_info;
-
-    if ( FAILED( GetObjectHeader( object, object_header ) ) )
-    {
-        err << "Failed to get object header" << endlerr;
-        return E_UNEXPECTED;
-    }
-
-    if ( FAILED( GetObjectHeaderNameInfo( object_header, object_header_name_info ) ) )
-    {
-        err << "Failed to get object header name info" << endlerr;
-        return E_UNEXPECTED;
-    }
-
-    return UnicodeStringStructToString( object_header_name_info.Field( "Name" ), object_name );
-}
-
-HRESULT WDbgArk::UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &output_string)
-{
-    try
-    {
-        ExtRemoteTyped buffer = *unicode_string.Field( "Buffer" );
-        USHORT max_bytes = unicode_string.Field( "MaximumLength" ).GetUshort();
-
-        if ( max_bytes )
-        {
-            wchar_t* test_name = new wchar_t[ max_bytes + 1 ];
-            ZeroMemory( test_name, ( max_bytes + 1 ) * sizeof( wchar_t ) );
-
-            buffer.ReadBuffer( test_name, max_bytes, true );
-
-            wstring wide_string_name( test_name );
-            delete test_name;
-
-            output_string = wstring_to_string( wide_string_name );
-
-            return S_OK;
-        }
-    }
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with unicode_string.m_Offset = ";
-        err << std::hex << std::showbase << unicode_string.m_Offset << endlerr;
-    }
-
-    return E_INVALIDARG;
-}
-
-void WDbgArk::AnalyzeAddressAsRoutine(const unsigned __int64 address,
-                                      const string &type,
-                                      const string &additional_info)
-{
-    bool    suspicious        = false;
-    string  symbol_name       = "";
-    string  module_name       = "";
-    string  image_name        = "";
-    string  loaded_image_name = "";
-
-    stringstream symbol_command_buf;
-
-    if ( address )
-    {
-        symbol_name = "Unknown symbol";
-        module_name = "Unknown module";
-
-        if ( !SUCCEEDED( GetModuleNames( address, image_name, module_name, loaded_image_name ) ) )
-            suspicious = true;
-
-        symbol_command_buf << "<exec cmd=\"lmvm " << module_name << "\">" << module_name << "</exec>";
-
-        if ( !SUCCEEDED( GetNameByOffset( address, symbol_name ) ) )
-            suspicious = true;
-    }
-
-    if ( !suspicious )
-    {
-        out << "*    ";
-        out << std::internal << std::setw( 18 ) << std::setfill( '0' ) << std::hex << std::showbase << address << std::right << std::setfill( ' ' ) << std::setw( 4 ) << ' ';
-        out << std::left << std::setw( 40 ) << type << std::right << std::setw( 12 ) << ' ';
-        out << std::left << std::setw( 70 ) << symbol_name << std::right << std::setw( 4 ) << ' ';
-        out << std::left << std::setw( 30 ) << symbol_command_buf.str() << std::right << std::setw( 1 ) << ' ';
-        out << endlout;
-    }
-    else
-    {
-        warn << "*    ";
-        warn << std::internal << std::setw( 18 ) << std::setfill( '0' ) << std::hex << std::showbase << address << std::right << std::setfill( ' ' ) << std::setw( 4 ) << ' ';
-        warn << std::left << std::setw( 40 ) << type << std::right << std::setw( 12 ) << ' ';
-        warn << std::left << std::setw( 70 ) << symbol_name << std::right << std::setw( 4 ) << ' ';
-        warn << std::left << std::setw( 30 ) << symbol_command_buf.str() << std::right << std::setw( 1 ) << ' ';
-        warn << endlwarn;
-    }
-
-    if ( !additional_info.empty() )
-    {
-        out << additional_info << endlout;
-    }
-}
-
-void WDbgArk::AnalyzeAddressAsSymbolPointer(const string &symbol_name,
-                                            const string &type,
-                                            const string &additional_info)
+void WDbgArk::AddSymbolPointer(const string &symbol_name,
+                               const string &type,
+                               const string &additional_info,
+                               walkresType &output_list)
 {
     unsigned __int64 offset = 0;
 
@@ -601,113 +403,8 @@ void WDbgArk::AnalyzeAddressAsSymbolPointer(const string &symbol_name,
 
         if ( offset )
         {
-            AnalyzeAddressAsRoutine( offset, type, additional_info );
+            OutputWalkInfo info = { offset, type, additional_info };
+            output_list.push_back( info );
         }
     }
-}
-
-HRESULT WDbgArk::GetModuleNames(const unsigned __int64 address,
-                                string &image_name,
-                                string &module_name,
-                                string &loaded_image_name)
-{
-    unsigned long    len1, len2, len3 = 0;
-    unsigned __int64 module_base      = 0;
-    unsigned long    module_index     = 0;
-
-    if ( !address )
-        return E_INVALIDARG;
-
-    HRESULT err = m_Symbols->GetModuleByOffset( address, 0, &module_index, &module_base );
-
-    if ( SUCCEEDED( err ) )
-    {
-        err = m_Symbols->GetModuleNames(module_index,
-                                        module_base,
-                                        NULL,
-                                        0,
-                                        &len1,
-                                        NULL,
-                                        0,
-                                        &len2,
-                                        NULL,
-                                        0,
-                                        &len3);
-
-        if ( SUCCEEDED( err ) )
-        {
-            char* buf1 = new char[ len1 + 1 ];
-            char* buf2 = new char[ len2 + 1 ];
-            char* buf3 = new char[ len3 + 1 ];
-            ZeroMemory( buf1, len1 + 1 );
-            ZeroMemory( buf2, len2 + 1 );
-            ZeroMemory( buf3, len3 + 1 );
-
-            err = m_Symbols->GetModuleNames(module_index,
-                                            module_base,
-                                            buf1,
-                                            len1 + 1,
-                                            NULL,
-                                            buf2,
-                                            len2 + 1,
-                                            NULL,
-                                            buf3,
-                                            len3 + 1,
-                                            NULL);
-
-            if ( SUCCEEDED( err ) )
-            {
-                image_name = buf1;
-                transform( image_name.begin(), image_name.end(), image_name.begin(), tolower );
-
-                module_name = buf2;
-                transform( module_name.begin(), module_name.end(), module_name.begin(), tolower );
-
-                loaded_image_name = buf3;
-                transform( loaded_image_name.begin(), loaded_image_name.end(), loaded_image_name.begin(), tolower );
-            }
-
-            delete buf3;
-            delete buf2;
-            delete buf1;
-        }
-    }
-
-    return err;
-}
-
-HRESULT WDbgArk::GetNameByOffset(const unsigned __int64 address, string &name)
-{
-    unsigned long    name_buffer_size = 0;
-    unsigned __int64 displacement     = 0;
-    HRESULT          err              = E_UNEXPECTED;
-    stringstream     stream_name;
-
-    if ( !address )
-        return E_INVALIDARG;
-
-    err = m_Symbols->GetNameByOffset( address, NULL, 0, &name_buffer_size, &displacement );
-
-    if ( SUCCEEDED( err ) && name_buffer_size )
-    {
-        char* tmp_name = new char[ name_buffer_size + 1 ];
-        ZeroMemory( tmp_name, name_buffer_size + 1 );
-
-        err = m_Symbols->GetNameByOffset( address, tmp_name, name_buffer_size, NULL, NULL );
-
-        if ( SUCCEEDED( err ) )
-        {
-            stream_name << tmp_name;
-
-            if ( displacement )
-                stream_name << "+" << std::hex << std::showbase << displacement;
-
-            name = stream_name.str();
-            //transform( name.begin(), name.end(), name.begin(), tolower );
-        }
-
-        delete tmp_name;
-    }
-
-    return err;
 }

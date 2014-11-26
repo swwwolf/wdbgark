@@ -19,10 +19,14 @@
     * the COPYING file in the top-level directory.
 */
 
-#ifndef _VER_H_
-#define _VER_H_
+#if _MSC_VER > 1000
+#pragma once
+#endif
+
+#ifndef _VER_HPP_
+#define _VER_HPP_
 
 #define VER_MAJOR 1
-#define VER_MINOR 0
+#define VER_MINOR 5
 
-#endif // _VER_H_
+#endif // _VER_HPP_

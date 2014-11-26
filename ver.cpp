@@ -19,8 +19,8 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "ver.h"
-#include "wdbgark.h"
+#include "ver.hpp"
+#include "wdbgark.hpp"
 
 EXT_COMMAND( ver, "Shows extension version number.\n", "" )
 {

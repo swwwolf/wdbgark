@@ -16,21 +16,33 @@
     <Filter Include="Header Files\sources">
       <UniqueIdentifier>{44b30140-c0e3-4f8e-92aa-695c26099132}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\bprinter">
+      <UniqueIdentifier>{d0d465b1-6342-47e4-82e2-2a7f6767b075}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="wdbgark.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ddk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sdt_w32p.h">
+    <ClInclude Include="sdt_w32p.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ver.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wdbgark.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="objhelper.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="process.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="analyze.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -71,6 +83,15 @@
     <ClCompile Include="sdt_w32p.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="objhelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="analyze.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bprinter\src\table_printer.cpp">
+      <Filter>Source Files\bprinter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="wdbgark.def">
@@ -81,9 +102,6 @@
     </None>
     <None Include="sources">
       <Filter>Header Files\sources</Filter>
-    </None>
-    <None Include="COPYING">
-      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -19,7 +19,7 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.h"
+#include "wdbgark.hpp"
 
 /*
 
@@ -121,14 +121,10 @@ EXT_COMMAND(pnptable,
 
     Init();
 
-    out << "******" << endlout;
-    out << "*    ";
-    out << std::left << std::setw( 16 ) << "Address" << std::right << std::setw( 6 ) << ' ';
-    out << std::left << std::setw( 40 ) << "Type" << std::right << std::setw( 12 ) << ' ';
-    out << std::left << std::setw( 70 ) << "Symbol" << std::right << std::setw( 4 ) << ' ';
-    out << std::left << std::setw( 30 ) << "Module" << std::right << std::setw( 1 ) << ' ';
-    out << "*" << endlout;
-    out << "******" << endlout;
+    WDbgArkAnalyze display;
+    stringstream   tmp_stream;
+    display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.PrintHeader();
 
     try
     {
@@ -150,7 +146,7 @@ EXT_COMMAND(pnptable,
 
                 ExtRemoteData pnp_table_entry_routine( init_offset, m_PtrSize );
 
-                AnalyzeAddressAsRoutine( pnp_table_entry_routine.GetPtr(), "", "" );
+                display.AnalyzeAddressAsRoutine( pnp_table_entry_routine.GetPtr(), "", "" );
             }
         }
     }
@@ -159,5 +155,5 @@ EXT_COMMAND(pnptable,
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
 
-    out << "******" << endlout;
+    display.PrintFooter();
 }
