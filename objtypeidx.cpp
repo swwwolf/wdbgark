@@ -29,9 +29,12 @@ EXT_COMMAND(objtypeidx,
 
     Init();
 
+    out << "Displaying nt!ObTypeIndexTable" << endlout;
+
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.SetOwnerModule( "nt" );
     display.PrintHeader();
 
     try
@@ -55,8 +58,9 @@ EXT_COMMAND(objtypeidx,
                         break;
                 }
             }
-
         }
+        else
+            cout << "Unsupported Windows version" << endlout;
     }
     catch( ... )
     {

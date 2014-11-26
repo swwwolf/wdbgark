@@ -32,9 +32,9 @@ EXT_COMMAND(objtype,
     Init();
 
     if ( HasArg( "type" ) ) // object type was provided
-    {
         type.assign( GetArgStr( "type" ) );
-    }
+
+    out << "Displaying \\ObjectTypes\\" << type << endlout;
 
     unsigned __int64 object_types_directory_offset = m_obj_helper.FindObjectByName( "ObjectTypes", 0 );
 
@@ -47,6 +47,7 @@ EXT_COMMAND(objtype,
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.SetOwnerModule( "nt" );
     display.PrintHeader();
 
     try
@@ -76,27 +77,17 @@ EXT_COMMAND(objtype,
     display.PrintFooter();
 }
 
-// TODO: refactor this
 HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &object, void* context)
 {
-    string          object_name = "*UNKNOWN*";
-    WDbgArkAnalyze* display     = reinterpret_cast<WDbgArkAnalyze*>( context );
+    WDbgArkAnalyze* display = reinterpret_cast<WDbgArkAnalyze*>( context );
     stringstream    loc;
 
     try
     {
-        if ( FAILED( wdbg_ark_class->m_obj_helper.GetObjectName( object, object_name ) ) )
-            loc << "Failed to get object name" << endlwarn;
-
-        loc << "*    ";
-        loc << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
-        loc << std::hex << std::showbase << object.m_Offset << "</exec>";
-        loc << std::right << std::setw( 4 ) << ' ' << "<b>" << object_name << "</b>" << endlout;
-
         ExtRemoteTyped object_type( "nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL );
         ExtRemoteTyped type_info = object_type.Field( "TypeInfo" );
 
-        display->AnalyzeObjectTypeInfo( type_info );
+        display->AnalyzeObjectTypeInfo( type_info, object );
     }
     catch( ... )
     {

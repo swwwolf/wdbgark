@@ -240,7 +240,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
 
             if ( notify_routine )
             {
-                OutputWalkInfo info = { notify_routine, type };
+                OutputWalkInfo info = { notify_routine, type, "", list_head_name };
                 output_list.push_back( info );
             }
         }
@@ -403,7 +403,7 @@ void WDbgArk::AddSymbolPointer(const string &symbol_name,
 
         if ( offset )
         {
-            OutputWalkInfo info = { offset, type, additional_info };
+            OutputWalkInfo info = { offset, type, additional_info, symbol_name };
             output_list.push_back( info );
         }
     }

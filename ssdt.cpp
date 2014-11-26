@@ -30,9 +30,12 @@ EXT_COMMAND(ssdt,
 
     Init();
 
+    out << "Displaying nt!KiServiceTable" << endlout;
+
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.SetOwnerModule( "nt" );
     display.PrintHeader();
 
     try
@@ -66,6 +69,7 @@ EXT_COMMAND(ssdt,
                             service_offset &= 0xFFFFFFF0;
 
                         display.AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
+                        display.PrintFooter();
                     }
                     else
                     {
@@ -73,6 +77,7 @@ EXT_COMMAND(ssdt,
 
                         ExtRemoteData service_address( offset + i * m_PtrSize, m_PtrSize );
                         display.AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
+                        display.PrintFooter();
                     }
                 }
             }
@@ -93,6 +98,8 @@ EXT_COMMAND(w32psdt,
     RequireKernelMode();
 
     Init();
+
+    out << "Displaying win32k!W32pServiceTable" << endlout;
 
     unsigned __int64 set_eprocess     = 0;
     unsigned __int64 current_eprocess = 0;
@@ -130,6 +137,7 @@ EXT_COMMAND(w32psdt,
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.SetOwnerModule( "win32k" );
     display.PrintHeader();
 
     try
@@ -163,6 +171,7 @@ EXT_COMMAND(w32psdt,
                             service_offset &= 0xFFFFFFF0;
 
                         display.AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
+                        display.PrintFooter();
                     }
                     else
                     {
@@ -170,6 +179,7 @@ EXT_COMMAND(w32psdt,
 
                         ExtRemoteData service_address( offset + i * m_PtrSize, m_PtrSize );
                         display.AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
+                        display.PrintFooter();
                     }
                 }
             }

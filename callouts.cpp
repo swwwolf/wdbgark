@@ -82,9 +82,12 @@ EXT_COMMAND(callouts,
 
     Init();
 
+    out << "Displaying Win32k callouts" << endlout;
+
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.SetOwnerModule( "win32k" );
     display.PrintHeader();
 
     try

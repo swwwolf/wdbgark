@@ -33,6 +33,7 @@ EXT_COMMAND(checkmsr,
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
+    display.SetOwnerModule( "nt" );
     display.PrintHeader();
 
     try

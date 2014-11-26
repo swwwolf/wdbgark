@@ -23,6 +23,8 @@
 using namespace std;
 
 #include "analyze.hpp"
+#include "objhelper.hpp"
+#include <dbghelp.h>
 
 bool WDbgArkAnalyze::Init(std::ostream* output)
 {
@@ -49,10 +51,21 @@ bool WDbgArkAnalyze::Init(std::ostream* output, const AnalyzeTypeInit type)
         if ( type == AnalyzeTypeDefault )
         {
             tp->AddColumn( "Address", 18 );
-            tp->AddColumn( "Name", 55 );
-            tp->AddColumn( "Symbol", 55 );
+            tp->AddColumn( "Name", 58 );
+            tp->AddColumn( "Symbol", 58 );
             tp->AddColumn( "Module", 15 );
             tp->AddColumn( "Suspicious", 10 );
+
+            m_inited = true;
+        }
+        else if ( type == AnalyzeTypeCallback )
+        {
+            tp->AddColumn( "Address", 18 );
+            tp->AddColumn( "Type", 20 );
+            tp->AddColumn( "Symbol", 70 );
+            tp->AddColumn( "Module", 15 );
+            tp->AddColumn( "Suspicious", 10 );
+            tp->AddColumn( "Info", 25 );
 
             m_inited = true;
         }
@@ -65,12 +78,10 @@ void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
                                              const string &type,
                                              const string &additional_info)
 {
-    bool         suspicious = false;
-
-    string       symbol_name       = "";
-    string       module_name       = "";
-    string       image_name        = "";
-    string       loaded_image_name = "";
+    string       symbol_name;
+    string       module_name;
+    string       image_name;
+    string       loaded_image_name;
     stringstream module_command_buf;
 
     if ( !IsInited() )
@@ -78,6 +89,8 @@ void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
         err << __FUNCTION__ << ": class is not initialized" << endlerr;
         return;
     }
+
+    bool suspicious = IsSuspiciousAddress( address );
 
     if ( address )
     {
@@ -106,26 +119,46 @@ void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
     *tp << addr_ext.str() << type << symbol_name << module_command_buf.str();
 
     if ( suspicious )
-    {
-        *tp << "Y";
-        tp->flush_warn();
-    }
+        *tp << "Y";        
     else
-    {
         *tp << "";
-        tp->flush_out();
-    }
 
     if ( !additional_info.empty() )
-    {
-        out << additional_info << endlout;
-    }
+        *tp << additional_info;
+
+    if ( suspicious )
+        tp->flush_warn();
+    else
+        tp->flush_out();
 }
 
-void WDbgArkAnalyze::AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info)
+void WDbgArkAnalyze::AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info, ExtRemoteTyped &object)
 {
+    string           object_name = "*UNKNOWN*";
+    WDbgArkObjHelper obj_helper;
+
+    if ( !IsInited() )
+    {
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return;
+    }
+
     try
     {
+        obj_helper.Init();
+        obj_helper.GetObjectName( object, object_name );
+
+        stringstream object_command;
+        stringstream object_name_ext;
+
+        object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
+        object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
+        object_name_ext << /*"<b>" <<*/ object_name /*<< "</b>"*/;
+
+        *tp << object_command.str() << object_name_ext.str();
+        tp->flush_out();
+        tp->PrintFooter();
+
         AnalyzeAddressAsRoutine( type_info.Field( "DumpProcedure" ).GetPtr(), "DumpProcedure", "" );
         AnalyzeAddressAsRoutine( type_info.Field( "OpenProcedure" ).GetPtr(), "OpenProcedure", "" );
         AnalyzeAddressAsRoutine( type_info.Field( "CloseProcedure" ).GetPtr(), "CloseProcedure", "" );
@@ -133,6 +166,7 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info)
         AnalyzeAddressAsRoutine( type_info.Field( "ParseProcedure" ).GetPtr(), "ParseProcedure", "" );
         AnalyzeAddressAsRoutine( type_info.Field( "SecurityProcedure" ).GetPtr(), "SecurityProcedure", "" );
         AnalyzeAddressAsRoutine( type_info.Field( "SecurityProcedure" ).GetPtr(), "QueryNameProcedure", "" );
+        tp->PrintFooter();
     }
     catch( ... )
     {
@@ -262,4 +296,48 @@ HRESULT WDbgArkAnalyze::GetNameByOffset(const unsigned __int64 address, string &
     }
 
     return err;
+}
+
+bool WDbgArkAnalyze::SetOwnerModule(const string &module_name)
+{
+    if ( !IsInited() )
+    {
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return false;
+    }
+
+    try
+    {
+        unsigned long index = g_Ext->FindFirstModule( module_name.c_str(), NULL, 0 );
+
+        if ( SUCCEEDED( g_Ext->m_Symbols->GetModuleByIndex( index, &m_owner_module_start ) ) )
+        {
+            IMAGEHLP_MODULEW64 info;
+            g_Ext->GetModuleImagehlpInfo( m_owner_module_start, &info );
+
+            m_owner_module_end = m_owner_module_start + info.ImageSize;
+
+            return m_owner_module_inited = true;
+        }
+    }
+    catch( ... )
+    {
+        err << "Exception in " << __FUNCTION__ << " with module_name = " << module_name << endlerr;
+    }
+
+    return false;
+}
+
+bool WDbgArkAnalyze::IsSuspiciousAddress(const unsigned __int64 address)
+{
+    if ( !m_owner_module_inited )
+        return false;
+
+    if ( !address )
+        return false;
+
+    if ( address >= m_owner_module_start && address <= m_owner_module_end )
+        return false;
+
+    return true;
 }

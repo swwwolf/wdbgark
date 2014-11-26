@@ -80,6 +80,7 @@ public:
         unsigned __int64 routine_address;
         string           type;
         string           info;
+        string           list_head_name;
     } OutputWalkInfo;
 
     typedef vector<OutputWalkInfo> walkresType;
@@ -87,6 +88,7 @@ public:
     typedef struct WalkCallbackContextTag
     {
         string       type;
+        string       list_head_name;
         walkresType* output_list_pointer;
     } WalkCallbackContext;
     //////////////////////////////////////////////////////////////////////////

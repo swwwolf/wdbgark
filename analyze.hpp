@@ -81,13 +81,17 @@ inline std::ostream& endlerr(std::ostream& arg)
 
 enum AnalyzeTypeInit
 {
-    AnalyzeTypeDefault
+    AnalyzeTypeDefault,
+    AnalyzeTypeCallback
 };
 
 class WDbgArkAnalyze
 {
 public:
-    WDbgArkAnalyze() { m_inited = false; }
+    WDbgArkAnalyze() :
+        m_inited(false),
+        m_owner_module_inited(false)
+    { }
     ~WDbgArkAnalyze()
     {
         if ( IsInited() )
@@ -96,7 +100,6 @@ public:
 
     bool Init(std::ostream* output);
     bool Init(std::ostream* output, const AnalyzeTypeInit type);
-
     bool IsInited(void){ return m_inited == true; }
 
     void PrintHeader(void)
@@ -116,17 +119,42 @@ public:
     }
 
     //////////////////////////////////////////////////////////////////////////
+    // owner module routines
+    //////////////////////////////////////////////////////////////////////////
+    bool SetOwnerModule(void)
+    {
+        m_owner_module_start = 0;
+        m_owner_module_end = 0;
+
+        return m_owner_module_inited = false;
+    }
+    bool SetOwnerModule(const unsigned __int64 start, const unsigned __int64 end)
+    {
+        if ( !start || !end )
+            return false;
+
+        m_owner_module_start = start;
+        m_owner_module_end = end;
+
+        return m_owner_module_inited = true;
+    }
+    bool SetOwnerModule(const string &module_name);
+
+    //////////////////////////////////////////////////////////////////////////
     // analyze routines
     //////////////////////////////////////////////////////////////////////////
     void AnalyzeAddressAsRoutine(const unsigned __int64 address,
                                  const string &type,
                                  const string &additional_info);
 
-    void AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info);
+    void AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info, ExtRemoteTyped &object);
 
 private:
 
     bool                    m_inited;
+    bool                    m_owner_module_inited;
+    unsigned __int64        m_owner_module_start;
+    unsigned __int64        m_owner_module_end;
     bprinter::TablePrinter* tp;
 
     //////////////////////////////////////////////////////////////////////////
@@ -138,6 +166,8 @@ private:
                            string &loaded_image_name);
 
     HRESULT GetNameByOffset(const unsigned __int64 address, string &name);
+
+    bool    IsSuspiciousAddress(const unsigned __int64 address);
 
     //////////////////////////////////////////////////////////////////////////
     // output streams

@@ -79,9 +79,9 @@ public:
   void PrintHeader();
   void PrintFooter();
 
-  void flush_out() { *out_stream_ << bprinter::endlout; }
-  void flush_warn() { *out_stream_ << bprinter::endlwarn; }
-  void flush_err() { *out_stream_ << bprinter::endlerr; }
+  void flush_out() { *this << bprinter::endl(); *out_stream_ << bprinter::endlout; }
+  void flush_warn() { *this << bprinter::endl(); *out_stream_ << bprinter::endlwarn; }
+  void flush_err() { *this << bprinter::endl(); *out_stream_ << bprinter::endlerr; }
 
   TablePrinter& operator<<(endl input){
     while (j_ != 0){
