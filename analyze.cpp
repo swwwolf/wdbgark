@@ -211,13 +211,13 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
             if ( !buf1 || !buf2 || !buf3 )
             {
                 if ( buf3 )
-                    delete buf3;
+                    delete[] buf3;
 
                 if ( buf2 )
-                    delete buf2;
+                    delete[] buf2;
 
                 if ( buf1 )
-                    delete buf1;
+                    delete[] buf1;
 
                 return E_OUTOFMEMORY;
             }
@@ -250,9 +250,9 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                 transform( loaded_image_name.begin(), loaded_image_name.end(), loaded_image_name.begin(), tolower );
             }
 
-            delete buf3;
-            delete buf2;
-            delete buf1;
+            delete[] buf3;
+            delete[] buf2;
+            delete[] buf1;
         }
     }
 
@@ -292,7 +292,7 @@ HRESULT WDbgArkAnalyze::GetNameByOffset(const unsigned __int64 address, string &
             name = stream_name.str();
         }
 
-        delete tmp_name;
+        delete[] tmp_name;
     }
 
     return err;
@@ -316,8 +316,9 @@ bool WDbgArkAnalyze::SetOwnerModule(const string &module_name)
             g_Ext->GetModuleImagehlpInfo( m_owner_module_start, &info );
 
             m_owner_module_end = m_owner_module_start + info.ImageSize;
+            m_owner_module_inited = true;
 
-            return m_owner_module_inited = true;
+            return true;
         }
     }
     catch( ... )

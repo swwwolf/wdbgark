@@ -125,8 +125,9 @@ public:
     {
         m_owner_module_start = 0;
         m_owner_module_end = 0;
+        m_owner_module_inited = false;
 
-        return m_owner_module_inited = false;
+        return false;
     }
     bool SetOwnerModule(const unsigned __int64 start, const unsigned __int64 end)
     {
@@ -135,8 +136,9 @@ public:
 
         m_owner_module_start = start;
         m_owner_module_end = end;
+        m_owner_module_inited = true;
 
-        return m_owner_module_inited = true;
+        return true;
     }
     bool SetOwnerModule(const string &module_name);
 

@@ -26,6 +26,12 @@
 #ifndef _WDBGARK_HPP_
 #define _WDBGARK_HPP_
 
+#if defined( _DEBUG )
+    #define _CRTDBG_MAP_ALLOC
+    #include <stdlib.h>
+    #include <crtdbg.h>
+#endif // _DEBUG
+
 #include <string>
 #include <map>
 #include <sstream>
@@ -107,7 +113,26 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // main commands
     //////////////////////////////////////////////////////////////////////////
-    WDbgArk() { m_inited = false; }
+    WDbgArk()
+    {
+        m_inited = false;
+
+        _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+        _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_DEBUG );
+
+        //_CrtSetBreakAlloc( 143 );
+    }
+
+    ~WDbgArk()
+    {
+        if ( IsInited() )
+        {
+            system_cb_commands.clear();
+            callout_names.clear();
+        }
+
+        _CrtDumpMemoryLeaks();
+    }
 
     EXT_COMMAND_METHOD( ver );
     EXT_COMMAND_METHOD( scan );

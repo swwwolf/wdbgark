@@ -49,7 +49,7 @@ HRESULT UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &outp
             buffer.ReadBuffer( test_name, maxlen, true );
 
             wstring wide_string_name( test_name );
-            delete test_name;
+            delete[] test_name;
 
             output_string = wstring_to_string( wide_string_name );
 
