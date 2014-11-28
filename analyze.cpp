@@ -48,33 +48,33 @@ bool WDbgArkAnalyze::Init(std::ostream* output, const AnalyzeTypeInit type)
 
     if ( tp )
     {
-        if ( type == AnalyzeTypeDefault )
+        if ( type == AnalyzeTypeDefault ) // width = 180
         {
             tp->AddColumn( "Address", 18 );
-            tp->AddColumn( "Name", 58 );
-            tp->AddColumn( "Symbol", 58 );
-            tp->AddColumn( "Module", 15 );
+            tp->AddColumn( "Name", 68 );
+            tp->AddColumn( "Symbol", 68 );
+            tp->AddColumn( "Module", 16 );
             tp->AddColumn( "Suspicious", 10 );
 
             m_inited = true;
         }
-        else if ( type == AnalyzeTypeCallback )
+        else if ( type == AnalyzeTypeCallback ) // width = 170
         {
             tp->AddColumn( "Address", 18 );
             tp->AddColumn( "Type", 20 );
-            tp->AddColumn( "Symbol", 70 );
-            tp->AddColumn( "Module", 15 );
+            tp->AddColumn( "Symbol", 81 );
+            tp->AddColumn( "Module", 16 );
             tp->AddColumn( "Suspicious", 10 );
             tp->AddColumn( "Info", 25 );
 
             m_inited = true;
         }
-        else if ( type == AnalyzeTypeIDT )
+        else if ( type == AnalyzeTypeIDT ) // width = 160
         {
             tp->AddColumn( "Address", 18 );
-            tp->AddColumn( "CPU / Idx", 9 );
-            tp->AddColumn( "Symbol", 70 );
-            tp->AddColumn( "Module", 15 );
+            tp->AddColumn( "CPU / Idx", 11 );
+            tp->AddColumn( "Symbol", 80 );
+            tp->AddColumn( "Module", 16 );
             tp->AddColumn( "Suspicious", 10 );
             tp->AddColumn( "Info", 25 );
 
@@ -111,7 +111,7 @@ void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
         if ( !SUCCEEDED( GetModuleNames( address, image_name, module_name, loaded_image_name ) ) )
             suspicious = true;
 
-        module_command_buf << "<exec cmd=\"lmvm " << module_name << "\">" << std::setw( 15 ) << module_name << "</exec>";
+        module_command_buf << "<exec cmd=\"lmvm " << module_name << "\">" << std::setw( 16 ) << module_name << "</exec>";
 
         if ( !SUCCEEDED( GetNameByOffset( address, symbol_name ) ) )
             suspicious = true;

@@ -242,6 +242,8 @@ EXT_COMMAND(wa_systemcb,
         prev_list_head = (*it).list_head_name;
     }
 
+    display.PrintFooter();
+
     output_list.clear();
 }
 
@@ -261,6 +263,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
         {
             WalkAnyListWithOffsetToRoutine("nt!CallbackListHead",
                                            0,
+                                           0,
                                            true,
                                            citer->second.offset_to_routine,
                                            citer->first,
@@ -279,6 +282,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
     {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        0,
+                                       0,
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
@@ -288,6 +292,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
     else if ( citer->first == "powersetting" && m_minor_build > W2K3_VER )
     {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       0,
                                        0,
                                        true,
                                        citer->second.offset_to_routine,
@@ -307,6 +312,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
     {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        0,
+                                       0,
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
@@ -316,6 +322,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
     else if ( citer->first == "fschange" )
     {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       0,
                                        0,
                                        true,
                                        citer->second.offset_to_routine,
@@ -327,6 +334,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
     {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        0,
+                                       0,
                                        false,
                                        citer->second.offset_to_routine,
                                        citer->first,
@@ -336,6 +344,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
     else if ( citer->first == "logonsessionroutine" )
     {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       0,
                                        0,
                                        false,
                                        citer->second.offset_to_routine,
@@ -367,6 +376,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
         else // all others
         {
             WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                           0,
                                            0,
                                            true,
                                            citer->second.offset_to_routine,
@@ -495,13 +505,14 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped
         list_head_name.append( object_name );
 
     // Signature + Lock
-    const unsigned __int64 offset_list_head = object.m_Offset + wdbg_ark_class->m_PtrSize + wdbg_ark_class->m_PtrSize;
+    const unsigned __int64 offset_list_head = object.m_Offset + g_Ext->m_PtrSize + g_Ext->m_PtrSize;
 
     // Link + CallbackObject
-    const unsigned long offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + wdbg_ark_class->m_PtrSize;
+    const unsigned long offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + g_Ext->m_PtrSize;
 
     wdbg_ark_class->WalkAnyListWithOffsetToRoutine(list_head_name,
                                                    offset_list_head,
+                                                   0,
                                                    true,
                                                    offset_to_routine,
                                                    type,
@@ -585,7 +596,7 @@ void WDbgArk::WalkPnpLists(const string &type, walkresType &output_list)
 
     //type_w_subtype.append( ":EventCategoryHardwareProfileChange" );
 
-    WalkAnyListWithOffsetToRoutine( list_head_name, 0, true, offset_to_routine, type, "", output_list );
+    WalkAnyListWithOffsetToRoutine( list_head_name, 0, 0, true, offset_to_routine, type, "", output_list );
 
     //type_w_subtype = type;
 
@@ -604,6 +615,7 @@ void WDbgArk::WalkPnpLists(const string &type, walkresType &output_list)
         {
             WalkAnyListWithOffsetToRoutine(list_head_name,
                                            offset + i * GetTypeSize( "nt!_LIST_ENTRY" ),
+                                           0,
                                            true,
                                            offset_to_routine,
                                            type,
@@ -635,6 +647,7 @@ HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &dev
 
     wdbg_ark_class->WalkAnyListWithOffsetToRoutine(cb_context->list_head_name,
                                                    device_node.Field( "TargetDeviceNotify" ).m_Offset,
+                                                   0,
                                                    true,
                                                    wdbg_ark_class->GetPnpCallbackItemFunctionOffset(),
                                                    cb_context->type,

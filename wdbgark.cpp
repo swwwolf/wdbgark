@@ -208,6 +208,7 @@ bool WDbgArk::Init()
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
                                              const unsigned __int64 offset_list_head,
+                                             const unsigned long link_offset,
                                              bool is_double,
                                              const unsigned long offset_to_routine,
                                              const string &type,
@@ -230,17 +231,17 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
 
     try
     {
-        ExtRemoteList list_head( offset, 0, is_double );
+        ExtRemoteList list_head( offset, link_offset, is_double );
 
         for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() )
         {
             ExtRemoteData structure_data( list_head.GetNodeOffset() + offset_to_routine, m_PtrSize );
 
-            unsigned __int64 notify_routine = structure_data.GetPtr();
+            unsigned __int64 routine = structure_data.GetPtr();
 
-            if ( notify_routine )
+            if ( routine )
             {
-                OutputWalkInfo info = { notify_routine, type, ext_info, list_head_name, list_head.GetNodeOffset() };
+                OutputWalkInfo info = { routine, type, ext_info, list_head_name, list_head.GetNodeOffset() };
                 output_list.push_back( info );
             }
         }

@@ -60,7 +60,7 @@ EXT_COMMAND(wa_objtypeidx,
             }
         }
         else
-            cout << "Unsupported Windows version" << endlout;
+            out << "Unsupported Windows version" << endlout;
     }
     catch( ... )
     {

@@ -30,70 +30,70 @@ EXT_COMMAND(wa_scan,
     Init();
 
     if ( HasArg( "reload" ) )
-            m_Symbols->Reload( "/f /n" );
+        m_Symbols->Reload( "/f /n" );
 
     if ( HasArg( "log" ) )
         Execute( ".logopen /t %s", GetArgStr( "log" ) );
 
     try
     {
-        out << "!wa_ssdt" << endlout;
+        out << "<b>!wa_ssdt</b>" << endlout;
         wa_ssdt();
     }
     catch( ... ) {}
     
     try
     {
-        out << "!wa_w32psdt" << endlout;
+        out << "<b>!wa_w32psdt</b>" << endlout;
         wa_w32psdt();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!wa_idt" << endlout;
+        out << "<b>!wa_idt</b>" << endlout;
         wa_idt();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!wa_checkmsr" << endlout;
+        out << "<b>!wa_checkmsr</b>" << endlout;
         wa_checkmsr();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!wa_systemcb" << endlout;
+        out << "<b>!wa_systemcb</b>" << endlout;
         wa_systemcb();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!wa_objtype" << endlout;
+        out << "<b>!wa_objtype</b>" << endlout;
         wa_objtype();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!wa_objtypeidx" << endlout;
+        out << "<b>!wa_objtypeidx</b>" << endlout;
         wa_objtypeidx();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!wa_callouts" << endlout;
+        out << "<b>!wa_callouts</b>" << endlout;
         wa_callouts();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!wa_pnptable" << endlout;
+        out << "<b>!wa_pnptable</b>" << endlout;
         wa_pnptable();
     }
     catch( ... ) {}

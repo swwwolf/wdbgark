@@ -175,6 +175,7 @@ public:
 
     void WalkAnyListWithOffsetToRoutine(const string &list_head_name,
                                         const unsigned __int64 offset_list_head,
+                                        const unsigned long link_offset,
                                         bool is_double,
                                         const unsigned long offset_to_routine,
                                         const string &type,

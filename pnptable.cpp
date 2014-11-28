@@ -159,4 +159,5 @@ EXT_COMMAND(wa_pnptable,
     }
 
     display.PrintFooter();
+    display.PrintFooter();
 }

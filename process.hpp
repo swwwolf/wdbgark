@@ -84,6 +84,17 @@ public:
         return 0;
     }
 
+    unsigned __int64 FindEProcessAnyGUIProcess()
+    {
+        for ( vector<ProcessInfo>::iterator it = m_process_list.begin(); it != m_process_list.end(); ++it )
+        {
+            if ( (*it).process.Field( "Win32Process" ).GetPtr() )
+                return (*it).eprocess;
+        }
+
+        return 0;
+    }
+
 private:
 
     string GetProcessImageFileName(ExtRemoteTyped &process)

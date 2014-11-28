@@ -418,7 +418,9 @@ EXT_COMMAND(wa_idt,
     unsigned __int64 end_unexpected_range       = 0;
     unsigned long    vector_to_interrupt_object = 0;
     unsigned long    dispatch_code_offset       = 0;
-    unsigned long    dispatch_addr_offset       = 0;
+    unsigned long    message_service_offset     = 0;
+    unsigned long    service_routine_offset     = 0;
+    unsigned long    interrupt_list_entry       = 0;
 
     if ( m_is_cur_machine64 )
     {
@@ -448,7 +450,9 @@ EXT_COMMAND(wa_idt,
 
     GetFieldOffset( "nt!_KPCR", "PrcbData.VectorToInterruptObject", &vector_to_interrupt_object );
     GetFieldOffset( "nt!_KINTERRUPT", "DispatchCode", &dispatch_code_offset );
-    GetFieldOffset( "nt!_KINTERRUPT", "DispatchAddress", &dispatch_addr_offset );
+    GetFieldOffset( "nt!_KINTERRUPT", "MessageServiceRoutine", &message_service_offset );
+    GetFieldOffset( "nt!_KINTERRUPT", "ServiceRoutine", &service_routine_offset );
+    GetFieldOffset( "nt!_KINTERRUPT", "InterruptListEntry", &interrupt_list_entry );
     
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
@@ -567,8 +571,11 @@ EXT_COMMAND(wa_idt,
                         ExtRemoteTyped vector_to_interrupt = pcr.Field( "PrcbData.VectorToInterruptObject" );
                         ExtRemoteTyped tmp_interrupt = *vector_to_interrupt[ j - PRIMARY_VECTOR_BASE ];
 
-                        interrupt.Set( "nt!_KINTERRUPT", tmp_interrupt.m_Offset, false, NULL, NULL );
-                        valid_interrupt = true;
+                        if ( tmp_interrupt.m_Offset )
+                        {
+                            interrupt.Set( "nt!_KINTERRUPT", tmp_interrupt.m_Offset, false, NULL, NULL );
+                            valid_interrupt = true;
+                        }
                     }
                 }
 
@@ -582,7 +589,10 @@ EXT_COMMAND(wa_idt,
                     info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                     info << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                    unsigned __int64 message_address = interrupt.Field( "MessageServiceRoutine" ).GetPtr();
+                    unsigned __int64 message_address = 0;
+                    
+                    if ( message_service_offset )
+                        message_address = interrupt.Field( "MessageServiceRoutine" ).GetPtr();
 
                     if ( !message_address )
                         message_address = interrupt.Field( "ServiceRoutine" ).GetPtr();
@@ -590,20 +600,38 @@ EXT_COMMAND(wa_idt,
                     display.AnalyzeAddressAsRoutine( message_address, processor_index.str(), info.str() );
 
                     walkresType output_list;
+
+                    if ( message_service_offset )
+                    {
+                        WalkAnyListWithOffsetToRoutine("",
+                                                       interrupt.Field( "InterruptListEntry" ).m_Offset,
+                                                       interrupt_list_entry,
+                                                       true,
+                                                       message_service_offset,
+                                                       processor_index.str(),
+                                                       "",
+                                                       output_list);
+                    }
+
                     WalkAnyListWithOffsetToRoutine("",
                                                    interrupt.Field( "InterruptListEntry" ).m_Offset,
+                                                   interrupt_list_entry,
                                                    true,
-                                                   dispatch_addr_offset,
+                                                   service_routine_offset,
                                                    processor_index.str(),
                                                    "",
                                                    output_list);
 
                     for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it )
                     {
+                        if ( !(*it).routine_address )
+                            continue;
+
                         stringstream info;
                         info << setw( 41 );
 
-                        info << "<exec cmd=\"dt nt!_KINTERRUPT " << std::hex << std::showbase << (*it).object_offset;
+                        info << "<exec cmd=\"dt nt!_KINTERRUPT ";
+                        info << std::hex << std::showbase << (*it).object_offset;
                         info << "\">dt" << "</exec>" << " ";
                         info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                         info << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";

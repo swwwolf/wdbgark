@@ -110,11 +110,11 @@ EXT_COMMAND(wa_w32psdt,
     if ( !set_eprocess )
     {
         WDbgArkProcess process;
-        set_eprocess = process.FindEProcessByImageFileName( "explorer.exe" );
+        set_eprocess = process.FindEProcessAnyGUIProcess();
 
         if ( !set_eprocess )
         {
-            err << "Failed to find explorer process" << endlerr;
+            err << "Failed to find GUI process" << endlerr;
             return;
         }
     }

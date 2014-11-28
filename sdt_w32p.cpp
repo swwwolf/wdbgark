@@ -13056,7 +13056,7 @@ char* W32pServiceTable_Win8Sp1_x86[] =
     "NtGdiInvertRgn",
     "NtGdiIntersectClipRect",
     "NtGdiInitSpool",
-    "?GetType@CDiscardInputQueue@@EBE?AW4CompositionInputQueueType@", // TODO: strange
+    "CDiscardInputQueue::AddRef",
     "NtGdiIcmBrushInfo",
     "NtGdiHfontCreate",
     "NtGdiGradientFill",

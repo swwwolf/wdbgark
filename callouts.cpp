@@ -132,4 +132,5 @@ EXT_COMMAND(wa_callouts,
     }
 
     display.PrintFooter();
+    display.PrintFooter();
 }
