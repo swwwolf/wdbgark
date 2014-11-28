@@ -69,6 +69,17 @@ bool WDbgArkAnalyze::Init(std::ostream* output, const AnalyzeTypeInit type)
 
             m_inited = true;
         }
+        else if ( type == AnalyzeTypeIDT )
+        {
+            tp->AddColumn( "Address", 18 );
+            tp->AddColumn( "CPU / Idx", 9 );
+            tp->AddColumn( "Symbol", 70 );
+            tp->AddColumn( "Module", 15 );
+            tp->AddColumn( "Suspicious", 10 );
+            tp->AddColumn( "Info", 25 );
+
+            m_inited = true;
+        }
     }
 
     return m_inited;
@@ -153,7 +164,7 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info, ExtRemoteT
 
         object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
         object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
-        object_name_ext << /*"<b>" <<*/ object_name /*<< "</b>"*/;
+        object_name_ext << object_name;
 
         *tp << object_command.str() << object_name_ext.str();
         tp->flush_out();

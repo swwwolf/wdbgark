@@ -21,8 +21,8 @@
 
 #include "wdbgark.hpp"
 
-EXT_COMMAND(checkmsr,
-            "Output system MSRs (live debug only!)\n",
+EXT_COMMAND(wa_checkmsr,
+            "Output system MSRs (live debug only!)",
             "")
 {
     RequireKernelMode();

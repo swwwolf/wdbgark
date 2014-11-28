@@ -21,70 +21,80 @@
 
 #include "wdbgark.hpp"
 
-EXT_COMMAND(scan,
-            "Run all commands\n",
-            "{log;s;o;log,Log file name}")
+EXT_COMMAND(wa_scan,
+            "Scan system",
+            "{log;s;o;log,Log file name}{reload;b;o;reload,Force to reload symbols}")
 {
     RequireKernelMode();
 
     Init();
+
+    if ( HasArg( "reload" ) )
+            m_Symbols->Reload( "/f /n" );
 
     if ( HasArg( "log" ) )
         Execute( ".logopen /t %s", GetArgStr( "log" ) );
 
     try
     {
-        out << "!ssdt" << endlout;
-        ssdt();
+        out << "!wa_ssdt" << endlout;
+        wa_ssdt();
     }
     catch( ... ) {}
     
     try
     {
-        out << "!w32psdt" << endlout;
-        w32psdt();
+        out << "!wa_w32psdt" << endlout;
+        wa_w32psdt();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!checkmsr" << endlout;
-        checkmsr();
+        out << "!wa_idt" << endlout;
+        wa_idt();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!systemcb" << endlout;
-        systemcb();
+        out << "!wa_checkmsr" << endlout;
+        wa_checkmsr();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!objtype" << endlout;
-        objtype();
+        out << "!wa_systemcb" << endlout;
+        wa_systemcb();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!objtypeidx" << endlout;
-        objtypeidx();
+        out << "!wa_objtype" << endlout;
+        wa_objtype();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!callouts" << endlout;
-        callouts();
+        out << "!wa_objtypeidx" << endlout;
+        wa_objtypeidx();
     }
     catch( ... ) {}
 
     try
     {
-        out << "!pnptable" << endlout;
-        pnptable();
+        out << "!wa_callouts" << endlout;
+        wa_callouts();
+    }
+    catch( ... ) {}
+
+    try
+    {
+        out << "!wa_pnptable" << endlout;
+        wa_pnptable();
     }
     catch( ... ) {}
 

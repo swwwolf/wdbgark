@@ -21,8 +21,8 @@
 
 #include "wdbgark.hpp"
 
-EXT_COMMAND(objtype,
-            "Output kernel-mode object type(s)\n",
+EXT_COMMAND(wa_objtype,
+            "Output kernel-mode object type(s)",
             "{type;s;o;type,Object type name}")
 {
     string type = "";

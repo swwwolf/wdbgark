@@ -183,10 +183,10 @@ IopProfileNotifyList and IopDeviceClassNotifyList were replaced by PnpProfileNot
 
 */
 
-EXT_COMMAND(systemcb,
-            "Output kernel-mode registered callback(s)\n",
+EXT_COMMAND(wa_systemcb,
+            "Output kernel-mode registered callback(s)",
             "{type;s;o;type,Callback type name:\n"\
-            "image, process, thread, registry, bugcheck, bugcheckreason, powersetting, callbackdir, shutdown, "
+            "image, process, thread, registry, bugcheck, bugcheckreason, powersetting, callbackdir, shutdown, "\
             "shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, pnp, lego, "\
             "debugprint}")
 {
@@ -264,6 +264,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                            true,
                                            citer->second.offset_to_routine,
                                            citer->first,
+                                           "",
                                            output_list);
         }
     }
@@ -281,6 +282,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
+                                       "",
                                        output_list);
     }
     else if ( citer->first == "powersetting" && m_minor_build > W2K3_VER )
@@ -290,6 +292,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
+                                       "",
                                        output_list);
     }
     else if ( citer->first == "callbackdir" )
@@ -307,6 +310,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
+                                       "",
                                        output_list);
     }
     else if ( citer->first == "fschange" )
@@ -316,6 +320,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
+                                       "",
                                        output_list);
     }
     else if ( citer->first == "nmi" && m_minor_build > WXP_VER )
@@ -325,6 +330,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                        false,
                                        citer->second.offset_to_routine,
                                        citer->first,
+                                       "",
                                        output_list);
     }
     else if ( citer->first == "logonsessionroutine" )
@@ -334,6 +340,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                        false,
                                        citer->second.offset_to_routine,
                                        citer->first,
+                                       "",
                                        output_list);
     }
     else if ( citer->first == "prioritycallback" && m_minor_build >= W7RTM_VER )
@@ -364,6 +371,7 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                            true,
                                            citer->second.offset_to_routine,
                                            citer->first,
+                                           "",
                                            output_list);
         }
     }
@@ -410,7 +418,7 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
 
                 if ( notify_routine )
                 {
-                    OutputWalkInfo info = { notify_routine, type, "", list_head_name };
+                    OutputWalkInfo info = { notify_routine, type, "", list_head_name, 0 };
                     output_list.push_back( info );
                 }
             }
@@ -497,6 +505,7 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped
                                                    true,
                                                    offset_to_routine,
                                                    type,
+                                                   "",
                                                    *cb_context->output_list_pointer);
 
     return S_OK;
@@ -540,7 +549,12 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
         info << "<exec cmd=\"!drvobj " << std::hex << std::showbase << driver_object.m_Offset;
         info << " 7" << "\">!drvobj" << "</exec>";
 
-        OutputWalkInfo winfo = { major_functions[(unsigned long )IRP_MJ_SHUTDOWN].GetPtr(), type, info.str(), cb_context->list_head_name };
+        OutputWalkInfo winfo = { major_functions[(unsigned long )IRP_MJ_SHUTDOWN].GetPtr(),
+                                 type,
+                                 info.str(),
+                                 cb_context->list_head_name,
+                                 0 };
+
         cb_context->output_list_pointer->push_back( winfo );
     }
     catch( ... )
@@ -561,7 +575,6 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
 void WDbgArk::WalkPnpLists(const string &type, walkresType &output_list)
 {
     string           list_head_name    = "";
-    //string           type_w_subtype    = type;
     unsigned __int64 offset            = 0;
     unsigned long    offset_to_routine = GetPnpCallbackItemFunctionOffset();
 
@@ -572,7 +585,7 @@ void WDbgArk::WalkPnpLists(const string &type, walkresType &output_list)
 
     //type_w_subtype.append( ":EventCategoryHardwareProfileChange" );
 
-    WalkAnyListWithOffsetToRoutine( list_head_name, 0, true, offset_to_routine, type, output_list );
+    WalkAnyListWithOffsetToRoutine( list_head_name, 0, true, offset_to_routine, type, "", output_list );
 
     //type_w_subtype = type;
 
@@ -594,6 +607,7 @@ void WDbgArk::WalkPnpLists(const string &type, walkresType &output_list)
                                            true,
                                            offset_to_routine,
                                            type,
+                                           "",
                                            output_list);
         }
     }
@@ -614,11 +628,17 @@ HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &dev
 {
     WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>( context );
 
+    stringstream info;
+
+    info << std::setw( 37 ) << "<exec cmd=\"!devnode " << std::hex << std::showbase << device_node.m_Offset;
+    info << "\">!devnode" << "</exec>";
+
     wdbg_ark_class->WalkAnyListWithOffsetToRoutine(cb_context->list_head_name,
                                                    device_node.Field( "TargetDeviceNotify" ).m_Offset,
                                                    true,
                                                    wdbg_ark_class->GetPnpCallbackItemFunctionOffset(),
                                                    cb_context->type,
+                                                   info.str(),
                                                    *cb_context->output_list_pointer);
 
     return S_OK;

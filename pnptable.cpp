@@ -113,8 +113,8 @@ PAGEDATA:005C4554 00 00 00 00                   dd 0
 
 */
 
-EXT_COMMAND(pnptable,
-            "Output kernel-mode nt!PlugPlayHandlerTable\n",
+EXT_COMMAND(wa_pnptable,
+            "Output kernel-mode nt!PlugPlayHandlerTable",
             "")
 {
     RequireKernelMode();

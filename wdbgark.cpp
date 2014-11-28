@@ -58,8 +58,10 @@ HRESULT UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &outp
     }
     catch( ... )
     {
-        //err << "Exception in " << __FUNCTION__ << " with unicode_string.m_Offset = ";
-        //err << std::hex << std::showbase << unicode_string.m_Offset << endlerr;
+        stringstream err;
+
+        err << "Exception in " << __FUNCTION__ << " with unicode_string.m_Offset = ";
+        err << std::hex << std::showbase << unicode_string.m_Offset << endlerr;
     }
 
     return E_INVALIDARG;
@@ -85,9 +87,6 @@ bool WDbgArk::Init()
                                 NULL);
 
     m_is_cur_machine64 = IsCurMachine64();
-
-    // reloads kernel-mode modules
-    //m_Symbols->Reload( "/f /n" );
 
     // TODO: optimize by calculating offsets in constructor only once
     // init systemcb map
@@ -212,6 +211,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
                                              bool is_double,
                                              const unsigned long offset_to_routine,
                                              const string &type,
+                                             const string &ext_info,
                                              walkresType &output_list)
 {
     unsigned __int64 offset = offset_list_head;
@@ -240,7 +240,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
 
             if ( notify_routine )
             {
-                OutputWalkInfo info = { notify_routine, type, "", list_head_name };
+                OutputWalkInfo info = { notify_routine, type, ext_info, list_head_name, list_head.GetNodeOffset() };
                 output_list.push_back( info );
             }
         }
@@ -403,7 +403,7 @@ void WDbgArk::AddSymbolPointer(const string &symbol_name,
 
         if ( offset )
         {
-            OutputWalkInfo info = { offset, type, additional_info, symbol_name };
+            OutputWalkInfo info = { offset, type, additional_info, symbol_name, 0 };
             output_list.push_back( info );
         }
     }

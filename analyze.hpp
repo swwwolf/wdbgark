@@ -82,7 +82,8 @@ inline std::ostream& endlerr(std::ostream& arg)
 enum AnalyzeTypeInit
 {
     AnalyzeTypeDefault,
-    AnalyzeTypeCallback
+    AnalyzeTypeCallback,
+    AnalyzeTypeIDT
 };
 
 class WDbgArkAnalyze
@@ -90,8 +91,8 @@ class WDbgArkAnalyze
 public:
     WDbgArkAnalyze() :
         m_inited(false),
-        m_owner_module_inited(false)
-    { }
+        m_owner_module_inited(false){ }
+
     ~WDbgArkAnalyze()
     {
         if ( IsInited() )

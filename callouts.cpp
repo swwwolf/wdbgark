@@ -74,8 +74,8 @@ void __stdcall PsEstablishWin32Callouts(int a1)
 
 */
 
-EXT_COMMAND(callouts,
-            "Output kernel-mode win32k callouts\n",
+EXT_COMMAND(wa_callouts,
+            "Output kernel-mode win32k callouts",
             "")
 {
     RequireKernelMode();

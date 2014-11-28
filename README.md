@@ -20,17 +20,17 @@ It's possible to use an extension with live kernel-mode debugging or with crash 
 
 ## Supported commands
 
-* !scan
-* !systemcb
-* !objtype
-* !objtypeidx
-* !callouts
-* !pnptable
-* !ssdt
-* !w32psdt
-* !checkmsr
-* !idt
-* !gdt
+* !wa_scan
+* !wa_systemcb
+* !wa_objtype
+* !wa_objtypeidx
+* !wa_callouts
+* !wa_pnptable
+* !wa_ssdt
+* !wa_w32psdt
+* !wa_checkmsr
+* !wa_idt
+* !wa_gdt
 
 ## Supported targets
 
@@ -102,19 +102,18 @@ Extension DLL chain:
 ```
 kd> !wdbgark.help
 Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
-  !callouts   - Output kernel-mode win32k callouts
-  !checkmsr   - Output system MSRs (live debug only!)
-  !help       - Displays information on available extension commands
-  !idt        - Output processors IDTs
-  !objtype    - Output kernel-mode object type(s)
-  !objtypeidx - Output kernel-mode ObTypeIndexTable
-  !pnptable   - Output kernel-mode nt!PlugPlayHandlerTable
-  !scan       - Run all commands
-  !ssdt       - Output the System Service Descriptor Table
-  !systemcb   - Output kernel-mode registered callback(s)
-  !ver        - Shows extension version number.
-  !w32psdt    - Output the Win32k Service Descriptor Table
-
+  !help          - Displays information on available extension commands
+  !wa_callouts   - Output kernel-mode win32k callouts
+  !wa_checkmsr   - Output system MSRs (live debug only!)
+  !wa_idt        - Output processors IDT
+  !wa_objtype    - Output kernel-mode object type(s)
+  !wa_objtypeidx - Output kernel-mode ObTypeIndexTable
+  !wa_pnptable   - Output kernel-mode nt!PlugPlayHandlerTable
+  !wa_scan       - Scan system
+  !wa_ssdt       - Output the System Service Descriptor Table
+  !wa_systemcb   - Output kernel-mode registered callback(s)
+  !wa_ver        - Shows extension version number
+  !wa_w32psdt    - Output the Win32k Service Descriptor Table
 !help <cmd> will give more information for a particular command
 ```
 

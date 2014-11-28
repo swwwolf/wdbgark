@@ -8225,7 +8225,7 @@ char* W32pServiceTable_VistaSp0_x86[] =
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "bUnMap@SURFACE@@QAEHXZ",
+    "?bUnMap@SURFACE@@QAEHXZ", // TODO: strange
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -8760,7 +8760,7 @@ char* W32pServiceTable_VistaSp0_x86[] =
     "NtGdiGetNumberOfPhysicalMonitors",
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetPhysicalMonitorDescription",
-    "DestroyPhysicalMonitor@@YGXPAX",
+    "DestroyPhysicalMonitor",
     "NtGdiDDCCIGetVCPFeature",
     "NtGdiDDCCISetVCPFeature",
     "NtGdiDDCCISaveCurrentSettings",
@@ -9001,7 +9001,7 @@ char* W32pServiceTable_VistaSp1_x86[] =
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "bUnMap@SURFACE@@QAEHXZ",
+    "?bUnMap@SURFACE@@QAEHXZ", // TODO: strange
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -9536,7 +9536,7 @@ char* W32pServiceTable_VistaSp1_x86[] =
     "NtGdiGetNumberOfPhysicalMonitors",
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetPhysicalMonitorDescription",
-    "DestroyPhysicalMonitor@@YGXPAX",
+    "DestroyPhysicalMonitor",
     "NtGdiDDCCIGetVCPFeature",
     "NtGdiDDCCISetVCPFeature",
     "NtGdiDDCCISaveCurrentSettings",
@@ -9777,7 +9777,7 @@ char* W32pServiceTable_VistaSp2_x86[] =
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "bUnMap@SURFACE@@QAEHXZ",
+    "?bUnMap@SURFACE@@QAEHXZ", // TODO: strange
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -10312,7 +10312,7 @@ char* W32pServiceTable_VistaSp2_x86[] =
     "NtGdiGetNumberOfPhysicalMonitors",
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetPhysicalMonitorDescription",
-    "DestroyPhysicalMonitor@@YGXPAX",
+    "DestroyPhysicalMonitor",
     "NtGdiDDCCIGetVCPFeature",
     "NtGdiDDCCISetVCPFeature",
     "NtGdiDDCCISaveCurrentSettings",
@@ -11132,7 +11132,7 @@ char* W32pServiceTable_Win7Sp0_x86[] =
     "NtGdiGetNumberOfPhysicalMonitors",
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetPhysicalMonitorDescription",
-    "DestroyPhysicalMonitor@@YGXPAX",
+    "DestroyPhysicalMonitor",
     "NtGdiDDCCIGetVCPFeature",
     "NtGdiDDCCISetVCPFeature",
     "NtGdiDDCCISaveCurrentSettings",
@@ -11961,7 +11961,7 @@ char* W32pServiceTable_Win7Sp1_x86[] =
     "NtGdiGetNumberOfPhysicalMonitors",
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetPhysicalMonitorDescription",
-    "DestroyPhysicalMonitor@@YGXPAX",
+    "DestroyPhysicalMonitor",
     "NtGdiDDCCIGetVCPFeature",
     "NtGdiDDCCISetVCPFeature",
     "NtGdiDDCCISaveCurrentSettings",
@@ -11988,7 +11988,7 @@ char* W32pServiceTable_Win8Sp0_x86[] =
     "NtGdiUpdateColors",
     "NtGdiUnrealizeObject",
     "NtGdiUnmapMemFont",
-    "UMPDDrvQuerySpoolType@@YGHPAUDHPDEV__@@PAG",
+    "UMPDDrvQuerySpoolType",
     "NtGdiTransparentBlt",
     "NtGdiTransformPoints",
     "NtGdiSwapBuffers",
@@ -12067,7 +12067,7 @@ char* W32pServiceTable_Win8Sp0_x86[] =
     "NtGdiInvertRgn",
     "NtGdiIntersectClipRect",
     "NtGdiInitSpool",
-    "GetType@CCompositionBuffer@@UBE?AW4CompositionBufferType@",
+    "?GetType@CCompositionBuffer@@UBE?AW4CompositionBufferType@@XZ", // TODO: strange
     "NtGdiIcmBrushInfo",
     "NtGdiHfontCreate",
     "NtGdiGradientFill",
@@ -12273,7 +12273,7 @@ char* W32pServiceTable_Win8Sp0_x86[] =
     "NtGdiCreateClientObj",
     "NtGdiCreateBitmapFromDxSurface2",
     "NtGdiCreateBitmapFromDxSurface",
-    "sub_1A48FD",
+    "NtGdiCreateBitmap",
     "NtGdiConvertMetafileRect",
     "NtGdiConfigureOPMProtectedOutput",
     "NtGdiComputeXformCoefficients",
@@ -12977,7 +12977,7 @@ char* W32pServiceTable_Win8Sp1_x86[] =
     "NtGdiUpdateColors",
     "NtGdiUnrealizeObject",
     "NtGdiUnmapMemFont",
-    "UMPDDrvQuerySpoolType@@YGHPAUDHPDEV__@@PAG",
+    "UMPDDrvQuerySpoolType",
     "NtGdiTransparentBlt",
     "NtGdiTransformPoints",
     "NtGdiSwapBuffers",
@@ -13056,7 +13056,7 @@ char* W32pServiceTable_Win8Sp1_x86[] =
     "NtGdiInvertRgn",
     "NtGdiIntersectClipRect",
     "NtGdiInitSpool",
-    "GetType@CDiscardInputQueue@@EBE?AW4CompositionInputQueueType@",
+    "?GetType@CDiscardInputQueue@@EBE?AW4CompositionInputQueueType@", // TODO: strange
     "NtGdiIcmBrushInfo",
     "NtGdiHfontCreate",
     "NtGdiGradientFill",
@@ -13613,7 +13613,7 @@ char* W32pServiceTable_Win8Sp1_x86[] =
     "NtUserDwmStartRedirection",
     "NtUserDwmGetRemoteSessionOcclusionEvent",
     "NtUserDwmGetRemoteSessionOcclusionState",
-    "?NlsNullProc@@YGHPAUtagKE@@KK",
+    "NlsNullProc",
     "NtUserCheckProcessSession",
     "NtUserUnregisterSessionPort",
     "NtUserRegisterSessionPort",
@@ -19200,7 +19200,7 @@ char* W32pServiceTable_Win8Sp0_x64[] =
     "NtGdiDeleteColorTransform",
     "NtGdiDescribePixelFormat",
     "NtGdiDestroyOPMProtectedOutput",
-    "j_?DestroyPhysicalMonitor@CMonitorAPI@@QEAAJPEAX@Z",
+    "DestroyPhysicalMonitor",
     "NtGdiDoBanding",
     "NtGdiDrawEscape",
     "NtGdiDxgGenericThunk",
@@ -19312,7 +19312,7 @@ char* W32pServiceTable_Win8Sp0_x64[] =
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetRealizationInfo",
     "NtGdiGetServerMetaFileBits",
-    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ",
+    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ", // TODO: strange
     "NtGdiGetStats",
     "NtGdiGetStringBitmapW",
     "NtGdiGetSuggestedOPMProtectedOutputArraySize",
@@ -19325,7 +19325,7 @@ char* W32pServiceTable_Win8Sp0_x64[] =
     "NtGdiHT_Get8BPPFormatPalette",
     "NtGdiHT_Get8BPPMaskPalette",
     "NtGdiIcmBrushInfo",
-    "?NlsNullProc@@YAHPEAUtagKE@@_KK@Z",
+    "NlsNullProc",
     "NtGdiInitSpool",
     "NtGdiMakeFontDir",
     "NtGdiMakeInfoDC",
@@ -19386,8 +19386,8 @@ char* W32pServiceTable_Win8Sp0_x64[] =
     "NtGdiSwapBuffers",
     "NtGdiTransparentBlt",
     "NtGdiUMPDEngFreeUserMem",
-    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ",
-    "?NlsNullProc@@YAHPEAUtagKE@@_KK@Z",
+    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ", // TODO: strange
+    "NlsNullProc",
     "NtGdiUpdateColors",
     "NtGdiUpdateTransform",
     "NtGdiWidenPath",
@@ -20214,7 +20214,7 @@ char* W32pServiceTable_Win8Sp1_x64[] =
     "NtGdiDeleteColorTransform",
     "NtGdiDescribePixelFormat",
     "NtGdiDestroyOPMProtectedOutput",
-    "sub_FFFFF97FFF315B70",
+    "NtGdiDestroyPhysicalMonitor",
     "NtGdiDoBanding",
     "NtGdiDrawEscape",
     "NtGdiDxgGenericThunk",
@@ -20327,7 +20327,7 @@ char* W32pServiceTable_Win8Sp1_x64[] =
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetRealizationInfo",
     "NtGdiGetServerMetaFileBits",
-    "?GetModel@CTokenBase@@UEBA?AW4TokenModel@1@XZ",
+    "NtGdiGetSpoolMessage",
     "NtGdiGetStats",
     "NtGdiGetStringBitmapW",
     "NtGdiGetSuggestedOPMProtectedOutputArraySize",
@@ -20340,7 +20340,7 @@ char* W32pServiceTable_Win8Sp1_x64[] =
     "NtGdiHT_Get8BPPFormatPalette",
     "NtGdiHT_Get8BPPMaskPalette",
     "NtGdiIcmBrushInfo",
-    "?NlsNullProc@@YAHPEAUtagKE@@_KK@Z",
+    "NlsNullProc",
     "NtGdiInitSpool",
     "NtGdiMakeFontDir",
     "NtGdiMakeInfoDC",
@@ -20401,8 +20401,8 @@ char* W32pServiceTable_Win8Sp1_x64[] =
     "NtGdiSwapBuffers",
     "NtGdiTransparentBlt",
     "NtGdiUMPDEngFreeUserMem",
-    "?GetModel@CTokenBase@@UEBA?AW4TokenModel@1@XZ",
-    "?NlsNullProc@@YAHPEAUtagKE@@_KK@Z",
+    "?GetModel@CTokenBase@@UEBA?AW4TokenModel@1@XZ", // TODO: strange
+    "NlsNullProc",
     "NtGdiUpdateColors",
     "NtGdiUpdateTransform",
     "NtGdiWidenPath",
@@ -20695,7 +20695,7 @@ char* W32pServiceTable_Win8Sp1_x64[] =
     "NtUserUpdateLayeredWindow",
     "NtUserUpdatePerUserSystemParameters",
     "NtUserUpdateWindowInputSinkHints",
-    "?NlsNullProc@@YAHPEAUtagKE@@_KK@Z",
+    "NlsNullProc",
     "NtUserUserHandleGrantAccess",
     "NtUserValidateHandleSecure",
     "NtUserWaitAvailableMessageEx",
@@ -20768,26 +20768,69 @@ string WDbgArk::get_service_table_routine_name_internal(unsigned long index,
     return "*UNKNOWN*";
 }
 
+string WDbgArk::get_service_table_prefix_name(ServiceTableType type)
+{
+    if ( type == KiServiceTable_x86 || type == KiServiceTable_x64 )
+        return "nt!";
+    else if ( type == W32pServiceTable_x86 || type == W32pServiceTable_x64 )
+        return "win32k!";
+    
+    return "";
+}
+
 string WDbgArk::get_service_table_routine_name(ServiceTableType type, unsigned long index)
 {
+    string        routine       = get_service_table_prefix_name( type );
+    unsigned long max_count     = 0;
+    char**        service_table = nullptr;
+
     if ( m_minor_build >= WXP_VER && m_minor_build < W2K3_VER )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][0], Service_Tables[type][0] );
+    {
+        max_count = Service_Tables_countof[type][0];
+        service_table = Service_Tables[type][0];
+    }
     else if ( m_minor_build >= W2K3_VER && m_minor_build < VISTA_RTM_VER )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][1], Service_Tables[type][1] );
+    {
+        max_count = Service_Tables_countof[type][1];
+        service_table = Service_Tables[type][1];
+    }
     else if ( m_minor_build >= VISTA_RTM_VER && m_minor_build < VISTA_SP1_VER )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][2], Service_Tables[type][2] );
+    {
+        max_count = Service_Tables_countof[type][2];
+        service_table = Service_Tables[type][2];
+    }
     else if ( m_minor_build >= VISTA_SP1_VER && m_minor_build < VISTA_SP2_VER )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][3], Service_Tables[type][3] );
+    {
+        max_count = Service_Tables_countof[type][3];
+        service_table = Service_Tables[type][3];
+    }
     else if ( m_minor_build >= VISTA_SP2_VER && m_minor_build < W7RTM_VER )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][4], Service_Tables[type][4] );
+    {
+        max_count = Service_Tables_countof[type][4];
+        service_table = Service_Tables[type][4];
+    }
     else if ( m_minor_build >= W7RTM_VER && m_minor_build < W7SP1_VER )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][5], Service_Tables[type][5] );
+    {
+        max_count = Service_Tables_countof[type][5];
+        service_table = Service_Tables[type][5];
+    }
     else if ( m_minor_build >= W7SP1_VER && m_minor_build < W8RTM_VER )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][6], Service_Tables[type][6] );
+    {
+        max_count = Service_Tables_countof[type][6];
+        service_table = Service_Tables[type][6];
+    }
     else if ( m_minor_build >= W8RTM_VER && m_minor_build < W81RTM_VER )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][7], Service_Tables[type][7] );
+    {
+        max_count = Service_Tables_countof[type][7];
+        service_table = Service_Tables[type][7];
+    }
     else if ( m_minor_build >= W81RTM_VER /*&& m_minor_build < XXX */ )
-        return get_service_table_routine_name_internal( index, Service_Tables_countof[type][8], Service_Tables[type][8] );
+    {
+        max_count = Service_Tables_countof[type][8];
+        service_table = Service_Tables[type][8];
+    }
     else
         return "*UNKNOWN*";
+
+    return routine.append( get_service_table_routine_name_internal( index, max_count, service_table ) );
 }

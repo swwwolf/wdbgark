@@ -22,8 +22,8 @@
 #include "wdbgark.hpp"
 #include "sdt_w32p.hpp"
 
-EXT_COMMAND(ssdt,
-            "Output the System Service Descriptor Table\n",
+EXT_COMMAND(wa_ssdt,
+            "Output the System Service Descriptor Table",
             "")
 {
     RequireKernelMode();
@@ -91,8 +91,8 @@ EXT_COMMAND(ssdt,
     display.PrintFooter();
 }
 
-EXT_COMMAND(w32psdt,
-            "Output the Win32k Service Descriptor Table\n",
+EXT_COMMAND(wa_w32psdt,
+            "Output the Win32k Service Descriptor Table",
             "{process;e64;o;process,Any GUI EPROCESS address (use explorer.exe)}")
 {
     RequireKernelMode();

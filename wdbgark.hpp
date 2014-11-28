@@ -87,6 +87,7 @@ public:
         string           type;
         string           info;
         string           list_head_name;
+        unsigned __int64 object_offset;
     } OutputWalkInfo;
 
     typedef vector<OutputWalkInfo> walkresType;
@@ -134,17 +135,17 @@ public:
         _CrtDumpMemoryLeaks();
     }
 
-    EXT_COMMAND_METHOD( ver );
-    EXT_COMMAND_METHOD( scan );
-    EXT_COMMAND_METHOD( systemcb );
-    EXT_COMMAND_METHOD( objtype );
-    EXT_COMMAND_METHOD( objtypeidx );
-    EXT_COMMAND_METHOD( callouts );
-    EXT_COMMAND_METHOD( pnptable );
-    EXT_COMMAND_METHOD( ssdt );
-    EXT_COMMAND_METHOD( w32psdt );
-    EXT_COMMAND_METHOD( checkmsr );
-    EXT_COMMAND_METHOD( idt );
+    EXT_COMMAND_METHOD( wa_ver );
+    EXT_COMMAND_METHOD( wa_scan );
+    EXT_COMMAND_METHOD( wa_systemcb );
+    EXT_COMMAND_METHOD( wa_objtype );
+    EXT_COMMAND_METHOD( wa_objtypeidx );
+    EXT_COMMAND_METHOD( wa_callouts );
+    EXT_COMMAND_METHOD( wa_pnptable );
+    EXT_COMMAND_METHOD( wa_ssdt );
+    EXT_COMMAND_METHOD( wa_w32psdt );
+    EXT_COMMAND_METHOD( wa_checkmsr );
+    EXT_COMMAND_METHOD( wa_idt );
 
     //////////////////////////////////////////////////////////////////////////
     // init
@@ -177,6 +178,7 @@ public:
                                         bool is_double,
                                         const unsigned long offset_to_routine,
                                         const string &type,
+                                        const string &ext_info,
                                         walkresType &output_list);
 
     void WalkAnyListWithOffsetToObjectPointer(const string &list_head_name,
@@ -238,7 +240,8 @@ private:
                                                    unsigned long max_count,
                                                    char** service_table);
 
-    string get_service_table_routine_name(ServiceTableType type, unsigned long index);  
+    string get_service_table_routine_name(ServiceTableType type, unsigned long index);
+    string get_service_table_prefix_name(ServiceTableType type);
 
     //////////////////////////////////////////////////////////////////////////
     // variables

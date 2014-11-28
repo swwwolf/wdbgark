@@ -22,7 +22,7 @@
 #include "ver.hpp"
 #include "wdbgark.hpp"
 
-EXT_COMMAND( ver, "Shows extension version number.\n", "" )
+EXT_COMMAND( wa_ver, "Shows extension version number", "" )
 {
     Out( "WinDBG Anti-RootKit extension v%d.%d\n", VER_MAJOR, VER_MINOR );
 }
