@@ -13,7 +13,7 @@
 
 ## Preface
 
-WDBGARK is an extension (dynamic library) for the Microsoft Debugging Tools for Windows (see http://msdn.microsoft.com/en-US/library/windows/hardware/ff551063).
+WDBGARK is an extension (dynamic library) for the [Microsoft Debugging Tools for Windows](http://msdn.microsoft.com/en-US/library/windows/hardware/ff551063).
 It main purpose is to view and analyze anomalies in Windows kernel using kernel debugger. It is possible to view various system callbacks,
 system tables, object types and so on. For more user-friendly view extension uses DML. For the most of the commands kernel-mode connection is required.
 It's possible to use an extension with live kernel-mode debugging or with crash dump analysis (not all commands will work).
@@ -34,11 +34,11 @@ It's possible to use an extension with live kernel-mode debugging or with crash 
 
 ## Supported targets
 
-* Microsoft Windows XP [x86]
-* Microsoft Windows 2003 [x86/x64]
-* Microsoft Windows Vista [x86/x64]
-* Microsoft Windows 7 [x86/x64]
-* Microsoft Windows 8.x [x86/x64]
+* Microsoft Windows XP (x86)
+* Microsoft Windows 2003 (x86/x64)
+* Microsoft Windows Vista (x86/x64)
+* Microsoft Windows 7 (x86/x64)
+* Microsoft Windows 8.x (x86/x64)
 
 BETAs/RCs are supported by design. IA64/ARM unsupported.
 
@@ -48,7 +48,7 @@ Sources are organized as a Visual Studio 2012 solution, but it's possible to bui
 
 ### Build using VS2012
 
-* Download and install latest WDK (http://msdn.microsoft.com/en-us/windows/hardware/hh852365).
+* Download and install latest [WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365).
 * Define system environment variables (e.g. WDK 8.1).
     * _DBGSDK_INC_PATH_ = C:\WinDDK\8.1\Debuggers\inc
     * _DBGSDK_LIB_PATH_ = C:\WinDDK\8.1\Debuggers\lib
@@ -70,13 +70,14 @@ _"copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$
 ## Using
 
 * Build or download an extention.
-* Make sure that Visual C++ Redistributable Packages for Visual Studio has already been installed.
+* Make sure that [Visual C++ Redistributable for Visual Studio 2012](http://www.microsoft.com/en-US/download/details.aspx?id=30679) has already been installed.
 * Copy an extension into WDK debugger's directory (e.g. WDK 8.1):
     * x64: C:\WinDDK\8.1\Debuggers\x64\winext\
     * x86: C:\WinDDK\8.1\Debuggers\x86\winext\
 * Run WinDbg.
 * Load extension using ".load wdbgark" (you can see loaded extensions with a ".chain" command).
-* Run "!wdbgark.help" or "!wdbgark.scan".
+* Run "!wdbgark.help" or "!wdbgark.wa_scan /reload".
+* Have fun!
 
 ```
 kd> .load wdbgark  
