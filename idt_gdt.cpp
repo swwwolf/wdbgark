@@ -409,7 +409,6 @@ EXT_COMMAND(wa_idt,
             "")
 {
     RequireKernelMode();
-
     Init();
 
     out << "Dumping IDT" << endlout;
@@ -646,10 +645,24 @@ EXT_COMMAND(wa_idt,
             }
         }
     }
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
+    */
 
     display.PrintFooter();
 }

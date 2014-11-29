@@ -26,7 +26,6 @@ EXT_COMMAND(wa_objtypeidx,
             "")
 {
     RequireKernelMode();
-
     Init();
 
     out << "Displaying nt!ObTypeIndexTable" << endlout;
@@ -62,10 +61,20 @@ EXT_COMMAND(wa_objtypeidx,
         else
             out << "Unsupported Windows version" << endlout;
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
+    */
 
     display.PrintFooter();
 }

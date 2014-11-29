@@ -37,43 +37,7 @@ using namespace std;
 
 #include <engextcpp.hpp>
 #include <bprinter/table_printer.h>
-
-/* global stream manipulators */
-inline std::ostream& endlout(std::ostream& arg)
-{
-    std::stringstream ss;
-
-    arg << "\n";
-    ss << arg.rdbuf();
-    g_Ext->Dml( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
-}
-
-inline std::ostream& endlwarn(std::ostream& arg)
-{
-    std::stringstream ss;
-
-    arg << "\n";
-    ss << arg.rdbuf();
-    g_Ext->DmlWarn( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
-}
-
-inline std::ostream& endlerr(std::ostream& arg)
-{
-    std::stringstream ss;
-
-    arg << "\n";
-    ss << arg.rdbuf();
-    g_Ext->DmlErr( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
-}
+#include "manipulators.hpp"
 
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print routines

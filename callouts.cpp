@@ -79,7 +79,6 @@ EXT_COMMAND(wa_callouts,
             "")
 {
     RequireKernelMode();
-
     Init();
 
     out << "Displaying Win32k callouts" << endlout;
@@ -126,10 +125,20 @@ EXT_COMMAND(wa_callouts,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
+    */
 
     display.PrintFooter();
     display.PrintFooter();

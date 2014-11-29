@@ -47,10 +47,20 @@ EXT_COMMAND(wa_checkmsr,
 
         display.AnalyzeAddressAsRoutine( g_Ext->EvalExprU64( expression.str().c_str() ), "SYSENTER_EIP_MSR", "" );
     }
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
+    */
 
     display.PrintFooter();
 }

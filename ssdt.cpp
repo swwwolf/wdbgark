@@ -27,7 +27,6 @@ EXT_COMMAND(wa_ssdt,
             "")
 {
     RequireKernelMode();
-
     Init();
 
     out << "Displaying nt!KiServiceTable" << endlout;
@@ -83,10 +82,20 @@ EXT_COMMAND(wa_ssdt,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
+    */
 
     display.PrintFooter();
 }
@@ -96,7 +105,6 @@ EXT_COMMAND(wa_w32psdt,
             "{process;e64;o;process,Any GUI EPROCESS address (use explorer.exe)}")
 {
     RequireKernelMode();
-
     Init();
 
     out << "Displaying win32k!W32pServiceTable" << endlout;
@@ -110,6 +118,8 @@ EXT_COMMAND(wa_w32psdt,
     if ( !set_eprocess )
     {
         WDbgArkProcess process;
+
+        process.Init();
         set_eprocess = process.FindEProcessAnyGUIProcess();
 
         if ( !set_eprocess )
@@ -185,10 +195,20 @@ EXT_COMMAND(wa_w32psdt,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
+    */
 
     display.PrintFooter();
 

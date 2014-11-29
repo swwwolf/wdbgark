@@ -56,6 +56,14 @@ HRESULT UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &outp
             return S_OK;
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        stringstream err;
+
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        return Ex.GetStatus();
+    }
+    /*
     catch( ... )
     {
         stringstream err;
@@ -63,6 +71,7 @@ HRESULT UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &outp
         err << "Exception in " << __FUNCTION__ << " with unicode_string.m_Offset = ";
         err << std::hex << std::showbase << unicode_string.m_Offset << endlerr;
     }
+    */
 
     return E_INVALIDARG;
 }
@@ -246,11 +255,17 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with list_head_name = " << list_head_name << " offset = ";
         err << std::hex << std::showbase << offset << endlerr;
     }
+    */
 }
 
 void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const string &list_head_name,
@@ -289,11 +304,17 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const string &list_head_name,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with list_head_name = " << list_head_name << " offset = ";
         err << std::hex << std::showbase << offset << endlerr;
     }
+    */
 }
 
 void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
@@ -333,11 +354,17 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with directory_address = ";
         err << std::hex << std::showbase << directory_address << endlerr;
     }
+    */
 }
 
 void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
@@ -383,11 +410,17 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
             WalkDeviceNode( child_node.m_Offset, context, callback );
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with device_node_address = ";
         err << std::hex << std::showbase << device_node_address << endlerr;
     }
+    */
 }
 
 void WDbgArk::AddSymbolPointer(const string &symbol_name,
@@ -397,15 +430,22 @@ void WDbgArk::AddSymbolPointer(const string &symbol_name,
 {
     unsigned __int64 offset = 0;
 
-    if ( GetSymbolOffset( symbol_name.c_str(), true, &offset ) )
+    try
     {
-        ExtRemoteData routine_ptr( offset, m_PtrSize );
-        offset = routine_ptr.GetPtr();
-
-        if ( offset )
+        if ( GetSymbolOffset( symbol_name.c_str(), true, &offset ) )
         {
-            OutputWalkInfo info = { offset, type, additional_info, symbol_name, 0 };
-            output_list.push_back( info );
+            ExtRemoteData routine_ptr( offset, m_PtrSize );
+            offset = routine_ptr.GetPtr();
+
+            if ( offset )
+            {
+                OutputWalkInfo info = { offset, type, additional_info, symbol_name, 0 };
+                output_list.push_back( info );
+            }
         }
+    }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }

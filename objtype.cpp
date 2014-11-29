@@ -25,10 +25,9 @@ EXT_COMMAND(wa_objtype,
             "Output kernel-mode object type(s)",
             "{type;s;o;type,Object type name}")
 {
-    string type = "";
+    string type;
 
     RequireKernelMode();
-
     Init();
 
     if ( HasArg( "type" ) ) // object type was provided
@@ -69,10 +68,20 @@ EXT_COMMAND(wa_objtype,
             DirectoryObjectTypeCallback( this, object_type, reinterpret_cast<void*>( &display ) );
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
+    */
 
     display.PrintFooter();
 }
@@ -80,7 +89,7 @@ EXT_COMMAND(wa_objtype,
 HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &object, void* context)
 {
     WDbgArkAnalyze* display = reinterpret_cast<WDbgArkAnalyze*>( context );
-    stringstream    loc;
+    
 
     try
     {
@@ -89,6 +98,14 @@ HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, ExtRemoteT
 
         display->AnalyzeObjectTypeInfo( type_info, object );
     }
+    catch ( ExtRemoteException Ex )
+    {
+        stringstream err;
+
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        return Ex.GetStatus();
+    }
+    /*
     catch( ... )
     {
         loc << "Exception in " << __FUNCTION__ << " with object.m_Offset = ";
@@ -96,6 +113,7 @@ HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, ExtRemoteT
 
         return E_UNEXPECTED;
     }
+    */
 
     return S_OK;
 }

@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClInclude Include="analyze.hpp" />
     <ClInclude Include="ddk.h" />
+    <ClInclude Include="manipulators.hpp" />
     <ClInclude Include="objhelper.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="sdt_w32p.hpp" />

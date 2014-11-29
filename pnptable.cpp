@@ -118,7 +118,6 @@ EXT_COMMAND(wa_pnptable,
             "")
 {
     RequireKernelMode();
-
     Init();
 
     out << "Displaying nt!PlugPlayHandlerTable" << endlout;
@@ -153,10 +152,20 @@ EXT_COMMAND(wa_pnptable,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << endlerr;
     }
+    */
 
     display.PrintFooter();
     display.PrintFooter();

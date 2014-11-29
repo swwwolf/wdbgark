@@ -26,7 +26,6 @@ EXT_COMMAND(wa_scan,
             "{log;s;o;log,Log file name}{reload;b;o;reload,Force to reload symbols}")
 {
     RequireKernelMode();
-
     Init();
 
     if ( HasArg( "reload" ) )
@@ -35,68 +34,97 @@ EXT_COMMAND(wa_scan,
     if ( HasArg( "log" ) )
         Execute( ".logopen /t %s", GetArgStr( "log" ) );
 
+    out << "WinDBG Anti-RootKit system scan..." << endlout;
+
     try
     {
         out << "<b>!wa_ssdt</b>" << endlout;
         wa_ssdt();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
     
     try
     {
         out << "<b>!wa_w32psdt</b>" << endlout;
         wa_w32psdt();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
 
     try
     {
         out << "<b>!wa_idt</b>" << endlout;
         wa_idt();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
 
     try
     {
         out << "<b>!wa_checkmsr</b>" << endlout;
         wa_checkmsr();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
 
     try
     {
         out << "<b>!wa_systemcb</b>" << endlout;
         wa_systemcb();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
 
     try
     {
         out << "<b>!wa_objtype</b>" << endlout;
         wa_objtype();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
 
     try
     {
         out << "<b>!wa_objtypeidx</b>" << endlout;
         wa_objtypeidx();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
 
     try
     {
         out << "<b>!wa_callouts</b>" << endlout;
         wa_callouts();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
 
     try
     {
         out << "<b>!wa_pnptable</b>" << endlout;
         wa_pnptable();
     }
-    catch( ... ) {}
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
 
     if ( HasArg( "log" ) )
         Execute( ".logclose" );

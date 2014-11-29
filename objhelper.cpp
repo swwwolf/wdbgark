@@ -34,23 +34,19 @@ bool WDbgArkObjHelper::Init(void)
     // determine object header format
     unsigned long type_index_offset = 0;
 
-    try
+    GetFieldOffset( "nt!_OBJECT_HEADER", "TypeIndex", &type_index_offset );
+
+    if ( !type_index_offset ) // old header format
     {
-        GetFieldOffset( "nt!_OBJECT_HEADER", "TypeIndex", &type_index_offset );
-
-        if ( !type_index_offset ) // old header format
-            object_header_old = true;
-        else
-        {
-            object_header_old = false;
-            g_Ext->GetSymbolOffset( "nt!ObpInfoMaskToOffset", true, &ObpInfoMaskToOffset );
-        }
-
+        object_header_old = true;
         m_inited = true;
     }
-    catch( ... )
+    else // new header format
     {
-        err << "Exception in " << __FUNCTION__ << endlerr;
+        object_header_old = false;
+
+        if ( g_Ext->GetSymbolOffset( "nt!ObpInfoMaskToOffset", true, &ObpInfoMaskToOffset ) )
+            m_inited = true;
     }
 
     return m_inited;
@@ -122,11 +118,17 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const string &object_name,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with object_name = " << object_name << " offset = ";
         err << std::hex << std::showbase << offset << endlerr;
     }
+    */
 
     return 0;
 }
@@ -149,7 +151,15 @@ HRESULT WDbgArkObjHelper::GetObjectHeader(const ExtRemoteTyped &object, ExtRemot
         return E_UNEXPECTED;
     }
 
-    object_header.Set( "nt!_OBJECT_HEADER", object.m_Offset - offset, false, NULL, NULL );
+    try
+    {
+        object_header.Set( "nt!_OBJECT_HEADER", object.m_Offset - offset, false, NULL, NULL );
+    }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        return Ex.GetStatus();
+    }
 
     return S_OK;
 }
@@ -201,11 +211,18 @@ HRESULT WDbgArkObjHelper::GetObjectHeaderNameInfo(ExtRemoteTyped &object_header,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        return Ex.GetStatus();
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with object_header.m_Offset = ";
         err << std::hex << std::showbase << object_header.m_Offset << endlerr;
     }
+    */
 
     return E_UNEXPECTED;
 }

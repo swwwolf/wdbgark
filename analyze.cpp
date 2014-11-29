@@ -154,11 +154,11 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info, ExtRemoteT
         return;
     }
 
+    obj_helper.Init();
+    obj_helper.GetObjectName( object, object_name );
+
     try
     {
-        obj_helper.Init();
-        obj_helper.GetObjectName( object, object_name );
-
         stringstream object_command;
         stringstream object_name_ext;
 
@@ -179,10 +179,16 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info, ExtRemoteT
         AnalyzeAddressAsRoutine( type_info.Field( "SecurityProcedure" ).GetPtr(), "QueryNameProcedure", "" );
         tp->PrintFooter();
     }
+    catch( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with type_info.m_Offset = " << type_info.m_Offset << endlerr;
     }
+    */
 }
 
 HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
@@ -332,10 +338,16 @@ bool WDbgArkAnalyze::SetOwnerModule(const string &module_name)
             return true;
         }
     }
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with module_name = " << module_name << endlerr;
     }
+    */
 
     return false;
 }

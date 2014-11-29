@@ -190,11 +190,10 @@ EXT_COMMAND(wa_systemcb,
             "shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, pnp, lego, "\
             "debugprint}")
 {
-    string      type = "";
+    string      type;
     walkresType output_list;
     
     RequireKernelMode();
-
     Init();
 
     if ( HasArg( "type" ) ) // callback type was provided
@@ -207,44 +206,57 @@ EXT_COMMAND(wa_systemcb,
     display.Init( &tmp_stream, AnalyzeTypeCallback );
     display.PrintFooter();
     
-    if ( type.empty() )
+    try
     {
-        for ( map <string, SystemCbCommand>::const_iterator citer = system_cb_commands.begin();
-              citer != system_cb_commands.end();
-              ++citer )
+        if ( type.empty() )
         {
-            Call—orrespondingWalkListRoutine( citer, output_list );
+            for ( map <string, SystemCbCommand>::const_iterator citer = system_cb_commands.begin();
+                  citer != system_cb_commands.end();
+                  ++citer )
+            {
+                Call—orrespondingWalkListRoutine( citer, output_list );
+            }
         }
-    }
-    else
-    {
-        map <string, SystemCbCommand>::const_iterator citer = system_cb_commands.find( type );
-
-        if ( citer != system_cb_commands.end() )
-            Call—orrespondingWalkListRoutine( citer, output_list );
         else
-            err << "Invalid type was specified" << endlerr;
-    }
-
-    string prev_list_head = "";
-
-    for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it )
-    {
-        if ( prev_list_head != (*it).list_head_name )
         {
-            out << "[+] " << (*it).list_head_name << endlout;
-            display.PrintHeader();
+            map <string, SystemCbCommand>::const_iterator citer = system_cb_commands.find( type );
+
+            if ( citer != system_cb_commands.end() )
+                Call—orrespondingWalkListRoutine( citer, output_list );
+            else
+                err << "Invalid type was specified" << endlerr;
         }
 
-        display.AnalyzeAddressAsRoutine( (*it).routine_address, (*it).type, (*it).info );
+        string prev_list_head;
+
+        for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it )
+        {
+            if ( prev_list_head != (*it).list_head_name )
+            {
+                out << "[+] " << (*it).list_head_name << endlout;
+                display.PrintHeader();
+            }
+
+            display.AnalyzeAddressAsRoutine( (*it).routine_address, (*it).type, (*it).info );
+            display.PrintFooter();
+
+            prev_list_head = (*it).list_head_name;
+        }
+
         display.PrintFooter();
 
-        prev_list_head = (*it).list_head_name;
+        output_list.clear();
     }
-
-    display.PrintFooter();
-
-    output_list.clear();
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+    /*
+    catch( ... )
+    {
+        err << "Exception in " << __FUNCTION__ << endlerr;
+    }
+    */
 }
 
 void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::const_iterator &citer,
@@ -400,16 +412,16 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
         return;
     }
 
-    ExtRemoteData routine_count( offset, sizeof( unsigned long ) );
-
-    if ( !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
-    {
-        err << "Failed to get " << list_head_name << endlerr;
-        return;
-    }
-
     try
     {
+        ExtRemoteData routine_count( offset, sizeof( unsigned long ) );
+
+        if ( !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
+        {
+            err << "Failed to get " << list_head_name << endlerr;
+            return;
+        }
+
         unsigned long count = routine_count.GetUlong();
         
         for ( unsigned long i = 0; i < count; i++ )
@@ -434,11 +446,17 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
             }
         }
     }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    /*
     catch( ... )
     {
         err << "Exception in " << __FUNCTION__ << " with list_count_name = " << list_count_name;
         err << " list_head_name = " << list_head_name << endlerr;
     }
+    */
 }
 
 //
@@ -568,6 +586,14 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
 
         cb_context->output_list_pointer->push_back( winfo );
     }
+    catch ( ExtRemoteException Ex )
+    {
+        stringstream err;
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+
+        return Ex.GetStatus();
+    }
+    /*
     catch( ... )
     {
         stringstream err;
@@ -577,6 +603,7 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
 
         return E_POINTER;
     }
+    */
 
     return S_OK;
 }
