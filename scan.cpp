@@ -34,7 +34,7 @@ EXT_COMMAND(wa_scan,
     if ( HasArg( "log" ) )
         Execute( ".logopen /t %s", GetArgStr( "log" ) );
 
-    out << "WinDBG Anti-RootKit system scan..." << endlout;
+    out << "WinDBG Anti-RootKit system start scan..." << endlout;
 
     try
     {
@@ -60,6 +60,16 @@ EXT_COMMAND(wa_scan,
     {
         out << "<b>!wa_idt</b>" << endlout;
         wa_idt();
+    }
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    try
+    {
+        out << "<b>!wa_gdt</b>" << endlout;
+        wa_gdt();
     }
     catch ( ExtStatusException Ex )
     {
@@ -125,6 +135,8 @@ EXT_COMMAND(wa_scan,
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
+
+    out << "WinDBG Anti-RootKit system end scan..." << endlout;
 
     if ( HasArg( "log" ) )
         Execute( ".logclose" );

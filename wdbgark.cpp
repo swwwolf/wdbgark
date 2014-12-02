@@ -210,6 +210,35 @@ bool WDbgArk::Init()
         callout_names.push_back( "nt!PopWin32InfoCallout" );
     }
 
+    if ( m_is_cur_machine64 )
+    {
+        gdt_selectors.push_back( KGDT64_NULL );
+        gdt_selectors.push_back( KGDT64_R0_CODE );
+        gdt_selectors.push_back( KGDT64_R0_DATA );
+        gdt_selectors.push_back( KGDT64_R3_CMCODE );
+        gdt_selectors.push_back( KGDT64_R3_DATA );
+        gdt_selectors.push_back( KGDT64_R3_CODE );
+        gdt_selectors.push_back( KGDT64_SYS_TSS );
+        gdt_selectors.push_back( KGDT64_R3_CMTEB );
+    }
+    else
+    {
+        gdt_selectors.push_back( KGDT_R0_CODE );
+        gdt_selectors.push_back( KGDT_R0_DATA );
+        gdt_selectors.push_back( KGDT_R3_CODE );
+        gdt_selectors.push_back( KGDT_R3_DATA );
+        gdt_selectors.push_back( KGDT_TSS );
+        gdt_selectors.push_back( KGDT_R0_PCR );
+        gdt_selectors.push_back( KGDT_R3_TEB );
+        gdt_selectors.push_back( KGDT_LDT );
+        gdt_selectors.push_back( KGDT_DF_TSS );
+        gdt_selectors.push_back( KGDT_NMI_TSS );
+        gdt_selectors.push_back( KGDT_GDT_ALIAS );
+        gdt_selectors.push_back( KGDT_CDA16 );
+        gdt_selectors.push_back( KGDT_CODE16 );
+        gdt_selectors.push_back( KGDT_STACK16 );
+    }
+
     m_inited = true;
 
     return m_inited;

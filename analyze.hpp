@@ -30,6 +30,8 @@
 #ifndef _ANALYZE_HPP_
 #define _ANALYZE_HPP_
 
+#define make_string( x ) #x
+
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -47,7 +49,8 @@ enum AnalyzeTypeInit
 {
     AnalyzeTypeDefault,
     AnalyzeTypeCallback,
-    AnalyzeTypeIDT
+    AnalyzeTypeIDT,
+    AnalyzeTypeGDT
 };
 
 class WDbgArkAnalyze
@@ -116,6 +119,11 @@ public:
 
     void AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info, ExtRemoteTyped &object);
 
+    void AnalyzeGDTEntry(ExtRemoteTyped &gdt_entry,
+                         const string &cpu_idx,
+                         const unsigned long selector,
+                         const string &additional_info);
+
 private:
 
     bool                    m_inited;
@@ -135,6 +143,7 @@ private:
     HRESULT GetNameByOffset(const unsigned __int64 address, string &name);
 
     bool    IsSuspiciousAddress(const unsigned __int64 address);
+    string  GetGDTSelectorName(const unsigned long selector);
 
     //////////////////////////////////////////////////////////////////////////
     // output streams

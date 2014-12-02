@@ -657,12 +657,6 @@ EXT_COMMAND(wa_idt,
     {
         throw Ex;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << endlerr;
-    }
-    */
 
     display.PrintFooter();
 }
@@ -733,4 +727,108 @@ typedef union _KGDTENTRY64 {
 } KGDTENTRY64, *PKGDTENTRY64;
 // <size 0x10>
 
+full_address = selector.BaseLow | selector.HighWord.Bytes.BaseMid << 16 | selector.HighWord.Bytes.BaseHi << 24
+
 */
+
+// TODO: deal with flags
+EXT_COMMAND(wa_gdt,
+            "Output processors GDT",
+            "")
+{
+    RequireKernelMode();
+    Init();
+
+    out << "Dumping GDT" << endlout;
+
+    WDbgArkAnalyze display;
+    stringstream   tmp_stream;
+    display.Init( &tmp_stream, AnalyzeTypeGDT );
+    display.PrintHeader();
+
+    try
+    {
+        for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ )
+        {
+            unsigned __int64 kpcr_offset     = 0;
+            unsigned __int64 gdt_entry_start = 0;
+            unsigned long    gdt_entry_size  = 0;
+
+            g_Ext->m_Data->ReadProcessorSystemData(i,
+                                                   DEBUG_DATA_KPCR_OFFSET,
+                                                   &kpcr_offset,
+                                                   sizeof( kpcr_offset ),
+                                                   NULL);
+
+            ExtRemoteTyped pcr( "nt!_KPCR", kpcr_offset, false, NULL, NULL );
+
+            if ( m_is_cur_machine64 )
+            {
+                gdt_entry_start = pcr.Field( "GdtBase" ).GetPtr(); // _KGDTENTRY64*
+                gdt_entry_size = GetTypeSize( "nt!_KGDTENTRY64" );
+            }
+            else
+            {
+                gdt_entry_start = pcr.Field( "GDT" ).GetPtr(); // _KGDTENTRY*
+                gdt_entry_size = GetTypeSize( "nt!_KGDTENTRY" );
+            }
+
+            for ( vector<unsigned long>::iterator it = gdt_selectors.begin();  it != gdt_selectors.end(); ++it )
+            {
+                stringstream processor_index;
+                stringstream info;
+
+                if ( m_is_cur_machine64 )
+                {
+                    ExtRemoteTyped gdt_entry("nt!_KGDTENTRY64",
+                                             gdt_entry_start + *it,
+                                             false,
+                                             NULL,
+                                             NULL);
+
+                    info << std::setw( 48 );
+                    info << "<exec cmd=\"dt nt!_KGDTENTRY64 " << std::hex << std::showbase << gdt_entry.m_Offset;
+                    info << " -r1\">dt" << "</exec>" << " ";
+                    info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>";
+
+                    processor_index << std::setw( 2 ) << i << " / " << std::setw( 2 ) << std::hex << *it / gdt_entry_size;
+
+                    display.AnalyzeGDTEntry( gdt_entry, processor_index.str(), *it, info.str() );
+                    display.PrintFooter();
+                }
+                else
+                {
+                    ExtRemoteTyped gdt_entry("nt!_KGDTENTRY",
+                                             gdt_entry_start + *it,
+                                             false,
+                                             NULL,
+                                             NULL);
+
+                    info << std::setw( 46 );
+                    info << "<exec cmd=\"dt nt!_KGDTENTRY " << std::hex << std::showbase << gdt_entry.m_Offset;
+                    info << " -r2\">dt" << "</exec>" << " ";
+                    info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>";
+
+                    processor_index << std::setw( 2 ) << i << " / " << std::setw( 2 ) << std::hex << *it / gdt_entry_size;
+
+                    display.AnalyzeGDTEntry( gdt_entry, processor_index.str(), *it, info.str() );
+                    display.PrintFooter();
+                }
+            }
+        }
+    }
+    catch ( ExtStatusException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+
+    display.PrintFooter();
+}

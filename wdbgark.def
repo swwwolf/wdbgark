@@ -24,3 +24,4 @@ EXPORTS
 	wa_w32psdt
 	wa_checkmsr
 	wa_idt
+	wa_gdt

@@ -80,6 +80,18 @@ bool WDbgArkAnalyze::Init(std::ostream* output, const AnalyzeTypeInit type)
 
             m_inited = true;
         }
+        else if ( type == AnalyzeTypeGDT ) // width = 105
+        {
+            tp->AddColumn( "Base", 18 );
+            tp->AddColumn( "Limit", 6 );
+            tp->AddColumn( "CPU / Idx", 10 );
+            tp->AddColumn( "Offset", 10 );
+            tp->AddColumn( "Selector name", 20 );
+            tp->AddColumn( "Type", 16 );
+            tp->AddColumn( "Info", 25 );
+
+            m_inited = true;
+        }
     }
 
     return m_inited;
@@ -183,12 +195,185 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info, ExtRemoteT
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    /*
-    catch( ... )
+}
+
+void WDbgArkAnalyze::AnalyzeGDTEntry(ExtRemoteTyped &gdt_entry,
+                                     const string &cpu_idx,
+                                     const unsigned long selector,
+                                     const string &additional_info)
+{
+    if ( !IsInited() )
     {
-        err << "Exception in " << __FUNCTION__ << " with type_info.m_Offset = " << type_info.m_Offset << endlerr;
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return;
     }
-    */
+
+    try
+    {
+        unsigned __int64 address = 0;
+        unsigned long    limit   = 0;
+
+        if ( g_Ext->IsCurMachine64() )
+        {
+            if ( selector != KGDT64_R0_DATA && selector != KGDT64_R3_DATA )
+            {
+                address =\
+                    ( gdt_entry.Field( "BaseLow" ).GetUshort() ) |\
+                    ( gdt_entry.Field( "Bytes.BaseMiddle" ).GetUchar() << 16 ) |\
+                    ( gdt_entry.Field( "Bytes.BaseHigh" ).GetUchar() << 24 ) |\
+                    ( static_cast<unsigned __int64>(gdt_entry.Field( "BaseUpper" ).GetUlong()) << 32 );
+
+                limit =\
+                    ( gdt_entry.Field( "LimitLow" ).GetUshort() ) |\
+                    ( gdt_entry.Field( "Bits" ).GetUlong() & 0x0F0000 );
+            }
+        }
+        else
+        {
+            address =\
+                ( gdt_entry.Field( "BaseLow" ).GetUshort() ) |\
+                ( gdt_entry.Field( "HighWord.Bytes.BaseMid" ).GetUchar() << 16 ) |\
+                ( gdt_entry.Field( "HighWord.Bytes.BaseHi" ).GetUchar() << 24 );
+
+            limit =\
+                ( gdt_entry.Field( "LimitLow" ).GetUshort() ) |\
+                ( gdt_entry.Field( "HighWord.Bits" ).GetUlong() & 0x0F0000 );
+        }
+
+        stringstream expression;
+        expression << std::hex << std::showbase <<  address;
+        address = g_Ext->EvalExprU64( expression.str().c_str() );
+
+        stringstream addr_ext;
+
+        if ( address )
+        {
+            if ( g_Ext->IsCurMachine64() )
+            {
+                if ( selector == KGDT64_SYS_TSS )
+                    addr_ext << "<exec cmd=\"dt nt!_KTSS64 " << std::hex << std::showbase << address << "\">";
+            }
+            else
+            {
+                if ( selector == KGDT_TSS || selector == KGDT_DF_TSS || selector == KGDT_NMI_TSS )
+                    addr_ext << "<exec cmd=\"dt nt!_KTSS " << std::hex << std::showbase << address << "\">";
+                else if ( selector == KGDT_R0_PCR )
+                    addr_ext << "<exec cmd=\"dt nt!_KPCR " << std::hex << std::showbase << address << "\">";
+            }
+        }
+
+        addr_ext << std::internal << std::setw( 18 ) << std::setfill( '0' ) << std::hex << std::showbase << address;
+
+        if ( address )
+        {
+            if ( g_Ext->IsCurMachine64() )
+            {
+                if ( selector == KGDT64_SYS_TSS )
+                    addr_ext << "</exec>";
+            }
+            else
+            {
+                if ( selector == KGDT_TSS || selector == KGDT_DF_TSS || selector == KGDT_NMI_TSS || selector == KGDT_R0_PCR )
+                    addr_ext << "</exec>";
+            }
+        }
+
+        stringstream selector_ext;
+        selector_ext << std::hex << std::showbase << selector;
+
+        *tp << addr_ext.str() << limit << cpu_idx << selector_ext.str() << GetGDTSelectorName( selector ) << "type" << additional_info;
+        tp->flush_out();
+    }
+    catch( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+}
+
+string WDbgArkAnalyze::GetGDTSelectorName(const unsigned long selector)
+{
+    if ( g_Ext->IsCurMachine64() )
+    {
+        switch ( selector )
+        {
+            case KGDT64_NULL:
+                return make_string( KGDT64_NULL );
+
+            case KGDT64_R0_CODE:
+                return make_string( KGDT64_R0_CODE );
+
+            case KGDT64_R0_DATA:
+                return make_string( KGDT64_R0_DATA );
+
+            case KGDT64_R3_CMCODE:
+                return make_string( KGDT64_R3_CMCODE );
+
+            case KGDT64_R3_DATA:
+                return make_string( KGDT64_R3_DATA );
+
+            case KGDT64_R3_CODE:
+                return make_string( KGDT64_R3_CODE );
+
+            case KGDT64_SYS_TSS:
+                return make_string( KGDT64_SYS_TSS );
+
+            case KGDT64_R3_CMTEB:
+                return make_string( KGDT64_R3_CMTEB );
+
+            default:
+                return "*UNKNOWN*";
+        }
+    }
+    else
+    {
+        switch ( selector )
+        {
+            case KGDT_R0_CODE:
+                return make_string( KGDT_R0_CODE );
+
+            case KGDT_R0_DATA:
+                return make_string( KGDT_R0_DATA );
+
+            case KGDT_R3_CODE:
+                return make_string( KGDT_R3_CODE );
+
+            case KGDT_R3_DATA:
+                return make_string( KGDT_R3_DATA );
+
+            case KGDT_TSS:
+                return make_string( KGDT_TSS );
+
+            case KGDT_R0_PCR:
+                return make_string( KGDT_R0_PCR );
+
+            case KGDT_R3_TEB:
+                return make_string( KGDT_R3_TEB );
+
+            case KGDT_LDT:
+                return make_string( KGDT_LDT );
+
+            case KGDT_DF_TSS:
+                return make_string( KGDT_DF_TSS );
+
+            case KGDT_NMI_TSS:
+                return make_string( KGDT_NMI_TSS );
+
+            case KGDT_GDT_ALIAS:
+                return make_string( KGDT_GDT_ALIAS );
+
+            case KGDT_CDA16:
+                return make_string( KGDT_CDA16 );
+
+            case KGDT_CODE16:
+                return make_string( KGDT_CODE16 );
+
+            case KGDT_STACK16:
+                return make_string( KGDT_STACK16 );
+
+            default:
+                return "*UNKNOWN*";
+        }
+    }
 }
 
 HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
@@ -342,12 +527,6 @@ bool WDbgArkAnalyze::SetOwnerModule(const string &module_name)
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with module_name = " << module_name << endlerr;
-    }
-    */
 
     return false;
 }

@@ -130,6 +130,7 @@ public:
         {
             system_cb_commands.clear();
             callout_names.clear();
+            gdt_selectors.clear();
         }
 
         _CrtDumpMemoryLeaks();
@@ -146,6 +147,7 @@ public:
     EXT_COMMAND_METHOD( wa_w32psdt );
     EXT_COMMAND_METHOD( wa_checkmsr );
     EXT_COMMAND_METHOD( wa_idt );
+    EXT_COMMAND_METHOD( wa_gdt );
 
     //////////////////////////////////////////////////////////////////////////
     // init
@@ -210,6 +212,7 @@ private:
 
     map <string, SystemCbCommand> system_cb_commands;
     vector<string>                callout_names;
+    vector<unsigned long>         gdt_selectors;
 
     //////////////////////////////////////////////////////////////////////////
     // callback routines

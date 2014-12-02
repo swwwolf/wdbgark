@@ -106,6 +106,7 @@ Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
   !help          - Displays information on available extension commands
   !wa_callouts   - Output kernel-mode win32k callouts
   !wa_checkmsr   - Output system MSRs (live debug only!)
+  !wa_gdt        - Output processors GDT
   !wa_idt        - Output processors IDT
   !wa_objtype    - Output kernel-mode object type(s)
   !wa_objtypeidx - Output kernel-mode ObTypeIndexTable
