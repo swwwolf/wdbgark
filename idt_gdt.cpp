@@ -580,13 +580,13 @@ EXT_COMMAND(wa_idt,
 
                 if ( valid_interrupt )
                 {
-                    stringstream info;
-                    info << setw( 41 );
+                    stringstream info_intr;
+                    info_intr << setw( 41 );
 
-                    info << "<exec cmd=\"dt nt!_KINTERRUPT " << std::hex << std::showbase << interrupt.m_Offset;
-                    info << "\">dt" << "</exec>" << " ";
-                    info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
-                    info << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
+                    info_intr << "<exec cmd=\"dt nt!_KINTERRUPT " << std::hex << std::showbase << interrupt.m_Offset;
+                    info_intr << "\">dt" << "</exec>" << " ";
+                    info_intr << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
+                    info_intr << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
                     unsigned __int64 message_address = 0;
                     
@@ -596,7 +596,7 @@ EXT_COMMAND(wa_idt,
                     if ( !message_address )
                         message_address = interrupt.Field( "ServiceRoutine" ).GetPtr();
 
-                    display.AnalyzeAddressAsRoutine( message_address, processor_index.str(), info.str() );
+                    display.AnalyzeAddressAsRoutine( message_address, processor_index.str(), info_intr.str() );
 
                     walkresType output_list;
 
@@ -626,16 +626,16 @@ EXT_COMMAND(wa_idt,
                         if ( !(*it).routine_address )
                             continue;
 
-                        stringstream info;
-                        info << setw( 41 );
+                        stringstream info_intr_list;
+                        info_intr_list << setw( 41 );
 
-                        info << "<exec cmd=\"dt nt!_KINTERRUPT ";
-                        info << std::hex << std::showbase << (*it).object_offset;
-                        info << "\">dt" << "</exec>" << " ";
-                        info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
-                        info << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
+                        info_intr_list << "<exec cmd=\"dt nt!_KINTERRUPT ";
+                        info_intr_list << std::hex << std::showbase << (*it).object_offset;
+                        info_intr_list << "\">dt" << "</exec>" << " ";
+                        info_intr_list << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
+                        info_intr_list << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                        display.AnalyzeAddressAsRoutine( (*it).routine_address, (*it).type, info.str() );
+                        display.AnalyzeAddressAsRoutine( (*it).routine_address, (*it).type, info_intr_list.str() );
                     }
 
                     output_list.clear();
