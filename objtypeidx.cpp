@@ -30,6 +30,22 @@ EXT_COMMAND(wa_objtypeidx,
 
     out << "Displaying nt!ObTypeIndexTable" << endlout;
 
+    if ( m_minor_build < W7RTM_VER )
+    {
+        out << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        return;
+    }
+
+    unsigned __int64 offset = 0;
+
+    if ( !GetSymbolOffset( "nt!ObTypeIndexTable", true, &offset ) )
+    {
+        err << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;
+        return;
+    }
+
+    out << "[+] nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
+
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
@@ -38,28 +54,18 @@ EXT_COMMAND(wa_objtypeidx,
 
     try
     {
-        if ( m_minor_build >= W7RTM_VER )
+        for ( int i = 2; i < 0x100; i++ )
         {
-            unsigned __int64 offset = 0;
+            ExtRemoteData object_type_ptr( offset + i * m_PtrSize, m_PtrSize );
 
-            if ( GetSymbolOffset( "nt!ObTypeIndexTable", true, &offset ) )
+            if ( object_type_ptr.GetPtr() )
             {
-                for ( int i = 2; i < 0x100; i++ )
-                {
-                    ExtRemoteData object_type_ptr( offset + i * m_PtrSize, m_PtrSize );
-
-                    if ( object_type_ptr.GetPtr() )
-                    {
-                        ExtRemoteTyped object_type( "nt!_OBJECT_TYPE", object_type_ptr.GetPtr(), false, NULL, NULL );
-                        DirectoryObjectTypeCallback( this, object_type, reinterpret_cast<void*>( &display ) );
-                    }
-                    else
-                        break;
-                }
+                ExtRemoteTyped object_type( "nt!_OBJECT_TYPE", object_type_ptr.GetPtr(), false, NULL, NULL );
+                DirectoryObjectTypeCallback( this, object_type, reinterpret_cast<void*>( &display ) );
             }
+            else
+                break;
         }
-        else
-            out << __FUNCTION__ << ": unsupported Windows version" << endlout;
     }
     catch ( ExtRemoteException Ex )
     {

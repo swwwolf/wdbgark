@@ -224,7 +224,7 @@ EXT_COMMAND(wa_systemcb,
             if ( citer != system_cb_commands.end() )
                 Call—orrespondingWalkListRoutine( citer, output_list );
             else
-                err << "Invalid type was specified" << endlerr;
+                err << __FUNCTION__ << ": invalid type was specified" << endlerr;
         }
 
         string prev_list_head;
@@ -233,7 +233,13 @@ EXT_COMMAND(wa_systemcb,
         {
             if ( prev_list_head != (*it).list_head_name )
             {
-                out << "[+] " << (*it).list_head_name << endlout;
+                out << "[+] " << (*it).list_head_name;
+
+                if ( (*it).list_head_offset )
+                    out << ": " << std::hex << std::showbase << (*it).list_head_offset;
+
+                out << endlout;
+
                 display.PrintHeader();
             }
 
@@ -399,15 +405,15 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
                                  walkresType &output_list)
 {
     unsigned __int64 offset = 0;
-   
-    if ( !GetSymbolOffset( list_count_name.c_str(), true, &offset ) )
-    {
-        err << __FUNCTION__ << ": failed to get " << list_count_name << endlerr;
-        return;
-    }
 
     try
     {
+        if ( !GetSymbolOffset( list_count_name.c_str(), true, &offset ) )
+        {
+            err << __FUNCTION__ << ": failed to get " << list_count_name << endlerr;
+            return;
+        }
+
         ExtRemoteData routine_count( offset, sizeof( unsigned long ) );
 
         if ( !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
@@ -416,8 +422,10 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
             return;
         }
 
+        unsigned __int64 list_head_offset = offset;
+
         unsigned long count = routine_count.GetUlong();
-        
+
         for ( unsigned long i = 0; i < count; i++ )
         {
             ExtRemoteData notify_routine_list( offset + i * m_PtrSize, m_PtrSize );
@@ -434,7 +442,7 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
 
                 if ( notify_routine )
                 {
-                    OutputWalkInfo info = { notify_routine, type, "", list_head_name, 0 };
+                    OutputWalkInfo info = { notify_routine, type, "", list_head_name, 0, list_head_offset };
                     output_list.push_back( info );
                 }
             }
@@ -534,6 +542,7 @@ void WDbgArk::WalkShutdownList(const string &list_head_name, const string &type,
     context.type = type;
     context.list_head_name = list_head_name;
     context.output_list_pointer = &output_list;
+    GetSymbolOffset( list_head_name.c_str(), true, &context.list_head_offset );
 
     WalkAnyListWithOffsetToObjectPointer(list_head_name,
                                          0,
@@ -569,7 +578,8 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
                                  type,
                                  info.str(),
                                  cb_context->list_head_name,
-                                 0 };
+                                 0,
+                                 cb_context->list_head_offset };
 
         cb_context->output_list_pointer->push_back( winfo );
     }
@@ -611,7 +621,7 @@ void WDbgArk::WalkPnpLists(const string &type, walkresType &output_list)
     //type_w_subtype.append( ":EventCategoryDeviceInterfaceChange" );
 
     if ( !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
-        err << "Failed to get " << list_head_name << endlerr;
+        err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
     else
     {
         for ( int i = 0; i < NOTIFY_DEVICE_CLASS_HASH_BUCKETS; i++ )

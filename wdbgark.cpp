@@ -244,18 +244,24 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
                                              const string &ext_info,
                                              walkresType &output_list)
 {
-    unsigned __int64 offset = offset_list_head;
+    unsigned __int64 offset               = offset_list_head;
+    unsigned __int64 list_head_offset_out = 0;
 
     if ( !offset_to_routine )
     {
-        err << __FUNCTION__ << ": invalid parameter offset_to_routine was specified" << endlerr;
+        err << __FUNCTION__ << ": invalid parameter" << endlerr;
         return;
     }
 
-    if ( !offset && !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
+    if ( !offset )
     {
-        err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
-        return;
+        if ( !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
+        {
+            err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
+            return;
+        }
+        else
+            list_head_offset_out = offset;
     }
 
     try
@@ -270,7 +276,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
 
             if ( routine )
             {
-                OutputWalkInfo info = { routine, type, ext_info, list_head_name, list_head.GetNodeOffset() };
+                OutputWalkInfo info = { routine, type, ext_info, list_head_name, list_head.GetNodeOffset(), list_head_offset_out };
                 output_list.push_back( info );
             }
         }
@@ -426,12 +432,14 @@ void WDbgArk::AddSymbolPointer(const string &symbol_name,
     {
         if ( GetSymbolOffset( symbol_name.c_str(), true, &offset ) )
         {
+            unsigned __int64 symbol_offset = offset;
+
             ExtRemoteData routine_ptr( offset, m_PtrSize );
             offset = routine_ptr.GetPtr();
 
             if ( offset )
             {
-                OutputWalkInfo info = { offset, type, additional_info, symbol_name, 0 };
+                OutputWalkInfo info = { offset, type, additional_info, symbol_name, 0, symbol_offset };
                 output_list.push_back( info );
             }
         }

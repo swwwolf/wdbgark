@@ -20,6 +20,7 @@
 */
 
 #include "wdbgark.hpp"
+#include "ver.hpp"
 
 EXT_COMMAND(wa_scan,
             "Scan system",
@@ -33,8 +34,14 @@ EXT_COMMAND(wa_scan,
 
     if ( HasArg( "log" ) )
         Execute( ".logopen /t %s", GetArgStr( "log" ) );
-
-    out << "WinDBG Anti-RootKit system start scan..." << endlout;
+    
+    out << "--------------------------------------------------------------------------" << endlout;
+    out << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << " start scan" << endlout;
+    out << "--------------------------------------------------------------------------" << endlout;
+    Execute( "vertarget" );
+    out << "--------------------------------------------------------------------------" << endlout;
+    Execute( "!vm" );
+    out << "--------------------------------------------------------------------------" << endlout;
 
     try
     {
@@ -136,7 +143,9 @@ EXT_COMMAND(wa_scan,
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    out << "WinDBG Anti-RootKit system end scan..." << endlout;
+    out << "--------------------------------------------------------------------------" << endlout;
+    out << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << " end of scan" << endlout;
+    out << "--------------------------------------------------------------------------" << endlout;
 
     if ( HasArg( "log" ) )
         Execute( ".logclose" );

@@ -831,5 +831,4 @@ EXT_COMMAND(wa_gdt,
     }
 
     display.PrintFooter();
-    display.PrintFooter();
 }

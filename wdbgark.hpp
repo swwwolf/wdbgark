@@ -88,15 +88,17 @@ public:
         string           info;
         string           list_head_name;
         unsigned __int64 object_offset;
+        unsigned __int64 list_head_offset;
     } OutputWalkInfo;
 
     typedef vector<OutputWalkInfo> walkresType;
 
     typedef struct WalkCallbackContextTag
     {
-        string       type;
-        string       list_head_name;
-        walkresType* output_list_pointer;
+        string           type;
+        string           list_head_name;
+        walkresType*     output_list_pointer;
+        unsigned __int64 list_head_offset;
     } WalkCallbackContext;
     //////////////////////////////////////////////////////////////////////////
     typedef HRESULT (*pfn_object_directory_walk_callback_routine)(WDbgArk* wdbg_ark_class,

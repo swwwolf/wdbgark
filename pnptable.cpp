@@ -122,6 +122,18 @@ EXT_COMMAND(wa_pnptable,
 
     out << "Displaying nt!PlugPlayHandlerTable" << endlout;
 
+    // PnpControlClass + Length + Routine
+    unsigned long    size   = sizeof( unsigned long ) + sizeof( unsigned long ) + m_PtrSize;
+    unsigned __int64 offset = 0;
+
+    if ( !GetSymbolOffset( "nt!PlugPlayHandlerTable", true, &offset ) )
+    {
+        err << __FUNCTION__ << ": failed to find nt!PlugPlayHandlerTable" << endlerr;
+        return;
+    }
+
+    out << "[+] nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
+
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
@@ -130,26 +142,17 @@ EXT_COMMAND(wa_pnptable,
 
     try
     {
-        unsigned __int64 offset = 0;
-
-        // PnpControlClass + Length + Routine
-        unsigned long size = sizeof( unsigned long ) + sizeof( unsigned long ) + m_PtrSize;
-
-        if ( GetSymbolOffset( "nt!PlugPlayHandlerTable", true, &offset ) )
+        for ( int i = 0; i < 0x100; i++ )
         {
-            for ( int i = 0; i < 0x100; i++ )
-            {
-                ExtRemoteData pnp_table_entry_class( offset + i * size, sizeof( unsigned long ) );
+            ExtRemoteData pnp_table_entry_class( offset + i * size, sizeof( unsigned long ) );
 
-                if ( pnp_table_entry_class.GetUlong() != i ) // check PnpControlClass
-                    break;
+            if ( pnp_table_entry_class.GetUlong() != i ) // check PnpControlClass
+                break;
 
-                unsigned __int64 init_offset = offset + i * size + sizeof( unsigned long ) + sizeof( unsigned long );
+            unsigned __int64 init_offset = offset + i * size + sizeof( unsigned long ) + sizeof( unsigned long );
 
-                ExtRemoteData pnp_table_entry_routine( init_offset, m_PtrSize );
-
-                display.AnalyzeAddressAsRoutine( pnp_table_entry_routine.GetPtr(), "", "" );
-            }
+            ExtRemoteData pnp_table_entry_routine( init_offset, m_PtrSize );
+            display.AnalyzeAddressAsRoutine( pnp_table_entry_routine.GetPtr(), "", "" );
         }
     }
     catch ( ExtRemoteException Ex )
