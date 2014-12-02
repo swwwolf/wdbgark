@@ -98,6 +98,9 @@
     <ClCompile Include="bprinter\src\table_printer.cpp">
       <Filter>Source Files\bprinter</Filter>
     </ClCompile>
+    <ClCompile Include="process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="wdbgark.def">

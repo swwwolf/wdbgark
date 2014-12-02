@@ -38,7 +38,7 @@ EXT_COMMAND(wa_ssdt,
     {
         if ( !GetSymbolOffset( "nt!KiServiceLimit", true, &offset ) )
         {
-            err << "Failed to find nt!KiServiceLimit" << endlerr;
+            err << __FUNCTION__ << ": failed to find nt!KiServiceLimit" << endlerr;
             return;
         }
 
@@ -49,7 +49,7 @@ EXT_COMMAND(wa_ssdt,
 
         if ( !limit )
         {
-            err << "Invalid service limit number" << endlerr;
+            err << __FUNCTION__ << ": invalid service limit number" << endlerr;
             return;
         }
 
@@ -57,7 +57,7 @@ EXT_COMMAND(wa_ssdt,
 
         if ( !GetSymbolOffset( "nt!KiServiceTable", true, &offset ) )
         {
-            err << "Failed to find nt!KiServiceTable" << endlerr;
+            err << __FUNCTION__ << ": failed to find nt!KiServiceTable" << endlerr;
             return;
         }
 
@@ -149,7 +149,7 @@ EXT_COMMAND(wa_w32psdt,
     {
         if ( !GetSymbolOffset( "win32k!W32pServiceLimit", true, &offset ) )
         {
-            err << "Failed to find win32k!W32pServiceLimit" << endlerr;
+            err << __FUNCTION__ << ": failed to find win32k!W32pServiceLimit" << endlerr;
             return;
         }
 
@@ -160,7 +160,7 @@ EXT_COMMAND(wa_w32psdt,
 
         if ( !limit )
         {
-            err << "Invalid service limit number" << endlerr;
+            err << __FUNCTION__ << ": invalid service limit number" << endlerr;
             return;
         }
 
@@ -168,7 +168,7 @@ EXT_COMMAND(wa_w32psdt,
 
         if ( !GetSymbolOffset( "win32k!W32pServiceTable", true, &offset ) )
         {
-            err << "Failed to find win32k!W32pServiceTable" << endlerr;
+            err << __FUNCTION__ << ": failed to find win32k!W32pServiceTable" << endlerr;
             return;
         }
 

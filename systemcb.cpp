@@ -251,12 +251,6 @@ EXT_COMMAND(wa_systemcb,
     {
         throw Ex;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << endlerr;
-    }
-    */
 }
 
 void WDbgArk::CallÑorrespondingWalkListRoutine(map <string, SystemCbCommand>::const_iterator &citer,
@@ -408,7 +402,7 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
    
     if ( !GetSymbolOffset( list_count_name.c_str(), true, &offset ) )
     {
-        err << "Failed to get " << list_count_name << endlerr;
+        err << __FUNCTION__ << ": failed to get " << list_count_name << endlerr;
         return;
     }
 
@@ -418,7 +412,7 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
 
         if ( !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
         {
-            err << "Failed to get " << list_head_name << endlerr;
+            err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
             return;
         }
 
@@ -450,13 +444,6 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with list_count_name = " << list_count_name;
-        err << " list_head_name = " << list_head_name << endlerr;
-    }
-    */
 }
 
 //
@@ -517,7 +504,7 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped
     if ( FAILED( wdbg_ark_class->m_obj_helper.GetObjectName( object, object_name ) ) )
     {
         stringstream warn;
-        warn << "Failed to get object name" << endlwarn;
+        warn << __FUNCTION__ << ": failed to get object name" << endlwarn;
     }
     else
         list_head_name.append( object_name );
@@ -593,17 +580,6 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
 
         return Ex.GetStatus();
     }
-    /*
-    catch( ... )
-    {
-        stringstream err;
-
-        err << "Exception in " << __FUNCTION__ << " with object_pointer.m_Offset = ";
-        err << std::hex << std::showbase << object_pointer.m_Offset << endlerr;
-
-        return E_POINTER;
-    }
-    */
 
     return S_OK;
 }

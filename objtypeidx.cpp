@@ -59,7 +59,7 @@ EXT_COMMAND(wa_objtypeidx,
             }
         }
         else
-            out << "Unsupported Windows version" << endlout;
+            out << __FUNCTION__ << ": unsupported Windows version" << endlout;
     }
     catch ( ExtRemoteException Ex )
     {
@@ -69,12 +69,6 @@ EXT_COMMAND(wa_objtypeidx,
     {
         throw Ex;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << endlerr;
-    }
-    */
 
     display.PrintFooter();
 }

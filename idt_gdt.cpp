@@ -425,7 +425,7 @@ EXT_COMMAND(wa_idt,
     {
         if ( !GetSymbolOffset( "nt!KxUnexpectedInterrupt0", true, &start_unexpected_range ) )
         {
-            err << "Failed to get nt!KxUnexpectedInterrupt0" << endlerr;
+            err << __FUNCTION__ << ": failed to get nt!KxUnexpectedInterrupt0" << endlerr;
             return;
         }
 
@@ -436,13 +436,13 @@ EXT_COMMAND(wa_idt,
     {
         if ( !GetSymbolOffset( "nt!KiStartUnexpectedRange", true, &start_unexpected_range ) )
         {
-            err << "Failed to get nt!KiStartUnexpectedRange" << endlerr;
+            err << __FUNCTION__ << ": failed to get nt!KiStartUnexpectedRange" << endlerr;
             return;
         }
 
         if ( !GetSymbolOffset( "nt!KiEndUnexpectedRange", true, &end_unexpected_range ) )
         {
-            err << "Failed to get nt!KiEndUnexpectedRange" << endlerr;
+            err << __FUNCTION__ << ": failed to get nt!KiEndUnexpectedRange" << endlerr;
             return;
         }
     }
@@ -830,5 +830,6 @@ EXT_COMMAND(wa_gdt,
         throw Ex;
     }
 
+    display.PrintFooter();
     display.PrintFooter();
 }

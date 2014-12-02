@@ -187,6 +187,7 @@
     <ClCompile Include="objtype.cpp" />
     <ClCompile Include="objtypeidx.cpp" />
     <ClCompile Include="pnptable.cpp" />
+    <ClCompile Include="process.cpp" />
     <ClCompile Include="scan.cpp" />
     <ClCompile Include="sdt_w32p.cpp" />
     <ClCompile Include="ssdt.cpp" />

@@ -39,7 +39,7 @@ EXT_COMMAND(wa_objtype,
 
     if ( !object_types_directory_offset )
     {
-        err << "Failed to get \"ObjectTypes\" directory" << endlerr;
+        err << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
         return;
     }
 
@@ -76,12 +76,6 @@ EXT_COMMAND(wa_objtype,
     {
         throw Ex;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << endlerr;
-    }
-    */
 
     display.PrintFooter();
 }
@@ -105,15 +99,6 @@ HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, ExtRemoteT
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
-    /*
-    catch( ... )
-    {
-        loc << "Exception in " << __FUNCTION__ << " with object.m_Offset = ";
-        loc << object.m_Offset << endlerr;
-
-        return E_UNEXPECTED;
-    }
-    */
 
     return S_OK;
 }

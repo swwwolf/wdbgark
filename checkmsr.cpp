@@ -44,7 +44,6 @@ EXT_COMMAND(wa_checkmsr,
         ReadMsr( SYSENTER_EIP_MSR, &msr_address );
 
         expression << std::showbase << std::hex << msr_address;
-
         display.AnalyzeAddressAsRoutine( g_Ext->EvalExprU64( expression.str().c_str() ), "SYSENTER_EIP_MSR", "" );
     }
     catch ( ExtStatusException Ex )
@@ -55,12 +54,6 @@ EXT_COMMAND(wa_checkmsr,
     {
         throw Ex;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << endlerr;
-    }
-    */
 
     display.PrintFooter();
 }

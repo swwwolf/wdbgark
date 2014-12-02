@@ -45,6 +45,7 @@ SOURCES = \
 		 objtype.cpp\
 		 objtypeidx.cpp\
 		 pnptable.cpp\
+		 process.cpp\
 		 scan.cpp\
 		 sdt_w32p.cpp\
 		 ssdt.cpp\

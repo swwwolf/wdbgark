@@ -63,15 +63,6 @@ HRESULT UnicodeStringStructToString(ExtRemoteTyped &unicode_string, string &outp
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
-    /*
-    catch( ... )
-    {
-        stringstream err;
-
-        err << "Exception in " << __FUNCTION__ << " with unicode_string.m_Offset = ";
-        err << std::hex << std::showbase << unicode_string.m_Offset << endlerr;
-    }
-    */
 
     return E_INVALIDARG;
 }
@@ -257,13 +248,13 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
 
     if ( !offset_to_routine )
     {
-        err << "Invalid parameter offset_to_routine was specified" << endlerr;
+        err << __FUNCTION__ << ": invalid parameter offset_to_routine was specified" << endlerr;
         return;
     }
 
     if ( !offset && !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
     {
-        err << "Failed to get " << list_head_name << endlerr;
+        err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
         return;
     }
 
@@ -288,13 +279,6 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const string &list_head_name,
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with list_head_name = " << list_head_name << " offset = ";
-        err << std::hex << std::showbase << offset << endlerr;
-    }
-    */
 }
 
 void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const string &list_head_name,
@@ -308,13 +292,13 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const string &list_head_name,
 
     if ( !offset_to_object_pointer )
     {
-        err << "Invalid parameter offset_to_object_pointer" << endlerr;
+        err << __FUNCTION__ << ": invalid parameter offset_to_object_pointer" << endlerr;
         return;
     }
 
     if ( !offset && !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
     {
-        err << "Failed to get " << list_head_name << endlerr;
+        err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
         return;
     }
 
@@ -337,13 +321,6 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const string &list_head_name,
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with list_head_name = " << list_head_name << " offset = ";
-        err << std::hex << std::showbase << offset << endlerr;
-    }
-    */
 }
 
 void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
@@ -352,13 +329,13 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
 {
     if ( !directory_address )
     {
-        err << "Invalid directory address" << endlerr;
+        err << __FUNCTION__ << ": invalid directory address" << endlerr;
         return;
     }
 
     if ( !callback )
     {
-        err << "Invalid callback address" << endlerr;
+        err << __FUNCTION__ << ": invalid callback address" << endlerr;
         return;
     }
 
@@ -387,13 +364,6 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with directory_address = ";
-        err << std::hex << std::showbase << directory_address << endlerr;
-    }
-    */
 }
 
 void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
@@ -404,7 +374,7 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
 
     if ( !callback )
     {
-        err << "Invalid callback address" << endlerr;
+        err << __FUNCTION__ << ": invalid callback address" << endlerr;
         return;
     }
 
@@ -414,7 +384,7 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
         {
             if ( !GetSymbolOffset( "nt!IopRootDeviceNode", true, &offset ) )
             {
-                err << "Failed to get nt!IopRootDeviceNode" << endlerr;
+                err << __FUNCTION__ << ": failed to get nt!IopRootDeviceNode" << endlerr;
                 return;
             }
             else
@@ -443,13 +413,6 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with device_node_address = ";
-        err << std::hex << std::showbase << device_node_address << endlerr;
-    }
-    */
 }
 
 void WDbgArk::AddSymbolPointer(const string &symbol_name,

@@ -66,7 +66,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const string &object_name,
 
     if ( object_name.empty() )
     {
-        err << "Invalid object name" << endlerr;
+        err << __FUNCTION__ << ": invalid object name" << endlerr;
         return 0;
     }
 
@@ -78,7 +78,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const string &object_name,
         {
             if ( !g_Ext->GetSymbolOffset( "nt!ObpRootDirectoryObject", true, &offset ) )
             {
-                err << "Failed to get nt!ObpRootDirectoryObject" << endlerr;
+                err << __FUNCTION__ << ": failed to get nt!ObpRootDirectoryObject" << endlerr;
                 return 0;
             }
             else
@@ -122,13 +122,6 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const string &object_name,
     {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with object_name = " << object_name << " offset = ";
-        err << std::hex << std::showbase << offset << endlerr;
-    }
-    */
 
     return 0;
 }
@@ -147,7 +140,7 @@ HRESULT WDbgArkObjHelper::GetObjectHeader(const ExtRemoteTyped &object, ExtRemot
 
     if ( !offset )
     {
-        err << "Body field is missing in nt!_OBJECT_HEADER" << endlerr;
+        err << __FUNCTION__ << ": body field is missing in nt!_OBJECT_HEADER" << endlerr;
         return E_UNEXPECTED;
     }
 
@@ -216,13 +209,6 @@ HRESULT WDbgArkObjHelper::GetObjectHeaderNameInfo(ExtRemoteTyped &object_header,
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << " with object_header.m_Offset = ";
-        err << std::hex << std::showbase << object_header.m_Offset << endlerr;
-    }
-    */
 
     return E_UNEXPECTED;
 }
@@ -242,7 +228,7 @@ HRESULT WDbgArkObjHelper::GetObjectName(ExtRemoteTyped &object, string &object_n
 
     if ( FAILED( res ) )
     {
-        err << "Failed to get object header" << endlerr;
+        err << __FUNCTION__ << ": failed to get object header" << endlerr;
         return res;
     }
 
@@ -250,7 +236,7 @@ HRESULT WDbgArkObjHelper::GetObjectName(ExtRemoteTyped &object, string &object_n
 
     if ( FAILED( res ) )
     {
-        err << "Failed to get object header name info" << endlerr;
+        err << __FUNCTION__ << ": failed to get object header name info" << endlerr;
         return res;
     }
 

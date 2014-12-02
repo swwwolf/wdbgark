@@ -31,13 +31,11 @@
 #define _PROCESS_HPP_
 
 #include <string>
+#include <sstream>
 #include <vector>
-#include <algorithm>
 using namespace std;
 
 #include <engextcpp.hpp>
-
-#include "manipulators.hpp"
 
 class WDbgArkProcess : public ExtNtOsInformation
 {
@@ -68,161 +66,18 @@ public:
         }
     }
 
-    bool Init(void)
-    {
-        if ( IsInited() )
-            return true;
-
-        try
-        {
-            ExtRemoteTypedList list_head = GetKernelProcessList();
-
-            for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() )
-            {
-                ProcessInfo info;
-
-                info.process = list_head.GetTypedNode();
-                info.eprocess = GetProcessDataOffset( info.process );
-
-                if ( !GetProcessImageFileName( info.process, info.image_file_name ) )
-                    err << "Failed to read process file name " << std::hex << std::showbase << info.process.m_Offset << endlwarn;
-                else
-                    transform(info.image_file_name.begin(),
-                              info.image_file_name.end(),
-                              info.image_file_name.begin(),
-                              tolower);
-
-                m_process_list.push_back( info );
-            }
-
-            if ( !m_process_list.empty() )
-                m_inited = true;
-        }
-        catch( ExtRemoteException Ex )
-        {
-            err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        }
-
-        return m_inited;
-    }
-
+    bool Init(void);
     bool IsInited(void){ return m_inited == true; }
 
-    unsigned __int64 FindEProcessByImageFileName(const string &process_name)
-    {
-        ProcessInfo info;
-
-        if ( !IsInited() )
-        {
-            err << __FUNCTION__ << ": class is not initialized" << endlerr;
-            return 0;
-        }
-
-        if ( FindProcessInfoByImageFileName( process_name, &info ) )
-            return info.eprocess;
-
-        return 0;
-    }
-
-    unsigned __int64 FindEProcessAnyGUIProcess()
-    {
-        if ( !IsInited() )
-        {
-            err << __FUNCTION__ << ": class is not initialized" << endlerr;
-            return 0;
-        }
-
-        try
-        {
-            for ( vector<ProcessInfo>::iterator it = m_process_list.begin(); it != m_process_list.end(); ++it )
-            {
-                if ( (*it).process.Field( "Win32Process" ).GetPtr() )
-                    return (*it).eprocess;
-            }
-        }
-        catch( ExtRemoteException Ex )
-        {
-            err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        }
-
-        return 0;
-    }
-
-    HRESULT SetImplicitProcess(unsigned __int64 set_eprocess)
-    {
-        HRESULT error;
-
-        if ( !IsInited() )
-        {
-            err << __FUNCTION__ << ": class is not initialized" << endlerr;
-            return E_UNEXPECTED;
-        }
-
-        if ( !set_eprocess )
-        {
-            err << __FUNCTION__ << ": invalid parameter" << endlerr;
-            return E_INVALIDARG;
-        }
-
-        if ( !SUCCEEDED( error = g_Ext->m_System2->GetImplicitProcessDataOffset( &current_process ) ) )
-        {
-            err << __FUNCTION__ << ": failed to get current EPROCESS" << endlerr;
-            return error;
-        }
-
-        if ( current_process == set_eprocess )
-            return S_OK;
-        
-        if ( !SUCCEEDED( error = g_Ext->m_System2->SetImplicitProcessDataOffset( set_eprocess ) ) )
-        {
-            err << __FUNCTION__ << ": failed to set implicit process to ";
-            err << std::hex << std::showbase << set_eprocess << endlerr;
-        }
-
-        return error;
-    }
+    unsigned __int64 FindEProcessByImageFileName(const string &process_name);
+    unsigned __int64 FindEProcessAnyGUIProcess();
+    HRESULT          SetImplicitProcess(unsigned __int64 set_eprocess);
 
 private:
 
-    bool GetProcessImageFileName(ExtRemoteTyped &process, string& output_name)
-    {
-        char buffer[100] = { 0 };
-
-        try
-        {
-            ExtRemoteTyped image_file_name = process.Field( "ImageFileName" );
-            output_name = image_file_name.GetString( buffer, 100, image_file_name.GetTypeSize(), false );
-            return true;
-        }
-        catch( ExtRemoteException Ex )
-        {
-            err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        }
-
-        return false;
-    }
-
-    unsigned __int64 GetProcessDataOffset(ExtRemoteTyped &process)
-    {
-        return process.m_Offset;
-    }
-
-    bool FindProcessInfoByImageFileName(const string &process_name, ProcessInfo* info)
-    {
-        string compare_with = process_name;
-        transform( compare_with.begin(), compare_with.end(), compare_with.begin(), tolower );
-
-        for ( vector<ProcessInfo>::iterator it = m_process_list.begin(); it != m_process_list.end(); ++it )
-        {
-            if ( compare_with == (*it).image_file_name )
-            {
-                *info = *it;
-                return true;
-            }
-        }
-
-        return false;
-    }
+    bool             GetProcessImageFileName(ExtRemoteTyped &process, string& output_name);
+    unsigned __int64 GetProcessDataOffset(ExtRemoteTyped &process);
+    bool             FindProcessInfoByImageFileName(const string &process_name, ProcessInfo* info);
 
     unsigned __int64    current_process;
     vector<ProcessInfo> m_process_list;

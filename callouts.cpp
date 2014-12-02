@@ -133,12 +133,6 @@ EXT_COMMAND(wa_callouts,
     {
         throw Ex;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << endlerr;
-    }
-    */
 
     display.PrintFooter();
     display.PrintFooter();
