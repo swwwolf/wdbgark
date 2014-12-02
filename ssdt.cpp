@@ -31,6 +31,48 @@ EXT_COMMAND(wa_ssdt,
 
     out << "Displaying nt!KiServiceTable" << endlout;
 
+    unsigned __int64 offset = 0;
+    unsigned long    limit  = 0;
+
+    try
+    {
+        if ( !GetSymbolOffset( "nt!KiServiceLimit", true, &offset ) )
+        {
+            err << "Failed to find nt!KiServiceLimit" << endlerr;
+            return;
+        }
+
+        out << "[+] nt!KiServiceLimit: " << std::hex << std::showbase << offset << endlout;
+
+        ExtRemoteData ki_service_limit( offset, sizeof( limit ) );
+        limit = ki_service_limit.GetUlong();
+
+        if ( !limit )
+        {
+            err << "Invalid service limit number" << endlerr;
+            return;
+        }
+
+        out << "[+] ServiceLimit:      " << std::hex << std::showbase << limit << endlout;
+
+        if ( !GetSymbolOffset( "nt!KiServiceTable", true, &offset ) )
+        {
+            err << "Failed to find nt!KiServiceTable" << endlerr;
+            return;
+        }
+
+        out << "[+] nt!KiServiceTable: " << std::hex << std::showbase << offset << endlout;
+    }
+    catch ( ExtRemoteException Ex )
+    {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        return;
+    }
+    catch( ExtInterruptException Ex )
+    {
+        throw Ex;
+    }
+
     WDbgArkAnalyze display;
     stringstream   tmp_stream;
     display.Init( &tmp_stream, AnalyzeTypeDefault );
@@ -39,46 +81,30 @@ EXT_COMMAND(wa_ssdt,
 
     try
     {
-        unsigned __int64 offset = 0;
-
-        if ( GetSymbolOffset( "nt!KiServiceLimit", true, &offset ) )
+        for ( unsigned long i = 0; i < limit; i++ )
         {
-            ExtRemoteData ki_service_limit( offset, sizeof( unsigned long ) );
-
-            if ( !ki_service_limit.GetUlong() )
+            if ( m_is_cur_machine64 )
             {
-                err << "Invalid service limit number" << endlerr;
-                return;
+                string routine_name = get_service_table_routine_name( KiServiceTable_x64, i );
+
+                ExtRemoteData service_offset_full( offset + i * sizeof( long ), sizeof( long ) );
+                long service_offset = service_offset_full.GetLong();
+
+                if ( m_minor_build >= VISTA_RTM_VER )
+                    service_offset >>= 4;
+                else
+                    service_offset &= ~MAX_FAST_REFS_X64;
+
+                display.AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
+                display.PrintFooter();
             }
-
-            if ( GetSymbolOffset( "nt!KiServiceTable", true, &offset ) )
+            else
             {
-                for ( unsigned long i = 0; i < ki_service_limit.GetUlong(); i++ )
-                {
-                    if ( m_is_cur_machine64 )
-                    {
-                        string routine_name = get_service_table_routine_name( KiServiceTable_x64, i );
+                string routine_name = get_service_table_routine_name( KiServiceTable_x86, i );
 
-                        ExtRemoteData service_offset_full( offset + i * sizeof( long ), sizeof( long ) );
-                        long service_offset = service_offset_full.GetLong();
-
-                        if ( m_minor_build >= VISTA_RTM_VER )
-                            service_offset >>= 4;
-                        else
-                            service_offset &= 0xFFFFFFF0;
-
-                        display.AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
-                        display.PrintFooter();
-                    }
-                    else
-                    {
-                        string routine_name = get_service_table_routine_name( KiServiceTable_x86, i );
-
-                        ExtRemoteData service_address( offset + i * m_PtrSize, m_PtrSize );
-                        display.AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
-                        display.PrintFooter();
-                    }
-                }
+                ExtRemoteData service_address( offset + i * m_PtrSize, m_PtrSize );
+                display.AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
+                display.PrintFooter();
             }
         }
     }
@@ -90,12 +116,6 @@ EXT_COMMAND(wa_ssdt,
     {
         throw Ex;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << endlerr;
-    }
-    */
 
     display.PrintFooter();
 }
@@ -109,39 +129,59 @@ EXT_COMMAND(wa_w32psdt,
 
     out << "Displaying win32k!W32pServiceTable" << endlout;
 
-    unsigned __int64 set_eprocess     = 0;
-    unsigned __int64 current_eprocess = 0;
+    WDbgArkProcess process;
+    process.Init();
+
+    unsigned __int64 set_eprocess = 0;
 
     if ( HasArg( "process" ) )
         set_eprocess = GetArgU64( "process" );
-
-    if ( !set_eprocess )
-    {
-        WDbgArkProcess process;
-
-        process.Init();
+    else
         set_eprocess = process.FindEProcessAnyGUIProcess();
 
-        if ( !set_eprocess )
+    if ( !SUCCEEDED( process.SetImplicitProcess( set_eprocess ) ) )
+        return;
+
+    unsigned __int64 offset = 0;
+    unsigned long    limit  = 0;
+
+    try
+    {
+        if ( !GetSymbolOffset( "win32k!W32pServiceLimit", true, &offset ) )
         {
-            err << "Failed to find GUI process" << endlerr;
+            err << "Failed to find win32k!W32pServiceLimit" << endlerr;
             return;
         }
-    }
 
-    if ( !SUCCEEDED( g_Ext->m_System2->GetImplicitProcessDataOffset( &current_eprocess ) ) )
+        out << "[+] win32k!W32pServiceLimit: " << std::hex << std::showbase << offset << endlout;
+
+        ExtRemoteData w32_service_limit( offset, sizeof( limit ) );
+        limit = w32_service_limit.GetUlong();
+
+        if ( !limit )
+        {
+            err << "Invalid service limit number" << endlerr;
+            return;
+        }
+
+        out << "[+] ServiceLimit:            " << std::hex << std::showbase << limit << endlout;
+
+        if ( !GetSymbolOffset( "win32k!W32pServiceTable", true, &offset ) )
+        {
+            err << "Failed to find win32k!W32pServiceTable" << endlerr;
+            return;
+        }
+
+        out << "[+] win32k!W32pServiceTable: " << std::hex << std::showbase << offset << endlout;
+    }
+    catch ( ExtRemoteException Ex )
     {
-        err << "Failed to get current EPROCESS" << endlerr;
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return;
     }
-
-    if ( current_eprocess != set_eprocess )
+    catch( ExtInterruptException Ex )
     {
-        if ( !SUCCEEDED( g_Ext->m_System2->SetImplicitProcessDataOffset( set_eprocess ) ) )
-        {
-            err << "Failed to set implicit process to " << std::hex << std::showbase << set_eprocess << endlerr;
-            return;
-        }
+        throw Ex;
     }
 
     WDbgArkAnalyze display;
@@ -152,46 +192,30 @@ EXT_COMMAND(wa_w32psdt,
 
     try
     {
-        unsigned __int64 offset = 0;
-
-        if ( GetSymbolOffset( "win32k!W32pServiceLimit", true, &offset ) )
+        for ( unsigned long i = 0; i < limit; i++ )
         {
-            ExtRemoteData w32_service_limit( offset, sizeof( unsigned long ) );
-
-            if ( !w32_service_limit.GetUlong() )
+            if ( m_is_cur_machine64 )
             {
-                err << "Invalid service limit number" << endlerr;
-                return;
+                string routine_name = get_service_table_routine_name( W32pServiceTable_x64, i );
+
+                ExtRemoteData service_offset_full( offset + i * sizeof( long ), sizeof( long ) );
+                long service_offset = service_offset_full.GetLong();
+
+                if ( m_minor_build >= VISTA_RTM_VER )
+                    service_offset >>= 4;
+                else
+                    service_offset &= ~MAX_FAST_REFS_X64;
+
+                display.AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
+                display.PrintFooter();
             }
-
-            if ( GetSymbolOffset( "win32k!W32pServiceTable", true, &offset ) )
+            else
             {
-                for ( unsigned long i = 0; i < w32_service_limit.GetUlong(); i++ )
-                {
-                    if ( m_is_cur_machine64 )
-                    {
-                        string routine_name = get_service_table_routine_name( W32pServiceTable_x64, i );
+                string routine_name = get_service_table_routine_name( W32pServiceTable_x86, i );
 
-                        ExtRemoteData service_offset_full( offset + i * sizeof( long ), sizeof( long ) );
-                        long service_offset = service_offset_full.GetLong();
-
-                        if ( m_minor_build >= VISTA_RTM_VER )
-                            service_offset >>= 4;
-                        else
-                            service_offset &= 0xFFFFFFF0;
-
-                        display.AnalyzeAddressAsRoutine( offset + service_offset, routine_name, "" );
-                        display.PrintFooter();
-                    }
-                    else
-                    {
-                        string routine_name = get_service_table_routine_name( W32pServiceTable_x86, i );
-
-                        ExtRemoteData service_address( offset + i * m_PtrSize, m_PtrSize );
-                        display.AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
-                        display.PrintFooter();
-                    }
-                }
+                ExtRemoteData service_address( offset + i * m_PtrSize, m_PtrSize );
+                display.AnalyzeAddressAsRoutine( service_address.GetPtr(), routine_name, "" );
+                display.PrintFooter();
             }
         }
     }
@@ -203,18 +227,6 @@ EXT_COMMAND(wa_w32psdt,
     {
         throw Ex;
     }
-    /*
-    catch( ... )
-    {
-        err << "Exception in " << __FUNCTION__ << endlerr;
-    }
-    */
 
     display.PrintFooter();
-
-    if ( current_eprocess != set_eprocess )
-    {
-        if ( !SUCCEEDED( g_Ext->m_System2->SetImplicitProcessDataOffset( current_eprocess ) ) )
-            err << "Failed to revert implicit process to " << std::hex << std::showbase << current_eprocess << endlerr;
-    }
 }

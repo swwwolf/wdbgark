@@ -54,12 +54,18 @@ public:
     } ProcessInfo;
 
     WDbgArkProcess() :
-        m_inited( false ){ }
+        m_inited( false ),
+        current_process( 0 ) { }
 
     ~WDbgArkProcess()
     {
         if ( IsInited() )
+        {
             m_process_list.clear();
+
+            if ( current_process )
+                g_Ext->m_System2->SetImplicitProcessDataOffset( current_process );
+        }
     }
 
     bool Init(void)
@@ -142,6 +148,40 @@ public:
         return 0;
     }
 
+    HRESULT SetImplicitProcess(unsigned __int64 set_eprocess)
+    {
+        HRESULT error;
+
+        if ( !IsInited() )
+        {
+            err << __FUNCTION__ << ": class is not initialized" << endlerr;
+            return E_UNEXPECTED;
+        }
+
+        if ( !set_eprocess )
+        {
+            err << __FUNCTION__ << ": invalid parameter" << endlerr;
+            return E_INVALIDARG;
+        }
+
+        if ( !SUCCEEDED( error = g_Ext->m_System2->GetImplicitProcessDataOffset( &current_process ) ) )
+        {
+            err << __FUNCTION__ << ": failed to get current EPROCESS" << endlerr;
+            return error;
+        }
+
+        if ( current_process == set_eprocess )
+            return S_OK;
+        
+        if ( !SUCCEEDED( error = g_Ext->m_System2->SetImplicitProcessDataOffset( set_eprocess ) ) )
+        {
+            err << __FUNCTION__ << ": failed to set implicit process to ";
+            err << std::hex << std::showbase << set_eprocess << endlerr;
+        }
+
+        return error;
+    }
+
 private:
 
     bool GetProcessImageFileName(ExtRemoteTyped &process, string& output_name)
@@ -184,6 +224,7 @@ private:
         return false;
     }
 
+    unsigned __int64    current_process;
     vector<ProcessInfo> m_process_list;
     bool                m_inited;
     stringstream        err;
