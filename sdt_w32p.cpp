@@ -19,12 +19,12 @@
     * the COPYING file in the top-level directory.
 */
 
+// TODO(swwwolf): check routine names (subXXX, unknown, etc...)
+
+#include <string>
 #include "wdbgark.hpp"
 
-// TODO: check routine names (subXXX, unknown, etc...)
-
-char* KiServiceTable_XpSp3_x86[] =
-{
+static const char* KiServiceTable_XpSp3_x86[] = {
     "NtAcceptConnectPort",
     "NtAccessCheck",
     "NtAccessCheckAndAuditAlarm",
@@ -311,8 +311,7 @@ char* KiServiceTable_XpSp3_x86[] =
     "NtQueryPortInformationProcess"
 };
 
-char* KiServiceTable_W2k3Sp2_x86[] =
-{
+static const char* KiServiceTable_W2k3Sp2_x86[] = {
     "NtAcceptConnectPort",
     "NtAccessCheck",
     "NtAccessCheckAndAuditAlarm",
@@ -611,8 +610,7 @@ char* KiServiceTable_W2k3Sp2_x86[] =
     "NtWaitForMultipleObjects32"
 };
 
-char* KiServiceTable_VistaSp0_x86[] =
-{
+static const char* KiServiceTable_VistaSp0_x86[] = {
     "NtAcceptConnectPort",
     "NtAccessCheck",
     "NtAccessCheckAndAuditAlarm",
@@ -1013,8 +1011,7 @@ char* KiServiceTable_VistaSp0_x86[] =
     "NtReleaseCMFViewOwnership"
 };
 
-char* KiServiceTable_VistaSp1_x86[] =
-{
+static const char* KiServiceTable_VistaSp1_x86[] = {
     "NtAcceptConnectPort",
     "NtAccessCheck",
     "NtAccessCheckAndAuditAlarm",
@@ -1408,8 +1405,7 @@ char* KiServiceTable_VistaSp1_x86[] =
     "NtReleaseCMFViewOwnership"
 };
 
-char* KiServiceTable_VistaSp2_x86[] =
-{
+static const char* KiServiceTable_VistaSp2_x86[] = {
     "NtAcceptConnectPort",
     "NtAccessCheck",
     "NtAccessCheckAndAuditAlarm",
@@ -1803,8 +1799,7 @@ char* KiServiceTable_VistaSp2_x86[] =
     "NtReleaseCMFViewOwnership"
 };
 
-char* KiServiceTable_Win7Sp0_x86[] =
-{
+static const char* KiServiceTable_Win7Sp0_x86[] = {
     "NtAcceptConnectPort",
     "NtAccessCheck",
     "NtAccessCheckAndAuditAlarm",
@@ -2208,8 +2203,7 @@ char* KiServiceTable_Win7Sp0_x86[] =
     "NtYieldExecution"
 };
 
-char* KiServiceTable_Win7Sp1_x86[] =
-{
+static const char* KiServiceTable_Win7Sp1_x86[] = {
     "NtAcceptConnectPort",
     "NtAccessCheck",
     "NtAccessCheckAndAuditAlarm",
@@ -2613,8 +2607,7 @@ char* KiServiceTable_Win7Sp1_x86[] =
     "NtYieldExecution"
 };
 
-char* KiServiceTable_Win8Sp0_x86[] =
-{
+static const char* KiServiceTable_Win8Sp0_x86[] = {
     "NtWorkerFactoryWorkerReady",
     "NtYieldExecution",
     "NtWriteVirtualMemory",
@@ -3046,8 +3039,7 @@ char* KiServiceTable_Win8Sp0_x86[] =
     "NtAcceptConnectPort"
 };
 
-char* KiServiceTable_Win8Sp1_x86[] =
-{
+static const char* KiServiceTable_Win8Sp1_x86[] = {
     "NtWorkerFactoryWorkerReady",
     "NtAcceptConnectPort",
     "NtYieldExecution",
@@ -3483,8 +3475,7 @@ char* KiServiceTable_Win8Sp1_x86[] =
     "NtAccessCheck"
 };
 
-char* KiServiceTable_W2k3Sp2_x64[] =
-{
+static const char* KiServiceTable_W2k3Sp2_x64[] = {
     "NtMapUserPhysicalPagesScatter",
     "NtWaitForSingleObject",
     "NtCallbackReturn",
@@ -3783,8 +3774,7 @@ char* KiServiceTable_W2k3Sp2_x64[] =
     "NtWaitLowEventPair"
 };
 
-char* KiServiceTable_VistaSp0_x64[] =
-{
+static const char* KiServiceTable_VistaSp0_x64[] = {
     "NtMapUserPhysicalPagesScatter",
     "NtWaitForSingleObject",
     "NtCallbackReturn",
@@ -4185,8 +4175,7 @@ char* KiServiceTable_VistaSp0_x64[] =
     "NtWorkerFactoryWorkerReady"
 };
 
-char* KiServiceTable_VistaSp1_x64[] =
-{
+static const char* KiServiceTable_VistaSp1_x64[] = {
     "NtMapUserPhysicalPagesScatter",
     "NtWaitForSingleObject",
     "NtCallbackReturn",
@@ -4580,8 +4569,7 @@ char* KiServiceTable_VistaSp1_x64[] =
     "NtWorkerFactoryWorkerReady"
 };
 
-char* KiServiceTable_VistaSp2_x64[] =
-{
+static const char* KiServiceTable_VistaSp2_x64[] = {
     "NtMapUserPhysicalPagesScatter",
     "NtWaitForSingleObject",
     "NtCallbackReturn",
@@ -4975,8 +4963,7 @@ char* KiServiceTable_VistaSp2_x64[] =
     "NtWorkerFactoryWorkerReady"
 };
 
-char* KiServiceTable_Win7Sp0_x64[] =
-{
+static const char* KiServiceTable_Win7Sp0_x64[] = {
     "NtMapUserPhysicalPagesScatter",
     "NtWaitForSingleObject",
     "NtCallbackReturn",
@@ -5380,8 +5367,7 @@ char* KiServiceTable_Win7Sp0_x64[] =
     "NtWorkerFactoryWorkerReady"
 };
 
-char* KiServiceTable_Win7Sp1_x64[] =
-{
+static const char* KiServiceTable_Win7Sp1_x64[] = {
     "NtMapUserPhysicalPagesScatter",
     "NtWaitForSingleObject",
     "NtCallbackReturn",
@@ -5785,8 +5771,7 @@ char* KiServiceTable_Win7Sp1_x64[] =
     "NtWorkerFactoryWorkerReady"
 };
 
-char* KiServiceTable_Win8Sp0_x64[] =
-{
+static const char* KiServiceTable_Win8Sp0_x64[] = {
     "NtWorkerFactoryWorkerReady",
     "NtMapUserPhysicalPagesScatter",
     "NtWaitForSingleObject",
@@ -6218,8 +6203,7 @@ char* KiServiceTable_Win8Sp0_x64[] =
     "NtWaitLowEventPair"
 };
 
-char* KiServiceTable_Win8Sp1_x64[] =
-{
+static const char* KiServiceTable_Win8Sp1_x64[] = {
     "NtWorkerFactoryWorkerReady",
     "NtAcceptConnectPort",
     "NtMapUserPhysicalPagesScatter",
@@ -6655,8 +6639,7 @@ char* KiServiceTable_Win8Sp1_x64[] =
     "NtWaitLowEventPair"
 };
 
-char* W32pServiceTable_XpSp3_x86[] =
-{
+static const char* W32pServiceTable_XpSp3_x86[] = {
     "NtGdiAbortDoc",
     "NtGdiAbortPath",
     "NtGdiAddFontResourceW",
@@ -7326,8 +7309,7 @@ char* W32pServiceTable_XpSp3_x86[] =
     "NtGdiDrawStream"
 };
 
-char* W32pServiceTable_W2k3Sp2_x86[] =
-{
+static const char* W32pServiceTable_W2k3Sp2_x86[] = {
     "NtGdiAbortDoc",
     "NtGdiAbortPath",
     "NtGdiAddFontResourceW",
@@ -7995,8 +7977,7 @@ char* W32pServiceTable_W2k3Sp2_x86[] =
     "DxEngGetRedirectionBitmap"
 };
 
-char* W32pServiceTable_VistaSp0_x86[] =
-{
+static const char* W32pServiceTable_VistaSp0_x86[] = {
     "NtGdiAbortDoc",
     "NtGdiAbortPath",
     "NtGdiAddFontResourceW",
@@ -8225,7 +8206,7 @@ char* W32pServiceTable_VistaSp0_x86[] =
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "?bUnMap@SURFACE@@QAEHXZ", // TODO: strange
+    "?bUnMap@SURFACE@@QAEHXZ",  // TODO(swwwolf): strange
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -8771,8 +8752,7 @@ char* W32pServiceTable_VistaSp0_x86[] =
     "NtUserShowSystemCursor"
 };
 
-char* W32pServiceTable_VistaSp1_x86[] =
-{
+static const char* W32pServiceTable_VistaSp1_x86[] = {
     "NtGdiAbortDoc",
     "NtGdiAbortPath",
     "NtGdiAddFontResourceW",
@@ -9001,7 +8981,7 @@ char* W32pServiceTable_VistaSp1_x86[] =
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "?bUnMap@SURFACE@@QAEHXZ", // TODO: strange
+    "?bUnMap@SURFACE@@QAEHXZ",  // TODO(swwwolf): strange
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -9547,8 +9527,7 @@ char* W32pServiceTable_VistaSp1_x86[] =
     "NtUserShowSystemCursor"
 };
 
-char* W32pServiceTable_VistaSp2_x86[] =
-{
+static const char* W32pServiceTable_VistaSp2_x86[] = {
     "NtGdiAbortDoc",
     "NtGdiAbortPath",
     "NtGdiAddFontResourceW",
@@ -9777,7 +9756,7 @@ char* W32pServiceTable_VistaSp2_x86[] =
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "?bUnMap@SURFACE@@QAEHXZ", // TODO: strange
+    "?bUnMap@SURFACE@@QAEHXZ",  // TODO(swwwolf): strange
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -10323,8 +10302,7 @@ char* W32pServiceTable_VistaSp2_x86[] =
     "NtUserShowSystemCursor"
 };
 
-char* W32pServiceTable_Win7Sp0_x86[] =
-{
+static const char* W32pServiceTable_Win7Sp0_x86[] = {
     "NtGdiAbortDoc",
     "NtGdiAbortPath",
     "NtGdiAddFontResourceW",
@@ -11152,8 +11130,7 @@ char* W32pServiceTable_Win7Sp0_x86[] =
     "NtUserHwndSetRedirectionInfo"
 };
 
-char* W32pServiceTable_Win7Sp1_x86[] =
-{
+static const char* W32pServiceTable_Win7Sp1_x86[] = {
     "NtGdiAbortDoc",
     "NtGdiAbortPath",
     "NtGdiAddFontResourceW",
@@ -11981,8 +11958,7 @@ char* W32pServiceTable_Win7Sp1_x86[] =
     "NtUserHwndSetRedirectionInfo"
 };
 
-char* W32pServiceTable_Win8Sp0_x86[] =
-{
+static const char* W32pServiceTable_Win8Sp0_x86[] = {
     "NtUserYieldTask",
     "NtGdiWidenPath",
     "NtGdiUpdateColors",
@@ -12067,7 +12043,7 @@ char* W32pServiceTable_Win8Sp0_x86[] =
     "NtGdiInvertRgn",
     "NtGdiIntersectClipRect",
     "NtGdiInitSpool",
-    "?GetType@CCompositionBuffer@@UBE?AW4CompositionBufferType@@XZ", // TODO: strange
+    "?GetType@CCompositionBuffer@@UBE?AW4CompositionBufferType@@XZ",    // TODO(swwwolf): strange
     "NtGdiIcmBrushInfo",
     "NtGdiHfontCreate",
     "NtGdiGradientFill",
@@ -12969,8 +12945,7 @@ char* W32pServiceTable_Win8Sp0_x86[] =
     "NtUserGetQueueEventStatus"
 };
 
-char* W32pServiceTable_Win8Sp1_x86[] =
-{
+static const char* W32pServiceTable_Win8Sp1_x86[] = {
     "NtUserYieldTask",
     "NtUserSetSensorPresence",
     "NtGdiWidenPath",
@@ -14009,8 +13984,7 @@ char* W32pServiceTable_Win8Sp1_x86[] =
     "NtUserGetOwnerTransformedMonitorRect"
 };
 
-char* W32pServiceTable_W2k3Sp2_x64[] =
-{
+static const char* W32pServiceTable_W2k3Sp2_x64[] = {
     "NtUserGetThreadState",
     "NtUserPeekMessage",
     "NtUserCallOneParam",
@@ -14680,8 +14654,7 @@ char* W32pServiceTable_W2k3Sp2_x64[] =
     "NtUserYieldTask"
 };
 
-char* W32pServiceTable_VistaSp0_x64[] =
-{
+static const char* W32pServiceTable_VistaSp0_x64[] = {
     "NtUserGetThreadState",
     "NtUserPeekMessage",
     "NtUserCallOneParam",
@@ -15458,8 +15431,7 @@ char* W32pServiceTable_VistaSp0_x64[] =
     "NtUserSetWindowLongPtr"
 };
 
-char* W32pServiceTable_VistaSp1_x64[] =
-{
+static const char* W32pServiceTable_VistaSp1_x64[] = {
     "NtUserGetThreadState",
     "NtUserPeekMessage",
     "NtUserCallOneParam",
@@ -16236,8 +16208,7 @@ char* W32pServiceTable_VistaSp1_x64[] =
     "NtUserSetWindowLongPtr"
 };
 
-char* W32pServiceTable_VistaSp2_x64[] =
-{
+static const char* W32pServiceTable_VistaSp2_x64[] = {
     "NtUserGetThreadState",
     "NtUserPeekMessage",
     "NtUserCallOneParam",
@@ -17014,8 +16985,7 @@ char* W32pServiceTable_VistaSp2_x64[] =
     "NtUserSetWindowLongPtr"
 };
 
-char* W32pServiceTable_Win7Sp0_x64[] =
-{
+static const char* W32pServiceTable_Win7Sp0_x64[] = {
     "NtUserGetThreadState",
     "NtUserPeekMessage",
     "NtUserCallOneParam",
@@ -17845,8 +17815,7 @@ char* W32pServiceTable_Win7Sp0_x64[] =
     "NtUserSetWindowLongPtr"
 };
 
-char* W32pServiceTable_Win7Sp1_x64[] =
-{
+static const char* W32pServiceTable_Win7Sp1_x64[] = {
     "NtUserGetThreadState",
     "NtUserPeekMessage",
     "NtUserCallOneParam",
@@ -18676,8 +18645,7 @@ char* W32pServiceTable_Win7Sp1_x64[] =
     "NtUserSetWindowLongPtr"
 };
 
-char* W32pServiceTable_Win8Sp0_x64[] =
-{
+static const char* W32pServiceTable_Win8Sp0_x64[] = {
     "NtUserYieldTask",
     "NtUserGetThreadState",
     "NtUserPeekMessage",
@@ -19312,7 +19280,7 @@ char* W32pServiceTable_Win8Sp0_x64[] =
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetRealizationInfo",
     "NtGdiGetServerMetaFileBits",
-    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ", // TODO: strange
+    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ",    // TODO(swwwolf): strange
     "NtGdiGetStats",
     "NtGdiGetStringBitmapW",
     "NtGdiGetSuggestedOPMProtectedOutputArraySize",
@@ -19386,7 +19354,7 @@ char* W32pServiceTable_Win8Sp0_x64[] =
     "NtGdiSwapBuffers",
     "NtGdiTransparentBlt",
     "NtGdiUMPDEngFreeUserMem",
-    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ", // TODO: strange
+    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ",    // TODO(swwwolf): strange
     "NlsNullProc",
     "NtGdiUpdateColors",
     "NtGdiUpdateTransform",
@@ -19666,8 +19634,7 @@ char* W32pServiceTable_Win8Sp0_x64[] =
     "NtUserSetWindowLongPtr"
 };
 
-char* W32pServiceTable_Win8Sp1_x64[] =
-{
+static const char* W32pServiceTable_Win8Sp1_x64[] = {
     "NtUserYieldTask",
     "NtUserSetSensorPresence",
     "NtUserGetThreadState",
@@ -20401,7 +20368,7 @@ char* W32pServiceTable_Win8Sp1_x64[] =
     "NtGdiSwapBuffers",
     "NtGdiTransparentBlt",
     "NtGdiUMPDEngFreeUserMem",
-    "?GetModel@CTokenBase@@UEBA?AW4TokenModel@1@XZ", // TODO: strange
+    "?GetModel@CTokenBase@@UEBA?AW4TokenModel@1@XZ",    // TODO(swwwolf): strange
     "NlsNullProc",
     "NtGdiUpdateColors",
     "NtGdiUpdateTransform",
@@ -20708,8 +20675,7 @@ char* W32pServiceTable_Win8Sp1_x64[] =
     "NtUserSetWindowLongPtr"
 };
 
-char** Service_Tables[][9] =
-{
+static const char** Service_Tables[][9] = {
     { KiServiceTable_XpSp3_x86, KiServiceTable_W2k3Sp2_x86,
       KiServiceTable_VistaSp0_x86, KiServiceTable_VistaSp1_x86,
       KiServiceTable_VistaSp2_x86, KiServiceTable_Win7Sp0_x86,
@@ -20733,104 +20699,83 @@ char** Service_Tables[][9] =
       W32pServiceTable_Win8Sp0_x64, W32pServiceTable_Win8Sp1_x64 }
 };
 
-unsigned long Service_Tables_countof[][9] =
-{
-    { _countof( KiServiceTable_XpSp3_x86 ), _countof( KiServiceTable_W2k3Sp2_x86 ),
-      _countof( KiServiceTable_VistaSp0_x86 ), _countof( KiServiceTable_VistaSp1_x86 ),
-      _countof( KiServiceTable_VistaSp2_x86 ), _countof( KiServiceTable_Win7Sp0_x86 ),
-      _countof( KiServiceTable_Win7Sp1_x86 ), _countof( KiServiceTable_Win8Sp0_x86 ),
-      _countof( KiServiceTable_Win8Sp1_x86 ) },
+static const unsigned __int32 Service_Tables_countof[][9] = {
+    { _countof(KiServiceTable_XpSp3_x86), _countof(KiServiceTable_W2k3Sp2_x86),
+      _countof(KiServiceTable_VistaSp0_x86), _countof(KiServiceTable_VistaSp1_x86),
+      _countof(KiServiceTable_VistaSp2_x86), _countof(KiServiceTable_Win7Sp0_x86),
+      _countof(KiServiceTable_Win7Sp1_x86), _countof(KiServiceTable_Win8Sp0_x86),
+      _countof(KiServiceTable_Win8Sp1_x86) },
 
-    { 0, _countof( KiServiceTable_W2k3Sp2_x64 ), _countof( KiServiceTable_VistaSp0_x64 ),
-      _countof( KiServiceTable_VistaSp1_x64 ), _countof( KiServiceTable_VistaSp2_x64 ),
-      _countof( KiServiceTable_Win7Sp0_x64 ), _countof( KiServiceTable_Win7Sp1_x64 ),
-      _countof( KiServiceTable_Win8Sp0_x64 ), _countof( KiServiceTable_Win8Sp1_x64 ) },
+    { 0, _countof(KiServiceTable_W2k3Sp2_x64), _countof(KiServiceTable_VistaSp0_x64),
+      _countof(KiServiceTable_VistaSp1_x64), _countof(KiServiceTable_VistaSp2_x64),
+      _countof(KiServiceTable_Win7Sp0_x64), _countof(KiServiceTable_Win7Sp1_x64),
+      _countof(KiServiceTable_Win8Sp0_x64), _countof(KiServiceTable_Win8Sp1_x64) },
 
-    { _countof( W32pServiceTable_XpSp3_x86 ), _countof( W32pServiceTable_W2k3Sp2_x86 ),
-      _countof( W32pServiceTable_VistaSp0_x86 ), _countof( W32pServiceTable_VistaSp1_x86 ),
-      _countof( W32pServiceTable_VistaSp2_x86 ), _countof( W32pServiceTable_Win7Sp0_x86 ),
-      _countof( W32pServiceTable_Win7Sp1_x86 ), _countof( W32pServiceTable_Win8Sp0_x86 ),
-      _countof( W32pServiceTable_Win8Sp1_x86 ) },
+    { _countof(W32pServiceTable_XpSp3_x86), _countof(W32pServiceTable_W2k3Sp2_x86),
+      _countof(W32pServiceTable_VistaSp0_x86), _countof(W32pServiceTable_VistaSp1_x86),
+      _countof(W32pServiceTable_VistaSp2_x86), _countof(W32pServiceTable_Win7Sp0_x86),
+      _countof(W32pServiceTable_Win7Sp1_x86), _countof(W32pServiceTable_Win8Sp0_x86),
+      _countof(W32pServiceTable_Win8Sp1_x86) },
 
-    { 0, _countof( W32pServiceTable_W2k3Sp2_x64 ), _countof( W32pServiceTable_VistaSp0_x64 ),
-      _countof( W32pServiceTable_VistaSp1_x64 ), _countof( W32pServiceTable_VistaSp2_x64 ),
-      _countof( W32pServiceTable_Win7Sp0_x64 ), _countof( W32pServiceTable_Win7Sp1_x64 ),
-      _countof( W32pServiceTable_Win8Sp0_x64 ), _countof( W32pServiceTable_Win8Sp1_x64 ) }
+    { 0, _countof(W32pServiceTable_W2k3Sp2_x64), _countof(W32pServiceTable_VistaSp0_x64),
+      _countof(W32pServiceTable_VistaSp1_x64), _countof(W32pServiceTable_VistaSp2_x64),
+      _countof(W32pServiceTable_Win7Sp0_x64), _countof(W32pServiceTable_Win7Sp1_x64),
+      _countof(W32pServiceTable_Win8Sp0_x64), _countof(W32pServiceTable_Win8Sp1_x64) }
 };
 
-string WDbgArk::get_service_table_routine_name_internal(unsigned long index,
-                                                        unsigned long max_count,
-                                                        char** service_table)
-{
+std::string WDbgArk::get_service_table_routine_name_internal(const unsigned __int32 index,
+                                                             const unsigned __int32 max_count,
+                                                             const char** service_table) const {
     if ( service_table && max_count && index < max_count )
         return service_table[index];
 
     return "*UNKNOWN*";
 }
 
-string WDbgArk::get_service_table_prefix_name(ServiceTableType type)
-{
+std::string WDbgArk::get_service_table_prefix_name(const ServiceTableType type) const {
     if ( type == KiServiceTable_x86 || type == KiServiceTable_x64 )
         return "nt!";
     else if ( type == W32pServiceTable_x86 || type == W32pServiceTable_x64 )
         return "win32k!";
-    
+
     return "";
 }
 
-string WDbgArk::get_service_table_routine_name(ServiceTableType type, unsigned long index)
-{
-    string        routine       = get_service_table_prefix_name( type );
-    unsigned long max_count     = 0;
-    char**        service_table = nullptr;
+std::string WDbgArk::get_service_table_routine_name(const ServiceTableType type, const unsigned __int32 index) const {
+    std::string      routine       = get_service_table_prefix_name(type);
+    unsigned __int32 max_count     = 0;
+    const char**     service_table = nullptr;
 
-    if ( m_minor_build >= WXP_VER && m_minor_build < W2K3_VER )
-    {
+    if ( m_minor_build >= WXP_VER && m_minor_build < W2K3_VER ) {
         max_count = Service_Tables_countof[type][0];
         service_table = Service_Tables[type][0];
-    }
-    else if ( m_minor_build >= W2K3_VER && m_minor_build < VISTA_RTM_VER )
-    {
+    } else if ( m_minor_build >= W2K3_VER && m_minor_build < VISTA_RTM_VER ) {
         max_count = Service_Tables_countof[type][1];
         service_table = Service_Tables[type][1];
-    }
-    else if ( m_minor_build >= VISTA_RTM_VER && m_minor_build < VISTA_SP1_VER )
-    {
+    } else if ( m_minor_build >= VISTA_RTM_VER && m_minor_build < VISTA_SP1_VER ) {
         max_count = Service_Tables_countof[type][2];
         service_table = Service_Tables[type][2];
-    }
-    else if ( m_minor_build >= VISTA_SP1_VER && m_minor_build < VISTA_SP2_VER )
-    {
+    } else if ( m_minor_build >= VISTA_SP1_VER && m_minor_build < VISTA_SP2_VER ) {
         max_count = Service_Tables_countof[type][3];
         service_table = Service_Tables[type][3];
-    }
-    else if ( m_minor_build >= VISTA_SP2_VER && m_minor_build < W7RTM_VER )
-    {
+    } else if ( m_minor_build >= VISTA_SP2_VER && m_minor_build < W7RTM_VER ) {
         max_count = Service_Tables_countof[type][4];
         service_table = Service_Tables[type][4];
-    }
-    else if ( m_minor_build >= W7RTM_VER && m_minor_build < W7SP1_VER )
-    {
+    } else if ( m_minor_build >= W7RTM_VER && m_minor_build < W7SP1_VER ) {
         max_count = Service_Tables_countof[type][5];
         service_table = Service_Tables[type][5];
-    }
-    else if ( m_minor_build >= W7SP1_VER && m_minor_build < W8RTM_VER )
-    {
+    } else if ( m_minor_build >= W7SP1_VER && m_minor_build < W8RTM_VER ) {
         max_count = Service_Tables_countof[type][6];
         service_table = Service_Tables[type][6];
-    }
-    else if ( m_minor_build >= W8RTM_VER && m_minor_build < W81RTM_VER )
-    {
+    } else if ( m_minor_build >= W8RTM_VER && m_minor_build < W81RTM_VER ) {
         max_count = Service_Tables_countof[type][7];
         service_table = Service_Tables[type][7];
-    }
-    else if ( m_minor_build >= W81RTM_VER /*&& m_minor_build < XXX */ )
-    {
+    } else if ( m_minor_build >= W81RTM_VER /*&& m_minor_build < XXX */ ) {
         max_count = Service_Tables_countof[type][8];
         service_table = Service_Tables[type][8];
-    }
-    else
+    } else {
         return "*UNKNOWN*";
+    }
 
-    return routine.append( get_service_table_routine_name_internal( index, max_count, service_table ) );
+    return routine.append(get_service_table_routine_name_internal(index, max_count, service_table));
 }

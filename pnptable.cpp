@@ -19,8 +19,6 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.hpp"
-
 /*
 
 Look for NtPlugPlayControl and nt!PlugPlayHandlerTable.
@@ -113,55 +111,60 @@ PAGEDATA:005C4554 00 00 00 00                   dd 0
 
 */
 
+#include <sstream>
+#include "wdbgark.hpp"
+#include "analyze.hpp"
+
 EXT_COMMAND(wa_pnptable,
             "Output kernel-mode nt!PlugPlayHandlerTable",
-            "")
-{
+            "") {
     RequireKernelMode();
-    Init();
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
 
     out << "Displaying nt!PlugPlayHandlerTable" << endlout;
 
     // PnpControlClass + Length + Routine
-    unsigned long    size   = sizeof( unsigned long ) + sizeof( unsigned long ) + m_PtrSize;
+    unsigned __int32 size   = sizeof( unsigned __int32 ) + sizeof( unsigned __int32 ) + m_PtrSize;
     unsigned __int64 offset = 0;
 
-    if ( !GetSymbolOffset( "nt!PlugPlayHandlerTable", true, &offset ) )
-    {
+    if ( !GetSymbolOffset("nt!PlugPlayHandlerTable", true, &offset) ) {
         err << __FUNCTION__ << ": failed to find nt!PlugPlayHandlerTable" << endlerr;
         return;
     }
 
     out << "[+] nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
 
-    WDbgArkAnalyze display;
-    stringstream   tmp_stream;
-    display.Init( &tmp_stream, AnalyzeTypeDefault );
-    display.SetOwnerModule( "nt" );
+    WDbgArkAnalyze    display;
+    std::stringstream tmp_stream;
+
+    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+        throw ExtStatusException(S_OK, "display init failed");
+
+    if ( !display.SetOwnerModule( "nt" ) )
+        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+
     display.PrintHeader();
 
-    try
-    {
-        for ( int i = 0; i < 0x100; i++ )
-        {
-            ExtRemoteData pnp_table_entry_class( offset + i * size, sizeof( unsigned long ) );
+    try {
+        for ( int i = 0; i < 0x100; i++ ) {
+            ExtRemoteData pnp_table_entry_class(offset + i * size, sizeof(unsigned __int32));
 
-            if ( pnp_table_entry_class.GetUlong() != i ) // check PnpControlClass
+            if ( pnp_table_entry_class.GetUlong() != i )    // check PnpControlClass
                 break;
 
-            unsigned __int64 init_offset = offset + i * size + sizeof( unsigned long ) + sizeof( unsigned long );
+            unsigned __int64 init_offset = offset + i * size + sizeof(unsigned __int32) + sizeof(unsigned __int32);
 
-            ExtRemoteData pnp_table_entry_routine( init_offset, m_PtrSize );
-            display.AnalyzeAddressAsRoutine( pnp_table_entry_routine.GetPtr(), "", "" );
+            ExtRemoteData pnp_table_entry_routine(init_offset, m_PtrSize);
+            display.AnalyzeAddressAsRoutine(pnp_table_entry_routine.GetPtr(), "", "");
         }
     }
-    catch ( ExtRemoteException Ex )
-    {
+    catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch( ExtInterruptException Ex )
-    {
-        throw Ex;
+    catch( const ExtInterruptException& ) {
+        throw;
     }
 
     display.PrintFooter();

@@ -19,9 +19,8 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.hpp"
-
-// TODO: DbgkLkmdRegisterCallback (WINDOWS 7+), ObRegisterCallbacks, CrashdmpCallTable, KdRegisterPowerHandler, IoRegisterIoTracking 
+// TODO(swwwolf): DbgkLkmdRegisterCallback (WINDOWS 7+), ObRegisterCallbacks, CrashdmpCallTable,
+//                KdRegisterPowerHandler, IoRegisterIoTracking
 
 /*
 
@@ -183,56 +182,60 @@ IopProfileNotifyList and IopDeviceClassNotifyList were replaced by PnpProfileNot
 
 */
 
+#include <map>
+#include <string>
+#include <utility>
+
+#include "wdbgark.hpp"
+#include "analyze.hpp"
+
 EXT_COMMAND(wa_systemcb,
             "Output kernel-mode registered callback(s)",
             "{type;s;o;type,Callback type name:\n"\
             "image, process, thread, registry, bugcheck, bugcheckreason, powersetting, callbackdir, shutdown, "\
             "shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, pnp, lego, "\
-            "debugprint}")
-{
-    string      type;
+            "debugprint}") {
+    std::string type;
     walkresType output_list;
-    
-    RequireKernelMode();
-    Init();
 
-    if ( HasArg( "type" ) ) // callback type was provided
-        type.assign( GetArgStr( "type" ) );
+    RequireKernelMode();
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
+
+    if ( HasArg("type") )   // callback type was provided
+        type.assign(GetArgStr("type"));
 
     out << "Displaying OS registered callback(s) " << type << endlout;
 
-    WDbgArkAnalyze display;
-    stringstream   tmp_stream;
-    display.Init( &tmp_stream, AnalyzeTypeCallback );
+    WDbgArkAnalyze    display;
+    std::stringstream tmp_stream;
+
+    if ( !display.Init(&tmp_stream, AnalyzeTypeCallback) )
+        throw ExtStatusException(S_OK, "display init failed");
+
     display.PrintFooter();
-    
-    try
-    {
-        if ( type.empty() )
-        {
-            for ( map <string, SystemCbCommand>::const_iterator citer = system_cb_commands.begin();
+
+    try {
+        if ( type.empty() ) {
+            for ( std::map<string, SystemCbCommand>::const_iterator citer = system_cb_commands.begin();
                   citer != system_cb_commands.end();
-                  ++citer )
-            {
-                Call—orrespondingWalkListRoutine( citer, output_list );
+                  ++citer ) {
+                CallCorrespondingWalkListRoutine(citer, output_list);
             }
-        }
-        else
-        {
-            map <string, SystemCbCommand>::const_iterator citer = system_cb_commands.find( type );
+        } else {
+            std::map<string, SystemCbCommand>::const_iterator citer = system_cb_commands.find(type);
 
             if ( citer != system_cb_commands.end() )
-                Call—orrespondingWalkListRoutine( citer, output_list );
+                CallCorrespondingWalkListRoutine(citer, output_list);
             else
                 err << __FUNCTION__ << ": invalid type was specified" << endlerr;
         }
 
-        string prev_list_head;
+        std::string prev_list_head;
 
-        for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it )
-        {
-            if ( prev_list_head != (*it).list_head_name )
-            {
+        for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it ) {
+            if ( prev_list_head != (*it).list_head_name ) {
                 out << "[+] " << (*it).list_head_name;
 
                 if ( (*it).list_head_offset )
@@ -243,7 +246,7 @@ EXT_COMMAND(wa_systemcb,
                 display.PrintHeader();
             }
 
-            display.AnalyzeAddressAsRoutine( (*it).routine_address, (*it).type, (*it).info );
+            display.AnalyzeAddressAsRoutine((*it).routine_address, (*it).type, (*it).info);
             display.PrintFooter();
 
             prev_list_head = (*it).list_head_name;
@@ -253,28 +256,22 @@ EXT_COMMAND(wa_systemcb,
 
         output_list.clear();
     }
-    catch( ExtInterruptException Ex )
-    {
-        throw Ex;
+    catch( const ExtInterruptException& ) {
+        throw;
     }
 }
 
-void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::const_iterator &citer,
-                                               walkresType &output_list)
-{
-    if ( citer->first == "registry" )
-    {
-        if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER )
-        {
+void WDbgArk::CallCorrespondingWalkListRoutine(const std::map<string, SystemCbCommand>::const_iterator &citer,
+                                               walkresType &output_list) {
+    if ( citer->first == "registry" ) {
+        if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER ) {
             WalkExCallbackList(citer->second.list_count_name,
                                citer->second.list_head_name,
                                citer->first,
                                output_list);
-        }
-        else
-        {
+        } else {
             WalkAnyListWithOffsetToRoutine("nt!CallbackListHead",
-                                           0,
+                                           0ULL,
                                            0,
                                            true,
                                            citer->second.offset_to_routine,
@@ -282,113 +279,84 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
                                            "",
                                            output_list);
         }
-    }
-    else if ( citer->first == "image" || citer->first == "process" || citer->first == "thread" )
-    {
+    } else if ( citer->first == "image" || citer->first == "process" || citer->first == "thread" ) {
         WalkExCallbackList(citer->second.list_count_name,
                            citer->second.list_head_name,
                            citer->first,
                            output_list);
-    }
-    else if ( citer->first == "bugcheck" || citer->first == "bugcheckreason" )
-    {
+    } else if ( citer->first == "bugcheck" || citer->first == "bugcheckreason" ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       0,
+                                       0ULL,
                                        0,
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
                                        "",
                                        output_list);
-    }
-    else if ( citer->first == "powersetting" && m_minor_build > W2K3_VER )
-    {
+    } else if ( citer->first == "powersetting" && m_minor_build > W2K3_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       0,
+                                       0ULL,
                                        0,
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
                                        "",
                                        output_list);
-    }
-    else if ( citer->first == "callbackdir" )
-    {
-        WalkCallbackDirectory( citer->first, output_list );
-    }
-    else if ( citer->first == "shutdown" || citer->first == "shutdownlast" )
-    {
-        WalkShutdownList( citer->second.list_head_name, citer->first, output_list );
-    }
-    else if ( citer->first == "drvreinit" || citer->first == "bootdrvreinit" )
-    {
+    } else if ( citer->first == "callbackdir" ) {
+        WalkCallbackDirectory(citer->first, output_list);
+    } else if ( citer->first == "shutdown" || citer->first == "shutdownlast" ) {
+        WalkShutdownList(citer->second.list_head_name, citer->first, output_list);
+    } else if ( citer->first == "drvreinit" || citer->first == "bootdrvreinit" ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       0,
+                                       0ULL,
                                        0,
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
                                        "",
                                        output_list);
-    }
-    else if ( citer->first == "fschange" )
-    {
+    } else if ( citer->first == "fschange" ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       0,
+                                       0ULL,
                                        0,
                                        true,
                                        citer->second.offset_to_routine,
                                        citer->first,
                                        "",
                                        output_list);
-    }
-    else if ( citer->first == "nmi" && m_minor_build > WXP_VER )
-    {
+    } else if ( citer->first == "nmi" && m_minor_build > WXP_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       0,
+                                       0ULL,
                                        0,
                                        false,
                                        citer->second.offset_to_routine,
                                        citer->first,
                                        "",
                                        output_list);
-    }
-    else if ( citer->first == "logonsessionroutine" )
-    {
+    } else if ( citer->first == "logonsessionroutine" ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       0,
+                                       0ULL,
                                        0,
                                        false,
                                        citer->second.offset_to_routine,
                                        citer->first,
                                        "",
                                        output_list);
-    }
-    else if ( citer->first == "prioritycallback" && m_minor_build >= W7RTM_VER )
-    {
+    } else if ( citer->first == "prioritycallback" && m_minor_build >= W7RTM_VER ) {
         WalkExCallbackList(citer->second.list_count_name,
                            citer->second.list_head_name,
                            citer->first,
                            output_list);
-    }
-    else if ( citer->first == "pnp" )
-    {
-        WalkPnpLists( citer->first, output_list );
-    }
-    else if ( citer->first == "lego" )
-    {
-        AddSymbolPointer( citer->second.list_head_name, citer->first, "", output_list );
-    }
-    else if ( citer->first == "debugprint" && m_minor_build >= VISTA_RTM_VER )
-    {
-        if ( m_minor_build == VISTA_RTM_VER ) // vista rtm only
-        {
-            AddSymbolPointer( "nt!RtlpDebugPrintCallback", citer->first, "", output_list );
-        }
-        else // all others
-        {
+    } else if ( citer->first == "pnp" ) {
+        WalkPnpLists(citer->first, output_list);
+    } else if ( citer->first == "lego" ) {
+        AddSymbolPointer(citer->second.list_head_name, citer->first, "", output_list);
+    } else if ( citer->first == "debugprint" && m_minor_build >= VISTA_RTM_VER ) {
+        if ( m_minor_build == VISTA_RTM_VER ) {
+            AddSymbolPointer("nt!RtlpDebugPrintCallback", citer->first, "", output_list);
+        } else {
             WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                           0,
+                                           0ULL,
                                            0,
                                            true,
                                            citer->second.offset_to_routine,
@@ -399,57 +367,56 @@ void WDbgArk::Call—orrespondingWalkListRoutine(map <string, SystemCbCommand>::co
     }
 }
 
-void WDbgArk::WalkExCallbackList(const string &list_count_name,
-                                 const string &list_head_name,
-                                 const string &type,
-                                 walkresType &output_list)
-{
+void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
+                                 const std::string &list_head_name,
+                                 const std::string &type,
+                                 walkresType &output_list) {
     unsigned __int64 offset = 0;
 
-    try
-    {
-        if ( !GetSymbolOffset( list_count_name.c_str(), true, &offset ) )
-        {
+    try {
+        if ( !GetSymbolOffset(list_count_name.c_str(), true, &offset) ) {
             err << __FUNCTION__ << ": failed to get " << list_count_name << endlerr;
             return;
         }
 
-        ExtRemoteData routine_count( offset, sizeof( unsigned long ) );
+        ExtRemoteData routine_count(offset, static_cast<unsigned __int32>(sizeof(unsigned __int32)));
 
-        if ( !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
-        {
+        if ( !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
             err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
             return;
         }
 
-        unsigned __int64 list_head_offset = offset;
+        const unsigned __int64 list_head_offset = offset;
+        const unsigned __int32 rcount = routine_count.GetUlong();
 
-        unsigned long count = routine_count.GetUlong();
+        for ( unsigned __int32 i = 0; i < rcount; i++ ) {
+            ExtRemoteData notify_routine_list(offset + i * m_PtrSize, m_PtrSize);
 
-        for ( unsigned long i = 0; i < count; i++ )
-        {
-            ExtRemoteData notify_routine_list( offset + i * m_PtrSize, m_PtrSize );
+            const unsigned __int64 ex_callback_fast_ref = notify_routine_list.GetPtr();
 
-            unsigned __int64 ex_callback_fast_ref = notify_routine_list.GetPtr();
-
-            if ( ex_callback_fast_ref )
-            {
+            if ( ex_callback_fast_ref ) {
                 ExtRemoteData routine_block(
-                    m_obj_helper.ExFastRefGetObject( ex_callback_fast_ref ) + GetTypeSize( "nt!_EX_RUNDOWN_REF" ),
-                    m_PtrSize );
+                    m_obj_helper.ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
+                    m_PtrSize);
 
-                unsigned __int64 notify_routine = routine_block.GetPtr();
+                const unsigned __int64 notify_routine = routine_block.GetPtr();
 
-                if ( notify_routine )
-                {
-                    OutputWalkInfo info = { notify_routine, type, "", list_head_name, 0, list_head_offset };
-                    output_list.push_back( info );
+                if ( notify_routine ) {
+                    OutputWalkInfo info;
+
+                    info.routine_address = notify_routine;
+                    info.type = type;
+                    info.info = "";
+                    info.list_head_name = list_head_name;
+                    info.object_offset = 0ULL;
+                    info.list_head_offset = list_head_offset;
+
+                    output_list.push_back(info);
                 }
             }
         }
     }
-    catch ( ExtRemoteException Ex )
-    {
+    catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
@@ -457,8 +424,7 @@ void WDbgArk::WalkExCallbackList(const string &list_count_name,
 //
 // http://redplait.blogspot.ru/2010/08/cmregistercallbackex-on-vista.html
 //
-unsigned long WDbgArk::GetCmCallbackItemFunctionOffset()
-{
+unsigned __int32 WDbgArk::GetCmCallbackItemFunctionOffset() {
     if ( IsCurMachine32() )
         return 0x1C;
 
@@ -473,55 +439,50 @@ unsigned long WDbgArk::GetCmCallbackItemFunctionOffset()
 //
 // http://redplait.blogspot.ru/2012/10/poregisterpowersettingcallback-callbacks.html
 //
-unsigned long WDbgArk::GetPowerCallbackItemFunctionOffset()
-{
+unsigned __int32 WDbgArk::GetPowerCallbackItemFunctionOffset() {
     if ( IsCurMachine32() )
         return 0x28;
 
     return 0x40;
 }
 
-unsigned long WDbgArk::GetPnpCallbackItemFunctionOffset()
-{
+unsigned __int32 WDbgArk::GetPnpCallbackItemFunctionOffset() {
     if ( IsCurMachine32() )
         return 0x14;
 
     return 0x20;
 }
 
-//Execute( "!object \\Callback" );
-void WDbgArk::WalkCallbackDirectory(const string &type, walkresType &output_list)
-{
+void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType &output_list) {
     WalkCallbackContext context;
 
     context.type = type;
     context.output_list_pointer = &output_list;
 
-    WalkDirectoryObject(m_obj_helper.FindObjectByName( "Callback", 0 ),
-                        reinterpret_cast<void*>( &context ),
+    WalkDirectoryObject(m_obj_helper.FindObjectByName("Callback", 0ULL),
+                        reinterpret_cast<void*>(&context),
                         DirectoryObjectCallback);
 }
 
-HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &object, void* context)
-{
-    string               object_name;
-    WalkCallbackContext* cb_context     = reinterpret_cast<WalkCallbackContext*>( context );
-    string               type           = cb_context->type;
-    string               list_head_name = "\\Callback\\";
+HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
+    WalkCallbackContext* cb_context     = reinterpret_cast<WalkCallbackContext*>(context);
+    std::string          type           = cb_context->type;
+    std::string          list_head_name = "\\Callback\\";
 
-    if ( FAILED( wdbg_ark_class->m_obj_helper.GetObjectName( object, object_name ) ) )
-    {
-        stringstream warn;
-        warn << __FUNCTION__ << ": failed to get object name" << endlwarn;
+    std::pair<HRESULT, std::string> result = wdbg_ark_class->m_obj_helper.GetObjectName(object);
+
+    if ( !SUCCEEDED(result.first) ) {
+        std::stringstream tmpwarn;
+        tmpwarn << __FUNCTION__ << ": failed to get object name" << endlwarn;
+    } else {
+        list_head_name.append(result.second);
     }
-    else
-        list_head_name.append( object_name );
 
     // Signature + Lock
     const unsigned __int64 offset_list_head = object.m_Offset + g_Ext->m_PtrSize + g_Ext->m_PtrSize;
 
     // Link + CallbackObject
-    const unsigned long offset_to_routine = GetTypeSize( "nt!_LIST_ENTRY" ) + g_Ext->m_PtrSize;
+    const unsigned __int32 offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + g_Ext->m_PtrSize;
 
     wdbg_ark_class->WalkAnyListWithOffsetToRoutine(list_head_name,
                                                    offset_list_head,
@@ -535,35 +496,35 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped
     return S_OK;
 }
 
-void WDbgArk::WalkShutdownList(const string &list_head_name, const string &type, walkresType &output_list)
-{
+void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::string &type, walkresType &output_list) {
     WalkCallbackContext context;
 
     context.type = type;
     context.list_head_name = list_head_name;
     context.output_list_pointer = &output_list;
-    GetSymbolOffset( list_head_name.c_str(), true, &context.list_head_offset );
+
+    if ( !GetSymbolOffset( list_head_name.c_str(), true, &context.list_head_offset ) )
+        warn << __FUNCTION__ << ": GetSymbolOffset failed with " << list_head_name << endlwarn;
 
     WalkAnyListWithOffsetToObjectPointer(list_head_name,
-                                         0,
+                                         0ULL,
                                          true,
-                                         GetTypeSize( "nt!_LIST_ENTRY" ),
-                                         reinterpret_cast<void*>( &context ),
+                                         GetTypeSize("nt!_LIST_ENTRY"),
+                                         reinterpret_cast<void*>(&context),
                                          ShutdownListCallback);
 }
 
-HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &object_pointer, void* context)
-{
-    WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>( context );
-    string               type       = cb_context->type;
+HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &object_pointer, void* context) {
+    WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
+    std::string          type       = cb_context->type;
 
-    try
-    {
-        ExtRemoteTyped device_object( "nt!_DEVICE_OBJECT", object_pointer.GetPtr(), false, NULL, NULL );
-        ExtRemoteTyped driver_object = *device_object.Field( "DriverObject" );
-        ExtRemoteTyped major_functions = driver_object.Field( "MajorFunction" );
+    try {
+        ExtRemoteTyped device_object("nt!_DEVICE_OBJECT", object_pointer.GetPtr(), false, NULL, NULL);
+        ExtRemoteTyped driver_object_ptr = device_object.Field("DriverObject");
+        ExtRemoteTyped driver_object = *driver_object_ptr;
+        ExtRemoteTyped major_functions = driver_object.Field("MajorFunction");
 
-        stringstream info;
+        std::stringstream info;
 
         info << "<exec cmd=\"!devobj " << std::hex << std::showbase << object_pointer.GetPtr();
         info << "\">!devobj" << "</exec>" << " ";
@@ -574,19 +535,22 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
         info << "<exec cmd=\"!drvobj " << std::hex << std::showbase << driver_object.m_Offset;
         info << " 7" << "\">!drvobj" << "</exec>";
 
-        OutputWalkInfo winfo = { major_functions[(unsigned long )IRP_MJ_SHUTDOWN].GetPtr(),
-                                 type,
-                                 info.str(),
-                                 cb_context->list_head_name,
-                                 0,
-                                 cb_context->list_head_offset };
+        const unsigned __int64 routine_address = major_functions[static_cast<ULONG>(IRP_MJ_SHUTDOWN)].GetPtr();
 
-        cb_context->output_list_pointer->push_back( winfo );
+        OutputWalkInfo winfo;
+
+        winfo.routine_address = routine_address;
+        winfo.type = type;
+        winfo.info = info.str();
+        winfo.list_head_name = cb_context->list_head_name;
+        winfo.object_offset = 0ULL;
+        winfo.list_head_offset = cb_context->list_head_offset;
+
+        cb_context->output_list_pointer->push_back(winfo);
     }
-    catch ( ExtRemoteException Ex )
-    {
-        stringstream err;
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    catch ( const ExtRemoteException &Ex ) {
+        std::stringstream tmperr;
+        tmperr << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
 
         return Ex.GetStatus();
     }
@@ -596,38 +560,29 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
 
 // IopProfileNotifyList and IopDeviceClassNotifyList were replaced
 // by PnpProfileNotifyList and PnpDeviceClassNotifyList in Vista+
-void WDbgArk::WalkPnpLists(const string &type, walkresType &output_list)
-{
-    string           list_head_name    = "";
-    unsigned __int64 offset            = 0;
-    unsigned long    offset_to_routine = GetPnpCallbackItemFunctionOffset();
+void WDbgArk::WalkPnpLists(const std::string &type, walkresType &output_list) {
+    std::string            list_head_name;
+    unsigned __int64       offset            = 0;
+    const unsigned __int32 offset_to_routine = GetPnpCallbackItemFunctionOffset();
 
     if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER )
         list_head_name = "nt!IopProfileNotifyList";
     else
         list_head_name = "nt!PnpProfileNotifyList";
 
-    //type_w_subtype.append( ":EventCategoryHardwareProfileChange" );
-
-    WalkAnyListWithOffsetToRoutine( list_head_name, 0, 0, true, offset_to_routine, type, "", output_list );
-
-    //type_w_subtype = type;
+    WalkAnyListWithOffsetToRoutine(list_head_name, 0ULL, 0, true, offset_to_routine, type, "", output_list);
 
     if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER )
         list_head_name = "nt!IopDeviceClassNotifyList";
     else
         list_head_name = "nt!PnpDeviceClassNotifyList";
 
-    //type_w_subtype.append( ":EventCategoryDeviceInterfaceChange" );
-
-    if ( !GetSymbolOffset( list_head_name.c_str(), true, &offset ) )
+    if ( !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
         err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
-    else
-    {
-        for ( int i = 0; i < NOTIFY_DEVICE_CLASS_HASH_BUCKETS; i++ )
-        {
+    } else {
+        for ( int i = 0; i < NOTIFY_DEVICE_CLASS_HASH_BUCKETS; i++ ) {
             WalkAnyListWithOffsetToRoutine(list_head_name,
-                                           offset + i * GetTypeSize( "nt!_LIST_ENTRY" ),
+                                           offset + i * GetTypeSize("nt!_LIST_ENTRY"),
                                            0,
                                            true,
                                            offset_to_routine,
@@ -637,29 +592,25 @@ void WDbgArk::WalkPnpLists(const string &type, walkresType &output_list)
         }
     }
 
-    //type_w_subtype = type;
-    //type_w_subtype.append( ":EventCategoryTargetDeviceChange" );
-
     WalkCallbackContext context;
 
     context.type = type;
     context.list_head_name = "nt!IopRootDeviceNode";
     context.output_list_pointer = &output_list;
 
-    WalkDeviceNode( 0, reinterpret_cast<void*>( &context ), DeviceNodeCallback );
+    WalkDeviceNode(0ULL, reinterpret_cast<void*>(&context), DeviceNodeCallback);
 }
 
-HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &device_node, void* context)
-{
-    WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>( context );
+HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &device_node, void* context) {
+    WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
 
-    stringstream info;
+    std::stringstream info;
 
-    info << std::setw( 37 ) << "<exec cmd=\"!devnode " << std::hex << std::showbase << device_node.m_Offset;
+    info << std::setw(37) << "<exec cmd=\"!devnode " << std::hex << std::showbase << device_node.m_Offset;
     info << "\">!devnode" << "</exec>";
 
     wdbg_ark_class->WalkAnyListWithOffsetToRoutine(cb_context->list_head_name,
-                                                   device_node.Field( "TargetDeviceNotify" ).m_Offset,
+                                                   device_node.Field("TargetDeviceNotify").m_Offset,
                                                    0,
                                                    true,
                                                    wdbg_ark_class->GetPnpCallbackItemFunctionOffset(),

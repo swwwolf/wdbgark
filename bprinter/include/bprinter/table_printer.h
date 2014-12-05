@@ -18,9 +18,7 @@ inline std::ostream& endlout(std::ostream& arg)
 
     ss << arg.rdbuf();
     g_Ext->Dml( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
+    return arg.flush();
 }
 
 inline std::ostream& endlwarn(std::ostream& arg)
@@ -29,9 +27,7 @@ inline std::ostream& endlwarn(std::ostream& arg)
 
     ss << "<col fg=\"changed\">" << arg.rdbuf() << "</col>"; // red by default
     g_Ext->DmlWarn( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
+    return arg.flush();
 }
 
 inline std::ostream& endlerr(std::ostream& arg)
@@ -40,9 +36,7 @@ inline std::ostream& endlerr(std::ostream& arg)
 
     ss << "<col fg=\"srcstr\">" << arg.rdbuf() << "</col>"; // reddish brown by default
     g_Ext->DmlErr( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
+    return arg.flush();
 }
 
 class endl{};

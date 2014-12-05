@@ -27,8 +27,8 @@
 #pragma once
 #endif
 
-#ifndef _PROCESS_HPP_
-#define _PROCESS_HPP_
+#ifndef PROCESS_HPP_
+#define PROCESS_HPP_
 
 #include <string>
 #include <sstream>
@@ -36,10 +36,11 @@
 using namespace std;
 
 #include <engextcpp.hpp>
+#include "manipulators.hpp"
 
-class WDbgArkProcess : public ExtNtOsInformation
+class WDbgArkProcess
 {
-public:
+ public:
 
     //////////////////////////////////////////////////////////////////////////
     // class typedefs
@@ -48,41 +49,41 @@ public:
     {
         ExtRemoteTyped   process;
         unsigned __int64 eprocess;
-        string           image_file_name;
+        std::string      image_file_name;
     } ProcessInfo;
 
     WDbgArkProcess() :
-        m_inited( false ),
-        current_process( 0 ) { }
+        m_inited(false),
+        m_current_process(0) { }
 
-    ~WDbgArkProcess()
-    {
-        if ( IsInited() )
-        {
+    ~WDbgArkProcess() {
+        try {
             m_process_list.clear();
 
-            if ( current_process )
-                g_Ext->m_System2->SetImplicitProcessDataOffset( current_process );
+            if ( m_current_process )
+                if ( !SUCCEEDED(g_Ext->m_System2->SetImplicitProcessDataOffset(m_current_process)) )
+                    err << __FUNCTION__ << ": failed to revert" << endlerr;
         }
+        catch( ... ) {}
     }
 
     bool Init(void);
-    bool IsInited(void){ return m_inited == true; }
+    bool IsInited(void) const { return m_inited; }
 
-    unsigned __int64 FindEProcessByImageFileName(const string &process_name);
+    unsigned __int64 FindEProcessByImageFileName(const std::string &process_name);
     unsigned __int64 FindEProcessAnyGUIProcess();
-    HRESULT          SetImplicitProcess(unsigned __int64 set_eprocess);
+    HRESULT          SetImplicitProcess(const unsigned __int64 set_eprocess);
 
-private:
+ private:
 
-    bool             GetProcessImageFileName(ExtRemoteTyped &process, string& output_name);
-    unsigned __int64 GetProcessDataOffset(ExtRemoteTyped &process);
-    bool             FindProcessInfoByImageFileName(const string &process_name, ProcessInfo* info);
+    std::pair<bool, std::string> GetProcessImageFileName(const ExtRemoteTyped &process);
+    unsigned __int64             GetProcessDataOffset(const ExtRemoteTyped &process);
+    bool                         FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info);
 
-    unsigned __int64    current_process;
-    vector<ProcessInfo> m_process_list;
-    bool                m_inited;
-    stringstream        err;
+    bool                     m_inited;
+    unsigned __int64         m_current_process;
+    std::vector<ProcessInfo> m_process_list;
+    std::stringstream        err;
 };
 
-#endif // _PROCESS_HPP_
+#endif // PROCESS_HPP_

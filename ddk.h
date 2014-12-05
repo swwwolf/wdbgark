@@ -23,27 +23,27 @@
 #pragma once
 #endif
 
-#ifndef _DDK_H_
-#define _DDK_H_
+#ifndef DDK_H_
+#define DDK_H_
 
 //////////////////////////////////////////////////////////////////////////
 // macroses
 //////////////////////////////////////////////////////////////////////////
-#define MAKEULONG( x, y ) ( ( ( ( (unsigned long )( x ) ) << 16 ) & 0xFFFF0000 ) | ( (unsigned long )( y ) & 0xFFFF ) )
-#define CHECK_BIT_SET( x, y ) ( x & ( 1 << y ) )
+#define MAKEULONG(x, y) ( ( ( ( (unsigned __int32 )( x ) ) << 16 ) & 0xFFFF0000 ) | ( (unsigned __int32 )( y ) & 0xFFFF ) )
+#define CHECK_BIT_SET(x, y) (x & (1 << y))
 
 //////////////////////////////////////////////////////////////////////////
 // Windows builds
 //////////////////////////////////////////////////////////////////////////
-#define WXP_VER         2600 // Windows XP
-#define W2K3_VER        3790 // Windows 2003
-#define VISTA_RTM_VER   6000 // Windows Vista SP0
-#define VISTA_SP1_VER   6001 // Windows Vista SP1 / Windows Server 2008 SP1
-#define VISTA_SP2_VER   6002 // Windows Vista SP2 / Windows Server 2008 SP2
-#define W7RTM_VER       7600 // Windows 7 SP0
-#define W7SP1_VER       7601 // Windows 7 SP1
-#define W8RTM_VER       9200 // Windows 8 SP0
-#define W81RTM_VER      9600 // Windows 8.1 RTM
+#define WXP_VER         2600    // Windows XP
+#define W2K3_VER        3790    // Windows 2003
+#define VISTA_RTM_VER   6000    // Windows Vista SP0
+#define VISTA_SP1_VER   6001    // Windows Vista SP1 / Windows Server 2008 SP1
+#define VISTA_SP2_VER   6002    // Windows Vista SP2 / Windows Server 2008 SP2
+#define W7RTM_VER       7600    // Windows 7 SP0
+#define W7SP1_VER       7601    // Windows 7 SP1
+#define W8RTM_VER       9200    // Windows 8 SP0
+#define W81RTM_VER      9600    // Windows 8.1 RTM
 
 //////////////////////////////////////////////////////////////////////////
 // drivers
@@ -82,8 +82,7 @@
 //////////////////////////////////////////////////////////////////////////
 // objects
 //////////////////////////////////////////////////////////////////////////
-enum OBJ_HEADER_INFO_FLAG
-{
+enum OBJ_HEADER_INFO_FLAG {
     HeaderCreatorInfoFlag = 0x1,
     HeaderNameInfoFlag    = 0x2,
     HeaderHandleInfoFlag  = 0x4,
@@ -105,8 +104,7 @@ enum OBJ_HEADER_INFO_FLAG
 //////////////////////////////////////////////////////////////////////////
 // kernel object types
 //////////////////////////////////////////////////////////////////////////
-typedef enum _KOBJECTS
-{
+typedef enum _KOBJECTS {
     EventNotificationObject = 0,
     EventSynchronizationObject = 1,
     MutantObject = 2,
@@ -138,13 +136,11 @@ typedef enum _KOBJECTS
 //////////////////////////////////////////////////////////////////////////
 // IDT/GDT
 //////////////////////////////////////////////////////////////////////////
-typedef union _KIDT_HANDLER_ADDRESS
-{
-    struct
-    {
-        unsigned short OffsetLow;
-        unsigned short OffsetMiddle;
-        unsigned long  OffsetHigh;
+typedef union _KIDT_HANDLER_ADDRESS {
+    struct {
+        unsigned __int16 OffsetLow;
+        unsigned __int16 OffsetMiddle;
+        unsigned __int32 OffsetHigh;
     };
 
     unsigned __int64   Address;
@@ -158,12 +154,12 @@ typedef union _KIDT_HANDLER_ADDRESS
 #define KGDT_R0_DATA                     0x10
 #define KGDT_R3_CODE                     0x18
 #define KGDT_R3_DATA                     0x20
-#define KGDT_TSS                         0x28 // nt!_KTSS
-#define KGDT_R0_PCR                      0x30 // nt!_KPCR
+#define KGDT_TSS                         0x28   // nt!_KTSS
+#define KGDT_R0_PCR                      0x30   // nt!_KPCR
 #define KGDT_R3_TEB                      0x38
 #define KGDT_LDT                         0x48
-#define KGDT_DF_TSS                      0x50 // nt!_KTSS
-#define KGDT_NMI_TSS                     0x58 // nt!_KTSS
+#define KGDT_DF_TSS                      0x50   // nt!_KTSS
+#define KGDT_NMI_TSS                     0x58   // nt!_KTSS
 #define KGDT_GDT_ALIAS                   0x70
 #define KGDT_CDA16                       0xE8
 #define KGDT_CODE16                      0xF0
@@ -176,20 +172,20 @@ typedef union _KIDT_HANDLER_ADDRESS
 #define KGDT64_R3_CMCODE                 0x20
 #define KGDT64_R3_DATA                   0x28
 #define KGDT64_R3_CODE                   0x30
-#define KGDT64_SYS_TSS                   0x40 // nt!_KTSS64
+#define KGDT64_SYS_TSS                   0x40   // nt!_KTSS64
 #define KGDT64_R3_CMTEB                  0x50
 
 // http://wiki.osdev.org/Global_Descriptor_Table
 // http://wiki.osdev.org/GDT_Tutorial
 // Each define here is for a specific flag in the descriptor.
 // Refer to the intel documentation for a description of what each one does.
-#define SEG_DESCTYPE(x)    ( (x) << 0x04 )            // Descriptor type (0 for system, 1 for code/data)
-#define SEG_PRES(x)        ( (x) << 0x07 )            // Present
-#define SEG_SAVL(x)        ( (x) << 0x0C )            // Available for system use
-#define SEG_LONG(x)        ( (x) << 0x0D )            // Long mode
-#define SEG_SIZE(x)        ( (x) << 0x0E )            // Size (0 for 16-bit, 1 for 32)
-#define SEG_GRAN(x)        ( (x) << 0x0F )            // Granularity (0 for 1B - 1MB, 1 for 4KB - 4GB)
-#define SEG_PRIV(x)        ( ( (x) & 0x03 ) << 0x05 ) // Set privilege level (0 - 3)
+#define SEG_DESCTYPE(x)    ((x) << 0x04)              // Descriptor type (0 for system, 1 for code/data)
+#define SEG_PRES(x)        ((x) << 0x07)              // Present
+#define SEG_SAVL(x)        ((x) << 0x0C)              // Available for system use
+#define SEG_LONG(x)        ((x) << 0x0D)              // Long mode
+#define SEG_SIZE(x)        ((x) << 0x0E)              // Size (0 for 16-bit, 1 for 32)
+#define SEG_GRAN(x)        ((x) << 0x0F)              // Granularity (0 for 1B - 1MB, 1 for 4KB - 4GB)
+#define SEG_PRIV(x)        (((x) & 0x03) << 0x05)     // Set privilege level (0 - 3)
 
 #define SEG_DATA_RD        0x00                       // Read-Only
 #define SEG_DATA_RDA       0x01                       // Read-Only, accessed
@@ -208,4 +204,4 @@ typedef union _KIDT_HANDLER_ADDRESS
 #define SEG_CODE_EXRDC     0x0E                       // Execute/Read, conforming
 #define SEG_CODE_EXRDCA    0x0F                       // Execute/Read, conforming, accessed
 
-#endif // _DDK_H_
+#endif  // DDK_H_

@@ -1,7 +1,7 @@
-#include "bprinter/table_printer.h"
 #include <stdexcept>
 #include <iomanip>
 #include <stdexcept>
+#include <bprinter/table_printer.h>
 
 namespace bprinter {
 TablePrinter::TablePrinter(std::ostream * output, const std::string & separator){
@@ -13,7 +13,7 @@ TablePrinter::TablePrinter(std::ostream * output, const std::string & separator)
 }
 
 TablePrinter::~TablePrinter(){
-
+    out_stream_ = nullptr;
 }
 
 int TablePrinter::get_num_columns() const {

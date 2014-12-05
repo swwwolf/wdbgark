@@ -19,56 +19,52 @@
     * the COPYING file in the top-level directory.
 */
 
-//////////////////////////////////////////////////////////////////////////
-//  Include this after "#define EXT_CLASS WDbgArk" only
-//////////////////////////////////////////////////////////////////////////
-
 #if _MSC_VER > 1000
 #pragma once
 #endif
 
-#ifndef OBJHELPER_HPP_
-#define OBJHELPER_HPP_
+#ifndef COLORHACK_HPP_
+#define COLORHACK_HPP_
 
-#include <string>
+#include <windows.h>
 #include <sstream>
 using namespace std;
 
-#include "ddk.h"
-
-#include <engextcpp.hpp>
-
 //////////////////////////////////////////////////////////////////////////
-// object manager routines
+// hack WinDbg colors
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkObjHelper
-{
-public:
-    WDbgArkObjHelper() :
+class WDbgArkColorHack {
+ public:
+    //////////////////////////////////////////////////////////////////////////
+    // WinDbg internal structure
+    //////////////////////////////////////////////////////////////////////////
+    typedef struct UiColorTag {
+        wchar_t* description;
+        wchar_t* dml_name;
+        COLORREF color;
+        COLORREF internal_color;
+        void*    reserved1;
+        void*    reserved2;
+    } UiColor;
+
+    WDbgArkColorHack() :
         m_inited(false),
-        object_header_old(true),
-        ObpInfoMaskToOffset(0) { }
+        g_ui_colors(nullptr),
+        g_out_mask_ui_colors(nullptr) { }
 
-    bool             Init(void);
-    bool             IsInited(void) const { return m_inited; }
-
-    std::pair<HRESULT, ExtRemoteTyped> GetObjectHeader(const ExtRemoteTyped &object);
-    std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);
-    std::pair<HRESULT, std::string>    GetObjectName(const ExtRemoteTyped &object);
-    unsigned __int64                   FindObjectByName(const std::string &object_name,
-                                                        const unsigned __int64 directory_address);
-
-    unsigned __int64 ExFastRefGetObject(unsigned __int64 FastRef) const {
-        if ( g_Ext->IsCurMachine32() )
-            return FastRef & ~MAX_FAST_REFS_X86;
-        else
-            return FastRef & ~MAX_FAST_REFS_X64;
+    ~WDbgArkColorHack() {
+        g_out_mask_ui_colors = nullptr;
+        g_ui_colors = nullptr;
     }
 
-private:
-    bool             m_inited;
-    bool             object_header_old;
-    unsigned __int64 ObpInfoMaskToOffset;
+    bool IsInited(void) const { return m_inited; }
+    bool Init(void);
+    void PrintInternalInfo(void);
+
+ private:
+    bool     m_inited;
+    UiColor* g_ui_colors;
+    UiColor* g_out_mask_ui_colors;
 
     //////////////////////////////////////////////////////////////////////////
     // output streams
@@ -78,4 +74,4 @@ private:
     std::stringstream err;
 };
 
-#endif // OBJHELPER_HPP_
+#endif  // COLORHACK_HPP_

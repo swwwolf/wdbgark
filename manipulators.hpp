@@ -27,8 +27,8 @@
 #pragma once
 #endif
 
-#ifndef _MANIPULATORS_HPP_
-#define _MANIPULATORS_HPP_
+#ifndef MANIPULATORS_HPP_
+#define MANIPULATORS_HPP_
 
 #include <sstream>
 #include <iomanip>
@@ -37,40 +37,31 @@ using namespace std;
 #include <engextcpp.hpp>
 
 /* global stream manipulators */
-inline std::ostream& endlout(std::ostream& arg)
-{
+inline std::ostream& endlout(std::ostream& arg) {
     std::stringstream ss;
 
     arg << "\n";
     ss << arg.rdbuf();
-    g_Ext->Dml( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
+    g_Ext->Dml("%s", ss.str().c_str());
+    return arg.flush();
 }
 
-inline std::ostream& endlwarn(std::ostream& arg)
-{
+inline std::ostream& endlwarn(std::ostream& arg) {
     std::stringstream ss;
 
     arg << "\n";
     ss << "<col fg=\"changed\">" << arg.rdbuf() << "</col>"; // red by default
-    g_Ext->DmlWarn( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
+    g_Ext->DmlWarn("%s", ss.str().c_str());
+    return arg.flush();
 }
 
-inline std::ostream& endlerr(std::ostream& arg)
-{
+inline std::ostream& endlerr(std::ostream& arg){
     std::stringstream ss;
 
     arg << "\n";
     ss << "<col fg=\"srcstr\">" << arg.rdbuf() << "</col>"; // reddish brown by default
-    g_Ext->DmlErr( "%s", ss.str().c_str() );
-    arg.flush();
-
-    return arg;
+    g_Ext->DmlErr("%s", ss.str().c_str());
+    return arg.flush();
 }
 
-#endif // _MANIPULATORS_HPP_
+#endif // MANIPULATORS_HPP_

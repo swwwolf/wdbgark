@@ -20,60 +20,62 @@
 */
 
 #include "wdbgark.hpp"
+#include "analyze.hpp"
 
 EXT_COMMAND(wa_objtypeidx,
             "Output kernel-mode ObTypeIndexTable",
-            "")
-{
+            "") {
     RequireKernelMode();
-    Init();
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
 
     out << "Displaying nt!ObTypeIndexTable" << endlout;
 
-    if ( m_minor_build < W7RTM_VER )
-    {
+    if ( m_minor_build < W7RTM_VER ) {
         out << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
 
     unsigned __int64 offset = 0;
 
-    if ( !GetSymbolOffset( "nt!ObTypeIndexTable", true, &offset ) )
-    {
+    if ( !GetSymbolOffset("nt!ObTypeIndexTable", true, &offset) ) {
         err << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;
         return;
     }
 
     out << "[+] nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
 
-    WDbgArkAnalyze display;
-    stringstream   tmp_stream;
-    display.Init( &tmp_stream, AnalyzeTypeDefault );
-    display.SetOwnerModule( "nt" );
+    WDbgArkAnalyze    display;
+    std::stringstream tmp_stream;
+
+    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+        throw ExtStatusException(S_OK, "display init failed");
+
+    if ( !display.SetOwnerModule("nt") )
+        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+
     display.PrintHeader();
 
-    try
-    {
-        for ( int i = 2; i < 0x100; i++ )
-        {
-            ExtRemoteData object_type_ptr( offset + i * m_PtrSize, m_PtrSize );
+    try {
+        for ( int i = 2; i < 0x100; i++ ) {
+            ExtRemoteData object_type_ptr(offset + i * m_PtrSize, m_PtrSize);
 
-            if ( object_type_ptr.GetPtr() )
-            {
-                ExtRemoteTyped object_type( "nt!_OBJECT_TYPE", object_type_ptr.GetPtr(), false, NULL, NULL );
-                DirectoryObjectTypeCallback( this, object_type, reinterpret_cast<void*>( &display ) );
-            }
-            else
+            if ( object_type_ptr.GetPtr() ) {
+                ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object_type_ptr.GetPtr(), false, NULL, NULL);
+
+                if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(&display))) )
+                    break;
+            } else {
                 break;
+            }
         }
     }
-    catch ( ExtRemoteException Ex )
-    {
+    catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch( ExtInterruptException Ex )
-    {
-        throw Ex;
+    catch( const ExtInterruptException& ) {
+        throw;
     }
 
     display.PrintFooter();

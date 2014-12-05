@@ -7,6 +7,12 @@
 *.userosscache
 *.sln.docstates
 
+# Visual Lint files
+Visual Lint/
+*.lnt
+*.cpp.vlstatus
+*.vlconfig
+
 # User-specific folders
 *.sln.ide/
 

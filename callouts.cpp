@@ -19,8 +19,6 @@
     * the COPYING file in the top-level directory.
 */
 
-#include "wdbgark.hpp"
-
 /*
 
 Look for PsEstablishWin32Callouts.
@@ -74,64 +72,65 @@ void __stdcall PsEstablishWin32Callouts(int a1)
 
 */
 
+#include <string>
+#include <vector>
+#include "wdbgark.hpp"
+#include "analyze.hpp"
+
 EXT_COMMAND(wa_callouts,
             "Output kernel-mode win32k callouts",
-            "")
-{
+            "") {
     RequireKernelMode();
-    Init();
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
 
     out << "Displaying Win32k callouts" << endlout;
 
-    WDbgArkAnalyze display;
-    stringstream   tmp_stream;
-    display.Init( &tmp_stream, AnalyzeTypeDefault );
-    display.SetOwnerModule( "win32k" );
+    WDbgArkAnalyze    display;
+    std::stringstream tmp_stream;
+
+    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+        throw ExtStatusException(S_OK, "display init failed");
+
+    if ( !display.SetOwnerModule("win32k") )
+        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+
     display.PrintHeader();
 
-    try
-    {
-        if ( m_minor_build < W8RTM_VER)
-        {
-            for ( vector<string>::iterator iter = callout_names.begin(); iter < callout_names.end(); ++iter )
-            {
+    try {
+        if ( m_minor_build < W8RTM_VER ) {
+            for ( std::vector<string>::iterator iter = callout_names.begin(); iter < callout_names.end(); ++iter ) {
                 unsigned __int64 offset = 0;
 
-                if ( GetSymbolOffset( (*iter).c_str(), true, &offset ) )
-                {
-                    ExtRemoteData callout_routine( offset, m_PtrSize );
-                    display.AnalyzeAddressAsRoutine( callout_routine.GetPtr(), *iter, "" );
+                if ( GetSymbolOffset((*iter).c_str(), true, &offset) ) {
+                    ExtRemoteData callout_routine(offset, m_PtrSize);
+                    display.AnalyzeAddressAsRoutine(callout_routine.GetPtr(), *iter, "");
                 }
             }
-        }
-        else
-        {
+        } else {
             unsigned __int64 offset = 0;
 
-            if ( GetSymbolOffset( "nt!PsWin32CallBack", true, &offset ) )
-            {
-                ExtRemoteData callout_block( offset, m_PtrSize );
+            if ( GetSymbolOffset("nt!PsWin32CallBack", true, &offset) ) {
+                ExtRemoteData callout_block(offset, m_PtrSize);
 
                 unsigned __int64 ex_callback_fast_ref = callout_block.GetPtr();
 
-                if ( ex_callback_fast_ref )
-                {
+                if ( ex_callback_fast_ref ) {
                     ExtRemoteData routine_block(
-                        m_obj_helper.ExFastRefGetObject( ex_callback_fast_ref ) + GetTypeSize( "nt!_EX_RUNDOWN_REF" ),
-                        m_PtrSize );
+                        m_obj_helper.ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
+                        m_PtrSize);
 
-                    display.AnalyzeAddressAsRoutine( routine_block.GetPtr(), "nt!PsWin32CallBack", "" );
+                    display.AnalyzeAddressAsRoutine(routine_block.GetPtr(), "nt!PsWin32CallBack", "");
                 }
             }
         }
     }
-    catch ( ExtRemoteException Ex )
-    {
+    catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch( ExtInterruptException Ex )
-    {
-        throw Ex;
+    catch( const ExtInterruptException& ) {
+        throw;
     }
 
     display.PrintFooter();

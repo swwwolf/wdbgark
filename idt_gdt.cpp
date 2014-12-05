@@ -402,106 +402,131 @@ Algorithm:
 
 */
 
+#include <vector>
+#include <string>
+#include <sstream>
+
 #include "wdbgark.hpp"
+#include "analyze.hpp"
 
 EXT_COMMAND(wa_idt,
             "Output processors IDT",
-            "")
-{
+            "") {
     RequireKernelMode();
-    Init();
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
 
     out << "Dumping IDT" << endlout;
 
     unsigned __int64 start_unexpected_range     = 0;
     unsigned __int64 end_unexpected_range       = 0;
-    unsigned long    vector_to_interrupt_object = 0;
-    unsigned long    dispatch_code_offset       = 0;
-    unsigned long    message_service_offset     = 0;
-    unsigned long    service_routine_offset     = 0;
-    unsigned long    interrupt_list_entry       = 0;
+    unsigned __int32 vector_to_interrupt_object = 0;
+    unsigned __int32 dispatch_code_offset       = 0;
+    unsigned __int32 message_service_offset     = 0;
+    unsigned __int32 service_routine_offset     = 0;
+    unsigned __int32 interrupt_list_entry       = 0;
 
-    if ( m_is_cur_machine64 )
-    {
-        if ( !GetSymbolOffset( "nt!KxUnexpectedInterrupt0", true, &start_unexpected_range ) )
-        {
+    if ( m_is_cur_machine64 ) {
+        if ( !GetSymbolOffset("nt!KxUnexpectedInterrupt0", true, &start_unexpected_range) ) {
             err << __FUNCTION__ << ": failed to get nt!KxUnexpectedInterrupt0" << endlerr;
             return;
         }
 
         end_unexpected_range = start_unexpected_range +\
-            ( MAXIMUM_IDTVECTOR + 1 ) * GetTypeSize( "nt!_UNEXPECTED_INTERRUPT" );
-    }
-    else
-    {
-        if ( !GetSymbolOffset( "nt!KiStartUnexpectedRange", true, &start_unexpected_range ) )
-        {
+            ((MAXIMUM_IDTVECTOR + 1) * GetTypeSize("nt!_UNEXPECTED_INTERRUPT"));
+    } else {
+        if ( !GetSymbolOffset("nt!KiStartUnexpectedRange", true, &start_unexpected_range) ) {
             err << __FUNCTION__ << ": failed to get nt!KiStartUnexpectedRange" << endlerr;
             return;
         }
 
-        if ( !GetSymbolOffset( "nt!KiEndUnexpectedRange", true, &end_unexpected_range ) )
-        {
+        if ( !GetSymbolOffset("nt!KiEndUnexpectedRange", true, &end_unexpected_range) ) {
             err << __FUNCTION__ << ": failed to get nt!KiEndUnexpectedRange" << endlerr;
             return;
         }
     }
 
-    GetFieldOffset( "nt!_KPCR", "PrcbData.VectorToInterruptObject", &vector_to_interrupt_object );
-    GetFieldOffset( "nt!_KINTERRUPT", "DispatchCode", &dispatch_code_offset );
-    GetFieldOffset( "nt!_KINTERRUPT", "MessageServiceRoutine", &message_service_offset );
-    GetFieldOffset( "nt!_KINTERRUPT", "ServiceRoutine", &service_routine_offset );
-    GetFieldOffset( "nt!_KINTERRUPT", "InterruptListEntry", &interrupt_list_entry );
-    
-    WDbgArkAnalyze display;
-    stringstream   tmp_stream;
-    display.Init( &tmp_stream, AnalyzeTypeIDT );
+    if ( GetFieldOffset("nt!_KPCR",
+                        "PrcbData.VectorToInterruptObject",
+                        reinterpret_cast<PULONG>(&vector_to_interrupt_object)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
+    }
+
+    if ( GetFieldOffset("nt!_KINTERRUPT",
+                        "DispatchCode",
+                        reinterpret_cast<PULONG>(&dispatch_code_offset)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
+    }
+
+    if ( GetFieldOffset("nt!_KINTERRUPT",
+                        "MessageServiceRoutine",
+                        reinterpret_cast<PULONG>(&message_service_offset)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with MessageServiceRoutine" << endlwarn;
+    }
+
+    if ( GetFieldOffset("nt!_KINTERRUPT",
+                        "ServiceRoutine",
+                        reinterpret_cast<PULONG>(&service_routine_offset)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with ServiceRoutine" << endlwarn;
+    }
+
+    if ( GetFieldOffset("nt!_KINTERRUPT",
+                        "InterruptListEntry",
+                        reinterpret_cast<PULONG>(&interrupt_list_entry)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with InterruptListEntry" << endlwarn;
+    }
+
+    WDbgArkAnalyze    display;
+    std::stringstream tmp_stream;
+
+    if ( !display.Init( &tmp_stream, AnalyzeTypeIDT ) )
+        throw ExtStatusException(S_OK, "display init failed");
+
     display.PrintHeader();
 
-    try
-    {
-        for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ )
-        {
+    try {
+        for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ ) {
             unsigned __int64 kpcr_offset     = 0;
             unsigned __int64 idt_entry_start = 0;
-            unsigned long    idt_entry_size  = 0;
+            unsigned __int32 idt_entry_size  = 0;
 
-            g_Ext->m_Data->ReadProcessorSystemData(i,
-                                                   DEBUG_DATA_KPCR_OFFSET,
-                                                   &kpcr_offset,
-                                                   sizeof( kpcr_offset ),
-                                                   NULL);
+            HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(i,
+                                                                    DEBUG_DATA_KPCR_OFFSET,
+                                                                    &kpcr_offset,
+                                                                    static_cast<unsigned __int32>(sizeof(kpcr_offset)),
+                                                                    NULL);
 
-            ExtRemoteTyped pcr( "nt!_KPCR", kpcr_offset, false, NULL, NULL );
-
-            if ( m_is_cur_machine64 )
-            {
-                idt_entry_start = pcr.Field( "IdtBase" ).GetPtr(); // _KIDTENTRY64*
-                idt_entry_size = GetTypeSize( "nt!_KIDTENTRY64" );
-            }
-            else
-            {
-                idt_entry_start = pcr.Field( "IDT" ).GetPtr(); // _KIDTENTRY*
-                idt_entry_size = GetTypeSize( "nt!_KIDTENTRY" );
+            if ( !SUCCEEDED(result) ) {
+                err << __FUNCTION__ << ": ReadProcessorSystemData failed with error = " << result;
+                break;
             }
 
-            for ( unsigned long j = 0; j <= MAXIMUM_IDTVECTOR; j++ )
-            {
+            ExtRemoteTyped pcr("nt!_KPCR", kpcr_offset, false, NULL, NULL);
+
+            if ( m_is_cur_machine64 ) {
+                idt_entry_start = pcr.Field("IdtBase").GetPtr();    // _KIDTENTRY64*
+                idt_entry_size = GetTypeSize("nt!_KIDTENTRY64");
+            } else {
+                idt_entry_start = pcr.Field("IDT").GetPtr();    // _KIDTENTRY*
+                idt_entry_size = GetTypeSize("nt!_KIDTENTRY");
+            }
+
+            for ( unsigned __int32 j = 0; j <= MAXIMUM_IDTVECTOR; j++ ) {
                 unsigned __int64 isr_address = 0;
 
-                stringstream processor_index;
-                processor_index << std::setw( 2 ) << i << " / " << std::setw( 2 ) << std::hex << j;
+                std::stringstream processor_index;
+                processor_index << std::setw(2) << i << " / " << std::setw(2) << std::hex << j;
 
-                stringstream info;
+                std::stringstream info;
 
                 if ( m_is_cur_machine64 )
-                    info << setw( 42 );
+                    info << setw(42);   // the ANSWER!!!
                 else
-                    info << setw( 40 );
+                    info << setw(40);
 
-                if ( m_is_cur_machine64 )
-                {
-                    KIDT_HANDLER_ADDRESS idt_handler = { 0 };
+                if ( m_is_cur_machine64 ) {
+                    KIDT_HANDLER_ADDRESS idt_handler;
 
                     ExtRemoteTyped idt_entry("nt!_KIDTENTRY64",
                                              idt_entry_start + j * idt_entry_size,
@@ -509,30 +534,28 @@ EXT_COMMAND(wa_idt,
                                              NULL,
                                              NULL);
 
-                    idt_handler.OffsetLow = idt_entry.Field( "OffsetLow" ).GetUshort();
-                    idt_handler.OffsetMiddle = idt_entry.Field( "OffsetMiddle" ).GetUshort();
-                    idt_handler.OffsetHigh = idt_entry.Field( "OffsetHigh" ).GetUlong();
+                    idt_handler.OffsetLow = idt_entry.Field("OffsetLow").GetUshort();
+                    idt_handler.OffsetMiddle = idt_entry.Field("OffsetMiddle").GetUshort();
+                    idt_handler.OffsetHigh = idt_entry.Field("OffsetHigh").GetUlong();
 
                     isr_address = idt_handler.Address;
 
                     info << "<exec cmd=\"dt nt!_KIDTENTRY64 " << std::hex << std::showbase << idt_entry.m_Offset;
                     info << "\">dt" << "</exec>" << " ";
-                }
-                else
-                {
+                } else {
                     ExtRemoteTyped idt_entry("nt!_KIDTENTRY",
                                              idt_entry_start + j * idt_entry_size,
                                              false,
                                              NULL,
                                              NULL);
 
-                    isr_address = (unsigned __int64 )MAKEULONG(idt_entry.Field( "ExtendedOffset" ).GetUshort(),
-                                                               idt_entry.Field( "Offset" ).GetUshort());
+                    isr_address = static_cast<unsigned __int64>(MAKEULONG(idt_entry.Field("ExtendedOffset").GetUshort(),
+                                                                          idt_entry.Field("Offset").GetUshort()));
 
-                    stringstream expression;
+                    std::stringstream expression;
                     expression << std::hex << std::showbase <<  isr_address;
-                    
-                    isr_address = g_Ext->EvalExprU64( expression.str().c_str() );
+
+                    isr_address = g_Ext->EvalExprU64(expression.str().c_str());
 
                     info << "<exec cmd=\"dt nt!_KIDTENTRY " << std::hex << std::showbase << idt_entry.m_Offset;
                     info << "\">dt" << "</exec>" << " ";
@@ -541,10 +564,9 @@ EXT_COMMAND(wa_idt,
                 info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                 info << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                display.AnalyzeAddressAsRoutine( isr_address, processor_index.str(), info.str() ); // display idt entry
+                display.AnalyzeAddressAsRoutine(isr_address, processor_index.str(), info.str());    // display idt entry
 
-                if ( !( isr_address >> 32 ) )
-                {
+                if ( !(isr_address >> 32) ) {
                     display.PrintFooter();
                     continue;
                 }
@@ -553,57 +575,56 @@ EXT_COMMAND(wa_idt,
                 ExtRemoteTyped interrupt;
                 bool           valid_interrupt = false;
 
-                if ( isr_address < start_unexpected_range || isr_address > end_unexpected_range )
-                {
-                    if ( m_is_cur_machine64 || !vector_to_interrupt_object )
-                    {
-                        interrupt.Set( "nt!_KINTERRUPT", isr_address - dispatch_code_offset, false, NULL, NULL );
+                if ( isr_address < start_unexpected_range || isr_address > end_unexpected_range ) {
+                    if ( m_is_cur_machine64 || !vector_to_interrupt_object ) {
+                        ExtRemoteTyped loc_interrupt("nt!_KINTERRUPT",
+                                                     isr_address - dispatch_code_offset,
+                                                     false,
+                                                     NULL,
+                                                     NULL);
 
-                        if ( interrupt.Field( "Type" ).GetUshort() == KOBJECTS::InterruptObject )
+                        if ( loc_interrupt.Field("Type").GetUshort() == KOBJECTS::InterruptObject ) {
+                            interrupt = loc_interrupt;
                             valid_interrupt = true;
-                    }                    
-                }
-                else if ( !m_is_cur_machine64 && vector_to_interrupt_object ) // x86 Windows 8.1+
-                {
-                    if ( j >= PRIMARY_VECTOR_BASE )
-                    {
-                        ExtRemoteTyped vector_to_interrupt = pcr.Field( "PrcbData.VectorToInterruptObject" );
-                        ExtRemoteTyped tmp_interrupt = *vector_to_interrupt[ j - PRIMARY_VECTOR_BASE ];
+                        }
+                    }
+                } else if ( !m_is_cur_machine64 && vector_to_interrupt_object ) {    // x86 Windows 8.1+
+                    if ( j >= PRIMARY_VECTOR_BASE ) {
+                        ExtRemoteTyped vector_to_interrupt = pcr.Field("PrcbData.VectorToInterruptObject");
+                        ExtRemoteTyped tmp_interrupt = *vector_to_interrupt[static_cast<ULONG>(j - PRIMARY_VECTOR_BASE)];
 
-                        if ( tmp_interrupt.m_Offset )
-                        {
-                            interrupt.Set( "nt!_KINTERRUPT", tmp_interrupt.m_Offset, false, NULL, NULL );
+                        if ( tmp_interrupt.m_Offset ) {
+                            interrupt = tmp_interrupt;
                             valid_interrupt = true;
                         }
                     }
                 }
 
-                if ( valid_interrupt )
-                {
-                    stringstream info_intr;
-                    info_intr << setw( 41 );
-
-                    info_intr << "<exec cmd=\"dt nt!_KINTERRUPT " << std::hex << std::showbase << interrupt.m_Offset;
+                if ( valid_interrupt ) {
+                    std::stringstream info_intr;
+                    info_intr << setw(41);
+                    info_intr << "<exec cmd=\"dt nt!_KINTERRUPT ";
+                    info_intr << std::hex << std::showbase << interrupt.m_Offset;
                     info_intr << "\">dt" << "</exec>" << " ";
                     info_intr << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                     info_intr << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
                     unsigned __int64 message_address = 0;
-                    
+
                     if ( message_service_offset )
-                        message_address = interrupt.Field( "MessageServiceRoutine" ).GetPtr();
+                        message_address = interrupt.Field("MessageServiceRoutine").GetPtr();
 
                     if ( !message_address )
-                        message_address = interrupt.Field( "ServiceRoutine" ).GetPtr();
+                        message_address = interrupt.Field("ServiceRoutine").GetPtr();
 
-                    display.AnalyzeAddressAsRoutine( message_address, processor_index.str(), info_intr.str() );
+                    display.AnalyzeAddressAsRoutine(message_address, processor_index.str(), info_intr.str());
 
-                    walkresType output_list;
+                    walkresType    output_list;
+                    ExtRemoteTyped list_entry = interrupt.Field("InterruptListEntry");
 
-                    if ( message_service_offset )
-                    {
+                    if ( message_service_offset )                     {
                         WalkAnyListWithOffsetToRoutine("",
-                                                       interrupt.Field( "InterruptListEntry" ).m_Offset,
+                                                       list_entry.m_Offset,
                                                        interrupt_list_entry,
                                                        true,
                                                        message_service_offset,
@@ -613,7 +634,7 @@ EXT_COMMAND(wa_idt,
                     }
 
                     WalkAnyListWithOffsetToRoutine("",
-                                                   interrupt.Field( "InterruptListEntry" ).m_Offset,
+                                                   list_entry.m_Offset,
                                                    interrupt_list_entry,
                                                    true,
                                                    service_routine_offset,
@@ -621,13 +642,12 @@ EXT_COMMAND(wa_idt,
                                                    "",
                                                    output_list);
 
-                    for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it )
-                    {
+                    for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it ) {
                         if ( !(*it).routine_address )
                             continue;
 
-                        stringstream info_intr_list;
-                        info_intr_list << setw( 41 );
+                        std::stringstream info_intr_list;
+                        info_intr_list << setw(41);
 
                         info_intr_list << "<exec cmd=\"dt nt!_KINTERRUPT ";
                         info_intr_list << std::hex << std::showbase << (*it).object_offset;
@@ -635,7 +655,7 @@ EXT_COMMAND(wa_idt,
                         info_intr_list << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                         info_intr_list << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                        display.AnalyzeAddressAsRoutine( (*it).routine_address, (*it).type, info_intr_list.str() );
+                        display.AnalyzeAddressAsRoutine((*it).routine_address, (*it).type, info_intr_list.str());
                     }
 
                     output_list.clear();
@@ -645,17 +665,14 @@ EXT_COMMAND(wa_idt,
             }
         }
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch ( ExtRemoteException Ex )
-    {
+    catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch( ExtInterruptException Ex )
-    {
-        throw Ex;
+    catch( const ExtInterruptException& ) {
+        throw;
     }
 
     display.PrintFooter();
@@ -731,103 +748,100 @@ full_address = selector.BaseLow | selector.HighWord.Bytes.BaseMid << 16 | select
 
 */
 
-// TODO: deal with flags
+// TODO(swwwolf): deal with flags
 EXT_COMMAND(wa_gdt,
             "Output processors GDT",
-            "")
-{
+            "") {
     RequireKernelMode();
-    Init();
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
 
     out << "Dumping GDT" << endlout;
 
-    WDbgArkAnalyze display;
-    stringstream   tmp_stream;
-    display.Init( &tmp_stream, AnalyzeTypeGDT );
+    WDbgArkAnalyze    display;
+    std::stringstream tmp_stream;
+
+    if ( !display.Init( &tmp_stream, AnalyzeTypeGDT ) )
+        throw ExtStatusException(S_OK, "display init failed");
+
     display.PrintHeader();
 
-    try
-    {
-        for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ )
-        {
+    try {
+        for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ ) {
             unsigned __int64 kpcr_offset     = 0;
             unsigned __int64 gdt_entry_start = 0;
-            unsigned long    gdt_entry_size  = 0;
+            unsigned __int32 gdt_entry_size  = 0;
 
-            g_Ext->m_Data->ReadProcessorSystemData(i,
-                                                   DEBUG_DATA_KPCR_OFFSET,
-                                                   &kpcr_offset,
-                                                   sizeof( kpcr_offset ),
-                                                   NULL);
+            HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(i,
+                                                                    DEBUG_DATA_KPCR_OFFSET,
+                                                                    &kpcr_offset,
+                                                                    sizeof(kpcr_offset),
+                                                                    NULL);
 
-            ExtRemoteTyped pcr( "nt!_KPCR", kpcr_offset, false, NULL, NULL );
-
-            if ( m_is_cur_machine64 )
-            {
-                gdt_entry_start = pcr.Field( "GdtBase" ).GetPtr(); // _KGDTENTRY64*
-                gdt_entry_size = GetTypeSize( "nt!_KGDTENTRY64" );
-            }
-            else
-            {
-                gdt_entry_start = pcr.Field( "GDT" ).GetPtr(); // _KGDTENTRY*
-                gdt_entry_size = GetTypeSize( "nt!_KGDTENTRY" );
+            if ( !SUCCEEDED(result) ) {
+                err << __FUNCTION__ << ": ReadProcessorSystemData failed with error = " << result;
+                break;
             }
 
-            for ( vector<unsigned long>::iterator it = gdt_selectors.begin();  it != gdt_selectors.end(); ++it )
-            {
-                stringstream processor_index;
-                stringstream info;
+            ExtRemoteTyped pcr("nt!_KPCR", kpcr_offset, false, NULL, NULL);
 
-                if ( m_is_cur_machine64 )
-                {
+            if ( m_is_cur_machine64 ) {
+                gdt_entry_start = pcr.Field("GdtBase").GetPtr();    // _KGDTENTRY64*
+                gdt_entry_size = GetTypeSize("nt!_KGDTENTRY64");
+            } else {
+                gdt_entry_start = pcr.Field("GDT").GetPtr();    // _KGDTENTRY*
+                gdt_entry_size = GetTypeSize("nt!_KGDTENTRY");
+            }
+
+            for ( std::vector<unsigned __int32>::iterator it = gdt_selectors.begin();  it != gdt_selectors.end(); ++it ) {
+                std::stringstream processor_index;
+                std::stringstream info;
+
+                if ( m_is_cur_machine64 ) {
                     ExtRemoteTyped gdt_entry("nt!_KGDTENTRY64",
                                              gdt_entry_start + *it,
                                              false,
                                              NULL,
                                              NULL);
 
-                    info << std::setw( 48 );
+                    info << std::setw(48);
                     info << "<exec cmd=\"dt nt!_KGDTENTRY64 " << std::hex << std::showbase << gdt_entry.m_Offset;
                     info << " -r1\">dt" << "</exec>" << " ";
                     info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>";
 
-                    processor_index << std::setw( 2 ) << i << " / " << std::setw( 2 ) << std::hex << *it / gdt_entry_size;
+                    processor_index << std::setw(2) << i << " / " << std::setw(2) << std::hex << *it / gdt_entry_size;
 
-                    display.AnalyzeGDTEntry( gdt_entry, processor_index.str(), *it, info.str() );
+                    display.AnalyzeGDTEntry(gdt_entry, processor_index.str(), *it, info.str());
                     display.PrintFooter();
-                }
-                else
-                {
+                } else {
                     ExtRemoteTyped gdt_entry("nt!_KGDTENTRY",
                                              gdt_entry_start + *it,
                                              false,
                                              NULL,
                                              NULL);
 
-                    info << std::setw( 46 );
+                    info << std::setw(46);
                     info << "<exec cmd=\"dt nt!_KGDTENTRY " << std::hex << std::showbase << gdt_entry.m_Offset;
                     info << " -r2\">dt" << "</exec>" << " ";
                     info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>";
 
-                    processor_index << std::setw( 2 ) << i << " / " << std::setw( 2 ) << std::hex << *it / gdt_entry_size;
+                    processor_index << std::setw(2) << i << " / " << std::setw(2) << std::hex << *it / gdt_entry_size;
 
-                    display.AnalyzeGDTEntry( gdt_entry, processor_index.str(), *it, info.str() );
+                    display.AnalyzeGDTEntry(gdt_entry, processor_index.str(), *it, info.str());
                     display.PrintFooter();
                 }
             }
         }
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch ( ExtRemoteException Ex )
-    {
+    catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch( ExtInterruptException Ex )
-    {
-        throw Ex;
+    catch( const ExtInterruptException& ) {
+        throw;
     }
 
     display.PrintFooter();

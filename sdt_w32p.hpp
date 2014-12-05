@@ -23,15 +23,14 @@
 #pragma once
 #endif
 
-#ifndef _SDT_W32P_HPP_
-#define _SDT_W32P_HPP_
+#ifndef SDT_W32P_HPP_
+#define SDT_W32P_HPP_
 
-enum ServiceTableType
-{
+enum ServiceTableType {
     KiServiceTable_x86 = 0,
     KiServiceTable_x64,
     W32pServiceTable_x86,
     W32pServiceTable_x64
 };
 
-#endif // _SDT_W32P_HPP_
+#endif // SDT_W32P_HPP_

@@ -51,6 +51,12 @@
     <ClInclude Include="manipulators.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="colorhack.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="strings.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wdbgark.cpp">
@@ -99,6 +105,9 @@
       <Filter>Source Files\bprinter</Filter>
     </ClCompile>
     <ClCompile Include="process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="colorhack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

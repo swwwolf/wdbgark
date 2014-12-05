@@ -20,39 +20,42 @@
 */
 
 #include "wdbgark.hpp"
+#include "analyze.hpp"
 
 EXT_COMMAND(wa_checkmsr,
             "Output system MSRs (live debug only!)",
-            "")
-{
+            "") {
     RequireKernelMode();
     RequireLiveKernelMode();
 
-    Init();
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
 
-    WDbgArkAnalyze display;
-    stringstream   tmp_stream;
-    display.Init( &tmp_stream, AnalyzeTypeDefault );
-    display.SetOwnerModule( "nt" );
+    WDbgArkAnalyze    display;
+    std::stringstream tmp_stream;
+
+    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+        throw ExtStatusException(S_OK, "display init failed");
+
+    if ( !display.SetOwnerModule("nt") )
+        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+
     display.PrintHeader();
 
-    try
-    {
-        unsigned __int64 msr_address = 0;
-        stringstream     expression;
+    try {
+        unsigned __int64  msr_address = 0;
+        std::stringstream expression;
 
-        ReadMsr( SYSENTER_EIP_MSR, &msr_address );
+        ReadMsr(SYSENTER_EIP_MSR, &msr_address);
 
         expression << std::showbase << std::hex << msr_address;
-        display.AnalyzeAddressAsRoutine( g_Ext->EvalExprU64( expression.str().c_str() ), "SYSENTER_EIP_MSR", "" );
+        display.AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression.str().c_str()), "SYSENTER_EIP_MSR", "");
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch( ExtInterruptException Ex )
-    {
-        throw Ex;
+    catch( const ExtInterruptException& ) {
+        throw;
     }
 
     display.PrintFooter();

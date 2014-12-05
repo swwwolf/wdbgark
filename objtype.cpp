@@ -19,84 +19,81 @@
     * the COPYING file in the top-level directory.
 */
 
+#include <string>
 #include "wdbgark.hpp"
+#include "analyze.hpp"
 
 EXT_COMMAND(wa_objtype,
             "Output kernel-mode object type(s)",
-            "{type;s;o;type,Object type name}")
-{
-    string type;
+            "{type;s;o;type,Object type name}") {
+    std::string type;
 
     RequireKernelMode();
-    Init();
 
-    if ( HasArg( "type" ) ) // object type was provided
-        type.assign( GetArgStr( "type" ) );
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
+
+    if ( HasArg("type") )   // object type was provided
+        type.assign(GetArgStr("type"));
 
     out << "Displaying \\ObjectTypes\\" << type << endlout;
 
-    unsigned __int64 object_types_directory_offset = m_obj_helper.FindObjectByName( "ObjectTypes", 0 );
+    unsigned __int64 object_types_directory_offset = m_obj_helper.FindObjectByName("ObjectTypes", 0);
 
-    if ( !object_types_directory_offset )
-    {
+    if ( !object_types_directory_offset ) {
         err << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
         return;
     }
 
-    WDbgArkAnalyze display;
-    stringstream   tmp_stream;
-    display.Init( &tmp_stream, AnalyzeTypeDefault );
-    display.SetOwnerModule( "nt" );
+    WDbgArkAnalyze    display;
+    std::stringstream tmp_stream;
+
+    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+        throw ExtStatusException(S_OK, "display init failed");
+
+    if ( !display.SetOwnerModule("nt") )
+        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+
     display.PrintHeader();
 
-    try
-    {
-        if ( type.empty() )
-        {
+    try {
+        if ( type.empty() ) {
             WalkDirectoryObject(object_types_directory_offset,
-                                reinterpret_cast<void*>( &display ),
+                                reinterpret_cast<void*>(&display),
                                 DirectoryObjectTypeCallback);
-        }
-        else
-        {
+        } else {
             ExtRemoteTyped object_type("nt!_OBJECT_TYPE",
-                                       m_obj_helper.FindObjectByName( type, object_types_directory_offset ),
+                                       m_obj_helper.FindObjectByName(type, object_types_directory_offset),
                                        false,
                                        NULL,
                                        NULL);
 
-            DirectoryObjectTypeCallback( this, object_type, reinterpret_cast<void*>( &display ) );
+            if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(&display))) )
+                warn << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlwarn;
         }
     }
-    catch ( ExtRemoteException Ex )
-    {
+    catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    catch( ExtInterruptException Ex )
-    {
-        throw Ex;
+    catch( const ExtInterruptException& ) {
+        throw;
     }
 
     display.PrintFooter();
 }
 
-HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &object, void* context)
-{
-    WDbgArkAnalyze* display = reinterpret_cast<WDbgArkAnalyze*>( context );
-    
+HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
+    WDbgArkAnalyze* display = reinterpret_cast<WDbgArkAnalyze*>(context);
 
-    try
-    {
-        ExtRemoteTyped object_type( "nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL );
-        ExtRemoteTyped type_info = object_type.Field( "TypeInfo" );
+    try {
+        ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
+        ExtRemoteTyped typeinfo = object_type.Field("TypeInfo");
 
-        display->AnalyzeObjectTypeInfo( type_info, object );
+        display->AnalyzeObjectTypeInfo(typeinfo, object);
     }
-    catch ( ExtRemoteException Ex )
-    {
-        stringstream err;
-
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    catch ( const ExtRemoteException &Ex ) {
+        std::stringstream tmperr;
+        tmperr << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
 

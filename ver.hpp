@@ -23,10 +23,10 @@
 #pragma once
 #endif
 
-#ifndef _VER_HPP_
-#define _VER_HPP_
+#ifndef VER_HPP_
+#define VER_HPP_
 
 #define VER_MAJOR 1
 #define VER_MINOR 5
 
-#endif // _VER_HPP_
+#endif // VER_HPP_

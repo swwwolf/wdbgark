@@ -95,7 +95,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(DBGSDK_LIB_PATH)\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>wdbgark.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
@@ -115,7 +115,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(DBGSDK_LIB_PATH)\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>wdbgark.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
@@ -142,7 +142,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(DBGSDK_LIB_PATH)\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>wdbgark.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -166,17 +166,19 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(DBGSDK_LIB_PATH)\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>wdbgark.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="analyze.hpp" />
+    <ClInclude Include="colorhack.hpp" />
     <ClInclude Include="ddk.h" />
     <ClInclude Include="manipulators.hpp" />
     <ClInclude Include="objhelper.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="sdt_w32p.hpp" />
+    <ClInclude Include="strings.hpp" />
     <ClInclude Include="ver.hpp" />
     <ClInclude Include="wdbgark.hpp" />
     <ClInclude Include="process.hpp" />
@@ -186,6 +188,7 @@
     <ClCompile Include="bprinter\src\table_printer.cpp" />
     <ClCompile Include="callouts.cpp" />
     <ClCompile Include="checkmsr.cpp" />
+    <ClCompile Include="colorhack.cpp" />
     <ClCompile Include="idt_gdt.cpp" />
     <ClCompile Include="objhelper.cpp" />
     <ClCompile Include="objtype.cpp" />

@@ -21,125 +21,107 @@
 
 #include "wdbgark.hpp"
 #include "ver.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_scan,
             "Scan system",
-            "{log;s;o;log,Log file name}{reload;b;o;reload,Force to reload symbols}")
-{
+            "{log;s;o;log,Log file name}{reload;b;o;reload,Force to reload symbols}") {
     RequireKernelMode();
-    Init();
 
-    if ( HasArg( "reload" ) )
-        m_Symbols->Reload( "/f /n" );
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
 
-    if ( HasArg( "log" ) )
-        Execute( ".logopen /t %s", GetArgStr( "log" ) );
-    
+    if ( HasArg("reload") )
+        m_Symbols->Reload("/f /n");
+
+    if ( HasArg("log") )
+        Execute(".logopen /t %s", GetArgStr("log"));
+
     out << "--------------------------------------------------------------------------" << endlout;
     out << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << " start scan" << endlout;
     out << "--------------------------------------------------------------------------" << endlout;
-    Execute( "vertarget" );
+    Execute("vertarget");
     out << "--------------------------------------------------------------------------" << endlout;
-    Execute( "!vm" );
+    Execute("!vm");
     out << "--------------------------------------------------------------------------" << endlout;
 
-    try
-    {
+    try {
         out << "<b>!wa_ssdt</b>" << endlout;
         wa_ssdt();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-    
-    try
-    {
+
+    try {
         out << "<b>!wa_w32psdt</b>" << endlout;
         wa_w32psdt();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    try
-    {
+    try {
         out << "<b>!wa_idt</b>" << endlout;
         wa_idt();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    try
-    {
+    try {
         out << "<b>!wa_gdt</b>" << endlout;
         wa_gdt();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    try
-    {
+    try {
         out << "<b>!wa_checkmsr</b>" << endlout;
         wa_checkmsr();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    try
-    {
+    try {
         out << "<b>!wa_systemcb</b>" << endlout;
         wa_systemcb();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    try
-    {
+    try {
         out << "<b>!wa_objtype</b>" << endlout;
         wa_objtype();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    try
-    {
+    try {
         out << "<b>!wa_objtypeidx</b>" << endlout;
         wa_objtypeidx();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    try
-    {
+    try {
         out << "<b>!wa_callouts</b>" << endlout;
         wa_callouts();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    try
-    {
+    try {
         out << "<b>!wa_pnptable</b>" << endlout;
         wa_pnptable();
     }
-    catch ( ExtStatusException Ex )
-    {
+    catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
@@ -147,6 +129,6 @@ EXT_COMMAND(wa_scan,
     out << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << " end of scan" << endlout;
     out << "--------------------------------------------------------------------------" << endlout;
 
-    if ( HasArg( "log" ) )
-        Execute( ".logclose" );
+    if ( HasArg("log") )
+        Execute(".logclose");
 }

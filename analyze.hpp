@@ -27,8 +27,8 @@
 #pragma once
 #endif
 
-#ifndef _ANALYZE_HPP_
-#define _ANALYZE_HPP_
+#ifndef ANALYZE_HPP_
+#define ANALYZE_HPP_
 
 #define make_string( x ) #x
 
@@ -55,77 +55,65 @@ enum AnalyzeTypeInit
 
 class WDbgArkAnalyze
 {
-public:
+ public:
     WDbgArkAnalyze() :
         m_inited(false),
-        m_owner_module_inited(false){ }
+        m_owner_module_inited(false),
+        m_owner_module_start(0ULL),
+        m_owner_module_end(0ULL),
+        tp(nullptr){ }
 
-    ~WDbgArkAnalyze()
-    {
-        if ( IsInited() )
-            delete tp;
-    }
+    ~WDbgArkAnalyze() { if ( IsInited() && tp ) delete tp; }
 
     bool Init(std::ostream* output);
     bool Init(std::ostream* output, const AnalyzeTypeInit type);
-    bool IsInited(void){ return m_inited == true; }
+    bool IsInited(void) const { return m_inited; }
 
-    void PrintHeader(void)
-    {
-        if ( IsInited() )
-            tp->PrintHeader();
-    }
-    void PrintFooter(void)
-    {
-        if ( IsInited() )
-            tp->PrintFooter();
-    }
-    void AddColumn(const string& header_name, int column_width)
-    {
-        if ( IsInited() )
-            tp->AddColumn( header_name, column_width );
+    void PrintHeader(void) { if ( IsInited() && tp ) tp->PrintHeader(); }
+    void PrintFooter(void) { if ( IsInited() && tp ) tp->PrintFooter(); }
+
+    void AddColumn(const string& header_name, const int column_width) {
+        if ( IsInited() && tp )
+            tp->AddColumn(header_name, column_width);
     }
 
     //////////////////////////////////////////////////////////////////////////
     // owner module routines
     //////////////////////////////////////////////////////////////////////////
-    bool SetOwnerModule(void)
-    {
-        m_owner_module_start = 0;
-        m_owner_module_end = 0;
+    bool SetOwnerModule(void) {
+        m_owner_module_start = 0ULL;
+        m_owner_module_end = 0ULL;
         m_owner_module_inited = false;
 
         return false;
     }
-    bool SetOwnerModule(const unsigned __int64 start, const unsigned __int64 end)
-    {
-        if ( !start || !end )
+    bool SetOwnerModule(const unsigned __int64 mod_start, const unsigned __int64 mod_end) {
+        if ( !mod_start || !mod_end )
             return false;
 
-        m_owner_module_start = start;
-        m_owner_module_end = end;
+        m_owner_module_start = mod_start;
+        m_owner_module_end = mod_end;
         m_owner_module_inited = true;
 
         return true;
     }
-    bool SetOwnerModule(const string &module_name);
+    bool SetOwnerModule(const std::string &module_name);
 
     //////////////////////////////////////////////////////////////////////////
     // analyze routines
     //////////////////////////////////////////////////////////////////////////
     void AnalyzeAddressAsRoutine(const unsigned __int64 address,
-                                 const string &type,
-                                 const string &additional_info);
+                                 const std::string &type,
+                                 const std::string &additional_info);
 
-    void AnalyzeObjectTypeInfo(ExtRemoteTyped &type_info, ExtRemoteTyped &object);
+    void AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object);
 
-    void AnalyzeGDTEntry(ExtRemoteTyped &gdt_entry,
-                         const string &cpu_idx,
-                         const unsigned long selector,
-                         const string &additional_info);
+    void AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
+                         const std::string &cpu_idx,
+                         const unsigned __int32 selector,
+                         const std::string &additional_info);
 
-private:
-
+ private:
     bool                    m_inited;
     bool                    m_owner_module_inited;
     unsigned __int64        m_owner_module_start;
@@ -135,22 +123,23 @@ private:
     //////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////
+    // TODO(swwwolf): don't return into referenced objects here
     HRESULT GetModuleNames(const unsigned __int64 address,
-                           string &image_name,
-                           string &module_name,
-                           string &loaded_image_name);
+                           std::string &image_name,
+                           std::string &module_name,
+                           std::string &loaded_image_name);
 
-    HRESULT GetNameByOffset(const unsigned __int64 address, string &name);
+    std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address);
 
-    bool    IsSuspiciousAddress(const unsigned __int64 address);
-    string  GetGDTSelectorName(const unsigned long selector);
+    bool        IsSuspiciousAddress(const unsigned __int64 address);
+    std::string GetGDTSelectorName(const unsigned __int32 selector) const;
 
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
-    stringstream out;
-    stringstream warn;
-    stringstream err;
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
 };
 
-#endif // _ANALYZE_HPP_
+#endif // ANALYZE_HPP_
