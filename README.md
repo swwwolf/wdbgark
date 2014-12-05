@@ -1,4 +1,5 @@
 # WinDBG Anti-RootKit extension
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/3610/badge.svg)](https://scan.coverity.com/projects/3610)
 
 * [Preface](#preface)
 * [Supported commands](#supported-commands)
