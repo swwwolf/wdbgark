@@ -9,6 +9,7 @@
 * [Using](#using)
 * [FAQ](#faq)
 * [Help](#help)
+* [Whoami](#whoami)
 * [License](#license)
 
 ## Preface
@@ -130,6 +131,11 @@ A: Yeah, i know, but C++ is much better.
 ## Help
 
 [Wiki](https://github.com/swwwolf/wdbgark/wiki) can help.
+
+## Whoami
+
+* [LinkedIn profile](https://www.linkedin.com/in/vrusakov)
+* [Blog](http://sww-it.ru/) (russian mostly)
 
 ## License
 

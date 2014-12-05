@@ -13,6 +13,10 @@ Visual Lint/
 *.cpp.vlstatus
 *.vlconfig
 
+# Coverity Scan files
+cov-int/
+coverity.cmd
+
 # User-specific folders
 *.sln.ide/
 
