@@ -18,7 +18,7 @@
 WDBGARK is an extension (dynamic library) for the [Microsoft Debugging Tools for Windows](http://msdn.microsoft.com/en-US/library/windows/hardware/ff551063).
 It main purpose is to view and analyze anomalies in Windows kernel using kernel debugger. It is possible to view various system callbacks,
 system tables, object types and so on. For more user-friendly view extension uses DML. For the most of the commands kernel-mode connection is required.
-It's possible to use an extension with live kernel-mode debugging or with crash dump analysis (not all commands will work).
+It's also possible to use an extension with live kernel-mode debugging or with kernel-mode crash dump analysis (not all commands will work).
 
 ## Supported commands
 
@@ -41,8 +41,11 @@ It's possible to use an extension with live kernel-mode debugging or with crash 
 * Microsoft Windows Vista (x86/x64)
 * Microsoft Windows 7 (x86/x64)
 * Microsoft Windows 8.x (x86/x64)
+* Microsoft Windows 10.x (theoretically)
 
-BETAs/RCs are supported by design. IA64/ARM unsupported.
+Windows BETA/RC is supported by design, but read a few notes. First, i don't care about checked builds. Second, i don't care
+if you don't have [symbols](http://msdn.microsoft.com/en-us/windows/hardware/gg463028.aspx) (public or private).
+IA64/ARM is unsupported (and will not).
 
 ## Sources and build
 
@@ -50,17 +53,17 @@ Sources are organized as a Visual Studio 2012 solution, but it's possible to bui
 
 ### Build using VS2012
 
-* Download and install latest [WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365).
+* Download and install latest [WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365)
 * Define system environment variables (e.g. WDK 8.1).
-    * _DBGSDK_INC_PATH_ = C:\WinDDK\8.1\Debuggers\inc
-    * _DBGSDK_LIB_PATH_ = C:\WinDDK\8.1\Debuggers\lib
-    * _WDKDIR_ = C:\WinDDK\8.1
+    * DBGSDK_INC_PATH = C:\WinDDK\8.1\Debuggers\inc
+    * DBGSDK_LIB_PATH = C:\WinDDK\8.1\Debuggers\lib
+    * WDKDIR = C:\WinDDK\8.1
 * Choose solution configuration and platform.
 * Build.
 
-NOTE!
+#### NOTE!
 
-Post-build event is enabled for the debug builds. It automatically copies linked extension into WinDBG's plugins folder (e.g. x64 target:  
+Post-build event is enabled for debug builds. It automatically copies linked extension into WinDBG's plugins folder (e.g. x64 target:  
 _"copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$(TargetName)$(TargetExt)"_).
 
 ### Build using BUILD
@@ -71,14 +74,16 @@ _"copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$
 
 ## Using
 
-* Build or download an extention.
+* Download and install Debugging Tools from the [Microsoft WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365) downloads page.
+* [Build](#sources-and-build) or download extention.
 * Make sure that [Visual C++ Redistributable for Visual Studio 2012](http://www.microsoft.com/en-US/download/details.aspx?id=30679) has already been installed.
-* Copy an extension into WDK debugger's directory (e.g. WDK 8.1):
+* Copy extension to WDK debugger's directory (e.g. WDK 8.1):
     * x64: C:\WinDDK\8.1\Debuggers\x64\winext\
     * x86: C:\WinDDK\8.1\Debuggers\x86\winext\
-* Run WinDbg.
-* Load extension using ".load wdbgark" (you can see loaded extensions with a ".chain" command).
-* Run "!wdbgark.help" or "!wdbgark.wa_scan /reload".
+* Start WinDBG.
+* [Setup](http://support.microsoft.com/kb/311503/en-us) WinDBG to use Microsoft Symbol Server correctly.
+* Load extension by **.load wdbgark** (you can see loaded extensions with a **.chain** command).
+* Execute **!wdbgark.help** for help or **!wdbgark.wa_scan /reload** for a full system scan with symbols reloading.
 * Have fun!
 
 ```
@@ -140,4 +145,4 @@ A: Yeah, i know, but C++ is much better.
 
 ## License
 
-This software is released under the GNU GPL v3 License, see COPYING.
+This software is released under the GNU GPL v3 License. See the [COPYING file](COPYING) for the full license text.
