@@ -36,12 +36,12 @@ bool WDbgArkObjHelper::Init(void) {
     // determine object header format
     unsigned __int32 type_index_offset = 0;
 
-    GetFieldOffset("nt!_OBJECT_HEADER", "TypeIndex", reinterpret_cast<PULONG>(&type_index_offset));
-
-    if ( !type_index_offset ) {    // old header format
+    // old header format
+    if ( GetFieldOffset("nt!_OBJECT_HEADER", "TypeIndex", reinterpret_cast<PULONG>(&type_index_offset)) != 0 ) {
         object_header_old = true;
         m_inited = true;
-    } else {    // new header format
+    } else {
+        // new header format
         object_header_old = false;
 
         if ( g_Ext->GetSymbolOffset("nt!ObpInfoMaskToOffset", true, &ObpInfoMaskToOffset) )

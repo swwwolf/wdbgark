@@ -212,9 +212,9 @@ void WDbgArkAnalyze::AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
         if ( g_Ext->IsCurMachine64() ) {
             if ( selector != KGDT64_R0_DATA && selector != KGDT64_R3_DATA ) {
                 address =\
-                    (loc_gdt_entry.Field("BaseLow").GetUshort()) |\
-                    (loc_gdt_entry.Field("Bytes.BaseMiddle").GetUchar() << 16) |\
-                    (loc_gdt_entry.Field("Bytes.BaseHigh").GetUchar() << 24) |\
+                    (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
+                    (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseMiddle").GetUchar()) << 16) |\
+                    (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseHigh").GetUchar()) << 24) |\
                     (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseUpper").GetUlong()) << 32);
 
                 limit =\
@@ -223,9 +223,9 @@ void WDbgArkAnalyze::AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
             }
         } else {
             address =\
-                (loc_gdt_entry.Field("BaseLow").GetUshort()) |\
-                (loc_gdt_entry.Field("HighWord.Bytes.BaseMid").GetUchar() << 16) |\
-                (loc_gdt_entry.Field("HighWord.Bytes.BaseHi").GetUchar() << 24);
+                (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
+                (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseMid").GetUchar()) << 16) |\
+                (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseHi").GetUchar()) << 24);
 
             limit =\
                 (loc_gdt_entry.Field("LimitLow").GetUshort()) |\
