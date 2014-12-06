@@ -31,6 +31,8 @@ bool WDbgArk::Init() {
     if ( IsInited() )
         return true;
 
+    CheckSymbolsPath();
+
     if ( !m_obj_helper.Init() )
         warn << __FUNCTION__ ": failed to init object helper class" << endlwarn;
 
@@ -192,6 +194,36 @@ bool WDbgArk::Init() {
     m_inited = true;
 
     return m_inited;
+}
+
+void WDbgArk::CheckSymbolsPath(void) {
+    unsigned __int32 buffer_size = 0;
+    HRESULT result = m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&buffer_size));
+
+    if ( SUCCEEDED(result) && buffer_size ) {
+        char* symbol_path_buffer = new (nothrow) char[buffer_size];
+
+        if ( symbol_path_buffer ) {
+            result = m_Symbols->GetSymbolPath(symbol_path_buffer, buffer_size, reinterpret_cast<PULONG>(&buffer_size));
+
+            if ( SUCCEEDED(result) ) {
+                std::string check_path = symbol_path_buffer;
+
+                if ( check_path.empty() ) {
+                    warn << __FUNCTION__ << ": seems that your symbol path is empty. Be sure to fix it!" << endlwarn;
+                } else if ( check_path.find(MS_PUBLIC_SYMBOLS_SERVER) == std::string::npos ) {
+                    warn << __FUNCTION__ << ": seems that your symbol path might be incorrect. ";
+                    warn << "Be sure to include Microsoft Symbol Server (" << MS_PUBLIC_SYMBOLS_SERVER << ")" << endlwarn;
+                }
+            } else {
+                warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;
+            }
+
+            delete[] symbol_path_buffer;
+        }
+    } else {
+        warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;
+    }
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,

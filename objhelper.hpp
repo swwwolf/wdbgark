@@ -43,7 +43,7 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkObjHelper
 {
-public:
+ public:
     WDbgArkObjHelper() :
         m_inited(false),
         object_header_old(true),
@@ -65,7 +65,7 @@ public:
             return FastRef & ~MAX_FAST_REFS_X64;
     }
 
-private:
+ private:
     bool             m_inited;
     bool             object_header_old;
     unsigned __int64 ObpInfoMaskToOffset;
