@@ -161,7 +161,7 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, c
 
     std::unique_ptr<WDbgArkObjHelper> obj_helper(new (std::nothrow) WDbgArkObjHelper);
 
-    if ( !obj_helper.get() ) {
+    if ( !obj_helper ) {
         err << __FUNCTION__ << ": no memory" << endlerr;
         return;
     }
@@ -363,6 +363,7 @@ std::string WDbgArkAnalyze::GetGDTSelectorName(const unsigned __int32 selector) 
     }
 }
 
+// TODO(swwwolf): return values not by reference
 HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                                        std::string &image_name,
                                        std::string &module_name,
@@ -375,9 +376,16 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
     if ( !address )
         return E_INVALIDARG;
 
+    std::unique_ptr<char[]> buf1;
+    std::unique_ptr<char[]> buf2;
+    std::unique_ptr<char[]> buf3;
+
     ignore_output.Start();
 
-    HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address, 0, reinterpret_cast<PULONG>(&module_index), &module_base);
+    HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address,
+                                                         0,
+                                                         reinterpret_cast<PULONG>(&module_index),
+                                                         &module_base);
 
     if ( SUCCEEDED(result) ) {
         result = g_Ext->m_Symbols->GetModuleNames(module_index,
@@ -393,54 +401,41 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                                                   reinterpret_cast<PULONG>(&len3));
 
         if ( SUCCEEDED(result) ) {
-            char* buf1 = new (std::nothrow) char[ len1 + 1 ];
-            char* buf2 = new (std::nothrow) char[ len2 + 1 ];
-            char* buf3 = new (std::nothrow) char[ len3 + 1 ];
+            buf1.reset(new (std::nothrow) char[len1+1]);
+            buf2.reset(new (std::nothrow) char[len2+1]);
+            buf3.reset(new (std::nothrow) char[len3+1]);
 
             if ( !buf1 || !buf2 || !buf3 ) {
-                if ( buf3 )
-                    delete[] buf3;
-
-                if ( buf2 )
-                    delete[] buf2;
-
-                if ( buf1 )
-                    delete[] buf1;
-
                 ignore_output.Stop();
                 return E_OUTOFMEMORY;
             }
 
-            ZeroMemory(buf1, len1 + 1);
-            ZeroMemory(buf2, len2 + 1);
-            ZeroMemory(buf3, len3 + 1);
+            ZeroMemory(buf1.get(), len1 + 1);
+            ZeroMemory(buf2.get(), len2 + 1);
+            ZeroMemory(buf3.get(), len3 + 1);
 
             result = g_Ext->m_Symbols->GetModuleNames(module_index,
                                                       module_base,
-                                                      buf1,
+                                                      buf1.get(),
                                                       len1 + 1,
                                                       NULL,
-                                                      buf2,
+                                                      buf2.get(),
                                                       len2 + 1,
                                                       NULL,
-                                                      buf3,
+                                                      buf3.get(),
                                                       len3 + 1,
                                                       NULL);
 
             if ( SUCCEEDED(result) ) {
-                image_name = buf1;
+                image_name = buf1.get();
                 std::transform(image_name.begin(), image_name.end(), image_name.begin(), tolower);
 
-                module_name = buf2;
+                module_name = buf2.get();
                 std::transform(module_name.begin(), module_name.end(), module_name.begin(), tolower);
 
-                loaded_image_name = buf3;
+                loaded_image_name = buf3.get();
                 std::transform(loaded_image_name.begin(), loaded_image_name.end(), loaded_image_name.begin(), tolower);
             }
-
-            delete[] buf3;
-            delete[] buf2;
-            delete[] buf1;
         }
     }
 
@@ -467,27 +462,25 @@ std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned _
     ignore_output.Stop();
 
     if ( SUCCEEDED(result) && name_buffer_size ) {
-        char* tmp_name = new (std::nothrow) char[ name_buffer_size + 1 ];
+        std::unique_ptr<char[]> tmp_name(new (std::nothrow) char[name_buffer_size + 1]);
 
         if ( !tmp_name )
             return std::make_pair(E_OUTOFMEMORY, output_name);
 
-        ZeroMemory(tmp_name, name_buffer_size + 1);
+        ZeroMemory(tmp_name.get(), name_buffer_size + 1);
 
         ignore_output.Start();
-        result = g_Ext->m_Symbols->GetNameByOffset(address, tmp_name, name_buffer_size, NULL, NULL);
+        result = g_Ext->m_Symbols->GetNameByOffset(address, tmp_name.get(), name_buffer_size, NULL, NULL);
         ignore_output.Stop();
 
         if ( SUCCEEDED(result) ) {
-            stream_name << tmp_name;
+            stream_name << tmp_name.get();
 
             if ( displacement )
                 stream_name << "+" << std::hex << std::showbase << displacement;
 
             output_name = stream_name.str();
         }
-
-        delete[] tmp_name;
     }
 
     return std::make_pair(result, output_name);

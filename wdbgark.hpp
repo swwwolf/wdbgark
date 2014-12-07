@@ -62,6 +62,7 @@ class WDbgArk : public ExtExtension
         unsigned __int32 offset_to_routine;
     } SystemCbCommand;
 
+    typedef std::map<std::string, SystemCbCommand> callbacksInfo;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag
     {
@@ -94,10 +95,6 @@ class WDbgArk : public ExtExtension
     typedef HRESULT (*pfn_device_node_walk_callback_routine)(WDbgArk* wdbg_ark_class,
                                                              ExtRemoteTyped &device_node,
                                                              void* context);
-
-    //////////////////////////////////////////////////////////////////////////
-    // main commands
-    //////////////////////////////////////////////////////////////////////////
     WDbgArk() :
         m_inited(false),
         m_is_cur_machine64(false),
@@ -127,6 +124,9 @@ class WDbgArk : public ExtExtension
 
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    // main commands
+    //////////////////////////////////////////////////////////////////////////
     EXT_COMMAND_METHOD(wa_ver);
     EXT_COMMAND_METHOD(wa_scan);
     EXT_COMMAND_METHOD(wa_systemcb);
@@ -155,7 +155,7 @@ class WDbgArk : public ExtExtension
     //////////////////////////////////////////////////////////////////////////
     // walk routines
     //////////////////////////////////////////////////////////////////////////
-    void CallCorrespondingWalkListRoutine(const std::map<std::string, SystemCbCommand>::const_iterator &citer,
+    void CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
                                           walkresType &output_list);
 
     void WalkExCallbackList(const std::string &list_count_name,
@@ -199,9 +199,9 @@ class WDbgArk : public ExtExtension
  private:
     #define MS_PUBLIC_SYMBOLS_SERVER "http://msdl.microsoft.com/download/symbols"
 
-    std::map<std::string, SystemCbCommand> system_cb_commands;
-    std::vector<std::string>               callout_names;
-    std::vector<unsigned __int32>          gdt_selectors;
+    callbacksInfo                 system_cb_commands;
+    std::vector<std::string>      callout_names;
+    std::vector<unsigned __int32> gdt_selectors;
 
     //////////////////////////////////////////////////////////////////////////
     // callback routines

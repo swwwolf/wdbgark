@@ -208,12 +208,12 @@ bool WDbgArkColorHack::Init() {
             try {
                 if ( *start_data >= start_text && *start_data <= end_text ) {
                     if ( _wcsicmp(reinterpret_cast<wchar_t*>(*start_data), L"Background") == 0 )
-                        g_ui_colors = reinterpret_cast<UiColor*>(start_data);
+                        m_g_ui_colors = reinterpret_cast<UiColor*>(start_data);
 
                     if ( _wcsicmp(reinterpret_cast<wchar_t*>(*start_data), L"Normal level command window text") == 0 )
-                        g_out_mask_ui_colors = reinterpret_cast<UiColor*>(start_data);
+                        m_g_out_mask_ui_colors = reinterpret_cast<UiColor*>(start_data);
 
-                    if ( g_ui_colors && g_out_mask_ui_colors ) {
+                    if ( m_g_ui_colors && m_g_out_mask_ui_colors ) {
                         break;
                     }
                 }
@@ -223,15 +223,15 @@ bool WDbgArkColorHack::Init() {
             start_data++;
         }
 
-        if ( g_ui_colors && g_out_mask_ui_colors ) {
-            UiColor* loc_ui_color = g_ui_colors;
+        if ( m_g_ui_colors && m_g_out_mask_ui_colors ) {
+            UiColor* loc_ui_color = m_g_ui_colors;
 
             while ( loc_ui_color->description ) {
                 m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorsType));
                 loc_ui_color++;
             }
 
-            loc_ui_color = g_out_mask_ui_colors;
+            loc_ui_color = m_g_out_mask_ui_colors;
 
             while ( loc_ui_color->description ) {
                 m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorsOutMaskType));
@@ -267,8 +267,8 @@ void WDbgArkColorHack::PrintInformation(void) {
 
     tp->PrintHeader();
 
-    for ( std::vector<InternalUiColor>::const_iterator it = m_internal_colors.begin();
-          it != m_internal_colors.end();
+    for ( vecUiColor::const_iterator it = m_internal_colors.cbegin();
+          it != m_internal_colors.cend();
           ++it ) {
               std::stringstream original_color;
               original_color << std::internal << std::setw(10) << std::setfill('0');
@@ -290,7 +290,7 @@ void WDbgArkColorHack::PrintMemoryInfo(void) {
     try {
         out << "--------------------------------------------------------------------------" << endlout;
 
-        UiColor* loc_ui_color = g_ui_colors;
+        UiColor* loc_ui_color = m_g_ui_colors;
         while ( loc_ui_color->description ) {
             out << "Description : " << wstring_to_string(loc_ui_color->description) << endlout;
             out << "DML name    : " << wstring_to_string(loc_ui_color->dml_name) << endlout;
@@ -303,7 +303,7 @@ void WDbgArkColorHack::PrintMemoryInfo(void) {
             loc_ui_color++;
         }
 
-        loc_ui_color = g_out_mask_ui_colors;
+        loc_ui_color = m_g_out_mask_ui_colors;
         while ( loc_ui_color->description ) {
             out << "Description : " << wstring_to_string(loc_ui_color->description) << endlout;
             out << "DML name    : " << wstring_to_string(loc_ui_color->dml_name) << endlout;
@@ -367,7 +367,7 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
 
     theme_elems elems = it->second;
 
-    for ( theme_elems::const_iterator tit = elems.begin(); tit != elems.end(); ++tit ) {
+    for ( theme_elems::const_iterator tit = elems.cbegin(); tit != elems.cend(); ++tit ) {
         if ( !SetColor(tit->first, tit->second) ) {
             err << __FUNCTION__ << ": failed to set new color for " << tit->first << endlerr;
             RevertColors();
@@ -399,15 +399,14 @@ WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiC
     return internal_color;
 }
 
-std::pair<bool, std::vector<WDbgArkColorHack::InternalUiColor>::iterator>
-WDbgArkColorHack::FindIntUiColor(const std::string &dml_name) {
+WDbgArkColorHack::boolIntUiColorIter WDbgArkColorHack::FindIntUiColor(const std::string &dml_name) {
     InternalUiColor result;
     ZeroMemory(&result, sizeof(result));
 
     std::string check_name = dml_name;
     std::transform(check_name.begin(), check_name.end(), check_name.begin(), tolower);
 
-    for ( std::vector<InternalUiColor>::iterator it = m_internal_colors.begin();
+    for ( vecUiColor::iterator it = m_internal_colors.begin();
           it != m_internal_colors.end();
           ++it ) {
               if ( it->dml_name == check_name ) {
@@ -426,7 +425,7 @@ void WDbgArkColorHack::RevertColors(void) {
     }
 
     try {
-        for ( std::vector<InternalUiColor>::iterator it = m_internal_colors.begin();
+        for ( vecUiColor::iterator it = m_internal_colors.begin();
               it != m_internal_colors.end();
               ++it ) {
                   if ( it->is_changed ) {
@@ -454,7 +453,7 @@ bool WDbgArkColorHack::SetColor(const std::string &dml_name, const COLORREF colo
         return false;
     }
 
-    std::pair<bool, std::vector<InternalUiColor>::iterator> result = FindIntUiColor(dml_name);
+    boolIntUiColorIter result = FindIntUiColor(dml_name);
 
     if ( result.first ) {
         // do not touch original color

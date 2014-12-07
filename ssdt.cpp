@@ -74,7 +74,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.get() )
+    if ( !display )
         throw ExtStatusException(S_OK, "not enough memory");
 
     if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
@@ -131,7 +131,7 @@ EXT_COMMAND(wa_w32psdt,
 
     std::unique_ptr<WDbgArkProcess> process_helper(new (std::nothrow) WDbgArkProcess);
 
-    if ( !process_helper.get() )
+    if ( !process_helper )
         throw ExtStatusException(S_OK, "not enough memory");
 
     if ( !process_helper->Init() )
@@ -186,7 +186,7 @@ EXT_COMMAND(wa_w32psdt,
     std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.get() )
+    if ( !display )
         throw ExtStatusException(S_OK, "not enough memory");
 
     if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )

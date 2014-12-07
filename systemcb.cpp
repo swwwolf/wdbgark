@@ -212,7 +212,7 @@ EXT_COMMAND(wa_systemcb,
     std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.get() )
+    if ( !display )
         throw ExtStatusException(S_OK, "not enough memory");
 
     if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeCallback) )
@@ -222,13 +222,13 @@ EXT_COMMAND(wa_systemcb,
 
     try {
         if ( type.empty() ) {
-            for ( std::map<std::string, SystemCbCommand>::const_iterator citer = system_cb_commands.begin();
-                  citer != system_cb_commands.end();
+            for ( callbacksInfo::const_iterator citer = system_cb_commands.cbegin();
+                  citer != system_cb_commands.cend();
                   ++citer ) {
                 CallCorrespondingWalkListRoutine(citer, output_list);
             }
         } else {
-            std::map<std::string, SystemCbCommand>::const_iterator citer = system_cb_commands.find(type);
+            callbacksInfo::const_iterator citer = system_cb_commands.find(type);
 
             if ( citer != system_cb_commands.end() )
                 CallCorrespondingWalkListRoutine(citer, output_list);
@@ -264,7 +264,7 @@ EXT_COMMAND(wa_systemcb,
     }
 }
 
-void WDbgArk::CallCorrespondingWalkListRoutine(const std::map<std::string, SystemCbCommand>::const_iterator &citer,
+void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
                                                walkresType &output_list) {
     if ( citer->first == "registry" ) {
         if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER ) {

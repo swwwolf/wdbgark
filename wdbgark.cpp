@@ -35,7 +35,7 @@ bool WDbgArk::Init() {
 
     m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new (std::nothrow) WDbgArkObjHelper);
 
-    if ( !m_obj_helper.get() ) {
+    if ( !m_obj_helper ) {
         err << __FUNCTION__ << ": not enough memory" << endlerr;
         return false;
     }
@@ -45,7 +45,7 @@ bool WDbgArk::Init() {
 
     m_color_hack = std::unique_ptr<WDbgArkColorHack>(new (std::nothrow) WDbgArkColorHack);
 
-    if ( !m_color_hack.get() ) {
+    if ( !m_color_hack ) {
         err << __FUNCTION__ << ": not enough memory" << endlerr;
         return false;
     }
@@ -218,13 +218,13 @@ void WDbgArk::CheckSymbolsPath(void) {
     HRESULT result = m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&buffer_size));
 
     if ( SUCCEEDED(result) && buffer_size ) {
-        char* symbol_path_buffer = new (std::nothrow) char[buffer_size];
+        std::unique_ptr<char[]> symbol_path_buffer(new (std::nothrow) char[buffer_size]);
 
         if ( symbol_path_buffer ) {
-            result = m_Symbols->GetSymbolPath(symbol_path_buffer, buffer_size, reinterpret_cast<PULONG>(&buffer_size));
+            result = m_Symbols->GetSymbolPath(symbol_path_buffer.get(), buffer_size, reinterpret_cast<PULONG>(&buffer_size));
 
             if ( SUCCEEDED(result) ) {
-                std::string check_path = symbol_path_buffer;
+                std::string check_path = symbol_path_buffer.get();
 
                 if ( check_path.empty() ) {
                     warn << __FUNCTION__ << ": seems that your symbol path is empty. Be sure to fix it!" << endlwarn;
@@ -235,8 +235,6 @@ void WDbgArk::CheckSymbolsPath(void) {
             } else {
                 warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;
             }
-
-            delete[] symbol_path_buffer;
         }
     } else {
         warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;

@@ -50,7 +50,7 @@ EXT_COMMAND(wa_objtype,
     std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.get() )
+    if ( !display )
         throw ExtStatusException(S_OK, "not enough memory");
 
     if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
