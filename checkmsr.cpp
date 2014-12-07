@@ -19,28 +19,31 @@
     * the COPYING file in the top-level directory.
 */
 
+#include <memory>
+
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_checkmsr,
-            "Output system MSRs (live debug only!)",
-            "") {
+EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     RequireKernelMode();
     RequireLiveKernelMode();
 
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    if ( !display.SetOwnerModule("nt") )
+    if ( !display->SetOwnerModule("nt") )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         unsigned __int64  msr_address = 0;
@@ -49,7 +52,7 @@ EXT_COMMAND(wa_checkmsr,
         ReadMsr(SYSENTER_EIP_MSR, &msr_address);
 
         expression << std::showbase << std::hex << msr_address;
-        display.AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression.str().c_str()), "SYSENTER_EIP_MSR", "");
+        display->AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression.str().c_str()), "SYSENTER_EIP_MSR", "");
     }
     catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -58,5 +61,5 @@ EXT_COMMAND(wa_checkmsr,
         throw;
     }
 
-    display.PrintFooter();
+    display->PrintFooter();
 }

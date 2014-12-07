@@ -112,12 +112,12 @@ PAGEDATA:005C4554 00 00 00 00                   dd 0
 */
 
 #include <sstream>
+#include <memory>
+
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_pnptable,
-            "Output kernel-mode nt!PlugPlayHandlerTable",
-            "") {
+EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     RequireKernelMode();
 
     if ( !Init() )
@@ -136,16 +136,19 @@ EXT_COMMAND(wa_pnptable,
 
     out << "[+] nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    if ( !display.SetOwnerModule( "nt" ) )
+    if ( !display->SetOwnerModule( "nt" ) )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         for ( int i = 0; i < 0x100; i++ ) {
@@ -157,7 +160,7 @@ EXT_COMMAND(wa_pnptable,
             unsigned __int64 init_offset = offset + i * size + sizeof(unsigned __int32) + sizeof(unsigned __int32);
 
             ExtRemoteData pnp_table_entry_routine(init_offset, m_PtrSize);
-            display.AnalyzeAddressAsRoutine(pnp_table_entry_routine.GetPtr(), "", "");
+            display->AnalyzeAddressAsRoutine(pnp_table_entry_routine.GetPtr(), "", "");
         }
     }
     catch ( const ExtRemoteException &Ex ) {
@@ -167,6 +170,6 @@ EXT_COMMAND(wa_pnptable,
         throw;
     }
 
-    display.PrintFooter();
-    display.PrintFooter();
+    display->PrintFooter();
+    display->PrintFooter();
 }

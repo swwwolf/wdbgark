@@ -33,7 +33,6 @@
 #include <string>
 #include <sstream>
 #include <vector>
-using namespace std;
 
 #include <engextcpp.hpp>
 #include "manipulators.hpp"
@@ -83,7 +82,13 @@ class WDbgArkProcess
     bool                     m_inited;
     unsigned __int64         m_current_process;
     std::vector<ProcessInfo> m_process_list;
-    std::stringstream        err;
+    
+    //////////////////////////////////////////////////////////////////////////
+    // output streams
+    //////////////////////////////////////////////////////////////////////////
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
 };
 
 #endif // PROCESS_HPP_

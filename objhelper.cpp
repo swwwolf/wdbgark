@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <utility>
+#include <memory>
 
 #include "objhelper.hpp"
 #include "wdbgark.hpp"
@@ -66,7 +67,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
         return 0;
     }
 
-    transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
+    std::transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
 
     try {
         if ( !offset ) {
@@ -97,7 +98,10 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
 
                 if ( SUCCEEDED(result.first) ) {
                     std::string check_object_name = result.second;
-                    transform(check_object_name.begin(), check_object_name.end(), check_object_name.begin(), tolower);
+                    std::transform(check_object_name.begin(),
+                                   check_object_name.end(),
+                                   check_object_name.begin(),
+                                   tolower);
 
                     if ( check_object_name == compare_with ) {
                         return object.m_Offset;
@@ -122,27 +126,27 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
 
         if ( !IsInited() ) {
             err << __FUNCTION__ << ": class is not initialized" << endlerr;
-            return make_pair(E_NOT_VALID_STATE, object_header);
+            return std::make_pair(E_NOT_VALID_STATE, object_header);
         }
 
         if ( GetFieldOffset("nt!_OBJECT_HEADER", "Body", reinterpret_cast<PULONG>(&offset)) != 0 ) {
             err << __FUNCTION__ << ": GetFieldOffset failed" << endlerr;
-            return make_pair(E_UNEXPECTED, object_header);
+            return std::make_pair(E_UNEXPECTED, object_header);
         }
 
         if ( !offset ) {
             err << __FUNCTION__ << ": body field is missing in nt!_OBJECT_HEADER" << endlerr;
-            return make_pair(E_UNEXPECTED, object_header);
+            return std::make_pair(E_UNEXPECTED, object_header);
         }
 
         object_header.Set("nt!_OBJECT_HEADER", object.m_Offset - offset, false, NULL, NULL);
     }
     catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        return make_pair(Ex.GetStatus(), object_header);
+        return std::make_pair(Ex.GetStatus(), object_header);
     }
 
-    return make_pair(S_OK, object_header);
+    return std::make_pair(S_OK, object_header);
 }
 
 std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header) {
@@ -153,7 +157,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
 
         if ( !IsInited() ) {
             err << __FUNCTION__ << ": class is not initialized" << endlerr;
-            return make_pair(E_NOT_VALID_STATE, object_header_name_info);
+            return std::make_pair(E_NOT_VALID_STATE, object_header_name_info);
         }
 
         if ( object_header_old ) {
@@ -165,7 +169,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
                                             false,
                                             NULL,
                                             NULL);
-                return make_pair(S_OK, object_header_name_info);
+                return std::make_pair(S_OK, object_header_name_info);
             }
         } else {
             if ( ObpInfoMaskToOffset ) {
@@ -182,17 +186,17 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
                                                 NULL,
                                                 NULL);
 
-                    return make_pair(S_OK, object_header_name_info);
+                    return std::make_pair(S_OK, object_header_name_info);
                 }
             }
         }
     }
     catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        return make_pair(Ex.GetStatus(), object_header_name_info);
+        return std::make_pair(Ex.GetStatus(), object_header_name_info);
     }
 
-    return make_pair(E_UNEXPECTED, object_header_name_info);
+    return std::make_pair(E_UNEXPECTED, object_header_name_info);
 }
 
 std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteTyped &object) {
@@ -200,21 +204,21 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteT
 
     if ( !IsInited() ) {
         err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return make_pair(E_NOT_VALID_STATE, output_string);
+        return std::make_pair(E_NOT_VALID_STATE, output_string);
     }
 
     std::pair<HRESULT, ExtRemoteTyped> result = GetObjectHeader(object);
 
     if ( !SUCCEEDED(result.first) ) {
         err << __FUNCTION__ << ": failed to get object header" << endlerr;
-        return make_pair(result.first, output_string);
+        return std::make_pair(result.first, output_string);
     }
 
     result = GetObjectHeaderNameInfo(result.second);
 
     if ( !SUCCEEDED(result.first) ) {
         err << __FUNCTION__ << ": failed to get object header name info" << endlerr;
-        return make_pair(result.first, output_string);
+        return std::make_pair(result.first, output_string);
     }
 
     ExtRemoteTyped unicode_string = result.second.Field("Name");

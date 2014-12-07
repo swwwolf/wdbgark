@@ -30,12 +30,10 @@
 #ifndef ANALYZE_HPP_
 #define ANALYZE_HPP_
 
-#define make_string( x ) #x
-
 #include <string>
 #include <sstream>
 #include <iomanip>
-using namespace std;
+#include <memory>
 
 #include <engextcpp.hpp>
 #include <bprinter/table_printer.h>
@@ -44,36 +42,33 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print routines
 //////////////////////////////////////////////////////////////////////////
-
-enum AnalyzeTypeInit
-{
-    AnalyzeTypeDefault,
-    AnalyzeTypeCallback,
-    AnalyzeTypeIDT,
-    AnalyzeTypeGDT
-};
-
 class WDbgArkAnalyze
 {
  public:
+     enum AnalyzeTypeInit {
+         AnalyzeTypeDefault,
+         AnalyzeTypeCallback,
+         AnalyzeTypeIDT,
+         AnalyzeTypeGDT
+     };
+
     WDbgArkAnalyze() :
         m_inited(false),
         m_owner_module_inited(false),
         m_owner_module_start(0ULL),
         m_owner_module_end(0ULL),
-        tp(nullptr){ }
+        tp(nullptr) { }
 
-    ~WDbgArkAnalyze() { if ( IsInited() && tp ) delete tp; }
+    ~WDbgArkAnalyze() { }
 
     bool Init(std::ostream* output);
     bool Init(std::ostream* output, const AnalyzeTypeInit type);
     bool IsInited(void) const { return m_inited; }
 
-    void PrintHeader(void) { if ( IsInited() && tp ) tp->PrintHeader(); }
-    void PrintFooter(void) { if ( IsInited() && tp ) tp->PrintFooter(); }
-
-    void AddColumn(const string& header_name, const int column_width) {
-        if ( IsInited() && tp )
+    void PrintHeader(void) { if ( IsInited() ) tp->PrintHeader(); }
+    void PrintFooter(void) { if ( IsInited() ) tp->PrintFooter(); }
+    void AddColumn(const std::string &header_name, const int column_width) {
+        if ( IsInited() )
             tp->AddColumn(header_name, column_width);
     }
 
@@ -114,11 +109,12 @@ class WDbgArkAnalyze
                          const std::string &additional_info);
 
  private:
-    bool                    m_inited;
-    bool                    m_owner_module_inited;
-    unsigned __int64        m_owner_module_start;
-    unsigned __int64        m_owner_module_end;
-    bprinter::TablePrinter* tp;
+    bool             m_inited;
+    bool             m_owner_module_inited;
+    unsigned __int64 m_owner_module_start;
+    unsigned __int64 m_owner_module_end;
+
+    std::unique_ptr<bprinter::TablePrinter> tp;
 
     //////////////////////////////////////////////////////////////////////////
     // helpers

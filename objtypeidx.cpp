@@ -19,12 +19,12 @@
     * the COPYING file in the top-level directory.
 */
 
+#include <memory>
+
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_objtypeidx,
-            "Output kernel-mode ObTypeIndexTable",
-            "") {
+EXT_COMMAND(wa_objtypeidx, "Output kernel-mode ObTypeIndexTable", "") {
     RequireKernelMode();
 
     if ( !Init() )
@@ -46,16 +46,19 @@ EXT_COMMAND(wa_objtypeidx,
 
     out << "[+] nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    if ( !display.SetOwnerModule("nt") )
+    if ( !display->SetOwnerModule("nt") )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         for ( int i = 2; i < 0x100; i++ ) {
@@ -64,7 +67,7 @@ EXT_COMMAND(wa_objtypeidx,
             if ( object_type_ptr.GetPtr() ) {
                 ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object_type_ptr.GetPtr(), false, NULL, NULL);
 
-                if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(&display))) )
+                if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
                     break;
             } else {
                 break;
@@ -78,5 +81,5 @@ EXT_COMMAND(wa_objtypeidx,
         throw;
     }
 
-    display.PrintFooter();
+    display->PrintFooter();
 }

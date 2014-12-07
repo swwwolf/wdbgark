@@ -20,14 +20,14 @@
 */
 
 #include <string>
+#include <memory>
+
 #include "wdbgark.hpp"
 #include "sdt_w32p.hpp"
 #include "process.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_ssdt,
-            "Output the System Service Descriptor Table",
-            "") {
+EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     RequireKernelMode();
 
     if ( !Init() )
@@ -71,16 +71,19 @@ EXT_COMMAND(wa_ssdt,
         throw;
     }
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    if ( !display.SetOwnerModule("nt") )
+    if ( !display->SetOwnerModule("nt") )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         for ( unsigned __int32 i = 0; i < limit; i++ ) {
@@ -95,14 +98,14 @@ EXT_COMMAND(wa_ssdt,
                 else
                     service_offset &= ~MAX_FAST_REFS_X64;
 
-                display.AnalyzeAddressAsRoutine(offset + service_offset, routine_name, "");
-                display.PrintFooter();
+                display->AnalyzeAddressAsRoutine(offset + service_offset, routine_name, "");
+                display->PrintFooter();
             } else {
                 std::string routine_name = get_service_table_routine_name(KiServiceTable_x86, i);
 
                 ExtRemoteData service_address(offset + i * m_PtrSize, m_PtrSize);
-                display.AnalyzeAddressAsRoutine(service_address.GetPtr(), routine_name, "");
-                display.PrintFooter();
+                display->AnalyzeAddressAsRoutine(service_address.GetPtr(), routine_name, "");
+                display->PrintFooter();
             }
         }
     }
@@ -113,7 +116,7 @@ EXT_COMMAND(wa_ssdt,
         throw;
     }
 
-    display.PrintFooter();
+    display->PrintFooter();
 }
 
 EXT_COMMAND(wa_w32psdt,
@@ -126,20 +129,23 @@ EXT_COMMAND(wa_w32psdt,
 
     out << "Displaying win32k!W32pServiceTable" << endlout;
 
-    WDbgArkProcess process;
+    std::unique_ptr<WDbgArkProcess> process_helper(new (std::nothrow) WDbgArkProcess);
 
-    if ( !process.Init() )
-        warn << __FUNCTION__ << ": failed to init process helper class" << endlwarn;
+    if ( !process_helper.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !process_helper->Init() )
+        throw ExtStatusException(S_OK, "process helper init failed");
 
     unsigned __int64 set_eprocess = 0;
 
     if ( HasArg( "process" ) )
         set_eprocess = GetArgU64("process");
     else
-        set_eprocess = process.FindEProcessAnyGUIProcess();
+        set_eprocess = process_helper->FindEProcessAnyGUIProcess();
 
-    if ( !SUCCEEDED(process.SetImplicitProcess(set_eprocess)) )
-        return;
+    if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) )
+        throw ExtStatusException(S_OK, "failed to set process");
 
     unsigned __int64 offset = 0;
     unsigned __int32 limit  = 0;
@@ -177,16 +183,19 @@ EXT_COMMAND(wa_w32psdt,
         throw;
     }
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init( &tmp_stream, AnalyzeTypeDefault ) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    if ( !display.SetOwnerModule( "win32k" ) )
+    if ( !display->SetOwnerModule( "win32k" ) )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         for ( unsigned __int32 i = 0; i < limit; i++ ) {
@@ -201,14 +210,14 @@ EXT_COMMAND(wa_w32psdt,
                 else
                     service_offset &= ~MAX_FAST_REFS_X64;
 
-                display.AnalyzeAddressAsRoutine(offset + service_offset, routine_name, "");
-                display.PrintFooter();
+                display->AnalyzeAddressAsRoutine(offset + service_offset, routine_name, "");
+                display->PrintFooter();
             } else {
                 std::string routine_name = get_service_table_routine_name(W32pServiceTable_x86, i);
 
                 ExtRemoteData service_address(offset + i * m_PtrSize, m_PtrSize);
-                display.AnalyzeAddressAsRoutine(service_address.GetPtr(), routine_name, "");
-                display.PrintFooter();
+                display->AnalyzeAddressAsRoutine(service_address.GetPtr(), routine_name, "");
+                display->PrintFooter();
             }
         }
     }
@@ -219,5 +228,5 @@ EXT_COMMAND(wa_w32psdt,
         throw;
     }
 
-    display.PrintFooter();
+    display->PrintFooter();
 }

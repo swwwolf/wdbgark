@@ -32,10 +32,11 @@
 
 #include <string>
 #include <sstream>
-using namespace std;
 
 #include <engextcpp.hpp>
 #include "manipulators.hpp"
+
+#define make_string(x) #x
 
 //////////////////////////////////////////////////////////////////////////
 // string routines
@@ -49,7 +50,7 @@ std::string __forceinline wstring_to_string(const std::wstring& wstr) {
 }
 
 static std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped &unicode_string) {
-    string output_string = "";
+    std::string output_string = "";
 
     try {
         ExtRemoteTyped   loc_unicode_string = unicode_string;
@@ -58,7 +59,7 @@ static std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemo
         unsigned __int16 maxlen = loc_unicode_string.Field("MaximumLength").GetUshort();
 
         if ( len == 0 && maxlen == 1 ) {
-            return make_pair(S_OK, output_string);
+            return std::make_pair(S_OK, output_string);
         }
 
         if ( maxlen >= sizeof(wchar_t) && (maxlen % sizeof(wchar_t) == 0) ) {
@@ -68,22 +69,23 @@ static std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemo
             ZeroMemory(test_name, max_len_wide * sizeof(wchar_t));
             unsigned __int32 read = buffer.ReadBuffer(test_name, maxlen, true);
 
-            std::wstring wide_string_name(test_name);
+            if ( read == maxlen ) {
+                std::wstring wide_string_name(test_name);
+                output_string = wstring_to_string(wide_string_name);
+            }
+
             delete[] test_name;
-
-            output_string = wstring_to_string(wide_string_name);
-
-            return make_pair(S_OK, output_string);
+            return std::make_pair(S_OK, output_string);
         }
     }
     catch ( const ExtRemoteException &Ex ) {
         std::stringstream locerr;
 
         locerr << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        return make_pair(Ex.GetStatus(), output_string);
+        return std::make_pair(Ex.GetStatus(), output_string);
     }
 
-    return make_pair(E_INVALIDARG, output_string);
+    return std::make_pair(E_INVALIDARG, output_string);
 }
 
 #endif // STRINGS_HPP_

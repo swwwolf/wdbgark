@@ -145,4 +145,5 @@ A: Yeah, i know, but C++ is much better.
 
 ## License
 
-This software is released under the GNU GPL v3 License. See the [COPYING file](COPYING) for the full license text.
+This software is released under the GNU GPL v3 License. See the [COPYING file](COPYING) for the full license text and
+[this](http://www.gnu.org/licenses/gpl-faq.en.html#GPLPluginsInNF) small addition.

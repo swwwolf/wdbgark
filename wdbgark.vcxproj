@@ -203,6 +203,7 @@
     <ClCompile Include="wdbgark.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="COPYING" />
     <None Include="makefile" />
     <None Include="README.md" />
     <None Include="sources" />

@@ -33,8 +33,25 @@ bool WDbgArk::Init() {
 
     CheckSymbolsPath();
 
-    if ( !m_obj_helper.Init() )
+    m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new (std::nothrow) WDbgArkObjHelper);
+
+    if ( !m_obj_helper.get() ) {
+        err << __FUNCTION__ << ": not enough memory" << endlerr;
+        return false;
+    }
+
+    if ( !m_obj_helper->Init() )
         warn << __FUNCTION__ ": failed to init object helper class" << endlwarn;
+
+    m_color_hack = std::unique_ptr<WDbgArkColorHack>(new (std::nothrow) WDbgArkColorHack);
+
+    if ( !m_color_hack.get() ) {
+        err << __FUNCTION__ << ": not enough memory" << endlerr;
+        return false;
+    }
+
+    if ( !m_color_hack->Init() )
+        warn << __FUNCTION__ ": failed to init color hack class" << endlwarn;
 
     // get system version
     HRESULT result = m_Control->GetSystemVersion(reinterpret_cast<PULONG>(&m_platform_id),
@@ -201,7 +218,7 @@ void WDbgArk::CheckSymbolsPath(void) {
     HRESULT result = m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&buffer_size));
 
     if ( SUCCEEDED(result) && buffer_size ) {
-        char* symbol_path_buffer = new (nothrow) char[buffer_size];
+        char* symbol_path_buffer = new (std::nothrow) char[buffer_size];
 
         if ( symbol_path_buffer ) {
             result = m_Symbols->GetSymbolPath(symbol_path_buffer, buffer_size, reinterpret_cast<PULONG>(&buffer_size));
@@ -212,7 +229,7 @@ void WDbgArk::CheckSymbolsPath(void) {
                 if ( check_path.empty() ) {
                     warn << __FUNCTION__ << ": seems that your symbol path is empty. Be sure to fix it!" << endlwarn;
                 } else if ( check_path.find(MS_PUBLIC_SYMBOLS_SERVER) == std::string::npos ) {
-                    warn << __FUNCTION__ << ": seems that your symbol path might be incorrect. ";
+                    warn << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
                     warn << "Be sure to include Microsoft Symbol Server (" << MS_PUBLIC_SYMBOLS_SERVER << ")" << endlwarn;
                 }
             } else {

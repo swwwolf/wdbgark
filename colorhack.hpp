@@ -28,43 +28,71 @@
 
 #include <windows.h>
 #include <sstream>
-using namespace std;
+#include <vector>
+#include <utility>
+#include <memory>
 
+#include <bprinter/table_printer.h>
 //////////////////////////////////////////////////////////////////////////
 // hack WinDbg colors
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkColorHack {
  public:
-    //////////////////////////////////////////////////////////////////////////
-    // WinDbg internal structure
-    //////////////////////////////////////////////////////////////////////////
-    typedef struct UiColorTag {
-        wchar_t* description;
-        wchar_t* dml_name;
-        COLORREF color;
-        COLORREF internal_color;
-        void*    reserved1;
-        void*    reserved2;
-    } UiColor;
-
     WDbgArkColorHack() :
         m_inited(false),
         g_ui_colors(nullptr),
-        g_out_mask_ui_colors(nullptr) { }
+        g_out_mask_ui_colors(nullptr),
+        tp(nullptr) { }
 
     ~WDbgArkColorHack() {
         g_out_mask_ui_colors = nullptr;
         g_ui_colors = nullptr;
+        RevertColors();
+        m_internal_colors.clear();
     }
 
     bool IsInited(void) const { return m_inited; }
     bool Init(void);
-    void PrintInternalInfo(void);
+    void PrintInformation(void);
+    bool SetColor(const std::string &dml_name, const COLORREF color);
 
  private:
-    bool     m_inited;
-    UiColor* g_ui_colors;
-    UiColor* g_out_mask_ui_colors;
+     enum UiColorType {
+         UiColorsType,
+         UiColorsOutMaskType
+     };
+
+     typedef struct UiColorTag {
+         wchar_t* description;
+         wchar_t* dml_name;
+         COLORREF color;
+         COLORREF int_color;
+         void*    reserved1;
+         void*    reserved2;
+     } UiColor;
+
+     typedef struct InternalUiColorTag {
+         UiColor*    ui_color;
+         bool        is_changed;
+         UiColorType ui_color_type;
+         std::string description;
+         std::string dml_name;
+         COLORREF    orig_color;
+         COLORREF    new_color;
+         COLORREF    orig_int_color;
+         COLORREF    new_int_color;
+     } InternalUiColor;
+
+    bool                                    m_inited;
+    UiColor*                                g_ui_colors;
+    UiColor*                                g_out_mask_ui_colors;
+    std::vector<InternalUiColor>            m_internal_colors;
+    std::unique_ptr<bprinter::TablePrinter> tp;
+
+    void            PrintMemoryInfo(void);
+    InternalUiColor ConvertUiColorToInternal(UiColor* ui_color, const UiColorType ui_color_type);
+    void            RevertColors(void);
+    std::pair<bool, std::vector<InternalUiColor>::iterator> FindIntUiColor(const std::string &dml_name);
 
     //////////////////////////////////////////////////////////////////////////
     // output streams

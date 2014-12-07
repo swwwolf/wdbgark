@@ -25,14 +25,16 @@
 #include <string>
 #include <algorithm>
 #include <utility>
+#include <memory>
 
 #include "objhelper.hpp"
+#include "strings.hpp"
 
 bool WDbgArkAnalyze::Init(std::ostream* output) {
     if ( IsInited() )
         return true;
 
-    tp = new (nothrow) bprinter::TablePrinter(output);
+    tp = std::unique_ptr<bprinter::TablePrinter>(new (std::nothrow) bprinter::TablePrinter(output));
 
     if ( tp )
         m_inited = true;
@@ -44,7 +46,7 @@ bool WDbgArkAnalyze::Init(std::ostream* output, const AnalyzeTypeInit type) {
     if ( IsInited() )
         return true;
 
-    tp = new (nothrow) bprinter::TablePrinter(output);
+    tp = std::unique_ptr<bprinter::TablePrinter>(new (std::nothrow) bprinter::TablePrinter(output));
 
     if ( tp ) {
         if ( type == AnalyzeTypeDefault ) {    // width = 180
@@ -151,17 +153,25 @@ void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
 void WDbgArkAnalyze::AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object) {
     ExtRemoteTyped   obj_type_info = ex_type_info;
     std::string      object_name   = "*UNKNOWN*";
-    WDbgArkObjHelper obj_helper;
 
     if ( !IsInited() ) {
         err << __FUNCTION__ << ": class is not initialized" << endlerr;
         return;
     }
 
-    if ( !obj_helper.Init() )
-        warn << __FUNCTION__ ": failed to init object helper class" << endlwarn;
+    std::unique_ptr<WDbgArkObjHelper> obj_helper(new (std::nothrow) WDbgArkObjHelper);
 
-    std::pair<HRESULT, std::string> result = obj_helper.GetObjectName(object);
+    if ( !obj_helper.get() ) {
+        err << __FUNCTION__ << ": no memory" << endlerr;
+        return;
+    }
+
+    if ( !obj_helper->Init() ) {
+        err << __FUNCTION__ ": failed to init object helper class" << endlerr;
+        return;
+    }
+
+    std::pair<HRESULT, std::string> result = obj_helper->GetObjectName(object);
 
     if ( !SUCCEEDED( result.first ) )
         warn << __FUNCTION__ ": GetObjectName failed" << endlwarn;
@@ -383,9 +393,9 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                                                   reinterpret_cast<PULONG>(&len3));
 
         if ( SUCCEEDED(result) ) {
-            char* buf1 = new (nothrow) char[ len1 + 1 ];
-            char* buf2 = new (nothrow) char[ len2 + 1 ];
-            char* buf3 = new (nothrow) char[ len3 + 1 ];
+            char* buf1 = new (std::nothrow) char[ len1 + 1 ];
+            char* buf2 = new (std::nothrow) char[ len2 + 1 ];
+            char* buf3 = new (std::nothrow) char[ len3 + 1 ];
 
             if ( !buf1 || !buf2 || !buf3 ) {
                 if ( buf3 )
@@ -419,13 +429,13 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
 
             if ( SUCCEEDED(result) ) {
                 image_name = buf1;
-                transform(image_name.begin(), image_name.end(), image_name.begin(), tolower);
+                std::transform(image_name.begin(), image_name.end(), image_name.begin(), tolower);
 
                 module_name = buf2;
-                transform(module_name.begin(), module_name.end(), module_name.begin(), tolower);
+                std::transform(module_name.begin(), module_name.end(), module_name.begin(), tolower);
 
                 loaded_image_name = buf3;
-                transform(loaded_image_name.begin(), loaded_image_name.end(), loaded_image_name.begin(), tolower);
+                std::transform(loaded_image_name.begin(), loaded_image_name.end(), loaded_image_name.begin(), tolower);
             }
 
             delete[] buf3;
@@ -439,14 +449,14 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
 }
 
 std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned __int64 address) {
-    string            output_name      = "";
+    std::string       output_name      = "";
     unsigned __int32  name_buffer_size = 0;
     unsigned __int64  displacement     = 0;
     std::stringstream stream_name;
     ExtCaptureOutputA ignore_output;
 
     if ( !address )
-        return make_pair(E_INVALIDARG, output_name);
+        return std::make_pair(E_INVALIDARG, output_name);
 
     ignore_output.Start();
     HRESULT result = g_Ext->m_Symbols->GetNameByOffset(address,
@@ -457,10 +467,10 @@ std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned _
     ignore_output.Stop();
 
     if ( SUCCEEDED(result) && name_buffer_size ) {
-        char* tmp_name = new (nothrow) char[ name_buffer_size + 1 ];
+        char* tmp_name = new (std::nothrow) char[ name_buffer_size + 1 ];
 
         if ( !tmp_name )
-            return make_pair(E_OUTOFMEMORY, output_name);
+            return std::make_pair(E_OUTOFMEMORY, output_name);
 
         ZeroMemory(tmp_name, name_buffer_size + 1);
 
@@ -480,7 +490,7 @@ std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned _
         delete[] tmp_name;
     }
 
-    return make_pair(result, output_name);
+    return std::make_pair(result, output_name);
 }
 
 bool WDbgArkAnalyze::SetOwnerModule(const std::string &module_name) {

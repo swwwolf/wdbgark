@@ -74,12 +74,12 @@ void __stdcall PsEstablishWin32Callouts(int a1)
 
 #include <string>
 #include <vector>
+#include <memory>
+
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_callouts,
-            "Output kernel-mode win32k callouts",
-            "") {
+EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
     RequireKernelMode();
 
     if ( !Init() )
@@ -87,25 +87,28 @@ EXT_COMMAND(wa_callouts,
 
     out << "Displaying Win32k callouts" << endlout;
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    if ( !display.SetOwnerModule("win32k") )
+    if ( !display->SetOwnerModule("win32k") )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         if ( m_minor_build < W8RTM_VER ) {
-            for ( std::vector<string>::iterator iter = callout_names.begin(); iter < callout_names.end(); ++iter ) {
+            for ( std::vector<std::string>::iterator iter = callout_names.begin(); iter < callout_names.end(); ++iter ) {
                 unsigned __int64 offset = 0;
 
                 if ( GetSymbolOffset((*iter).c_str(), true, &offset) ) {
                     ExtRemoteData callout_routine(offset, m_PtrSize);
-                    display.AnalyzeAddressAsRoutine(callout_routine.GetPtr(), *iter, "");
+                    display->AnalyzeAddressAsRoutine(callout_routine.GetPtr(), *iter, "");
                 }
             }
         } else {
@@ -118,10 +121,10 @@ EXT_COMMAND(wa_callouts,
 
                 if ( ex_callback_fast_ref ) {
                     ExtRemoteData routine_block(
-                        m_obj_helper.ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
+                        m_obj_helper->ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
                         m_PtrSize);
 
-                    display.AnalyzeAddressAsRoutine(routine_block.GetPtr(), "nt!PsWin32CallBack", "");
+                    display->AnalyzeAddressAsRoutine(routine_block.GetPtr(), "nt!PsWin32CallBack", "");
                 }
             }
         }
@@ -133,6 +136,6 @@ EXT_COMMAND(wa_callouts,
         throw;
     }
 
-    display.PrintFooter();
-    display.PrintFooter();
+    display->PrintFooter();
+    display->PrintFooter();
 }

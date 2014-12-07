@@ -405,13 +405,12 @@ Algorithm:
 #include <vector>
 #include <string>
 #include <sstream>
+#include <memory>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_idt,
-            "Output processors IDT",
-            "") {
+EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     RequireKernelMode();
 
     if ( !Init() )
@@ -477,13 +476,16 @@ EXT_COMMAND(wa_idt,
         warn << __FUNCTION__ << ": GetFieldOffset failed with InterruptListEntry" << endlwarn;
     }
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init( &tmp_stream, AnalyzeTypeIDT ) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeIDT) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ ) {
@@ -521,9 +523,9 @@ EXT_COMMAND(wa_idt,
                 std::stringstream info;
 
                 if ( m_is_cur_machine64 )
-                    info << setw(42);   // the ANSWER!!!
+                    info << std::setw(42);   // the ANSWER!!!
                 else
-                    info << setw(40);
+                    info << std::setw(40);
 
                 if ( m_is_cur_machine64 ) {
                     KIDT_HANDLER_ADDRESS idt_handler;
@@ -564,10 +566,11 @@ EXT_COMMAND(wa_idt,
                 info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                 info << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                display.AnalyzeAddressAsRoutine(isr_address, processor_index.str(), info.str());    // display idt entry
+                // display idt entry
+                display->AnalyzeAddressAsRoutine(isr_address, processor_index.str(), info.str());
 
                 if ( !(isr_address >> 32) ) {
-                    display.PrintFooter();
+                    display->PrintFooter();
                     continue;
                 }
 
@@ -602,7 +605,7 @@ EXT_COMMAND(wa_idt,
 
                 if ( valid_interrupt ) {
                     std::stringstream info_intr;
-                    info_intr << setw(41);
+                    info_intr << std::setw(41);
                     info_intr << "<exec cmd=\"dt nt!_KINTERRUPT ";
                     info_intr << std::hex << std::showbase << interrupt.m_Offset;
                     info_intr << "\">dt" << "</exec>" << " ";
@@ -617,7 +620,7 @@ EXT_COMMAND(wa_idt,
                     if ( !message_address )
                         message_address = interrupt.Field("ServiceRoutine").GetPtr();
 
-                    display.AnalyzeAddressAsRoutine(message_address, processor_index.str(), info_intr.str());
+                    display->AnalyzeAddressAsRoutine(message_address, processor_index.str(), info_intr.str());
 
                     walkresType    output_list;
                     ExtRemoteTyped list_entry = interrupt.Field("InterruptListEntry");
@@ -647,7 +650,7 @@ EXT_COMMAND(wa_idt,
                             continue;
 
                         std::stringstream info_intr_list;
-                        info_intr_list << setw(41);
+                        info_intr_list << std::setw(41);
 
                         info_intr_list << "<exec cmd=\"dt nt!_KINTERRUPT ";
                         info_intr_list << std::hex << std::showbase << (*it).object_offset;
@@ -655,13 +658,13 @@ EXT_COMMAND(wa_idt,
                         info_intr_list << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                         info_intr_list << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                        display.AnalyzeAddressAsRoutine((*it).routine_address, (*it).type, info_intr_list.str());
+                        display->AnalyzeAddressAsRoutine((*it).routine_address, (*it).type, info_intr_list.str());
                     }
 
                     output_list.clear();
                 }
 
-                display.PrintFooter();
+                display->PrintFooter();
             }
         }
     }
@@ -675,7 +678,7 @@ EXT_COMMAND(wa_idt,
         throw;
     }
 
-    display.PrintFooter();
+    display->PrintFooter();
 }
 
 /*
@@ -749,9 +752,7 @@ full_address = selector.BaseLow | selector.HighWord.Bytes.BaseMid << 16 | select
 */
 
 // TODO(swwwolf): deal with flags
-EXT_COMMAND(wa_gdt,
-            "Output processors GDT",
-            "") {
+EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
     RequireKernelMode();
 
     if ( !Init() )
@@ -759,13 +760,16 @@ EXT_COMMAND(wa_gdt,
 
     out << "Dumping GDT" << endlout;
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init( &tmp_stream, AnalyzeTypeGDT ) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeGDT) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ ) {
@@ -812,8 +816,8 @@ EXT_COMMAND(wa_gdt,
 
                     processor_index << std::setw(2) << i << " / " << std::setw(2) << std::hex << *it / gdt_entry_size;
 
-                    display.AnalyzeGDTEntry(gdt_entry, processor_index.str(), *it, info.str());
-                    display.PrintFooter();
+                    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), *it, info.str());
+                    display->PrintFooter();
                 } else {
                     ExtRemoteTyped gdt_entry("nt!_KGDTENTRY",
                                              gdt_entry_start + *it,
@@ -828,8 +832,8 @@ EXT_COMMAND(wa_gdt,
 
                     processor_index << std::setw(2) << i << " / " << std::setw(2) << std::hex << *it / gdt_entry_size;
 
-                    display.AnalyzeGDTEntry(gdt_entry, processor_index.str(), *it, info.str());
-                    display.PrintFooter();
+                    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), *it, info.str());
+                    display->PrintFooter();
                 }
             }
         }
@@ -844,5 +848,5 @@ EXT_COMMAND(wa_gdt,
         throw;
     }
 
-    display.PrintFooter();
+    display->PrintFooter();
 }

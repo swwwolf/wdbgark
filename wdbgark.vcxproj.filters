@@ -22,6 +22,9 @@
     <Filter Include="Header Files\README">
       <UniqueIdentifier>{3d3c9713-9633-499c-b568-47272d6c68a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\COPYING">
+      <UniqueIdentifier>{4c4b974e-feac-4372-bc4a-d92ebafc309e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -123,6 +126,9 @@
     </None>
     <None Include="README.md">
       <Filter>Header Files\README</Filter>
+    </None>
+    <None Include="COPYING">
+      <Filter>Header Files\COPYING</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

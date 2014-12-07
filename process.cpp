@@ -23,6 +23,7 @@
 #include <vector>
 #include <algorithm>
 #include <utility>
+#include <memory>
 
 #include "process.hpp"
 #include "wdbgark.hpp"
@@ -37,22 +38,22 @@ bool WDbgArkProcess::Init(void) {
 
         for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
             ProcessInfo info;
-
             info.process = list_head.GetTypedNode();
             info.eprocess = GetProcessDataOffset(info.process);
 
             std::pair<bool, std::string> result = GetProcessImageFileName(info.process);
 
             if ( !result.first ) {
-                err << "Failed to read process file name ";
-                err << std::hex << std::showbase << info.process.m_Offset << endlwarn;
+                warn << __FUNCTION__ << ": failed to read process file name ";
+                warn << std::hex << std::showbase << info.process.m_Offset << endlwarn;
             } else {
-                info.image_file_name = result.second;
+                std::string image_file_name = result.second;
+                std::transform(image_file_name.begin(),
+                               image_file_name.end(),
+                               image_file_name.begin(),
+                               tolower);
 
-                transform(info.image_file_name.begin(),
-                          info.image_file_name.end(),
-                          info.image_file_name.begin(),
-                          tolower);
+                info.image_file_name = image_file_name;
             }
 
             m_process_list.push_back(info);
@@ -131,7 +132,7 @@ HRESULT WDbgArkProcess::SetImplicitProcess(const unsigned __int64 set_eprocess) 
 }
 
 std::pair<bool, std::string> WDbgArkProcess::GetProcessImageFileName(const ExtRemoteTyped &process) {
-    string output_name = "";
+    std::string output_name = "";
 
     try {
         ExtRemoteTyped loc_process = process;
@@ -144,14 +145,14 @@ std::pair<bool, std::string> WDbgArkProcess::GetProcessImageFileName(const ExtRe
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    return make_pair(false, output_name);
+    return std::make_pair(false, output_name);
 }
 
 unsigned __int64 WDbgArkProcess::GetProcessDataOffset(const ExtRemoteTyped &process) { return process.m_Offset; }
 
 bool WDbgArkProcess::FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info) {
     std::string compare_with = process_name;
-    transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
+    std::transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
 
     for ( std::vector<ProcessInfo>::iterator it = m_process_list.begin(); it != m_process_list.end(); ++it ) {
         if ( compare_with == (*it).image_file_name ) {

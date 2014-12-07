@@ -20,6 +20,8 @@
 */
 
 #include <string>
+#include <memory>
+
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
@@ -38,37 +40,40 @@ EXT_COMMAND(wa_objtype,
 
     out << "Displaying \\ObjectTypes\\" << type << endlout;
 
-    unsigned __int64 object_types_directory_offset = m_obj_helper.FindObjectByName("ObjectTypes", 0);
+    unsigned __int64 object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes", 0);
 
     if ( !object_types_directory_offset ) {
         err << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
         return;
     }
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init(&tmp_stream, AnalyzeTypeDefault) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    if ( !display.SetOwnerModule("nt") )
+    if ( !display->SetOwnerModule("nt") )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
 
-    display.PrintHeader();
+    display->PrintHeader();
 
     try {
         if ( type.empty() ) {
             WalkDirectoryObject(object_types_directory_offset,
-                                reinterpret_cast<void*>(&display),
+                                reinterpret_cast<void*>(display.get()),
                                 DirectoryObjectTypeCallback);
         } else {
             ExtRemoteTyped object_type("nt!_OBJECT_TYPE",
-                                       m_obj_helper.FindObjectByName(type, object_types_directory_offset),
+                                       m_obj_helper->FindObjectByName(type, object_types_directory_offset),
                                        false,
                                        NULL,
                                        NULL);
 
-            if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(&display))) )
+            if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
                 warn << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlwarn;
         }
     }
@@ -79,7 +84,7 @@ EXT_COMMAND(wa_objtype,
         throw;
     }
 
-    display.PrintFooter();
+    display->PrintFooter();
 }
 
 HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {

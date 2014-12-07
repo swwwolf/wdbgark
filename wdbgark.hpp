@@ -26,7 +26,7 @@
 #ifndef WDBGARK_HPP_
 #define WDBGARK_HPP_
 
-#if defined( _DEBUG )
+#if defined(_DEBUG)
     #define _CRTDBG_MAP_ALLOC
     #include <stdlib.h>
     #include <crtdbg.h>
@@ -36,7 +36,7 @@
 #include <sstream>
 #include <map>
 #include <vector>
-using namespace std;
+#include <memory>
 
 #undef EXT_CLASS
 #define EXT_CLASS WDbgArk
@@ -44,6 +44,7 @@ using namespace std;
 
 #include "sdt_w32p.hpp"
 #include "objhelper.hpp"
+#include "colorhack.hpp"
 
 //////////////////////////////////////////////////////////////////////////
 // main class
@@ -104,13 +105,15 @@ class WDbgArk : public ExtExtension
         m_platform_id(0),
         m_major_build(0),
         m_minor_build(0),
-        m_service_pack_number(0) {
+        m_service_pack_number(0),
+        m_obj_helper(nullptr),
+        m_color_hack(nullptr) {
 
-#if defined(_DBG)
+#if defined(_DEBUG)
         _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
         _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_DEBUG );
         //_CrtSetBreakAlloc( 143 );
-#endif // _DBG
+#endif // _DEBUG
         
     }
 
@@ -119,9 +122,9 @@ class WDbgArk : public ExtExtension
         callout_names.clear();
         gdt_selectors.clear();
 
-#if defined(_DBG)
+#if defined(_DEBUG)
         _CrtDumpMemoryLeaks();
-#endif // _DBG
+#endif // _DEBUG
 
     }
 
@@ -152,7 +155,7 @@ class WDbgArk : public ExtExtension
     //////////////////////////////////////////////////////////////////////////
     // walk routines
     //////////////////////////////////////////////////////////////////////////
-    void CallCorrespondingWalkListRoutine(const std::map<string, SystemCbCommand>::const_iterator &citer,
+    void CallCorrespondingWalkListRoutine(const std::map<std::string, SystemCbCommand>::const_iterator &citer,
                                           walkresType &output_list);
 
     void WalkExCallbackList(const std::string &list_count_name,
@@ -194,9 +197,9 @@ class WDbgArk : public ExtExtension
                              pfn_object_directory_walk_callback_routine callback);
 
  private:
-    std::map<string, SystemCbCommand> system_cb_commands;
-    std::vector<string>               callout_names;
-    std::vector<unsigned __int32>     gdt_selectors;
+    std::map<std::string, SystemCbCommand> system_cb_commands;
+    std::vector<std::string>               callout_names;
+    std::vector<unsigned __int32>          gdt_selectors;
 
     //////////////////////////////////////////////////////////////////////////
     // callback routines
@@ -235,6 +238,7 @@ class WDbgArk : public ExtExtension
     // private inits
     //////////////////////////////////////////////////////////////////////////
     void CheckSymbolsPath(void);
+
     //////////////////////////////////////////////////////////////////////////
     // variables
     //////////////////////////////////////////////////////////////////////////
@@ -245,7 +249,8 @@ class WDbgArk : public ExtExtension
     unsigned __int32 m_minor_build;
     unsigned __int32 m_service_pack_number;
 
-    WDbgArkObjHelper m_obj_helper;
+    std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
+    std::unique_ptr<WDbgArkColorHack> m_color_hack;
 
     //////////////////////////////////////////////////////////////////////////
     // output streams

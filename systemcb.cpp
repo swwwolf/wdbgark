@@ -185,6 +185,7 @@ IopProfileNotifyList and IopDeviceClassNotifyList were replaced by PnpProfileNot
 #include <map>
 #include <string>
 #include <utility>
+#include <memory>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
@@ -208,23 +209,26 @@ EXT_COMMAND(wa_systemcb,
 
     out << "Displaying OS registered callback(s) " << type << endlout;
 
-    WDbgArkAnalyze    display;
+    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
     std::stringstream tmp_stream;
 
-    if ( !display.Init(&tmp_stream, AnalyzeTypeCallback) )
+    if ( !display.get() )
+        throw ExtStatusException(S_OK, "not enough memory");
+
+    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeCallback) )
         throw ExtStatusException(S_OK, "display init failed");
 
-    display.PrintFooter();
+    display->PrintFooter();
 
     try {
         if ( type.empty() ) {
-            for ( std::map<string, SystemCbCommand>::const_iterator citer = system_cb_commands.begin();
+            for ( std::map<std::string, SystemCbCommand>::const_iterator citer = system_cb_commands.begin();
                   citer != system_cb_commands.end();
                   ++citer ) {
                 CallCorrespondingWalkListRoutine(citer, output_list);
             }
         } else {
-            std::map<string, SystemCbCommand>::const_iterator citer = system_cb_commands.find(type);
+            std::map<std::string, SystemCbCommand>::const_iterator citer = system_cb_commands.find(type);
 
             if ( citer != system_cb_commands.end() )
                 CallCorrespondingWalkListRoutine(citer, output_list);
@@ -243,17 +247,16 @@ EXT_COMMAND(wa_systemcb,
 
                 out << endlout;
 
-                display.PrintHeader();
+                display->PrintHeader();
             }
 
-            display.AnalyzeAddressAsRoutine((*it).routine_address, (*it).type, (*it).info);
-            display.PrintFooter();
+            display->AnalyzeAddressAsRoutine((*it).routine_address, (*it).type, (*it).info);
+            display->PrintFooter();
 
             prev_list_head = (*it).list_head_name;
         }
 
-        display.PrintFooter();
-
+        display->PrintFooter();
         output_list.clear();
     }
     catch( const ExtInterruptException& ) {
@@ -261,7 +264,7 @@ EXT_COMMAND(wa_systemcb,
     }
 }
 
-void WDbgArk::CallCorrespondingWalkListRoutine(const std::map<string, SystemCbCommand>::const_iterator &citer,
+void WDbgArk::CallCorrespondingWalkListRoutine(const std::map<std::string, SystemCbCommand>::const_iterator &citer,
                                                walkresType &output_list) {
     if ( citer->first == "registry" ) {
         if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER ) {
@@ -396,7 +399,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
 
             if ( ex_callback_fast_ref ) {
                 ExtRemoteData routine_block(
-                    m_obj_helper.ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
+                    m_obj_helper->ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
                     m_PtrSize);
 
                 const unsigned __int64 notify_routine = routine_block.GetPtr();
@@ -459,7 +462,7 @@ void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType &output
     context.type = type;
     context.output_list_pointer = &output_list;
 
-    WalkDirectoryObject(m_obj_helper.FindObjectByName("Callback", 0ULL),
+    WalkDirectoryObject(m_obj_helper->FindObjectByName("Callback", 0ULL),
                         reinterpret_cast<void*>(&context),
                         DirectoryObjectCallback);
 }
@@ -469,7 +472,7 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemot
     std::string          type           = cb_context->type;
     std::string          list_head_name = "\\Callback\\";
 
-    std::pair<HRESULT, std::string> result = wdbg_ark_class->m_obj_helper.GetObjectName(object);
+    std::pair<HRESULT, std::string> result = wdbg_ark_class->m_obj_helper->GetObjectName(object);
 
     if ( !SUCCEEDED(result.first) ) {
         std::stringstream tmpwarn;

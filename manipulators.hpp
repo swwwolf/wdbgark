@@ -32,7 +32,6 @@
 
 #include <sstream>
 #include <iomanip>
-using namespace std;
 
 #include <engextcpp.hpp>
 
