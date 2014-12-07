@@ -247,6 +247,8 @@ bool WDbgArkColorHack::Init() {
                 tp->AddColumn("Description", 70);
                 tp->AddColumn("Original", 10);
                 tp->AddColumn("New color", 10);
+
+                InitThemes();
             }
         }
     }
@@ -265,18 +267,18 @@ void WDbgArkColorHack::PrintInformation(void) {
 
     tp->PrintHeader();
 
-    for ( std::vector<InternalUiColor>::iterator it = m_internal_colors.begin();
+    for ( std::vector<InternalUiColor>::const_iterator it = m_internal_colors.begin();
           it != m_internal_colors.end();
           ++it ) {
               std::stringstream original_color;
               original_color << std::internal << std::setw(10) << std::setfill('0');
-              original_color << std::hex << std::showbase << (*it).orig_color;
+              original_color << std::hex << std::showbase << it->orig_color;
 
               std::stringstream new_color;
               new_color << std::internal << std::setw(10) << std::setfill('0');
-              new_color << std::hex << std::showbase << (*it).new_color;
+              new_color << std::hex << std::showbase << it->new_color;
 
-              *tp << (*it).dml_name << (*it).description << original_color.str() << new_color.str();
+              *tp << it->dml_name << it->description << original_color.str() << new_color.str();
               tp->flush_out();
               tp->PrintFooter();
     }
@@ -319,6 +321,64 @@ void WDbgArkColorHack::PrintMemoryInfo(void) {
     }
 }
 
+void WDbgArkColorHack::InitThemes(void) {
+    m_themes["default"];
+    // backgrounds
+    m_themes["default"].push_back(theme_elem("wbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("normbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("uslbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("errbg", COLOR_HACK_BG_ERROR));     // !!!
+    m_themes["default"].push_back(theme_elem("warnbg", COLOR_HACK_BG_WARNING));  // !!!
+    m_themes["default"].push_back(theme_elem("verbbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("promptbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("promptregbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("extbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("dbgbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("dbgpbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("symbg", COLOR_HACK_BG_DEFAULT));
+    // foregrounds
+    m_themes["default"].push_back(theme_elem("wfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("uslfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("normfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("verbfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("promptfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("promptregfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("extfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("dbgfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("dbgpfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].push_back(theme_elem("symfg", COLOR_HACK_FG_DEFAULT));
+}
+
+bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
+    if ( !IsInited() ) {
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return false;
+    }
+
+    if ( m_cur_theme == theme_name )
+        return true;
+
+    themes::const_iterator it = m_themes.find(theme_name);
+
+    if ( it == m_themes.end() ) {
+        err << __FUNCTION__ << ": failed to find theme " << theme_name << endlerr;
+        return false;
+    }
+
+    theme_elems elems = it->second;
+
+    for ( theme_elems::const_iterator tit = elems.begin(); tit != elems.end(); ++tit ) {
+        if ( !SetColor(tit->first, tit->second) ) {
+            err << __FUNCTION__ << ": failed to set new color for " << tit->first << endlerr;
+            RevertColors();
+            return false;
+        }
+    }
+
+    m_cur_theme = theme_name;
+    return true;
+}
+
 WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiColor* ui_color,
                                                                              const UiColorType ui_color_type) {
     InternalUiColor internal_color;
@@ -350,9 +410,9 @@ WDbgArkColorHack::FindIntUiColor(const std::string &dml_name) {
     for ( std::vector<InternalUiColor>::iterator it = m_internal_colors.begin();
           it != m_internal_colors.end();
           ++it ) {
-              if ( (*it).dml_name == check_name ) {
+              if ( it->dml_name == check_name ) {
                   result = (*it);
-                  return std::make_pair(false, it);
+                  return std::make_pair(true, it);
               }
     }
 
@@ -360,25 +420,32 @@ WDbgArkColorHack::FindIntUiColor(const std::string &dml_name) {
 }
 
 void WDbgArkColorHack::RevertColors(void) {
+    if ( !IsInited() ) {
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return;
+    }
+
     try {
         for ( std::vector<InternalUiColor>::iterator it = m_internal_colors.begin();
               it != m_internal_colors.end();
               ++it ) {
-                  if ( (*it).is_changed ) {
-                      InterlockedExchange(&((*it).ui_color->color),
-                                          static_cast<LONG>((*it).orig_color));
+                  if ( it->is_changed ) {
+                      InterlockedExchange(&(it->ui_color->color),
+                                          static_cast<LONG>(it->orig_color));
 
-                      InterlockedExchange(&((*it).ui_color->int_color),
-                                          static_cast<LONG>((*it).orig_int_color));
+                      InterlockedExchange(&(it->ui_color->int_color),
+                                          static_cast<LONG>(it->orig_int_color));
 
-                      (*it).new_color = (*it).new_int_color = RGB(0, 0, 0);
-                      (*it).is_changed = false;
+                      it->new_color = it->new_int_color = RGB(0, 0, 0);
+                      it->is_changed = false;
                   }
         }
     }
     catch( ... ) {
         err << __FUNCTION__ << ": exception error" << endlerr;
     }
+
+    m_cur_theme = "";
 }
 
 bool WDbgArkColorHack::SetColor(const std::string &dml_name, const COLORREF color) {
@@ -390,8 +457,12 @@ bool WDbgArkColorHack::SetColor(const std::string &dml_name, const COLORREF colo
     std::pair<bool, std::vector<InternalUiColor>::iterator> result = FindIntUiColor(dml_name);
 
     if ( result.first ) {
-        result.second->new_color = color;   // do not touch original color
-        InterlockedExchange(&result.second->ui_color->color, static_cast<LONG>(color));  // in memory modification
+        // do not touch original color
+        result.second->new_color = color;
+        // in memory modification
+        InterlockedExchange(&result.second->ui_color->color, static_cast<LONG>(color));
+        // in memory modification
+        InterlockedExchange(&result.second->ui_color->int_color, static_cast<LONG>(color));
         result.second->is_changed = true;
 
         return true;

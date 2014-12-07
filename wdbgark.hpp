@@ -52,7 +52,6 @@
 class WDbgArk : public ExtExtension
 {
  public:
-    #define MS_PUBLIC_SYMBOLS_SERVER "http://msdl.microsoft.com/download/symbols"
     //////////////////////////////////////////////////////////////////////////
     // class typedefs
     //////////////////////////////////////////////////////////////////////////
@@ -140,6 +139,7 @@ class WDbgArk : public ExtExtension
     EXT_COMMAND_METHOD(wa_checkmsr);
     EXT_COMMAND_METHOD(wa_idt);
     EXT_COMMAND_METHOD(wa_gdt);
+    EXT_COMMAND_METHOD(wa_colorize);
 
     //////////////////////////////////////////////////////////////////////////
     // init
@@ -197,6 +197,8 @@ class WDbgArk : public ExtExtension
                              pfn_object_directory_walk_callback_routine callback);
 
  private:
+    #define MS_PUBLIC_SYMBOLS_SERVER "http://msdl.microsoft.com/download/symbols"
+
     std::map<std::string, SystemCbCommand> system_cb_commands;
     std::vector<std::string>               callout_names;
     std::vector<unsigned __int32>          gdt_selectors;

@@ -24,8 +24,10 @@
 #include "manipulators.hpp"
 
 EXT_COMMAND(wa_scan,
-            "Scan system",
-            "{log;s;o;log,Log file name}{reload;b;o;reload,Force to reload symbols}") {
+            "Scan system (execute all commands)",
+            "{log;s;o;log,Log file name}"\
+            "{reload;b;o;reload,Force to reload symbols}"\
+            /*"{colorize;b;o;colorize,Use default theme}"*/) {
     RequireKernelMode();
 
     if ( !Init() )

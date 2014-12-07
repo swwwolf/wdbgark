@@ -25,3 +25,4 @@ EXPORTS
 	wa_checkmsr
 	wa_idt
 	wa_gdt
+	wa_colorize

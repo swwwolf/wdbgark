@@ -189,6 +189,7 @@
     <ClCompile Include="callouts.cpp" />
     <ClCompile Include="checkmsr.cpp" />
     <ClCompile Include="colorhack.cpp" />
+    <ClCompile Include="colorize.cpp" />
     <ClCompile Include="idt_gdt.cpp" />
     <ClCompile Include="objhelper.cpp" />
     <ClCompile Include="objtype.cpp" />

@@ -41,6 +41,7 @@ SOURCES = \
 		 callouts.cpp\
 		 checkmsr.cpp\
 		 colorhack.cpp\
+		 colorize.cpp\
 		 idt_gdt.cpp\
 		 objhelper.cpp\
 		 objtype.cpp\
