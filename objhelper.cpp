@@ -30,26 +30,21 @@
 #include "manipulators.hpp"
 #include "strings.hpp"
 
-bool WDbgArkObjHelper::Init(void) {
-    if ( IsInited() )
-        return true;
-
+WDbgArkObjHelper::WDbgArkObjHelper() : m_inited(false),
+                                       object_header_old(true),
+                                       ObpInfoMaskToOffset(0) {
     // determine object header format
     unsigned __int32 type_index_offset = 0;
 
     // old header format
     if ( GetFieldOffset("nt!_OBJECT_HEADER", "TypeIndex", reinterpret_cast<PULONG>(&type_index_offset)) != 0 ) {
-        object_header_old = true;
         m_inited = true;
     } else {
-        // new header format
-        object_header_old = false;
+        object_header_old = false;  // new header format
 
         if ( g_Ext->GetSymbolOffset("nt!ObpInfoMaskToOffset", true, &ObpInfoMaskToOffset) )
             m_inited = true;
     }
-
-    return m_inited;
 }
 
 unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
@@ -59,12 +54,12 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
 
     if ( !IsInited() ) {
         err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0;
+        return 0ULL;
     }
 
     if ( object_name.empty() ) {
         err << __FUNCTION__ << ": invalid object name" << endlerr;
-        return 0;
+        return 0ULL;
     }
 
     std::transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
@@ -73,7 +68,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
         if ( !offset ) {
             if ( !g_Ext->GetSymbolOffset("nt!ObpRootDirectoryObject", true, &offset) ) {
                 err << __FUNCTION__ << ": failed to get nt!ObpRootDirectoryObject" << endlerr;
-                return 0;
+                return 0ULL;
             } else {
                 ExtRemoteData directory_object_ptr(offset, g_Ext->m_PtrSize);
                 offset = directory_object_ptr.GetPtr();
@@ -98,6 +93,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
 
                 if ( SUCCEEDED(result.first) ) {
                     std::string check_object_name = result.second;
+
                     std::transform(check_object_name.begin(),
                                    check_object_name.end(),
                                    check_object_name.begin(),
@@ -114,7 +110,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    return 0;
+    return 0ULL;
 }
 
 std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRemoteTyped &object) {

@@ -29,10 +29,8 @@
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
 
-bool WDbgArkProcess::Init(void) {
-    if ( IsInited() )
-        return true;
-
+WDbgArkProcess::WDbgArkProcess() : m_inited(false),
+                                   m_current_process(0) {
     try {
         ExtRemoteTypedList list_head = ExtNtOsInformation::GetKernelProcessList();
 
@@ -48,6 +46,7 @@ bool WDbgArkProcess::Init(void) {
                 warn << std::hex << std::showbase << info.process.m_Offset << endlwarn;
             } else {
                 std::string image_file_name = result.second;
+
                 std::transform(image_file_name.begin(),
                                image_file_name.end(),
                                image_file_name.begin(),
@@ -65,8 +64,6 @@ bool WDbgArkProcess::Init(void) {
     catch( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-
-    return m_inited;
 }
 
 unsigned __int64 WDbgArkProcess::FindEProcessByImageFileName(const std::string &process_name) {
@@ -74,26 +71,27 @@ unsigned __int64 WDbgArkProcess::FindEProcessByImageFileName(const std::string &
 
     if ( !IsInited() ) {
         err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0;
+        return 0ULL;
     }
 
     if ( FindProcessInfoByImageFileName(process_name, &info) )
         return info.eprocess;
 
-    return 0;
+    return 0ULL;
 }
 
 unsigned __int64 WDbgArkProcess::FindEProcessAnyGUIProcess() {
     if ( !IsInited() ) {
         err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0;
+        return 0ULL;
     }
 
     try {
         std::vector<ProcessInfo>::iterator it =\
             std::find_if(m_process_list.begin(),
                          m_process_list.end(),
-                         [](ProcessInfo &proc_info) { return proc_info.process.Field("Win32Process").GetPtr() != 0ULL; });
+                         [](ProcessInfo &proc_info) {
+                             return proc_info.process.Field("Win32Process").GetPtr() != 0ULL; });
 
         if ( it != m_process_list.end() )
             return it->eprocess;
@@ -102,7 +100,7 @@ unsigned __int64 WDbgArkProcess::FindEProcessAnyGUIProcess() {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    return 0;
+    return 0ULL;
 }
 
 HRESULT WDbgArkProcess::SetImplicitProcess(const unsigned __int64 set_eprocess) {
@@ -161,7 +159,8 @@ bool WDbgArkProcess::FindProcessInfoByImageFileName(const std::string &process_n
     std::vector<ProcessInfo>::iterator it =\
         std::find_if(m_process_list.begin(),
                      m_process_list.end(),
-                     [&compare_with](const ProcessInfo &proc_info) { return proc_info.image_file_name == compare_with; });
+                     [&compare_with](const ProcessInfo &proc_info) {
+                         return proc_info.image_file_name == compare_with; });
 
     if ( it != m_process_list.end() ) {
         *info = *it;

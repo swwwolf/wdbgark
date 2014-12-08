@@ -52,19 +52,11 @@ class WDbgArkAnalyze
          AnalyzeTypeGDT
      };
 
-    WDbgArkAnalyze()
-        : m_inited(false),
-          m_owner_module_inited(false),
-          m_owner_module_start(0ULL),
-          m_owner_module_end(0ULL),
-          tp(nullptr) {}
-
+    WDbgArkAnalyze();
+    WDbgArkAnalyze(const AnalyzeTypeInit type);
     ~WDbgArkAnalyze() {}
 
-    bool Init(std::ostream* output);
-    bool Init(std::ostream* output, const AnalyzeTypeInit type);
     bool IsInited(void) const { return m_inited; }
-
     void PrintHeader(void) { if ( IsInited() ) tp->PrintHeader(); }
     void PrintFooter(void) { if ( IsInited() ) tp->PrintFooter(); }
     void AddColumn(const std::string &header_name, const int column_width) {
@@ -82,6 +74,7 @@ class WDbgArkAnalyze
 
         return false;
     }
+
     bool SetOwnerModule(const unsigned __int64 mod_start, const unsigned __int64 mod_end) {
         if ( !mod_start || !mod_end )
             return false;
@@ -92,6 +85,7 @@ class WDbgArkAnalyze
 
         return true;
     }
+
     bool SetOwnerModule(const std::string &module_name);
 
     //////////////////////////////////////////////////////////////////////////
@@ -136,6 +130,7 @@ class WDbgArkAnalyze
     std::stringstream out;
     std::stringstream warn;
     std::stringstream err;
+    std::stringstream bprinter_out;
 };
 
 #endif // ANALYZE_HPP_

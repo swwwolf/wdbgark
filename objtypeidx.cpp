@@ -46,14 +46,7 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode ObTypeIndexTable", "") {
 
     out << "[+] nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
 
-    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
-    std::stringstream tmp_stream;
-
-    if ( !display )
-        throw ExtStatusException(S_OK, "not enough memory");
-
-    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
-        throw ExtStatusException(S_OK, "display init failed");
+    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
     if ( !display->SetOwnerModule("nt") )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;

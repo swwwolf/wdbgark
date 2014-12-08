@@ -39,11 +39,7 @@
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkColorHack {
  public:
-    WDbgArkColorHack()
-        : m_inited(false),
-          m_g_ui_colors(nullptr),
-          m_g_out_mask_ui_colors(nullptr),
-          tp(nullptr) {}
+    WDbgArkColorHack();
 
     ~WDbgArkColorHack() {
         m_g_out_mask_ui_colors = nullptr;
@@ -54,7 +50,6 @@ class WDbgArkColorHack {
     }
 
     bool IsInited(void) const { return m_inited; }
-    bool Init(void);
     void PrintInformation(void);
     bool SetTheme(const std::string &theme_name);
     void RevertColors(void);

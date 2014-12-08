@@ -71,14 +71,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
         throw;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
-    std::stringstream tmp_stream;
-
-    if ( !display )
-        throw ExtStatusException(S_OK, "not enough memory");
-
-    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
-        throw ExtStatusException(S_OK, "display init failed");
+    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
     if ( !display->SetOwnerModule("nt") )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
@@ -129,13 +122,7 @@ EXT_COMMAND(wa_w32psdt,
 
     out << "Displaying win32k!W32pServiceTable" << endlout;
 
-    std::unique_ptr<WDbgArkProcess> process_helper(new (std::nothrow) WDbgArkProcess);
-
-    if ( !process_helper )
-        throw ExtStatusException(S_OK, "not enough memory");
-
-    if ( !process_helper->Init() )
-        throw ExtStatusException(S_OK, "process helper init failed");
+    std::unique_ptr<WDbgArkProcess> process_helper(new WDbgArkProcess);
 
     unsigned __int64 set_eprocess = 0;
 
@@ -183,14 +170,7 @@ EXT_COMMAND(wa_w32psdt,
         throw;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
-    std::stringstream tmp_stream;
-
-    if ( !display )
-        throw ExtStatusException(S_OK, "not enough memory");
-
-    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
-        throw ExtStatusException(S_OK, "display init failed");
+    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
     if ( !display->SetOwnerModule( "win32k" ) )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;

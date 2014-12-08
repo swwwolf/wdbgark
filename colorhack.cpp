@@ -141,24 +141,31 @@ void __stdcall InitUiColors()
 
 #include "strings.hpp"
 
-bool WDbgArkColorHack::Init() {
-    try {
-        HMODULE windbg_module = GetModuleHandle(NULL);
+WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
+                                       m_g_ui_colors(nullptr),
+                                       m_g_out_mask_ui_colors(nullptr),
+                                       tp(nullptr) {
+    tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&out));
 
-        if ( !windbg_module ) {
-            err << __FUNCTION__ << ": GetModuleHandle failed" << endlerr;
-            return false;
-        }
+    tp->AddColumn("DML name", 15);
+    tp->AddColumn("Description", 70);
+    tp->AddColumn("Original", 10);
+    tp->AddColumn("New color", 10);
+
+    InitThemes();
+
+    try {
+        char* windbg_module = reinterpret_cast<char*>(GetModuleHandle(NULL));
+
+        if ( !windbg_module )
+            throw ExtStatusException(S_OK, "GetModuleHandle failed");
 
         PIMAGE_NT_HEADERS nth = ImageNtHeader(windbg_module);
 
-        if ( !nth ) {
-            err << __FUNCTION__ << ": can't get NT header" << endlerr;
-            return false;
-        }
+        if ( !nth )
+            throw ExtStatusException(S_OK, "Can't get NT header");
 
-        uintptr_t windbg_module_end = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module) +\
-            nth->OptionalHeader.SizeOfImage);
+        uintptr_t windbg_module_end = reinterpret_cast<uintptr_t>(windbg_module + nth->OptionalHeader.SizeOfImage);
 
         PIMAGE_SECTION_HEADER sech = reinterpret_cast<PIMAGE_SECTION_HEADER>(reinterpret_cast<char*>(nth) +\
             sizeof(*nth));
@@ -166,97 +173,81 @@ bool WDbgArkColorHack::Init() {
         PIMAGE_SECTION_HEADER sech_text = nullptr;
         PIMAGE_SECTION_HEADER sech_data = nullptr;
 
-        for ( int i = 0; i < nth->FileHeader.NumberOfSections; i++ ) {
-            if ( _stricmp(reinterpret_cast<char*>(&sech->Name[0]), ".text") == 0 )
-                sech_text = sech;
-
-            if ( _stricmp(reinterpret_cast<char*>(&sech->Name[0]), ".data") == 0 )
-                sech_data = sech;
+        for ( __int16 i = 0; i < nth->FileHeader.NumberOfSections; i++ ) {
+            std::string section_name = reinterpret_cast<char*>(&sech->Name[0]);
 
             if ( sech_text && sech_data )
                 break;
+            else if ( section_name == ".text" )
+                sech_text = sech;
+            else if ( section_name == ".data" )
+                sech_data = sech;
 
             sech++;
         }
 
-        if ( !sech_text || !sech_data ) {
-            err << __FUNCTION__ << ": can't get section header" << endlerr;
-            return false;
-        }
+        if ( !sech_text || !sech_data )
+            throw ExtStatusException(S_OK, "Can't get sections header");
 
-        uintptr_t* start_data = reinterpret_cast<uintptr_t*>(reinterpret_cast<char*>(windbg_module) +\
-            sech_data->VirtualAddress);
-
+        uintptr_t* start_data = reinterpret_cast<uintptr_t*>(windbg_module + sech_data->VirtualAddress);
         uintptr_t* end_data = reinterpret_cast<uintptr_t*>(reinterpret_cast<char*>(start_data) +\
             sech_data->Misc.VirtualSize);
 
-        uintptr_t start_text = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module) +\
-            sech_text->VirtualAddress);
-
+        uintptr_t start_text = reinterpret_cast<uintptr_t>(windbg_module + sech_text->VirtualAddress);
         uintptr_t end_text = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_text) +\
             sech_text->Misc.VirtualSize);
 
-        if ( start_data > reinterpret_cast<uintptr_t*>(windbg_module_end)
-             ||
-             end_data > reinterpret_cast<uintptr_t*>(windbg_module_end)
-             ||
-             start_text > windbg_module_end
-             ||
-             end_text > windbg_module_end ) { err << __FUNCTION__ << ": something is wrong" << endlerr; return false; }
+        if ( start_data >= reinterpret_cast<uintptr_t*>(windbg_module_end) ||
+             end_data > reinterpret_cast<uintptr_t*>(windbg_module_end) ||
+             start_text >= windbg_module_end ||
+             end_text > windbg_module_end ) {
+                 throw ExtStatusException(S_OK, "Something is wrong");
+        }
 
-        while ( start_data < end_data ) {
+        uintptr_t* mem_point = start_data;
+
+        while ( mem_point < end_data ) {
             try {
-                if ( *start_data >= start_text && *start_data <= end_text ) {
-                    if ( _wcsicmp(reinterpret_cast<wchar_t*>(*start_data), L"Background") == 0 )
-                        m_g_ui_colors = reinterpret_cast<UiColor*>(start_data);
-
-                    if ( _wcsicmp(reinterpret_cast<wchar_t*>(*start_data), L"Normal level command window text") == 0 )
-                        m_g_out_mask_ui_colors = reinterpret_cast<UiColor*>(start_data);
-
-                    if ( m_g_ui_colors && m_g_out_mask_ui_colors ) {
+                if ( *mem_point >= start_text && *mem_point <= end_text ) {
+                    std::wstring check_sig = reinterpret_cast<wchar_t*>(*mem_point);
+                    if ( check_sig == L"Background" )
+                        m_g_ui_colors = reinterpret_cast<UiColor*>(mem_point);
+                    else if ( check_sig == L"Normal level command window text" )
+                        m_g_out_mask_ui_colors = reinterpret_cast<UiColor*>(mem_point);
+                    else if ( m_g_ui_colors && m_g_out_mask_ui_colors )
                         break;
-                    }
                 }
             }
             catch( ... ) { }    // continue
 
-            start_data++;
+            mem_point++;
         }
 
-        if ( m_g_ui_colors && m_g_out_mask_ui_colors ) {
-            UiColor* loc_ui_color = m_g_ui_colors;
+        if ( !m_g_ui_colors || !m_g_out_mask_ui_colors )
+            throw ExtStatusException(S_OK, "WinDbg internal structures are not found");
 
-            while ( loc_ui_color->description ) {
-                m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorsType));
-                loc_ui_color++;
-            }
+        UiColor* loc_ui_color = m_g_ui_colors;
 
-            loc_ui_color = m_g_out_mask_ui_colors;
-
-            while ( loc_ui_color->description ) {
-                m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorsOutMaskType));
-                loc_ui_color++;
-            }
-
-            tp = std::unique_ptr<bprinter::TablePrinter>(new (std::nothrow) bprinter::TablePrinter(&out));
-
-            if ( tp ) {
-                m_inited = true;
-
-                tp->AddColumn("DML name", 15);
-                tp->AddColumn("Description", 70);
-                tp->AddColumn("Original", 10);
-                tp->AddColumn("New color", 10);
-
-                InitThemes();
-            }
+        while ( loc_ui_color->description ) {
+            m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorsType));
+            loc_ui_color++;
         }
+
+        loc_ui_color = m_g_out_mask_ui_colors;
+
+        while ( loc_ui_color->description ) {
+            m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorsOutMaskType));
+            loc_ui_color++;
+        }
+
+        m_inited = true;
+    }
+    catch ( const ExtStatusException &Ex ) {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( ... ) {
         err << __FUNCTION__ << ": exception error" << endlerr;
     }
-
-    return m_inited;
 }
 
 void WDbgArkColorHack::PrintInformation(void) {
@@ -433,15 +424,14 @@ bool WDbgArkColorHack::SetColor(const std::string &dml_name, const COLORREF colo
     vecUiColor::iterator it = std::find_if(m_internal_colors.begin(),
                                            m_internal_colors.end(),
                                            [&dml_name](const InternalUiColor &ui_color) {
-                                               return ui_color.dml_name == dml_name;
-    });
+                                               return ui_color.dml_name == dml_name; });
 
     if ( it != m_internal_colors.end() ) {
         // do not touch original color
         it->new_color = color;
-        // in memory modification
+        // memory modification
         InterlockedExchange(&it->ui_color->color, static_cast<LONG>(color));
-        // in memory modification
+        // memory modification
         InterlockedExchange(&it->ui_color->int_color, static_cast<LONG>(color));
         it->is_changed = true;
 

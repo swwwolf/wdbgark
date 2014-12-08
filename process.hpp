@@ -51,9 +51,7 @@ class WDbgArkProcess
         std::string      image_file_name;
     } ProcessInfo;
 
-    WDbgArkProcess()
-        : m_inited(false),
-          m_current_process(0) {}
+    WDbgArkProcess();
 
     ~WDbgArkProcess() {
         try {
@@ -66,7 +64,6 @@ class WDbgArkProcess
         catch( ... ) {}
     }
 
-    bool Init(void);
     bool IsInited(void) const { return m_inited; }
 
     unsigned __int64 FindEProcessByImageFileName(const std::string &process_name);

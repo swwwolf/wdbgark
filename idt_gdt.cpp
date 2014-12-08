@@ -476,15 +476,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
         warn << __FUNCTION__ << ": GetFieldOffset failed with InterruptListEntry" << endlwarn;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
-    std::stringstream tmp_stream;
-
-    if ( !display )
-        throw ExtStatusException(S_OK, "not enough memory");
-
-    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeIDT) )
-        throw ExtStatusException(S_OK, "display init failed");
-
+    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeIDT));
     display->PrintHeader();
 
     try {
@@ -523,7 +515,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 std::stringstream info;
 
                 if ( m_is_cur_machine64 )
-                    info << std::setw(42);   // the ANSWER!!!
+                    info << std::setw(42);
                 else
                     info << std::setw(40);
 
@@ -762,15 +754,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
 
     out << "Dumping GDT" << endlout;
 
-    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
-    std::stringstream tmp_stream;
-
-    if ( !display )
-        throw ExtStatusException(S_OK, "not enough memory");
-
-    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeGDT) )
-        throw ExtStatusException(S_OK, "display init failed");
-
+    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeGDT));
     display->PrintHeader();
 
     try {

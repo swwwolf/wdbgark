@@ -31,14 +31,7 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
-    std::stringstream tmp_stream;
-
-    if ( !display )
-        throw ExtStatusException(S_OK, "not enough memory");
-
-    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeDefault) )
-        throw ExtStatusException(S_OK, "display init failed");
+    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
     if ( !display->SetOwnerModule("nt") )
         warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;

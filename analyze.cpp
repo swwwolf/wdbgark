@@ -30,65 +30,54 @@
 #include "objhelper.hpp"
 #include "strings.hpp"
 
-bool WDbgArkAnalyze::Init(std::ostream* output) {
-    if ( IsInited() )
-        return true;
-
-    tp = std::unique_ptr<bprinter::TablePrinter>(new (std::nothrow) bprinter::TablePrinter(output));
-
-    if ( tp )
-        m_inited = true;
-
-    return m_inited;
+WDbgArkAnalyze::WDbgArkAnalyze() : m_inited(false),
+                                   m_owner_module_inited(false),
+                                   m_owner_module_start(0ULL),
+                                   m_owner_module_end(0ULL),
+                                   tp(nullptr) {
+    tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
+    m_inited = true;
 }
 
-bool WDbgArkAnalyze::Init(std::ostream* output, const AnalyzeTypeInit type) {
-    if ( IsInited() )
-        return true;
+WDbgArkAnalyze::WDbgArkAnalyze(const AnalyzeTypeInit type) : m_inited(false),
+                                                             m_owner_module_inited(false),
+                                                             m_owner_module_start(0ULL),
+                                                             m_owner_module_end(0ULL),
+                                                             tp(nullptr) {
+    tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
+    m_inited = true;
 
-    tp = std::unique_ptr<bprinter::TablePrinter>(new (std::nothrow) bprinter::TablePrinter(output));
-
-    if ( tp ) {
-        if ( type == AnalyzeTypeDefault ) {    // width = 180
-            tp->AddColumn("Address", 18);
-            tp->AddColumn("Name", 68);
-            tp->AddColumn("Symbol", 68);
-            tp->AddColumn("Module", 16);
-            tp->AddColumn("Suspicious", 10);
-
-            m_inited = true;
-        } else if ( type == AnalyzeTypeCallback ) {    // width = 170
-            tp->AddColumn("Address", 18);
-            tp->AddColumn("Type", 20);
-            tp->AddColumn("Symbol", 81);
-            tp->AddColumn("Module", 16);
-            tp->AddColumn("Suspicious", 10);
-            tp->AddColumn("Info", 25);
-
-            m_inited = true;
-        } else if ( type == AnalyzeTypeIDT ) {    // width = 160
-            tp->AddColumn("Address", 18);
-            tp->AddColumn("CPU / Idx", 11);
-            tp->AddColumn("Symbol", 80);
-            tp->AddColumn("Module", 16);
-            tp->AddColumn("Suspicious", 10);
-            tp->AddColumn("Info", 25);
-
-            m_inited = true;
-        } else if ( type == AnalyzeTypeGDT ) {    // width = 105
-            tp->AddColumn("Base", 18);
-            tp->AddColumn("Limit", 6);
-            tp->AddColumn("CPU / Idx", 10);
-            tp->AddColumn("Offset", 10);
-            tp->AddColumn("Selector name", 20);
-            tp->AddColumn("Type", 16);
-            tp->AddColumn("Info", 25);
-
-            m_inited = true;
-        }
+    if ( type == AnalyzeTypeDefault ) {    // width = 180
+        tp->AddColumn("Address", 18);
+        tp->AddColumn("Name", 68);
+        tp->AddColumn("Symbol", 68);
+        tp->AddColumn("Module", 16);
+        tp->AddColumn("Suspicious", 10);
+    } else if ( type == AnalyzeTypeCallback ) {    // width = 170
+        tp->AddColumn("Address", 18);
+        tp->AddColumn("Type", 20);
+        tp->AddColumn("Symbol", 81);
+        tp->AddColumn("Module", 16);
+        tp->AddColumn("Suspicious", 10);
+        tp->AddColumn("Info", 25);
+    } else if ( type == AnalyzeTypeIDT ) {    // width = 160
+        tp->AddColumn("Address", 18);
+        tp->AddColumn("CPU / Idx", 11);
+        tp->AddColumn("Symbol", 80);
+        tp->AddColumn("Module", 16);
+        tp->AddColumn("Suspicious", 10);
+        tp->AddColumn("Info", 25);
+    } else if ( type == AnalyzeTypeGDT ) {    // width = 105
+        tp->AddColumn("Base", 18);
+        tp->AddColumn("Limit", 6);
+        tp->AddColumn("CPU / Idx", 10);
+        tp->AddColumn("Offset", 10);
+        tp->AddColumn("Selector name", 20);
+        tp->AddColumn("Type", 16);
+        tp->AddColumn("Info", 25);
+    } else {
+        m_inited = false;
     }
-
-    return m_inited;
 }
 
 void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
@@ -159,17 +148,7 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, c
         return;
     }
 
-    std::unique_ptr<WDbgArkObjHelper> obj_helper(new (std::nothrow) WDbgArkObjHelper);
-
-    if ( !obj_helper ) {
-        err << __FUNCTION__ << ": no memory" << endlerr;
-        return;
-    }
-
-    if ( !obj_helper->Init() ) {
-        err << __FUNCTION__ ": failed to init object helper class" << endlerr;
-        return;
-    }
+    std::unique_ptr<WDbgArkObjHelper> obj_helper(new WDbgArkObjHelper);
 
     std::pair<HRESULT, std::string> result = obj_helper->GetObjectName(object);
 
@@ -401,9 +380,9 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                                                   reinterpret_cast<PULONG>(&len3));
 
         if ( SUCCEEDED(result) ) {
-            buf1.reset(new (std::nothrow) char[len1+1]);
-            buf2.reset(new (std::nothrow) char[len2+1]);
-            buf3.reset(new (std::nothrow) char[len3+1]);
+            buf1.reset(new char[len1+1]);
+            buf2.reset(new char[len2+1]);
+            buf3.reset(new char[len3+1]);
 
             if ( !buf1 || !buf2 || !buf3 ) {
                 ignore_output.Stop();
@@ -462,7 +441,7 @@ std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned _
     ignore_output.Stop();
 
     if ( SUCCEEDED(result) && name_buffer_size ) {
-        std::unique_ptr<char[]> tmp_name(new (std::nothrow) char[name_buffer_size + 1]);
+        std::unique_ptr<char[]> tmp_name(new char[name_buffer_size + 1]);
 
         if ( !tmp_name )
             return std::make_pair(E_OUTOFMEMORY, output_name);

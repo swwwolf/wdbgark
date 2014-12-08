@@ -34,25 +34,8 @@ bool WDbgArk::Init() {
 
     CheckSymbolsPath();
 
-    m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new (std::nothrow) WDbgArkObjHelper);
-
-    if ( !m_obj_helper ) {
-        err << __FUNCTION__ << ": not enough memory" << endlerr;
-        return false;
-    }
-
-    if ( !m_obj_helper->Init() )
-        warn << __FUNCTION__ ": failed to init object helper class" << endlwarn;
-
-    m_color_hack = std::unique_ptr<WDbgArkColorHack>(new (std::nothrow) WDbgArkColorHack);
-
-    if ( !m_color_hack ) {
-        err << __FUNCTION__ << ": not enough memory" << endlerr;
-        return false;
-    }
-
-    if ( !m_color_hack->Init() )
-        warn << __FUNCTION__ ": failed to init color hack class" << endlwarn;
+    m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new WDbgArkObjHelper);
+    m_color_hack = std::unique_ptr<WDbgArkColorHack>(new WDbgArkColorHack);
 
     // get system version
     HRESULT result = m_Control->GetSystemVersion(reinterpret_cast<PULONG>(&m_platform_id),
@@ -227,7 +210,7 @@ void WDbgArk::CheckSymbolsPath(void) {
     HRESULT result = m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&buffer_size));
 
     if ( SUCCEEDED(result) && buffer_size ) {
-        std::unique_ptr<char[]> symbol_path_buffer(new (std::nothrow) char[buffer_size]);
+        std::unique_ptr<char[]> symbol_path_buffer(new char[buffer_size]);
 
         if ( symbol_path_buffer ) {
             result = m_Symbols->GetSymbolPath(symbol_path_buffer.get(),

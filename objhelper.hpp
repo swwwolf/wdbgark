@@ -43,13 +43,9 @@
 class WDbgArkObjHelper
 {
  public:
-    WDbgArkObjHelper()
-        : m_inited(false),
-          object_header_old(true),
-          ObpInfoMaskToOffset(0) {}
+    WDbgArkObjHelper();
 
-    bool             Init(void);
-    bool             IsInited(void) const { return m_inited; }
+    bool IsInited(void) const { return m_inited; }
 
     std::pair<HRESULT, ExtRemoteTyped> GetObjectHeader(const ExtRemoteTyped &object);
     std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);

@@ -19,6 +19,8 @@
     * the COPYING file in the top-level directory.
 */
 
+#include <ctime>
+
 #include "wdbgark.hpp"
 #include "ver.hpp"
 #include "manipulators.hpp"
@@ -40,7 +42,18 @@ EXT_COMMAND(wa_scan,
         Execute(".logopen /t %s", GetArgStr("log"));
 
     out << "--------------------------------------------------------------------------" << endlout;
-    out << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << " start scan" << endlout;
+    out << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
+
+    char time_buffer[100];
+    std::time_t time_result = std::time(nullptr);
+
+    out << "Scan start: ";
+
+    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_result) )
+        out << time_buffer;
+    else
+        out << endlout;
+
     out << "--------------------------------------------------------------------------" << endlout;
     Execute("vertarget");
     out << "--------------------------------------------------------------------------" << endlout;
@@ -128,7 +141,16 @@ EXT_COMMAND(wa_scan,
     }
 
     out << "--------------------------------------------------------------------------" << endlout;
-    out << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << " end of scan" << endlout;
+    out << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << endlout;
+
+    time_result = std::time(nullptr);
+    out << "Scan end: ";
+
+    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_result) )
+        out << time_buffer;
+    else
+        out << endlout;
+
     out << "--------------------------------------------------------------------------" << endlout;
 
     if ( HasArg("log") )

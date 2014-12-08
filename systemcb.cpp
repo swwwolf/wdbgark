@@ -209,15 +209,7 @@ EXT_COMMAND(wa_systemcb,
 
     out << "Displaying OS registered callback(s) " << type << endlout;
 
-    std::unique_ptr<WDbgArkAnalyze> display(new (std::nothrow) WDbgArkAnalyze);
-    std::stringstream tmp_stream;
-
-    if ( !display )
-        throw ExtStatusException(S_OK, "not enough memory");
-
-    if ( !display->Init(&tmp_stream, WDbgArkAnalyze::AnalyzeTypeCallback) )
-        throw ExtStatusException(S_OK, "display init failed");
-
+    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeCallback));
     display->PrintFooter();
 
     try {
