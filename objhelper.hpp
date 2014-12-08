@@ -43,10 +43,10 @@
 class WDbgArkObjHelper
 {
  public:
-    WDbgArkObjHelper() :
-        m_inited(false),
-        object_header_old(true),
-        ObpInfoMaskToOffset(0) { }
+    WDbgArkObjHelper()
+        : m_inited(false),
+          object_header_old(true),
+          ObpInfoMaskToOffset(0) {}
 
     bool             Init(void);
     bool             IsInited(void) const { return m_inited; }

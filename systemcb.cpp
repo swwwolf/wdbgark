@@ -238,22 +238,22 @@ EXT_COMMAND(wa_systemcb,
 
         std::string prev_list_head;
 
-        for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it ) {
-            if ( prev_list_head != (*it).list_head_name ) {
-                out << "[+] " << (*it).list_head_name;
+        for ( const OutputWalkInfo &walk_info : output_list ) {
+            if ( prev_list_head != walk_info.list_head_name ) {
+                out << "[+] " << walk_info.list_head_name;
 
-                if ( (*it).list_head_offset )
-                    out << ": " << std::hex << std::showbase << (*it).list_head_offset;
+                if ( walk_info.list_head_offset )
+                    out << ": " << std::hex << std::showbase << walk_info.list_head_offset;
 
                 out << endlout;
 
                 display->PrintHeader();
             }
 
-            display->AnalyzeAddressAsRoutine((*it).routine_address, (*it).type, (*it).info);
+            display->AnalyzeAddressAsRoutine(walk_info.routine_address, walk_info.type, walk_info.info);
             display->PrintFooter();
 
-            prev_list_head = (*it).list_head_name;
+            prev_list_head = walk_info.list_head_name;
         }
 
         display->PrintFooter();

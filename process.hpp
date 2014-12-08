@@ -51,9 +51,9 @@ class WDbgArkProcess
         std::string      image_file_name;
     } ProcessInfo;
 
-    WDbgArkProcess() :
-        m_inited(false),
-        m_current_process(0) { }
+    WDbgArkProcess()
+        : m_inited(false),
+          m_current_process(0) {}
 
     ~WDbgArkProcess() {
         try {
@@ -72,11 +72,11 @@ class WDbgArkProcess
     unsigned __int64 FindEProcessByImageFileName(const std::string &process_name);
     unsigned __int64 FindEProcessAnyGUIProcess();
     HRESULT          SetImplicitProcess(const unsigned __int64 set_eprocess);
-
+    
  private:
 
     std::pair<bool, std::string> GetProcessImageFileName(const ExtRemoteTyped &process);
-    unsigned __int64             GetProcessDataOffset(const ExtRemoteTyped &process);
+    unsigned __int64             GetProcessDataOffset(const ExtRemoteTyped &process) { return process.m_Offset; }
     bool                         FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info);
 
     bool                     m_inited;

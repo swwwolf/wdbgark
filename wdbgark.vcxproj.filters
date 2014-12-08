@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\sources">
-      <UniqueIdentifier>{44b30140-c0e3-4f8e-92aa-695c26099132}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\bprinter">
       <UniqueIdentifier>{d0d465b1-6342-47e4-82e2-2a7f6767b075}</UniqueIdentifier>
     </Filter>
@@ -120,12 +117,6 @@
   <ItemGroup>
     <None Include="wdbgark.def">
       <Filter>Source Files</Filter>
-    </None>
-    <None Include="makefile">
-      <Filter>Header Files\sources</Filter>
-    </None>
-    <None Include="sources">
-      <Filter>Header Files\sources</Filter>
     </None>
     <None Include="README.md">
       <Filter>Header Files\README</Filter>

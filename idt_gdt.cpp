@@ -645,20 +645,22 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                    "",
                                                    output_list);
 
-                    for ( walkresType::iterator it = output_list.begin(); it != output_list.end(); ++it ) {
-                        if ( !(*it).routine_address )
+                    for ( const OutputWalkInfo &walk_info : output_list ) {
+                        if ( !walk_info.routine_address )
                             continue;
 
                         std::stringstream info_intr_list;
                         info_intr_list << std::setw(41);
 
                         info_intr_list << "<exec cmd=\"dt nt!_KINTERRUPT ";
-                        info_intr_list << std::hex << std::showbase << (*it).object_offset;
+                        info_intr_list << std::hex << std::showbase << walk_info.object_offset;
                         info_intr_list << "\">dt" << "</exec>" << " ";
                         info_intr_list << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                         info_intr_list << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                        display->AnalyzeAddressAsRoutine((*it).routine_address, (*it).type, info_intr_list.str());
+                        display->AnalyzeAddressAsRoutine(walk_info.routine_address,
+                                                         walk_info.type,
+                                                         info_intr_list.str());
                     }
 
                     output_list.clear();
@@ -798,13 +800,13 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                 gdt_entry_size = GetTypeSize("nt!_KGDTENTRY");
             }
 
-            for ( std::vector<unsigned __int32>::iterator it = gdt_selectors.begin();  it != gdt_selectors.end(); ++it ) {
+            for ( const unsigned __int32 gdt_selector : gdt_selectors ) {
                 std::stringstream processor_index;
                 std::stringstream info;
 
                 if ( m_is_cur_machine64 ) {
                     ExtRemoteTyped gdt_entry("nt!_KGDTENTRY64",
-                                             gdt_entry_start + *it,
+                                             gdt_entry_start + gdt_selector,
                                              false,
                                              NULL,
                                              NULL);
@@ -814,13 +816,14 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                     info << " -r1\">dt" << "</exec>" << " ";
                     info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>";
 
-                    processor_index << std::setw(2) << i << " / " << std::setw(2) << std::hex << *it / gdt_entry_size;
+                    processor_index << std::setw(2) << i << " / " << std::setw(2);
+                    processor_index << std::hex << gdt_selector / gdt_entry_size;
 
-                    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), *it, info.str());
+                    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), gdt_selector, info.str());
                     display->PrintFooter();
                 } else {
                     ExtRemoteTyped gdt_entry("nt!_KGDTENTRY",
-                                             gdt_entry_start + *it,
+                                             gdt_entry_start + gdt_selector,
                                              false,
                                              NULL,
                                              NULL);
@@ -830,9 +833,10 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                     info << " -r2\">dt" << "</exec>" << " ";
                     info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>";
 
-                    processor_index << std::setw(2) << i << " / " << std::setw(2) << std::hex << *it / gdt_entry_size;
+                    processor_index << std::setw(2) << i << " / " << std::setw(2);
+                    processor_index << std::hex << gdt_selector / gdt_entry_size;
 
-                    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), *it, info.str());
+                    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), gdt_selector, info.str());
                     display->PrintFooter();
                 }
             }

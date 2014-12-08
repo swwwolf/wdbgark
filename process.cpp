@@ -90,10 +90,13 @@ unsigned __int64 WDbgArkProcess::FindEProcessAnyGUIProcess() {
     }
 
     try {
-        for ( std::vector<ProcessInfo>::iterator it = m_process_list.begin(); it != m_process_list.end(); ++it ) {
-            if ( (*it).process.Field("Win32Process").GetPtr() )
-                return (*it).eprocess;
-        }
+        std::vector<ProcessInfo>::iterator it =\
+            std::find_if(m_process_list.begin(),
+                         m_process_list.end(),
+                         [](ProcessInfo &proc_info) { return proc_info.process.Field("Win32Process").GetPtr() != 0ULL; });
+
+        if ( it != m_process_list.end() )
+            return it->eprocess;
     }
     catch( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -138,7 +141,10 @@ std::pair<bool, std::string> WDbgArkProcess::GetProcessImageFileName(const ExtRe
         ExtRemoteTyped loc_process = process;
         char buffer[100] = {0};
         ExtRemoteTyped image_file_name = loc_process.Field("ImageFileName");
-        output_name = image_file_name.GetString(buffer, sizeof(buffer), image_file_name.GetTypeSize(), false);
+        output_name = image_file_name.GetString(buffer,
+                                                static_cast<ULONG>(sizeof(buffer)),
+                                                image_file_name.GetTypeSize(),
+                                                false);
         return std::make_pair(true, output_name);
     }
     catch( const ExtRemoteException &Ex ) {
@@ -148,17 +154,18 @@ std::pair<bool, std::string> WDbgArkProcess::GetProcessImageFileName(const ExtRe
     return std::make_pair(false, output_name);
 }
 
-unsigned __int64 WDbgArkProcess::GetProcessDataOffset(const ExtRemoteTyped &process) { return process.m_Offset; }
-
 bool WDbgArkProcess::FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info) {
     std::string compare_with = process_name;
     std::transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
 
-    for ( std::vector<ProcessInfo>::iterator it = m_process_list.begin(); it != m_process_list.end(); ++it ) {
-        if ( compare_with == (*it).image_file_name ) {
-            *info = *it;
-            return true;
-        }
+    std::vector<ProcessInfo>::iterator it =\
+        std::find_if(m_process_list.begin(),
+                     m_process_list.end(),
+                     [&compare_with](const ProcessInfo &proc_info) { return proc_info.image_file_name == compare_with; });
+
+    if ( it != m_process_list.end() ) {
+        *info = *it;
+        return true;
     }
 
     return false;

@@ -103,12 +103,12 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
 
     try {
         if ( m_minor_build < W8RTM_VER ) {
-            for ( std::vector<std::string>::iterator iter = callout_names.begin(); iter < callout_names.end(); ++iter ) {
+            for ( const std::string &callout_name : callout_names ) {
                 unsigned __int64 offset = 0;
 
-                if ( GetSymbolOffset((*iter).c_str(), true, &offset) ) {
+                if ( GetSymbolOffset(callout_name.c_str(), true, &offset) ) {
                     ExtRemoteData callout_routine(offset, m_PtrSize);
-                    display->AnalyzeAddressAsRoutine(callout_routine.GetPtr(), *iter, "");
+                    display->AnalyzeAddressAsRoutine(callout_routine.GetPtr(), callout_name, "");
                 }
             }
         } else {

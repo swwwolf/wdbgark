@@ -152,7 +152,7 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
 
     try {
         for ( int i = 0; i < 0x100; i++ ) {
-            ExtRemoteData pnp_table_entry_class(offset + i * size, sizeof(unsigned __int32));
+            ExtRemoteData pnp_table_entry_class(offset + i * size, static_cast<ULONG>(sizeof(unsigned __int32)));
 
             if ( pnp_table_entry_class.GetUlong() != i )    // check PnpControlClass
                 break;

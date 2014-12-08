@@ -21,6 +21,7 @@
 
 #include <string>
 #include <algorithm>
+#include <memory>
 
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
@@ -70,6 +71,16 @@ bool WDbgArk::Init() {
 
     m_is_cur_machine64 = IsCurMachine64();
 
+    InitCallbackCommands();
+    InitCalloutNames();
+    InitGDTSelectors();
+
+    m_inited = true;
+
+    return m_inited;
+}
+
+void WDbgArk::InitCallbackCommands(void) {
     // TODO(swwwolf): optimize by calculating offsets in constructor only once
     // init systemcb map
     SystemCbCommand command_info = { "nt!PspLoadImageNotifyRoutineCount", "nt!PspLoadImageNotifyRoutine", 0 };
@@ -158,9 +169,9 @@ bool WDbgArk::Init() {
     command_info.list_head_name = "nt!RtlpDebugPrintCallbackList";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     system_cb_commands["debugprint"] = command_info;
+}
 
-    command_info.offset_to_routine = 0;
-
+void WDbgArk::InitCalloutNames(void) {
     if ( m_minor_build < W8RTM_VER ) {
         callout_names.push_back("nt!PspW32ProcessCallout");
         callout_names.push_back("nt!PspW32ThreadCallout");
@@ -181,7 +192,9 @@ bool WDbgArk::Init() {
         callout_names.push_back("nt!IopWin32DataCollectionProcedureCallout");
         callout_names.push_back("nt!PopWin32InfoCallout");
     }
+}
 
+void WDbgArk::InitGDTSelectors(void) {
     if ( m_is_cur_machine64 ) {
         gdt_selectors.push_back(KGDT64_NULL);
         gdt_selectors.push_back(KGDT64_R0_CODE);
@@ -207,10 +220,6 @@ bool WDbgArk::Init() {
         gdt_selectors.push_back(KGDT_CODE16);
         gdt_selectors.push_back(KGDT_STACK16);
     }
-
-    m_inited = true;
-
-    return m_inited;
 }
 
 void WDbgArk::CheckSymbolsPath(void) {
@@ -221,7 +230,9 @@ void WDbgArk::CheckSymbolsPath(void) {
         std::unique_ptr<char[]> symbol_path_buffer(new (std::nothrow) char[buffer_size]);
 
         if ( symbol_path_buffer ) {
-            result = m_Symbols->GetSymbolPath(symbol_path_buffer.get(), buffer_size, reinterpret_cast<PULONG>(&buffer_size));
+            result = m_Symbols->GetSymbolPath(symbol_path_buffer.get(),
+                                              buffer_size,
+                                              reinterpret_cast<PULONG>(&buffer_size));
 
             if ( SUCCEEDED(result) ) {
                 std::string check_path = symbol_path_buffer.get();

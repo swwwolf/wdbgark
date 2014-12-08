@@ -55,8 +55,7 @@ class WDbgArk : public ExtExtension
     //////////////////////////////////////////////////////////////////////////
     // class typedefs
     //////////////////////////////////////////////////////////////////////////
-    typedef struct SystemCbCommandTag
-    {
+    typedef struct SystemCbCommandTag {
         std::string      list_count_name;
         std::string      list_head_name;
         unsigned __int32 offset_to_routine;
@@ -64,8 +63,7 @@ class WDbgArk : public ExtExtension
 
     typedef std::map<std::string, SystemCbCommand> callbacksInfo;
     //////////////////////////////////////////////////////////////////////////
-    typedef struct OutputWalkInfoTag
-    {
+    typedef struct OutputWalkInfoTag {
         unsigned __int64 routine_address;
         std::string      type;
         std::string      info;
@@ -75,9 +73,8 @@ class WDbgArk : public ExtExtension
     } OutputWalkInfo;
 
     typedef std::vector<OutputWalkInfo> walkresType;
-
-    typedef struct WalkCallbackContextTag
-    {
+    //////////////////////////////////////////////////////////////////////////
+    typedef struct WalkCallbackContextTag {
         std::string      type;
         std::string      list_head_name;
         walkresType*     output_list_pointer;
@@ -95,15 +92,15 @@ class WDbgArk : public ExtExtension
     typedef HRESULT (*pfn_device_node_walk_callback_routine)(WDbgArk* wdbg_ark_class,
                                                              ExtRemoteTyped &device_node,
                                                              void* context);
-    WDbgArk() :
-        m_inited(false),
-        m_is_cur_machine64(false),
-        m_platform_id(0),
-        m_major_build(0),
-        m_minor_build(0),
-        m_service_pack_number(0),
-        m_obj_helper(nullptr),
-        m_color_hack(nullptr) {
+    WDbgArk()
+        : m_inited(false),
+          m_is_cur_machine64(false),
+          m_platform_id(0),
+          m_major_build(0),
+          m_minor_build(0),
+          m_service_pack_number(0),
+          m_obj_helper(nullptr),
+          m_color_hack(nullptr) {
 
 #if defined(_DEBUG)
         _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
@@ -197,8 +194,6 @@ class WDbgArk : public ExtExtension
                              pfn_object_directory_walk_callback_routine callback);
 
  private:
-    #define MS_PUBLIC_SYMBOLS_SERVER "http://msdl.microsoft.com/download/symbols"
-
     callbacksInfo                 system_cb_commands;
     std::vector<std::string>      callout_names;
     std::vector<unsigned __int32> gdt_selectors;
@@ -239,7 +234,11 @@ class WDbgArk : public ExtExtension
     //////////////////////////////////////////////////////////////////////////
     // private inits
     //////////////////////////////////////////////////////////////////////////
+    #define MS_PUBLIC_SYMBOLS_SERVER "http://msdl.microsoft.com/download/symbols"
     void CheckSymbolsPath(void);
+    void InitCallbackCommands(void);
+    void InitCalloutNames(void);
+    void InitGDTSelectors(void);
 
     //////////////////////////////////////////////////////////////////////////
     // variables

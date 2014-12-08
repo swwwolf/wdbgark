@@ -50,7 +50,7 @@ IA64/ARM is unsupported (and will not).
 
 ## Sources and build
 
-Sources are organized as a Visual Studio 2012 solution, but it's possible to build using BUILD (prior WDK 8.x).
+Sources are organized as a Visual Studio 2012 solution.
 
 ### Build using VS2012
 
@@ -69,9 +69,7 @@ _"copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$
 
 ### Build using BUILD
 
-* Choose and run build environment.
-* Go to the project directory.
-* build -cZg
+Depricated.
 
 ## Using
 

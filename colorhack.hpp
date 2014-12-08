@@ -39,11 +39,11 @@
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkColorHack {
  public:
-    WDbgArkColorHack() :
-        m_inited(false),
-        m_g_ui_colors(nullptr),
-        m_g_out_mask_ui_colors(nullptr),
-        tp(nullptr) { }
+    WDbgArkColorHack()
+        : m_inited(false),
+          m_g_ui_colors(nullptr),
+          m_g_out_mask_ui_colors(nullptr),
+          tp(nullptr) {}
 
     ~WDbgArkColorHack() {
         m_g_out_mask_ui_colors = nullptr;
@@ -86,9 +86,8 @@ class WDbgArkColorHack {
         COLORREF    orig_int_color;
         COLORREF    new_int_color;
     } InternalUiColor;
-    //////////////////////////////////////////////////////////////////////////
+
     typedef std::vector<InternalUiColor> vecUiColor;
-    typedef std::pair<bool, vecUiColor::iterator> boolIntUiColorIter;
     //////////////////////////////////////////////////////////////////////////
     typedef std::pair<std::string, COLORREF> theme_elem;
     typedef std::vector<theme_elem> theme_elems;
@@ -107,11 +106,10 @@ class WDbgArkColorHack {
     std::string                             m_cur_theme;
     themes                                  m_themes;
 
-    void               PrintMemoryInfo(void);
-    void               InitThemes(void);
-    bool               SetColor(const std::string &dml_name, const COLORREF color);
-    InternalUiColor    ConvertUiColorToInternal(UiColor* ui_color, const UiColorType ui_color_type);
-    boolIntUiColorIter FindIntUiColor(const std::string &dml_name);
+    void            PrintMemoryInfo(void);
+    void            InitThemes(void);
+    bool            SetColor(const std::string &dml_name, const COLORREF color);
+    InternalUiColor ConvertUiColorToInternal(UiColor* ui_color, const UiColorType ui_color_type);
 
     //////////////////////////////////////////////////////////////////////////
     // output streams

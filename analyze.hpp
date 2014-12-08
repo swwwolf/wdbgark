@@ -52,14 +52,14 @@ class WDbgArkAnalyze
          AnalyzeTypeGDT
      };
 
-    WDbgArkAnalyze() :
-        m_inited(false),
-        m_owner_module_inited(false),
-        m_owner_module_start(0ULL),
-        m_owner_module_end(0ULL),
-        tp(nullptr) { }
+    WDbgArkAnalyze()
+        : m_inited(false),
+          m_owner_module_inited(false),
+          m_owner_module_start(0ULL),
+          m_owner_module_end(0ULL),
+          tp(nullptr) {}
 
-    ~WDbgArkAnalyze() { }
+    ~WDbgArkAnalyze() {}
 
     bool Init(std::ostream* output);
     bool Init(std::ostream* output, const AnalyzeTypeInit type);
