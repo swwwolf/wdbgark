@@ -17,8 +17,8 @@
 
 WDBGARK is an extension (dynamic library) for the [Microsoft Debugging Tools for Windows](http://msdn.microsoft.com/en-US/library/windows/hardware/ff551063).
 It main purpose is to view and analyze anomalies in Windows kernel using kernel debugger. It is possible to view various system callbacks,
-system tables, object types and so on. For more user-friendly view extension uses DML. For the most of the commands kernel-mode connection is required.
-It's also possible to use an extension with live kernel-mode debugging or with kernel-mode crash dump analysis (not all commands will work).
+system tables, object types and so on. For more user-friendly view extension uses DML. For the most of commands kernel-mode connection is required.
+You can use extension with live kernel-mode debugging or with kernel-mode crash dump analysis (some commands will not work).
 
 ## Supported commands
 
@@ -28,6 +28,7 @@ It's also possible to use an extension with live kernel-mode debugging or with k
 * !wa_objtypeidx
 * !wa_callouts
 * !wa_pnptable
+* !wa_crashdmpcall
 * !wa_ssdt
 * !wa_w32psdt
 * !wa_checkmsr
@@ -109,21 +110,22 @@ Extension DLL chain:
 ```
 kd> !wdbgark.help
 Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
-  !help          - Displays information on available extension commands
-  !wa_callouts   - Output kernel-mode win32k callouts
-  !wa_checkmsr   - Output system MSRs (live debug only!)
-  !wa_colorize   - Adjust WinDBG colors dynamically (prints info with no
-                   parameters)
-  !wa_gdt        - Output processors GDT
-  !wa_idt        - Output processors IDT
-  !wa_objtype    - Output kernel-mode object type(s)
-  !wa_objtypeidx - Output kernel-mode ObTypeIndexTable
-  !wa_pnptable   - Output kernel-mode nt!PlugPlayHandlerTable
-  !wa_scan       - Scan system (execute all commands)
-  !wa_ssdt       - Output the System Service Descriptor Table
-  !wa_systemcb   - Output kernel-mode registered callback(s)
-  !wa_ver        - Shows extension version number
-  !wa_w32psdt    - Output the Win32k Service Descriptor Table
+  !help            - Displays information on available extension commands
+  !wa_callouts     - Output kernel-mode win32k callouts
+  !wa_checkmsr     - Output system MSRs (live debug only!)
+  !wa_colorize     - Adjust WinDBG colors dynamically (prints info with no
+                     parameters)
+  !wa_crashdmpcall - Output kernel-mode nt!CrashdmpCallTable
+  !wa_gdt          - Output processors GDT
+  !wa_idt          - Output processors IDT
+  !wa_objtype      - Output kernel-mode object type(s)
+  !wa_objtypeidx   - Output kernel-mode ObTypeIndexTable
+  !wa_pnptable     - Output kernel-mode nt!PlugPlayHandlerTable
+  !wa_scan         - Scan system (execute all commands)
+  !wa_ssdt         - Output the System Service Descriptor Table
+  !wa_systemcb     - Output kernel-mode registered callback(s)
+  !wa_ver          - Shows extension version number
+  !wa_w32psdt      - Output the Win32k Service Descriptor Table
 !help <cmd> will give more information for a particular command
 ```
 

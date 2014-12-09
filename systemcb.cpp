@@ -34,6 +34,7 @@ thread
 registry
 bugcheck
 bugcheckreason
+bugcheckaddpages
 powersetting
 callbackdir
 shutdown
@@ -47,6 +48,9 @@ prioritycallback
 pnp
 lego
 debugprint
+alpcplog
+empcb
+ioperf
 
 Default: all of them
 
@@ -193,9 +197,9 @@ IopProfileNotifyList and IopDeviceClassNotifyList were replaced by PnpProfileNot
 EXT_COMMAND(wa_systemcb,
             "Output kernel-mode registered callback(s)",
             "{type;s;o;type,Callback type name:\n"\
-            "image, process, thread, registry, bugcheck, bugcheckreason, powersetting, callbackdir, shutdown, "\
+            "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, powersetting, callbackdir, shutdown, "\
             "shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, pnp, lego, "\
-            "debugprint}") {
+            "debugprint, alpcplog, empcb, ioperf}") {
     std::string type;
     walkresType output_list;
 
@@ -238,7 +242,6 @@ EXT_COMMAND(wa_systemcb,
                     out << ": " << std::hex << std::showbase << walk_info.list_head_offset;
 
                 out << endlout;
-
                 display->PrintHeader();
             }
 
@@ -279,7 +282,8 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                            citer->second.list_head_name,
                            citer->first,
                            output_list);
-    } else if ( citer->first == "bugcheck" || citer->first == "bugcheckreason" ) {
+    } else if ( citer->first == "bugcheck" || citer->first == "bugcheckreason" ||
+              (citer->first == "bugcheckaddpages" && m_minor_build >= VISTA_SP1_VER) ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        0ULL,
                                        0,
@@ -359,6 +363,33 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                            "",
                                            output_list);
         }
+    } else if ( citer->first == "alpcplog" && m_minor_build >= VISTA_RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       0ULL,
+                                       0,
+                                       true,
+                                       citer->second.offset_to_routine,
+                                       citer->first,
+                                       "",
+                                       output_list);
+    } else if ( citer->first == "empcb" && m_minor_build >= VISTA_RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       0ULL,
+                                       GetEmpCallbackItemLinkOffset(),
+                                       true,
+                                       citer->second.offset_to_routine,
+                                       citer->first,
+                                       "",
+                                       output_list);
+    } else if ( citer->first == "ioperf" && m_minor_build >= W8RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       0ULL,
+                                       0,
+                                       true,
+                                       citer->second.offset_to_routine,
+                                       citer->first,
+                                       "",
+                                       output_list);
     }
 }
 
@@ -419,8 +450,8 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
 //
 // http://redplait.blogspot.ru/2010/08/cmregistercallbackex-on-vista.html
 //
-unsigned __int32 WDbgArk::GetCmCallbackItemFunctionOffset() {
-    if ( IsCurMachine32() )
+unsigned __int32 WDbgArk::GetCmCallbackItemFunctionOffset() const {
+    if ( !m_is_cur_machine64 )
         return 0x1C;
 
     if ( m_minor_build >= VISTA_RTM_VER && m_minor_build < W7RTM_VER )
@@ -434,18 +465,28 @@ unsigned __int32 WDbgArk::GetCmCallbackItemFunctionOffset() {
 //
 // http://redplait.blogspot.ru/2012/10/poregisterpowersettingcallback-callbacks.html
 //
-unsigned __int32 WDbgArk::GetPowerCallbackItemFunctionOffset() {
-    if ( IsCurMachine32() )
+unsigned __int32 WDbgArk::GetPowerCallbackItemFunctionOffset() const {
+    if ( !m_is_cur_machine64 )
         return 0x28;
 
     return 0x40;
 }
 
-unsigned __int32 WDbgArk::GetPnpCallbackItemFunctionOffset() {
-    if ( IsCurMachine32() )
+unsigned __int32 WDbgArk::GetPnpCallbackItemFunctionOffset() const {
+    if ( !m_is_cur_machine64 )
         return 0x14;
 
     return 0x20;
+}
+
+//
+// http://redplait.blogspot.ru/2012/09/emproviderregisterempproviderregister.html
+//
+unsigned __int32 WDbgArk::GetEmpCallbackItemLinkOffset() const {
+    if ( !m_is_cur_machine64 )
+        return 0x1C;
+
+    return 0x28;
 }
 
 void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType &output_list) {

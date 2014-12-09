@@ -26,3 +26,4 @@ EXPORTS
 	wa_idt
 	wa_gdt
 	wa_colorize
+	wa_crashdmpcall

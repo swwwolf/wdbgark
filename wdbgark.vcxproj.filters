@@ -113,6 +113,9 @@
     <ClCompile Include="colorize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="crashdmpcall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="wdbgark.def">

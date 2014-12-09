@@ -93,6 +93,11 @@ void WDbgArk::InitCallbackCommands(void) {
     system_cb_commands["bugcheckreason"] = command_info;
 
     command_info.list_count_name = "";
+    command_info.list_head_name = "nt!KeBugCheckAddPagesCallbackListHead";
+    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
+    system_cb_commands["bugcheckaddpages"] = command_info;
+
+    command_info.list_count_name = "";
     command_info.list_head_name = "nt!PopRegisteredPowerSettingCallbacks";
     command_info.offset_to_routine = GetPowerCallbackItemFunctionOffset();
     system_cb_commands["powersetting"] = command_info;
@@ -152,6 +157,21 @@ void WDbgArk::InitCallbackCommands(void) {
     command_info.list_head_name = "nt!RtlpDebugPrintCallbackList";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     system_cb_commands["debugprint"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!AlpcpLogCallbackListHead";
+    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
+    system_cb_commands["alpcplog"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!EmpCallbackListHead";
+    command_info.offset_to_routine = GetTypeSize("nt!_GUID");
+    system_cb_commands["empcb"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!IopPerfIoTrackingListHead";
+    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
+    system_cb_commands["ioperf"] = command_info;
 }
 
 void WDbgArk::InitCalloutNames(void) {

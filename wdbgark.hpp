@@ -61,7 +61,7 @@ class WDbgArk : public ExtExtension
         unsigned __int32 offset_to_routine;
     } SystemCbCommand;
 
-    typedef std::map<std::string, SystemCbCommand> callbacksInfo;
+    typedef std::unordered_map<std::string, SystemCbCommand> callbacksInfo;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
         unsigned __int64 routine_address;
@@ -137,6 +137,7 @@ class WDbgArk : public ExtExtension
     EXT_COMMAND_METHOD(wa_idt);
     EXT_COMMAND_METHOD(wa_gdt);
     EXT_COMMAND_METHOD(wa_colorize);
+    EXT_COMMAND_METHOD(wa_crashdmpcall);
 
     //////////////////////////////////////////////////////////////////////////
     // init
@@ -194,10 +195,6 @@ class WDbgArk : public ExtExtension
                              pfn_object_directory_walk_callback_routine callback);
 
  private:
-    callbacksInfo                 system_cb_commands;
-    std::vector<std::string>      callout_names;
-    std::vector<unsigned __int32> gdt_selectors;
-
     //////////////////////////////////////////////////////////////////////////
     // callback routines
     //////////////////////////////////////////////////////////////////////////
@@ -220,9 +217,10 @@ class WDbgArk : public ExtExtension
     //////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////
-    unsigned __int32 GetCmCallbackItemFunctionOffset();
-    unsigned __int32 GetPowerCallbackItemFunctionOffset();
-    unsigned __int32 GetPnpCallbackItemFunctionOffset();
+    unsigned __int32 GetCmCallbackItemFunctionOffset() const;
+    unsigned __int32 GetPowerCallbackItemFunctionOffset() const;
+    unsigned __int32 GetPnpCallbackItemFunctionOffset() const;
+    unsigned __int32 GetEmpCallbackItemLinkOffset() const;
 
     std::string get_service_table_routine_name_internal(const unsigned __int32 index,
                                                         const unsigned __int32 max_count,
@@ -242,6 +240,10 @@ class WDbgArk : public ExtExtension
     //////////////////////////////////////////////////////////////////////////
     // variables
     //////////////////////////////////////////////////////////////////////////
+    callbacksInfo                 system_cb_commands;
+    std::vector<std::string>      callout_names;
+    std::vector<unsigned __int32> gdt_selectors;
+
     bool             m_inited;
     bool             m_is_cur_machine64;
     unsigned __int32 m_platform_id;
