@@ -246,15 +246,21 @@ void WDbgArkAnalyze::AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
                 if ( selector == KGDT64_SYS_TSS )
                     addr_ext << "</exec>";
             } else {
-                if ( selector == KGDT_TSS || selector == KGDT_DF_TSS || selector == KGDT_NMI_TSS || selector == KGDT_R0_PCR )
-                    addr_ext << "</exec>";
+                if ( selector == KGDT_TSS ||
+                     selector == KGDT_DF_TSS ||
+                     selector == KGDT_NMI_TSS ||
+                     selector == KGDT_R0_PCR ) {
+                     addr_ext << "</exec>";
+                }
             }
         }
 
         std::stringstream selector_ext;
         selector_ext << std::hex << std::showbase << selector;
 
-        *tp << addr_ext.str() << limit << cpu_idx << selector_ext.str() << GetGDTSelectorName(selector) << "type" << additional_info;
+        *tp << addr_ext.str() << limit << cpu_idx << selector_ext.str();
+        *tp << GetGDTSelectorName(selector) << "type" << additional_info;
+
         tp->flush_out();
     }
     catch( const ExtRemoteException &Ex ) {
@@ -384,11 +390,6 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
             buf2.reset(new char[len2+1]);
             buf3.reset(new char[len3+1]);
 
-            if ( !buf1 || !buf2 || !buf3 ) {
-                ignore_output.Stop();
-                return E_OUTOFMEMORY;
-            }
-
             ZeroMemory(buf1.get(), len1 + 1);
             ZeroMemory(buf2.get(), len2 + 1);
             ZeroMemory(buf3.get(), len3 + 1);
@@ -423,10 +424,9 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
 }
 
 std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned __int64 address) {
-    std::string       output_name      = "";
+    std::string       output_name      = "*UNKNOWN*";
     unsigned __int32  name_buffer_size = 0;
     unsigned __int64  displacement     = 0;
-    std::stringstream stream_name;
     ExtCaptureOutputA ignore_output;
 
     if ( !address )
@@ -443,9 +443,6 @@ std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned _
     if ( SUCCEEDED(result) && name_buffer_size ) {
         std::unique_ptr<char[]> tmp_name(new char[name_buffer_size + 1]);
 
-        if ( !tmp_name )
-            return std::make_pair(E_OUTOFMEMORY, output_name);
-
         ZeroMemory(tmp_name.get(), name_buffer_size + 1);
 
         ignore_output.Start();
@@ -453,6 +450,8 @@ std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned _
         ignore_output.Stop();
 
         if ( SUCCEEDED(result) ) {
+            std::stringstream stream_name;
+
             stream_name << tmp_name.get();
 
             if ( displacement )

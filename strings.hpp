@@ -64,17 +64,14 @@ static std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemo
 
         if ( maxlen >= sizeof(wchar_t) && (maxlen % sizeof(wchar_t) == 0) ) {
             unsigned short max_len_wide = maxlen / sizeof(wchar_t) + 1;
-            wchar_t* test_name = new wchar_t[max_len_wide];
+            std::unique_ptr<wchar_t[]> test_name(new wchar_t[max_len_wide]);
 
-            ZeroMemory(test_name, max_len_wide * sizeof(wchar_t));
-            unsigned __int32 read = buffer.ReadBuffer(test_name, maxlen, true);
+            ZeroMemory(test_name.get(), max_len_wide * sizeof(wchar_t));
+            unsigned __int32 read = buffer.ReadBuffer(test_name.get(), maxlen, true);
 
-            if ( read == maxlen ) {
-                std::wstring wide_string_name(test_name);
-                output_string = wstring_to_string(wide_string_name);
-            }
+            if ( read == maxlen )
+                output_string = wstring_to_string(test_name.get());
 
-            delete[] test_name;
             return std::make_pair(S_OK, output_string);
         }
     }

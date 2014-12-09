@@ -165,6 +165,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
                                             false,
                                             NULL,
                                             NULL);
+
                 return std::make_pair(S_OK, object_header_name_info);
             }
         } else {

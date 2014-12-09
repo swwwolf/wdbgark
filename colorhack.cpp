@@ -145,7 +145,7 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
                                        m_g_ui_colors(nullptr),
                                        m_g_out_mask_ui_colors(nullptr),
                                        tp(nullptr) {
-    tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&out));
+    tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
 
     tp->AddColumn("DML name", 15);
     tp->AddColumn("Description", 70);

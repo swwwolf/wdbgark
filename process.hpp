@@ -40,26 +40,18 @@
 class WDbgArkProcess
 {
  public:
-
-    //////////////////////////////////////////////////////////////////////////
-    // class typedefs
-    //////////////////////////////////////////////////////////////////////////
-    typedef struct ProcessInfoTag
-    {
-        ExtRemoteTyped   process;
-        unsigned __int64 eprocess;
-        std::string      image_file_name;
-    } ProcessInfo;
-
     WDbgArkProcess();
 
     ~WDbgArkProcess() {
         try {
             m_process_list.clear();
 
-            if ( m_current_process )
+            if ( m_current_process ) {
                 if ( !SUCCEEDED(g_Ext->m_System2->SetImplicitProcessDataOffset(m_current_process)) )
                     err << __FUNCTION__ << ": failed to revert" << endlerr;
+
+                m_current_process = 0ULL;
+            }
         }
         catch( ... ) {}
     }
@@ -71,6 +63,12 @@ class WDbgArkProcess
     HRESULT          SetImplicitProcess(const unsigned __int64 set_eprocess);
     
  private:
+     typedef struct ProcessInfoTag
+     {
+         ExtRemoteTyped   process;
+         unsigned __int64 eprocess;
+         std::string      image_file_name;
+     } ProcessInfo;
 
     std::pair<bool, std::string> GetProcessImageFileName(const ExtRemoteTyped &process);
     unsigned __int64             GetProcessDataOffset(const ExtRemoteTyped &process) { return process.m_Offset; }

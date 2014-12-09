@@ -111,8 +111,8 @@ HRESULT WDbgArkProcess::SetImplicitProcess(const unsigned __int64 set_eprocess) 
         return E_UNEXPECTED;
     }
 
-    if ( !set_eprocess ) {
-        err << __FUNCTION__ << ": invalid parameter" << endlerr;
+    if ( m_current_process ) {
+        err << __FUNCTION__ << ": implicit process already set" << endlerr;
         return E_INVALIDARG;
     }
 
@@ -121,8 +121,10 @@ HRESULT WDbgArkProcess::SetImplicitProcess(const unsigned __int64 set_eprocess) 
         return error;
     }
 
-    if ( m_current_process == set_eprocess )
+    if ( m_current_process == set_eprocess ) {
+        m_current_process = 0ULL;
         return S_OK;
+    }
 
     if ( !SUCCEEDED(error = g_Ext->m_System2->SetImplicitProcessDataOffset(set_eprocess)) ) {
         err << __FUNCTION__ << ": failed to set implicit process to ";

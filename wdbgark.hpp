@@ -227,7 +227,6 @@ class WDbgArk : public ExtExtension
     std::string get_service_table_routine_name_internal(const unsigned __int32 index,
                                                         const unsigned __int32 max_count,
                                                         const char** service_table) const;
-
     std::string get_service_table_routine_name(const ServiceTableType type, const unsigned __int32 index) const;
     std::string get_service_table_prefix_name(const ServiceTableType type) const;
 

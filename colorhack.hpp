@@ -81,9 +81,8 @@ class WDbgArkColorHack {
         COLORREF    orig_int_color;
         COLORREF    new_int_color;
     } InternalUiColor;
-
-    typedef std::vector<InternalUiColor> vecUiColor;
     //////////////////////////////////////////////////////////////////////////
+    typedef std::vector<InternalUiColor> vecUiColor;
     typedef std::pair<std::string, COLORREF> theme_elem;
     typedef std::vector<theme_elem> theme_elems;
     typedef std::unordered_map<std::string, theme_elems> themes;
@@ -112,6 +111,7 @@ class WDbgArkColorHack {
     std::stringstream out;
     std::stringstream warn;
     std::stringstream err;
+    std::stringstream bprinter_out;
 };
 
 #endif  // COLORHACK_HPP_

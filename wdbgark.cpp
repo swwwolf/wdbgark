@@ -212,23 +212,21 @@ void WDbgArk::CheckSymbolsPath(void) {
     if ( SUCCEEDED(result) && buffer_size ) {
         std::unique_ptr<char[]> symbol_path_buffer(new char[buffer_size]);
 
-        if ( symbol_path_buffer ) {
-            result = m_Symbols->GetSymbolPath(symbol_path_buffer.get(),
-                                              buffer_size,
-                                              reinterpret_cast<PULONG>(&buffer_size));
+        result = m_Symbols->GetSymbolPath(symbol_path_buffer.get(),
+                                          buffer_size,
+                                          reinterpret_cast<PULONG>(&buffer_size));
 
-            if ( SUCCEEDED(result) ) {
-                std::string check_path = symbol_path_buffer.get();
+        if ( SUCCEEDED(result) ) {
+            std::string check_path = symbol_path_buffer.get();
 
-                if ( check_path.empty() ) {
-                    warn << __FUNCTION__ << ": seems that your symbol path is empty. Be sure to fix it!" << endlwarn;
-                } else if ( check_path.find(MS_PUBLIC_SYMBOLS_SERVER) == std::string::npos ) {
-                    warn << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
-                    warn << "Be sure to include Microsoft Symbol Server (" << MS_PUBLIC_SYMBOLS_SERVER << ")" << endlwarn;
-                }
-            } else {
-                warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;
+            if ( check_path.empty() ) {
+                warn << __FUNCTION__ << ": seems that your symbol path is empty. Be sure to fix it!" << endlwarn;
+            } else if ( check_path.find(MS_PUBLIC_SYMBOLS_SERVER) == std::string::npos ) {
+                warn << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
+                warn << "Be sure to include Microsoft Symbol Server (" << MS_PUBLIC_SYMBOLS_SERVER << ")" << endlwarn;
             }
+        } else {
+            warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;
         }
     } else {
         warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;
