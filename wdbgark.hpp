@@ -100,7 +100,8 @@ class WDbgArk : public ExtExtension
           m_minor_build(0),
           m_service_pack_number(0),
           m_obj_helper(nullptr),
-          m_color_hack(nullptr) {
+          m_color_hack(nullptr),
+          m_dbgk_lkmd_callback_array(0) {
 
 #if defined(_DEBUG)
         _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
@@ -157,7 +158,11 @@ class WDbgArk : public ExtExtension
                                           walkresType &output_list);
 
     void WalkExCallbackList(const std::string &list_count_name,
+                            const unsigned __int64 offset_list_count,
+                            const unsigned __int32 routine_count,
                             const std::string &list_head_name,
+                            const unsigned __int64 offset_list_head,
+                            const unsigned __int32 array_distance,
                             const std::string &type,
                             walkresType &output_list);
 
@@ -221,6 +226,9 @@ class WDbgArk : public ExtExtension
     unsigned __int32 GetPowerCallbackItemFunctionOffset() const;
     unsigned __int32 GetPnpCallbackItemFunctionOffset() const;
     unsigned __int32 GetEmpCallbackItemLinkOffset() const;
+    unsigned __int32 GetDbgkLkmdCallbackCount() const { return 0x08; };
+    unsigned __int32 GetDbgkLkmdCallbackArrayDistance() const { return 2 * m_PtrSize; };
+    unsigned __int64 FindDbgkLkmdCallbackArray();
 
     std::string get_service_table_routine_name_internal(const unsigned __int32 index,
                                                         const unsigned __int32 max_count,
@@ -254,6 +262,7 @@ class WDbgArk : public ExtExtension
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
 
+    unsigned __int64 m_dbgk_lkmd_callback_array;
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////

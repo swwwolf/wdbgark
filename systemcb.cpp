@@ -51,6 +51,7 @@ debugprint
 alpcplog
 empcb
 ioperf
+dbgklkmd
 
 Default: all of them
 
@@ -199,7 +200,7 @@ EXT_COMMAND(wa_systemcb,
             "{type;s;o;type,Callback type name:\n"\
             "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, powersetting, callbackdir, shutdown, "\
             "shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, pnp, lego, "\
-            "debugprint, alpcplog, empcb, ioperf}") {
+            "debugprint, alpcplog, empcb, ioperf, dbgklkmd}") {
     std::string type;
     walkresType output_list;
 
@@ -264,7 +265,11 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
     if ( citer->first == "registry" ) {
         if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER ) {
             WalkExCallbackList(citer->second.list_count_name,
+                               0ULL,
+                               0,
                                citer->second.list_head_name,
+                               0ULL,
+                               m_PtrSize,
                                citer->first,
                                output_list);
         } else {
@@ -279,7 +284,11 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
         }
     } else if ( citer->first == "image" || citer->first == "process" || citer->first == "thread" ) {
         WalkExCallbackList(citer->second.list_count_name,
+                           0ULL,
+                           0,
                            citer->second.list_head_name,
+                           0ULL,
+                           m_PtrSize,
                            citer->first,
                            output_list);
     } else if ( citer->first == "bugcheck" || citer->first == "bugcheckreason" ||
@@ -343,7 +352,11 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        output_list);
     } else if ( citer->first == "prioritycallback" && m_minor_build >= W7RTM_VER ) {
         WalkExCallbackList(citer->second.list_count_name,
+                           0ULL,
+                           0,
                            citer->second.list_head_name,
+                           0ULL,
+                           m_PtrSize,
                            citer->first,
                            output_list);
     } else if ( citer->first == "pnp" ) {
@@ -390,33 +403,53 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        citer->first,
                                        "",
                                        output_list);
+    } else if ( citer->first == "dbgklkmd" && m_minor_build >= W7RTM_VER ) {
+        WalkExCallbackList("",
+                           0ULL,
+                           GetDbgkLkmdCallbackCount(),
+                           citer->second.list_head_name,
+                           m_dbgk_lkmd_callback_array,
+                           GetDbgkLkmdCallbackArrayDistance(),
+                           "dbgklkmd",
+                           output_list);
     }
 }
 
 void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
+                                 const unsigned __int64 offset_list_count,
+                                 const unsigned __int32 count,
                                  const std::string &list_head_name,
+                                 const unsigned __int64 offset_list_head,
+                                 const unsigned __int32 array_distance,
                                  const std::string &type,
                                  walkresType &output_list) {
-    unsigned __int64 offset = 0;
+    unsigned __int64 offset = offset_list_count;
+    unsigned __int32 rcount = count;
+    ExtRemoteData    routine_count;
 
     try {
-        if ( !GetSymbolOffset(list_count_name.c_str(), true, &offset) ) {
+        if ( !rcount && !offset && !GetSymbolOffset(list_count_name.c_str(), true, &offset) ) {
             err << __FUNCTION__ << ": failed to get " << list_count_name << endlerr;
             return;
         }
 
-        ExtRemoteData routine_count(offset, static_cast<unsigned __int32>(sizeof(unsigned __int32)));
+        if ( !rcount )
+            routine_count.Set(offset, static_cast<unsigned __int32>(sizeof(unsigned __int32)));
 
-        if ( !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
+        offset = offset_list_head;
+
+        if ( !offset && !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
             err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
             return;
         }
 
-        const unsigned __int64 list_head_offset = offset;
-        const unsigned __int32 rcount = routine_count.GetUlong();
+        const unsigned __int64 list_head_offset_out = offset;
+
+        if ( !rcount )
+            rcount = routine_count.GetUlong();
 
         for ( unsigned __int32 i = 0; i < rcount; i++ ) {
-            ExtRemoteData notify_routine_list(offset + i * m_PtrSize, m_PtrSize);
+            ExtRemoteData notify_routine_list(offset + i * array_distance, m_PtrSize);
 
             const unsigned __int64 ex_callback_fast_ref = notify_routine_list.GetPtr();
 
@@ -435,7 +468,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
                     info.info = "";
                     info.list_head_name = list_head_name;
                     info.object_offset = 0ULL;
-                    info.list_head_offset = list_head_offset;
+                    info.list_head_offset = list_head_offset_out;
 
                     output_list.push_back(info);
                 }

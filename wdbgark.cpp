@@ -58,6 +58,8 @@ bool WDbgArk::Init() {
     InitCalloutNames();
     InitGDTSelectors();
 
+    m_dbgk_lkmd_callback_array = FindDbgkLkmdCallbackArray();
+
     m_inited = true;
 
     return m_inited;
@@ -172,6 +174,11 @@ void WDbgArk::InitCallbackCommands(void) {
     command_info.list_head_name = "nt!IopPerfIoTrackingListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     system_cb_commands["ioperf"] = command_info;
+
+    command_info.list_count_name = "";
+    command_info.list_head_name = "nt!DbgkLkmdRegisterCallback array";
+    command_info.offset_to_routine = 0;
+    system_cb_commands["dbgklkmd"] = command_info;
 }
 
 void WDbgArk::InitCalloutNames(void) {
@@ -447,4 +454,109 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
     catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
+}
+
+// TODO(swwwolf): get human disassembler, not this piece of shit with strings
+unsigned __int64 WDbgArk::FindDbgkLkmdCallbackArray() {
+    #define MAX_INSN_LENGTH 15
+
+    unsigned __int64 offset      = 0;
+    unsigned __int64 ret_address = 0;
+
+    if ( !GetSymbolOffset("nt!DbgkLkmdUnregisterCallback", true, &offset) ) {
+        err << __FUNCTION__ << ": can't find nt!DbgkLkmdUnregisterCallback" << endlerr;
+        return 0ULL;
+    }
+
+    unsigned __int64 cur_pointer = offset;
+    unsigned __int64 end         = cur_pointer + MAX_INSN_LENGTH * 20;
+
+    std::unique_ptr<char[]> disasm_buf(new char[0x100]);
+
+    unsigned __int32 asm_options;
+    if ( !SUCCEEDED(m_Control3->GetAssemblyOptions(reinterpret_cast<PULONG>(&asm_options))) )
+        warn << __FUNCTION__ << ": failed to get assembly options" << endlwarn;
+
+    if ( !SUCCEEDED(m_Control3->SetAssemblyOptions(DEBUG_ASMOPT_NO_CODE_BYTES)) )
+        warn << __FUNCTION__ << ": failed to set assembly options" << endlwarn;
+
+    HRESULT disasm_result;
+
+    while ( cur_pointer < end ) {
+        disasm_result = m_Control->Disassemble(cur_pointer,
+                                               0,
+                                               disasm_buf.get(),
+                                               0x100,
+                                               nullptr,
+                                               &cur_pointer);
+
+        if ( !SUCCEEDED(disasm_result) ) {
+            err << __FUNCTION__ " : disassembly failed at " << std::hex << std::showbase << cur_pointer << endlerr;
+            break;
+        }
+
+        std::string disasm   = disasm_buf.get();
+        size_t      posstart = 0;
+        size_t      posend   = 0;
+        size_t      pos      = 0;
+
+        // TODO(swwwolf): regexp?
+        if ( m_is_cur_machine64 ) {
+            pos = disasm.find("lea", 0);
+
+            if ( pos == std::string::npos )
+                continue;
+
+            pos = disasm.find(",[", pos);
+
+            if ( pos == std::string::npos )
+                continue;
+
+            posstart = disasm.find("(", pos);
+
+            if ( posstart == std::string::npos )
+                continue;
+
+            posend = disasm.find(")", posstart);
+
+            if ( posstart == std::string::npos )
+                continue;
+        } else {
+            pos = disasm.find("mov", 0);
+
+            if ( pos == std::string::npos )
+                continue;
+
+            pos = disasm.find(",offset", pos);
+
+            if ( pos == std::string::npos )
+                continue;
+
+            posstart = disasm.find("(", pos);
+
+            if ( posstart == std::string::npos )
+                continue;
+
+            posend = disasm.find(")", posstart);
+
+            if ( posstart == std::string::npos )
+                continue;
+        }
+
+        std::string string_value(disasm.substr(posstart + 1, posend - posstart - 1));
+
+        try {
+            ret_address = g_Ext->EvalExprU64(string_value.c_str());
+        }
+        catch ( const ExtStatusException &Ex ) {
+            err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        }
+
+        break;
+    }
+
+    if ( !SUCCEEDED(m_Control3->SetAssemblyOptions(asm_options)) )
+        warn << __FUNCTION__ << ": failed to set assembly options" << endlwarn;
+
+    return ret_address;
 }
