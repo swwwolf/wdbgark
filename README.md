@@ -23,19 +23,19 @@ Public symbols are required, so use them, force to reload them, ignore checksum 
 
 ## Supported commands
 
-* !wa_scan
-* !wa_systemcb
-* !wa_objtype
-* !wa_objtypeidx
-* !wa_callouts
-* !wa_pnptable
-* !wa_crashdmpcall
-* !wa_ssdt
-* !wa_w32psdt
-* !wa_checkmsr
-* !wa_idt
-* !wa_gdt
-* !wa_colorize
+* [!wa_scan](https://github.com/swwwolf/wdbgark/wiki/!wa_scan)
+* [!wa_systemcb](https://github.com/swwwolf/wdbgark/wiki/!wa_systemcb)
+* [!wa_objtype](https://github.com/swwwolf/wdbgark/wiki/!wa_objtype)
+* [!wa_objtypeidx](https://github.com/swwwolf/wdbgark/wiki/!wa_objtypeidx)
+* [!wa_callouts](https://github.com/swwwolf/wdbgark/wiki/!wa_callouts)
+* [!wa_pnptable](https://github.com/swwwolf/wdbgark/wiki/!wa_pnptable)
+* [!wa_crashdmpcall](https://github.com/swwwolf/wdbgark/wiki/!wa_crashdmpcall)
+* [!wa_ssdt](https://github.com/swwwolf/wdbgark/wiki/!wa_ssdt)
+* [!wa_w32psdt](https://github.com/swwwolf/wdbgark/wiki/!wa_w32psdt)
+* [!wa_checkmsr](https://github.com/swwwolf/wdbgark/wiki/!wa_checkmsr)
+* [!wa_idt](https://github.com/swwwolf/wdbgark/wiki/!wa_idt)
+* [!wa_gdt](https://github.com/swwwolf/wdbgark/wiki/!wa_gdt)
+* [!wa_colorize](https://github.com/swwwolf/wdbgark/wiki/!wa_colorize)
 
 ## Supported targets
 

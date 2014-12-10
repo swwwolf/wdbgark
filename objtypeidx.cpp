@@ -24,7 +24,7 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_objtypeidx, "Output kernel-mode ObTypeIndexTable", "") {
+EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
     RequireKernelMode();
 
     if ( !Init() )
