@@ -586,7 +586,9 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 } else if ( !m_is_cur_machine64 && vector_to_interrupt_object ) {    // x86 Windows 8.1+
                     if ( j >= PRIMARY_VECTOR_BASE ) {
                         ExtRemoteTyped vector_to_interrupt = pcr.Field("PrcbData.VectorToInterruptObject");
-                        ExtRemoteTyped tmp_interrupt = *vector_to_interrupt[static_cast<ULONG>(j - PRIMARY_VECTOR_BASE)];
+
+                        ExtRemoteTyped tmp_interrupt =\
+                            *vector_to_interrupt[static_cast<ULONG>(j - PRIMARY_VECTOR_BASE)];
 
                         if ( tmp_interrupt.m_Offset ) {
                             interrupt = tmp_interrupt;

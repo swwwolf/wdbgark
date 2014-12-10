@@ -198,9 +198,9 @@ IopProfileNotifyList and IopDeviceClassNotifyList were replaced by PnpProfileNot
 EXT_COMMAND(wa_systemcb,
             "Output kernel-mode registered callback(s)",
             "{type;s;o;type,Callback type name:\n"\
-            "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, powersetting, callbackdir, shutdown, "\
-            "shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, pnp, lego, "\
-            "debugprint, alpcplog, empcb, ioperf, dbgklkmd}") {
+            "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, powersetting, callbackdir, "\
+            "shutdown, shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, "\
+            "pnp, lego, debugprint, alpcplog, empcb, ioperf, dbgklkmd}") {
     std::string type;
     walkresType output_list;
 

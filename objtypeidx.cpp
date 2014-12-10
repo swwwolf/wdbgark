@@ -60,8 +60,9 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode ObTypeIndexTable", "") {
             if ( object_type_ptr.GetPtr() ) {
                 ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object_type_ptr.GetPtr(), false, NULL, NULL);
 
-                if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
-                    break;
+                if ( !SUCCEEDED(DirectoryObjectTypeCallback(this,
+                                                            object_type,
+                                                            reinterpret_cast<void*>(display.get()))) ) break;
             } else {
                 break;
             }
