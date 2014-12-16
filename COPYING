@@ -1,4 +1,25 @@
-GNU GENERAL PUBLIC LICENSE
+-------------------------------------------------------------------
+					LINKING EXCEPTION
+
+	Linking this extension statically or dynamically with other
+modules is making a combined work based on this extension. Thus,
+the terms and conditions of the GNU General Public License cover
+the whole combination.
+
+	As a special exception, the copyright holders of this extension
+give you permission to link this extension with independent modules
+to produce an executable, regardless of the license terms of these
+independent modules, and to copy and distribute the resulting
+executable under terms of your choice, provided that you also meet,
+for each linked independent module, the terms and conditions of the
+license of that module. An independent module is a module which is
+not derived from or based on this extension. If you modify this
+extension, you may extend this exception to your version of the
+extension, but you are not obliged to do so. If you do not wish to do
+so, delete this exception statement from your version.
+-------------------------------------------------------------------
+
+					GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
