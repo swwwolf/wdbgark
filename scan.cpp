@@ -32,11 +32,11 @@ EXT_COMMAND(wa_scan,
             /*"{colorize;b;o;colorize,Use default theme}"*/) {
     RequireKernelMode();
 
-    if ( !Init() )
-        throw ExtStatusException(S_OK, "global init failed");
-
     if ( HasArg("reload") )
         m_Symbols->Reload("/f /n");
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
 
     if ( HasArg("log") )
         Execute(".logopen /t %s", GetArgStr("log"));

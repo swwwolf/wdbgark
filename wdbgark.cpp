@@ -49,7 +49,7 @@ bool WDbgArk::Init() {
                                                  0,
                                                  NULL);
 
-    if ( !SUCCEEDED( result ) )
+    if ( !SUCCEEDED(result) )
         warn << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlwarn;
 
     m_is_cur_machine64 = IsCurMachine64();
@@ -58,7 +58,8 @@ bool WDbgArk::Init() {
     InitCalloutNames();
     InitGDTSelectors();
 
-    m_dbgk_lkmd_callback_array = FindDbgkLkmdCallbackArray();
+    if ( !FindDbgkLkmdCallbackArray() )
+        warn << __FUNCTION__ ": FindDbgkLkmdCallbackArray failed" << endlwarn;
 
     m_inited = true;
 
@@ -176,7 +177,7 @@ void WDbgArk::InitCallbackCommands(void) {
     system_cb_commands["ioperf"] = command_info;
 
     command_info.list_count_name = "";
-    command_info.list_head_name = "nt!DbgkLkmdRegisterCallback array";
+    command_info.list_head_name = "nt!DbgkLkmdCallbackArray";
     command_info.offset_to_routine = 0;
     system_cb_commands["dbgklkmd"] = command_info;
 }
@@ -457,15 +458,31 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
 }
 
 // TODO(swwwolf): get human disassembler, not this piece of shit with strings
-unsigned __int64 WDbgArk::FindDbgkLkmdCallbackArray() {
+bool WDbgArk::FindDbgkLkmdCallbackArray() {
     #define MAX_INSN_LENGTH 15
 
-    unsigned __int64 offset      = 0;
-    unsigned __int64 ret_address = 0;
+    unsigned __int64 offset = 0;
+    bool             result = false;
+
+    if ( m_minor_build < W7RTM_VER ) {
+        out << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        return false;
+    }
+
+    if ( GetSymbolOffset("nt!DbgkLkmdCallbackArray", true, &offset) )
+        return true;
 
     if ( !GetSymbolOffset("nt!DbgkLkmdUnregisterCallback", true, &offset) ) {
         err << __FUNCTION__ << ": can't find nt!DbgkLkmdUnregisterCallback" << endlerr;
-        return 0ULL;
+        return false;
+    }
+
+    try {
+        ExtRemoteData test_offset(offset, m_PtrSize);
+    }
+    catch( const ExtRemoteException &Ex ) {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        return false;
     }
 
     unsigned __int64 cur_pointer = offset;
@@ -474,6 +491,7 @@ unsigned __int64 WDbgArk::FindDbgkLkmdCallbackArray() {
     std::unique_ptr<char[]> disasm_buf(new char[0x100]);
 
     unsigned __int32 asm_options;
+
     if ( !SUCCEEDED(m_Control3->GetAssemblyOptions(reinterpret_cast<PULONG>(&asm_options))) )
         warn << __FUNCTION__ << ": failed to get assembly options" << endlwarn;
 
@@ -546,7 +564,19 @@ unsigned __int64 WDbgArk::FindDbgkLkmdCallbackArray() {
         std::string string_value(disasm.substr(posstart + 1, posend - posstart - 1));
 
         try {
-            ret_address = g_Ext->EvalExprU64(string_value.c_str());
+            unsigned __int64 ret_address = g_Ext->EvalExprU64(string_value.c_str());
+
+            // do not reload nt module after that
+            HRESULT hresult = g_Ext->m_Symbols3->AddSyntheticSymbol(ret_address,
+                                                                    m_PtrSize,
+                                                                    "DbgkLkmdCallbackArray",
+                                                                    DEBUG_ADDSYNTHSYM_DEFAULT,
+                                                                    NULL);
+
+            if ( !SUCCEEDED(hresult) )
+                err << __FUNCTION__ << ": failed to add synthetic symbol DbgkLkmdCallbackArray" << endlerr;
+            else
+                result = true;
         }
         catch ( const ExtStatusException &Ex ) {
             err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -558,5 +588,5 @@ unsigned __int64 WDbgArk::FindDbgkLkmdCallbackArray() {
     if ( !SUCCEEDED(m_Control3->SetAssemblyOptions(asm_options)) )
         warn << __FUNCTION__ << ": failed to set assembly options" << endlwarn;
 
-    return ret_address;
+    return result;
 }

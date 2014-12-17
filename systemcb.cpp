@@ -408,7 +408,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                            0ULL,
                            GetDbgkLkmdCallbackCount(),
                            citer->second.list_head_name,
-                           m_dbgk_lkmd_callback_array,
+                           0ULL,
                            GetDbgkLkmdCallbackArrayDistance(),
                            "dbgklkmd",
                            output_list);
