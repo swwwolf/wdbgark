@@ -138,6 +138,9 @@ A: Well, first is educational only. Second, for fun and profit.
 Q: Do you know about PyKd? I can script the whole Anti-Rootkit using Python.  
 A: Yeah, i know, but C++ is much better.  
 
+Q: Where is version 1.0?
+A: Lost in space of Google Code.
+
 ## Help
 
 [Wiki](https://github.com/swwwolf/wdbgark/wiki) can help.

@@ -126,7 +126,7 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     out << "Displaying nt!PlugPlayHandlerTable" << endlout;
 
     // PnpControlClass + Length + Routine
-    unsigned __int32 size   = sizeof( unsigned __int32 ) + sizeof( unsigned __int32 ) + m_PtrSize;
+    unsigned __int32 size   = sizeof(unsigned __int32) + sizeof(unsigned __int32) + m_PtrSize;
     unsigned __int64 offset = 0;
 
     if ( !GetSymbolOffset("nt!PlugPlayHandlerTable", true, &offset) ) {

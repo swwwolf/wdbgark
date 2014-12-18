@@ -85,60 +85,60 @@ void WDbgArk::InitCallbackCommands(void) {
     command_info.offset_to_routine = GetCmCallbackItemFunctionOffset();
     m_system_cb_commands["registry"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!KeBugCheckCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     m_system_cb_commands["bugcheck"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!KeBugCheckReasonCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     m_system_cb_commands["bugcheckreason"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!KeBugCheckAddPagesCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     m_system_cb_commands["bugcheckaddpages"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!PopRegisteredPowerSettingCallbacks";
     command_info.offset_to_routine = GetPowerCallbackItemFunctionOffset();
     m_system_cb_commands["powersetting"] = command_info;
 
-    command_info.list_count_name = "";
-    command_info.list_head_name = "";
+    command_info.list_count_name.clear();
+    command_info.list_head_name.clear();
     command_info.offset_to_routine = 0;
     m_system_cb_commands["callbackdir"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!IopNotifyShutdownQueueHead";
     m_system_cb_commands["shutdown"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!IopNotifyLastChanceShutdownQueueHead";
     m_system_cb_commands["shutdownlast"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!IopDriverReinitializeQueueHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
     m_system_cb_commands["drvreinit"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!IopBootDriverReinitializeQueueHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
     m_system_cb_commands["bootdrvreinit"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!IopFsNotifyChangeQueueHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
     m_system_cb_commands["fschange"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!KiNmiCallbackListHead";
     command_info.offset_to_routine = m_PtrSize;
     m_system_cb_commands["nmi"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!SeFileSystemNotifyRoutinesHead";
     command_info.offset_to_routine = m_PtrSize;
     m_system_cb_commands["logonsessionroutine"] = command_info;
@@ -148,35 +148,35 @@ void WDbgArk::InitCallbackCommands(void) {
     command_info.offset_to_routine = 0;
     m_system_cb_commands["prioritycallback"] = command_info;
 
-    command_info.list_count_name = "";
-    command_info.list_head_name = "";
+    command_info.list_count_name.clear();
+    command_info.list_head_name.clear();
     m_system_cb_commands["pnp"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!PspLegoNotifyRoutine";    // actually just a pointer
     m_system_cb_commands["lego"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!RtlpDebugPrintCallbackList";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     m_system_cb_commands["debugprint"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!AlpcpLogCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     m_system_cb_commands["alpcplog"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!EmpCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_GUID");
     m_system_cb_commands["empcb"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!IopPerfIoTrackingListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
     m_system_cb_commands["ioperf"] = command_info;
 
-    command_info.list_count_name = "";
+    command_info.list_count_name.clear();
     command_info.list_head_name = "nt!DbgkLkmdCallbackArray";
     command_info.offset_to_routine = 0;
     m_system_cb_commands["dbgklkmd"] = command_info;

@@ -412,7 +412,7 @@ void WDbgArkColorHack::RevertColors(void) {
         err << __FUNCTION__ << ": exception error" << endlerr;
     }
 
-    m_cur_theme = "";
+    m_cur_theme.clear();
 }
 
 bool WDbgArkColorHack::SetColor(const std::string &dml_name, const COLORREF color) {

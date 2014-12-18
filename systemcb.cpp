@@ -465,7 +465,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
 
                     info.routine_address = notify_routine;
                     info.type = type;
-                    info.info = "";
+                    info.info.clear();
                     info.list_head_name = list_head_name;
                     info.object_offset = 0ULL;
                     info.list_head_offset = list_head_offset_out;
