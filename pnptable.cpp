@@ -134,7 +134,7 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
         return;
     }
 
-    out << "[+] nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
+    out << "nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 

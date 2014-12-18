@@ -237,7 +237,7 @@ EXT_COMMAND(wa_systemcb,
 
         for ( const OutputWalkInfo &walk_info : output_list ) {
             if ( prev_list_head != walk_info.list_head_name ) {
-                out << "[+] " << walk_info.list_head_name;
+                out << walk_info.list_head_name;
 
                 if ( walk_info.list_head_offset )
                     out << ": " << std::hex << std::showbase << walk_info.list_head_offset;

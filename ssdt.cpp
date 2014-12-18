@@ -44,7 +44,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
             return;
         }
 
-        out << "[+] nt!KiServiceLimit: " << std::hex << std::showbase << offset << endlout;
+        out << "nt!KiServiceLimit: " << std::hex << std::showbase << offset << endlout;
 
         ExtRemoteData ki_service_limit(offset, sizeof(limit));
         limit = ki_service_limit.GetUlong();
@@ -54,14 +54,14 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
             return;
         }
 
-        out << "[+] ServiceLimit:      " << std::hex << std::showbase << limit << endlout;
+        out << "ServiceLimit:      " << std::hex << std::showbase << limit << endlout;
 
         if ( !GetSymbolOffset("nt!KiServiceTable", true, &offset) ) {
             err << __FUNCTION__ << ": failed to find nt!KiServiceTable" << endlerr;
             return;
         }
 
-        out << "[+] nt!KiServiceTable: " << std::hex << std::showbase << offset << endlout;
+        out << "nt!KiServiceTable: " << std::hex << std::showbase << offset << endlout;
     }
     catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -143,7 +143,7 @@ EXT_COMMAND(wa_w32psdt,
             return;
         }
 
-        out << "[+] win32k!W32pServiceLimit: " << std::hex << std::showbase << offset << endlout;
+        out << "win32k!W32pServiceLimit: " << std::hex << std::showbase << offset << endlout;
 
         ExtRemoteData w32_service_limit(offset, sizeof(limit));
         limit = w32_service_limit.GetUlong();
@@ -153,14 +153,14 @@ EXT_COMMAND(wa_w32psdt,
             return;
         }
 
-        out << "[+] ServiceLimit:            " << std::hex << std::showbase << limit << endlout;
+        out << "ServiceLimit:            " << std::hex << std::showbase << limit << endlout;
 
         if ( !GetSymbolOffset("win32k!W32pServiceTable", true, &offset) ) {
             err << __FUNCTION__ << ": failed to find win32k!W32pServiceTable" << endlerr;
             return;
         }
 
-        out << "[+] win32k!W32pServiceTable: " << std::hex << std::showbase << offset << endlout;
+        out << "win32k!W32pServiceTable: " << std::hex << std::showbase << offset << endlout;
     }
     catch ( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;

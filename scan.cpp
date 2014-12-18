@@ -44,15 +44,17 @@ EXT_COMMAND(wa_scan,
     out << "--------------------------------------------------------------------------" << endlout;
     out << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
 
-    char time_buffer[100];
+    char time_buffer[26];
     std::time_t time_result = std::time(nullptr);
 
     out << "Scan start: ";
 
-    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_result) )
+    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_result) ) {
+        time_buffer[24] = '\0';  // remove \n
         out << time_buffer;
-    else
-        out << endlout;
+    }
+
+    out << endlout;
 
     out << "--------------------------------------------------------------------------" << endlout;
     Execute("vertarget");
@@ -154,10 +156,12 @@ EXT_COMMAND(wa_scan,
     time_result = std::time(nullptr);
     out << "Scan end: ";
 
-    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_result) )
+    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_result) ) {
+        time_buffer[24] = '\0';  // remove \n
         out << time_buffer;
-    else
-        out << endlout;
+    }
+
+    out << endlout;
 
     out << "--------------------------------------------------------------------------" << endlout;
 

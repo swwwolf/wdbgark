@@ -44,7 +44,7 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
         return;
     }
 
-    out << "[+] nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
+    out << "nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 

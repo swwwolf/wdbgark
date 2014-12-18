@@ -49,7 +49,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
         return;
     }
 
-    out << "[+] nt!CrashdmpCallTable: " << std::hex << std::showbase << offset << endlout;
+    out << "nt!CrashdmpCallTable: " << std::hex << std::showbase << offset << endlout;
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
