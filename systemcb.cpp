@@ -219,15 +219,15 @@ EXT_COMMAND(wa_systemcb,
 
     try {
         if ( type.empty() ) {
-            for ( callbacksInfo::const_iterator citer = system_cb_commands.cbegin();
-                  citer != system_cb_commands.cend();
+            for ( callbacksInfo::const_iterator citer = m_system_cb_commands.cbegin();
+                  citer != m_system_cb_commands.cend();
                   ++citer ) {
                 CallCorrespondingWalkListRoutine(citer, output_list);
             }
         } else {
-            callbacksInfo::const_iterator citer = system_cb_commands.find(type);
+            callbacksInfo::const_iterator citer = m_system_cb_commands.find(type);
 
-            if ( citer != system_cb_commands.end() )
+            if ( citer != m_system_cb_commands.end() )
                 CallCorrespondingWalkListRoutine(citer, output_list);
             else
                 err << __FUNCTION__ << ": invalid type was specified" << endlerr;

@@ -786,7 +786,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                 gdt_entry_size = GetTypeSize("nt!_KGDTENTRY");
             }
 
-            for ( const unsigned __int32 gdt_selector : gdt_selectors ) {
+            for ( const unsigned __int32 gdt_selector : m_gdt_selectors ) {
                 std::stringstream processor_index;
                 std::stringstream info;
 

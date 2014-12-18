@@ -111,9 +111,12 @@ class WDbgArk : public ExtExtension
     }
 
     ~WDbgArk() {
-        system_cb_commands.clear();
-        callout_names.clear();
-        gdt_selectors.clear();
+        m_system_cb_commands.clear();
+        m_callout_names.clear();
+        m_gdt_selectors.clear();
+
+        RemoveSyntheticSymbols();
+        m_synthetic_symbols.clear();
 
 #if defined(_DEBUG)
         _CrtDumpMemoryLeaks();
@@ -243,14 +246,11 @@ class WDbgArk : public ExtExtension
     void InitCallbackCommands(void);
     void InitCalloutNames(void);
     void InitGDTSelectors(void);
+    void RemoveSyntheticSymbols(void);
 
     //////////////////////////////////////////////////////////////////////////
     // variables
     //////////////////////////////////////////////////////////////////////////
-    callbacksInfo                 system_cb_commands;
-    std::vector<std::string>      callout_names;
-    std::vector<unsigned __int32> gdt_selectors;
-
     bool             m_inited;
     bool             m_is_cur_machine64;
     unsigned __int32 m_platform_id;
@@ -258,6 +258,10 @@ class WDbgArk : public ExtExtension
     unsigned __int32 m_minor_build;
     unsigned __int32 m_service_pack_number;
 
+    callbacksInfo                     m_system_cb_commands;
+    std::vector<std::string>          m_callout_names;
+    std::vector<unsigned __int32>     m_gdt_selectors;
+    std::vector<DEBUG_MODULE_AND_ID>  m_synthetic_symbols;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
 

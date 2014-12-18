@@ -70,166 +70,166 @@ void WDbgArk::InitCallbackCommands(void) {
     // TODO(swwwolf): optimize by calculating offsets in constructor only once
     // init systemcb map
     SystemCbCommand command_info = { "nt!PspLoadImageNotifyRoutineCount", "nt!PspLoadImageNotifyRoutine", 0 };
-    system_cb_commands["image"] = command_info;
+    m_system_cb_commands["image"] = command_info;
 
     command_info.list_count_name = "nt!PspCreateProcessNotifyRoutineCount";
     command_info.list_head_name = "nt!PspCreateProcessNotifyRoutine";
-    system_cb_commands["process"] = command_info;
+    m_system_cb_commands["process"] = command_info;
 
     command_info.list_count_name = "nt!PspCreateThreadNotifyRoutineCount";
     command_info.list_head_name = "nt!PspCreateThreadNotifyRoutine";
-    system_cb_commands["thread"] = command_info;
+    m_system_cb_commands["thread"] = command_info;
 
     command_info.list_count_name = "nt!CmpCallBackCount";
     command_info.list_head_name = "nt!CmpCallBackVector";
     command_info.offset_to_routine = GetCmCallbackItemFunctionOffset();
-    system_cb_commands["registry"] = command_info;
+    m_system_cb_commands["registry"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!KeBugCheckCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    system_cb_commands["bugcheck"] = command_info;
+    m_system_cb_commands["bugcheck"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!KeBugCheckReasonCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    system_cb_commands["bugcheckreason"] = command_info;
+    m_system_cb_commands["bugcheckreason"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!KeBugCheckAddPagesCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    system_cb_commands["bugcheckaddpages"] = command_info;
+    m_system_cb_commands["bugcheckaddpages"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!PopRegisteredPowerSettingCallbacks";
     command_info.offset_to_routine = GetPowerCallbackItemFunctionOffset();
-    system_cb_commands["powersetting"] = command_info;
+    m_system_cb_commands["powersetting"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "";
     command_info.offset_to_routine = 0;
-    system_cb_commands["callbackdir"] = command_info;
+    m_system_cb_commands["callbackdir"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!IopNotifyShutdownQueueHead";
-    system_cb_commands["shutdown"] = command_info;
+    m_system_cb_commands["shutdown"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!IopNotifyLastChanceShutdownQueueHead";
-    system_cb_commands["shutdownlast"] = command_info;
+    m_system_cb_commands["shutdownlast"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!IopDriverReinitializeQueueHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
-    system_cb_commands["drvreinit"] = command_info;
+    m_system_cb_commands["drvreinit"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!IopBootDriverReinitializeQueueHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
-    system_cb_commands["bootdrvreinit"] = command_info;
+    m_system_cb_commands["bootdrvreinit"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!IopFsNotifyChangeQueueHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
-    system_cb_commands["fschange"] = command_info;
+    m_system_cb_commands["fschange"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!KiNmiCallbackListHead";
     command_info.offset_to_routine = m_PtrSize;
-    system_cb_commands["nmi"] = command_info;
+    m_system_cb_commands["nmi"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!SeFileSystemNotifyRoutinesHead";
     command_info.offset_to_routine = m_PtrSize;
-    system_cb_commands["logonsessionroutine"] = command_info;
+    m_system_cb_commands["logonsessionroutine"] = command_info;
 
     command_info.list_count_name = "nt!IopUpdatePriorityCallbackRoutineCount";
     command_info.list_head_name = "nt!IopUpdatePriorityCallbackRoutine";
     command_info.offset_to_routine = 0;
-    system_cb_commands["prioritycallback"] = command_info;
+    m_system_cb_commands["prioritycallback"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "";
-    system_cb_commands["pnp"] = command_info;
+    m_system_cb_commands["pnp"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!PspLegoNotifyRoutine";    // actually just a pointer
-    system_cb_commands["lego"] = command_info;
+    m_system_cb_commands["lego"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!RtlpDebugPrintCallbackList";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    system_cb_commands["debugprint"] = command_info;
+    m_system_cb_commands["debugprint"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!AlpcpLogCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    system_cb_commands["alpcplog"] = command_info;
+    m_system_cb_commands["alpcplog"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!EmpCallbackListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_GUID");
-    system_cb_commands["empcb"] = command_info;
+    m_system_cb_commands["empcb"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!IopPerfIoTrackingListHead";
     command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    system_cb_commands["ioperf"] = command_info;
+    m_system_cb_commands["ioperf"] = command_info;
 
     command_info.list_count_name = "";
     command_info.list_head_name = "nt!DbgkLkmdCallbackArray";
     command_info.offset_to_routine = 0;
-    system_cb_commands["dbgklkmd"] = command_info;
+    m_system_cb_commands["dbgklkmd"] = command_info;
 }
 
 void WDbgArk::InitCalloutNames(void) {
     if ( m_minor_build < W8RTM_VER ) {
-        callout_names.push_back("nt!PspW32ProcessCallout");
-        callout_names.push_back("nt!PspW32ThreadCallout");
-        callout_names.push_back("nt!ExGlobalAtomTableCallout");
-        callout_names.push_back("nt!KeGdiFlushUserBatch");
-        callout_names.push_back("nt!PopEventCallout");
-        callout_names.push_back("nt!PopStateCallout");
-        callout_names.push_back("nt!PspW32JobCallout");
-        callout_names.push_back("nt!ExDesktopOpenProcedureCallout");
-        callout_names.push_back("nt!ExDesktopOkToCloseProcedureCallout");
-        callout_names.push_back("nt!ExDesktopCloseProcedureCallout");
-        callout_names.push_back("nt!ExDesktopDeleteProcedureCallout");
-        callout_names.push_back("nt!ExWindowStationOkToCloseProcedureCallout");
-        callout_names.push_back("nt!ExWindowStationCloseProcedureCallout");
-        callout_names.push_back("nt!ExWindowStationDeleteProcedureCallout");
-        callout_names.push_back("nt!ExWindowStationParseProcedureCallout");
-        callout_names.push_back("nt!ExWindowStationOpenProcedureCallout");
-        callout_names.push_back("nt!IopWin32DataCollectionProcedureCallout");
-        callout_names.push_back("nt!PopWin32InfoCallout");
+        m_callout_names.push_back("nt!PspW32ProcessCallout");
+        m_callout_names.push_back("nt!PspW32ThreadCallout");
+        m_callout_names.push_back("nt!ExGlobalAtomTableCallout");
+        m_callout_names.push_back("nt!KeGdiFlushUserBatch");
+        m_callout_names.push_back("nt!PopEventCallout");
+        m_callout_names.push_back("nt!PopStateCallout");
+        m_callout_names.push_back("nt!PspW32JobCallout");
+        m_callout_names.push_back("nt!ExDesktopOpenProcedureCallout");
+        m_callout_names.push_back("nt!ExDesktopOkToCloseProcedureCallout");
+        m_callout_names.push_back("nt!ExDesktopCloseProcedureCallout");
+        m_callout_names.push_back("nt!ExDesktopDeleteProcedureCallout");
+        m_callout_names.push_back("nt!ExWindowStationOkToCloseProcedureCallout");
+        m_callout_names.push_back("nt!ExWindowStationCloseProcedureCallout");
+        m_callout_names.push_back("nt!ExWindowStationDeleteProcedureCallout");
+        m_callout_names.push_back("nt!ExWindowStationParseProcedureCallout");
+        m_callout_names.push_back("nt!ExWindowStationOpenProcedureCallout");
+        m_callout_names.push_back("nt!IopWin32DataCollectionProcedureCallout");
+        m_callout_names.push_back("nt!PopWin32InfoCallout");
     }
 }
 
 void WDbgArk::InitGDTSelectors(void) {
     if ( m_is_cur_machine64 ) {
-        gdt_selectors.push_back(KGDT64_NULL);
-        gdt_selectors.push_back(KGDT64_R0_CODE);
-        gdt_selectors.push_back(KGDT64_R0_DATA);
-        gdt_selectors.push_back(KGDT64_R3_CMCODE);
-        gdt_selectors.push_back(KGDT64_R3_DATA);
-        gdt_selectors.push_back(KGDT64_R3_CODE);
-        gdt_selectors.push_back(KGDT64_SYS_TSS);
-        gdt_selectors.push_back(KGDT64_R3_CMTEB);
+        m_gdt_selectors.push_back(KGDT64_NULL);
+        m_gdt_selectors.push_back(KGDT64_R0_CODE);
+        m_gdt_selectors.push_back(KGDT64_R0_DATA);
+        m_gdt_selectors.push_back(KGDT64_R3_CMCODE);
+        m_gdt_selectors.push_back(KGDT64_R3_DATA);
+        m_gdt_selectors.push_back(KGDT64_R3_CODE);
+        m_gdt_selectors.push_back(KGDT64_SYS_TSS);
+        m_gdt_selectors.push_back(KGDT64_R3_CMTEB);
     } else {
-        gdt_selectors.push_back(KGDT_R0_CODE);
-        gdt_selectors.push_back(KGDT_R0_DATA);
-        gdt_selectors.push_back(KGDT_R3_CODE);
-        gdt_selectors.push_back(KGDT_R3_DATA);
-        gdt_selectors.push_back(KGDT_TSS);
-        gdt_selectors.push_back(KGDT_R0_PCR);
-        gdt_selectors.push_back(KGDT_R3_TEB);
-        gdt_selectors.push_back(KGDT_LDT);
-        gdt_selectors.push_back(KGDT_DF_TSS);
-        gdt_selectors.push_back(KGDT_NMI_TSS);
-        gdt_selectors.push_back(KGDT_GDT_ALIAS);
-        gdt_selectors.push_back(KGDT_CDA16);
-        gdt_selectors.push_back(KGDT_CODE16);
-        gdt_selectors.push_back(KGDT_STACK16);
+        m_gdt_selectors.push_back(KGDT_R0_CODE);
+        m_gdt_selectors.push_back(KGDT_R0_DATA);
+        m_gdt_selectors.push_back(KGDT_R3_CODE);
+        m_gdt_selectors.push_back(KGDT_R3_DATA);
+        m_gdt_selectors.push_back(KGDT_TSS);
+        m_gdt_selectors.push_back(KGDT_R0_PCR);
+        m_gdt_selectors.push_back(KGDT_R3_TEB);
+        m_gdt_selectors.push_back(KGDT_LDT);
+        m_gdt_selectors.push_back(KGDT_DF_TSS);
+        m_gdt_selectors.push_back(KGDT_NMI_TSS);
+        m_gdt_selectors.push_back(KGDT_GDT_ALIAS);
+        m_gdt_selectors.push_back(KGDT_CDA16);
+        m_gdt_selectors.push_back(KGDT_CODE16);
+        m_gdt_selectors.push_back(KGDT_STACK16);
     }
 }
 
@@ -567,16 +567,20 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
             unsigned __int64 ret_address = g_Ext->EvalExprU64(string_value.c_str());
 
             // do not reload nt module after that
+            DEBUG_MODULE_AND_ID id;
+
             HRESULT hresult = g_Ext->m_Symbols3->AddSyntheticSymbol(ret_address,
                                                                     m_PtrSize,
                                                                     "DbgkLkmdCallbackArray",
                                                                     DEBUG_ADDSYNTHSYM_DEFAULT,
-                                                                    NULL);
+                                                                    &id);
 
-            if ( !SUCCEEDED(hresult) )
+            if ( !SUCCEEDED(hresult) ) {
                 err << __FUNCTION__ << ": failed to add synthetic symbol DbgkLkmdCallbackArray" << endlerr;
-            else
+            } else {
+                m_synthetic_symbols.push_back(id);
                 result = true;
+            }
         }
         catch ( const ExtStatusException &Ex ) {
             err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -589,4 +593,13 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
         warn << __FUNCTION__ << ": failed to set assembly options" << endlwarn;
 
     return result;
+}
+
+void WDbgArk::RemoveSyntheticSymbols(void) {
+    for ( DEBUG_MODULE_AND_ID id : m_synthetic_symbols ) {
+        if ( !SUCCEEDED(g_Ext->m_Symbols3->RemoveSyntheticSymbol(&id)) ) {
+            warn << __FUNCTION__ << ": failed to remove synthetic symbol ";
+            warn << std::hex << std::showbase << id.Id << endlwarn;
+        }
+    }
 }
