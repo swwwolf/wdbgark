@@ -62,6 +62,7 @@ Sources are organized as a Visual Studio 2012 solution.
     * DBGSDK_LIB_PATH = C:\WinDDK\8.1\Debuggers\lib
     * WDKDIR = C:\WinDDK\8.1
 * Select **Build -> Batch Build** from the menu and build dummypdb module (x86 and x64).
+![Batch Build](https://raw.githubusercontent.com/swwwolf/wdbgark/master/images/batch_build.png)
 * Choose solution configuration and platform for the main project.
 * Build.
 
