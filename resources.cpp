@@ -27,6 +27,7 @@
 #include "manipulators.hpp"
 
 WDbgArkResHelper::WDbgArkResHelper() {
+    m_temp_path.clear();
     m_main_subdir = "wdbgark";
 
     if ( g_Ext->IsCurMachine32() )
@@ -39,9 +40,20 @@ WDbgArkResHelper::WDbgArkResHelper() {
     if ( GetTempPath(MAX_PATH + 1, tmp_path.get()) ) {
         m_temp_path = tmp_path.get();
         m_temp_path += (m_main_subdir + "\\");
-        _mkdir(m_temp_path.c_str());
+
+        if ( _mkdir(m_temp_path.c_str()) != 0 && errno != EEXIST ) {
+            err << __FUNCTION__ << ": Failed to create directory " << m_temp_path << endlerr;
+            m_temp_path.clear();
+            return;
+        }
+
         m_temp_path += (m_platform_subdir + "\\");
-        _mkdir(m_temp_path.c_str());
+
+        if ( _mkdir(m_temp_path.c_str()) != 0 && errno != EEXIST ) {
+            err << __FUNCTION__ << ": Failed to create directory " << m_temp_path << endlerr;
+            m_temp_path.clear();
+            return;
+        }
     }
 }
 
