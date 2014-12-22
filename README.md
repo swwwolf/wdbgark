@@ -86,7 +86,7 @@ Depricated.
 * Start WinDBG.
 * [Setup](http://support.microsoft.com/kb/311503/en-us) WinDBG to use Microsoft Symbol Server correctly or deal with them manually.
 * Load extension by **.load wdbgark** (you can see loaded extensions with a **.chain** command).
-* Execute **!wdbgark.help** for help or **!wdbgark.wa_scan** for full system scan with symbols reloading.
+* Execute **!wdbgark.help** for help or **!wdbgark.wa_scan** for a full system scan.
 * Have fun!
 
 ```
