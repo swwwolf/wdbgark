@@ -61,7 +61,8 @@ Sources are organized as a Visual Studio 2012 solution.
     * DBGSDK_INC_PATH = C:\WinDDK\8.1\Debuggers\inc
     * DBGSDK_LIB_PATH = C:\WinDDK\8.1\Debuggers\lib
     * WDKDIR = C:\WinDDK\8.1
-* Choose solution configuration and platform.
+* Select **Build -> Batch Build** from the menu and build dummypdb module (x86 and x64).
+* Choose solution configuration and platform for the main project.
 * Build.
 
 #### NOTE!
@@ -84,7 +85,7 @@ Depricated.
 * Start WinDBG.
 * [Setup](http://support.microsoft.com/kb/311503/en-us) WinDBG to use Microsoft Symbol Server correctly or deal with them manually.
 * Load extension by **.load wdbgark** (you can see loaded extensions with a **.chain** command).
-* Execute **!wdbgark.help** for help or **!wdbgark.wa_scan /reload** for full system scan with symbols reloading.
+* Execute **!wdbgark.help** for help or **!wdbgark.wa_scan** for full system scan with symbols reloading.
 * Have fun!
 
 ```

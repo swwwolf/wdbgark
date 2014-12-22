@@ -13,9 +13,9 @@ EXPORTS
 ; Extension commands.
 ;--------------------------------------------------------------------
 
-    wa_ver
+	wa_ver
 	wa_scan
-    wa_systemcb
+	wa_systemcb
 	wa_objtype
 	wa_objtypeidx
 	wa_callouts

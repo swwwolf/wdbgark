@@ -767,8 +767,10 @@
 #define VK_NUMPAD8                      0x68
 #define LANG_HAUSA                      0x68
 #define VK_NUMPAD9                      0x69
+#define IDR_RT_RCDATA1                  105
 #define VK_MULTIPLY                     0x6A
 #define LANG_YORUBA                     0x6a
+#define IDR_RT_RCDATA2                  106
 #define VK_ADD                          0x6B
 #define LANG_QUECHUA                    0x6b
 #define VK_SEPARATOR                    0x6C
@@ -1512,8 +1514,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        101
-#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_RESOURCE_VALUE        107
+#define _APS_NEXT_COMMAND_VALUE         40002
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

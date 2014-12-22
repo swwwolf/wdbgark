@@ -57,6 +57,9 @@
     <ClInclude Include="strings.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resources.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wdbgark.cpp">
@@ -116,6 +119,9 @@
     <ClCompile Include="crashdmpcall.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="resources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="wdbgark.def">
@@ -127,6 +133,8 @@
     <None Include="COPYING">
       <Filter>Header Files\COPYING</Filter>
     </None>
+    <None Include="dummypdb_build\Release\dummypdb_x86.pdb" />
+    <None Include="dummypdb_build\x64\Release\dummypdb_x64.pdb" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wdbgark.rc">

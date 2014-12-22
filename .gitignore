@@ -21,6 +21,7 @@ coverity.cmd
 *.sln.ide/
 
 # Build results
+# wdbgark
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -31,6 +32,15 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+# dummypdb
+dummypdb/*[Dd]ebug/
+dummypdb/*[Rr]elease/
+dummypdb/x64/
+dummypdb/x86/
+dummypdb/build/
+dummypdb/bld/
+dummypdb/[Bb]in/
+dummypdb/[Oo]bj/
 
 # Roslyn cache directories
 *.ide/

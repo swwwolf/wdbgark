@@ -25,6 +25,7 @@
 
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
+#include "resources.hpp"
 
 EXT_DECLARE_GLOBALS();
 
@@ -32,7 +33,11 @@ bool WDbgArk::Init() {
     if ( IsInited() )
         return true;
 
-    CheckSymbolsPath();
+    if ( !CheckSymbolsPath(MS_PUBLIC_SYMBOLS_SERVER, true) )
+        warn << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
+
+    if ( !InitDummyPdbModule() )
+        warn << __FUNCTION__ ": InitDummyPdbModule failed" << endlwarn;
 
     m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new WDbgArkObjHelper);
     m_color_hack = std::unique_ptr<WDbgArkColorHack>(new WDbgArkColorHack);
@@ -233,32 +238,44 @@ void WDbgArk::InitGDTSelectors(void) {
     }
 }
 
-void WDbgArk::CheckSymbolsPath(void) {
+bool WDbgArk::CheckSymbolsPath(const std::string& test_path, const bool display_error) {
     unsigned __int32 buffer_size = 0;
-    HRESULT result = m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&buffer_size));
+    bool             result      = false;
 
-    if ( SUCCEEDED(result) && buffer_size ) {
-        std::unique_ptr<char[]> symbol_path_buffer(new char[buffer_size]);
+    HRESULT hresult = m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&buffer_size));
 
-        result = m_Symbols->GetSymbolPath(symbol_path_buffer.get(),
-                                          buffer_size,
-                                          reinterpret_cast<PULONG>(&buffer_size));
+    if ( !SUCCEEDED(hresult) ) {
+        err << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
+        return false;
+    }
 
-        if ( SUCCEEDED(result) ) {
-            std::string check_path = symbol_path_buffer.get();
+    std::unique_ptr<char[]> symbol_path_buffer(new char[buffer_size]);
 
-            if ( check_path.empty() ) {
-                warn << __FUNCTION__ << ": seems that your symbol path is empty. Be sure to fix it!" << endlwarn;
-            } else if ( check_path.find(MS_PUBLIC_SYMBOLS_SERVER) == std::string::npos ) {
-                warn << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
-                warn << "Be sure to include Microsoft Symbol Server (" << MS_PUBLIC_SYMBOLS_SERVER << ")" << endlwarn;
-            }
-        } else {
-            warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;
+    hresult = m_Symbols->GetSymbolPath(symbol_path_buffer.get(),
+                                       buffer_size,
+                                       reinterpret_cast<PULONG>(&buffer_size));
+
+    if ( !SUCCEEDED(hresult) ) {
+        err << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
+        return false;
+    }
+
+    std::string check_path = symbol_path_buffer.get();
+
+    if ( check_path.empty() || check_path == " " ) {
+        if ( display_error ) {
+            err << __FUNCTION__ << ": seems that your symbol path is empty. Fix it!" << endlerr;
+        }
+    } else if ( check_path.find(test_path) == std::string::npos ) {
+        if ( display_error ) {
+            warn << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
+            warn << "Include symbol path (" << test_path << ")" << endlwarn;
         }
     } else {
-        warn << __FUNCTION__ ": GetSymbolPath failed" << endlwarn;
+        result = true;
     }
+
+    return result;
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
@@ -498,15 +515,13 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
     if ( !SUCCEEDED(m_Control3->SetAssemblyOptions(DEBUG_ASMOPT_NO_CODE_BYTES)) )
         warn << __FUNCTION__ << ": failed to set assembly options" << endlwarn;
 
-    HRESULT disasm_result;
-
     while ( cur_pointer < end ) {
-        disasm_result = m_Control->Disassemble(cur_pointer,
-                                               0,
-                                               disasm_buf.get(),
-                                               0x100,
-                                               nullptr,
-                                               &cur_pointer);
+        HRESULT disasm_result = m_Control->Disassemble(cur_pointer,
+                                                       0,
+                                                       disasm_buf.get(),
+                                                       0x100,
+                                                       nullptr,
+                                                       &cur_pointer);
 
         if ( !SUCCEEDED(disasm_result) ) {
             err << __FUNCTION__ " : disassembly failed at " << std::hex << std::showbase << cur_pointer << endlerr;
@@ -569,11 +584,11 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
             // do not reload nt module after that
             DEBUG_MODULE_AND_ID id;
 
-            HRESULT hresult = g_Ext->m_Symbols3->AddSyntheticSymbol(ret_address,
-                                                                    m_PtrSize,
-                                                                    "DbgkLkmdCallbackArray",
-                                                                    DEBUG_ADDSYNTHSYM_DEFAULT,
-                                                                    &id);
+            HRESULT hresult = m_Symbols3->AddSyntheticSymbol(ret_address,
+                                                             m_PtrSize,
+                                                             "DbgkLkmdCallbackArray",
+                                                             DEBUG_ADDSYNTHSYM_DEFAULT,
+                                                             &id);
 
             if ( !SUCCEEDED(hresult) ) {
                 err << __FUNCTION__ << ": failed to add synthetic symbol DbgkLkmdCallbackArray" << endlerr;
@@ -601,5 +616,46 @@ void WDbgArk::RemoveSyntheticSymbols(void) {
             warn << __FUNCTION__ << ": failed to remove synthetic symbol ";
             warn << std::hex << std::showbase << id.Id << endlwarn;
         }
+    }
+}
+
+// don't include resource.h
+#define IDR_RT_RCDATA1 105
+#define IDR_RT_RCDATA2 106
+bool WDbgArk::InitDummyPdbModule(void) {
+    char* resource_name = nullptr;
+
+    if ( m_is_cur_machine64 )
+        resource_name = MAKEINTRESOURCE(IDR_RT_RCDATA2);
+    else
+        resource_name = MAKEINTRESOURCE(IDR_RT_RCDATA1);
+
+    std::unique_ptr<WDbgArkResHelper> res_helper(new WDbgArkResHelper);
+
+    if ( !res_helper->DropResource(resource_name, "RT_RCDATA", "dummypdb.pdb") ) {
+        err << __FUNCTION__ << ": DropResource failed" << endlerr;
+        return false;
+    }
+
+    std::string drop_path = res_helper->GetDropPath();
+
+    if ( !CheckSymbolsPath(drop_path, false) ) {
+        if ( !SUCCEEDED(m_Symbols->AppendSymbolPath(drop_path.c_str())) ) {
+            err << __FUNCTION__ << ": AppendSymbolPath failed" << endlerr;
+            return false;
+        }
+    }
+
+    if ( !SUCCEEDED(m_Symbols->Reload("/i dummypdb=0xFFFFFFFFFFFFFFFE,0x0")) ) {
+        err << __FUNCTION__ << ": Reload failed" << endlerr;
+        return false;
+    }
+
+    return true;
+}
+
+void WDbgArk::RemoveDummyPdbModule(void) {
+    if ( !SUCCEEDED(m_Symbols->Reload("/u dummypdb")) ) {
+        warn << __FUNCTION__ << ": Unload failed" << endlwarn;
     }
 }

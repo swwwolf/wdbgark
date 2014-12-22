@@ -118,6 +118,8 @@ class WDbgArk : public ExtExtension
         RemoveSyntheticSymbols();
         m_synthetic_symbols.clear();
 
+        RemoveDummyPdbModule();
+
 #if defined(_DEBUG)
         _CrtDumpMemoryLeaks();
 #endif // _DEBUG
@@ -242,11 +244,13 @@ class WDbgArk : public ExtExtension
     // private inits
     //////////////////////////////////////////////////////////////////////////
     #define MS_PUBLIC_SYMBOLS_SERVER "http://msdl.microsoft.com/download/symbols"
-    void CheckSymbolsPath(void);
+    bool CheckSymbolsPath(const std::string& test_path, const bool display_error);
     void InitCallbackCommands(void);
     void InitCalloutNames(void);
     void InitGDTSelectors(void);
     void RemoveSyntheticSymbols(void);
+    bool InitDummyPdbModule(void);
+    void RemoveDummyPdbModule(void);
 
     //////////////////////////////////////////////////////////////////////////
     // variables
