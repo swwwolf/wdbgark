@@ -522,17 +522,6 @@ unsigned __int32 WDbgArk::GetEmpCallbackItemLinkOffset() const {
     return 0x28;
 }
 
-unsigned __int32 WDbgArk::GetCrashdmpCallTableCount() const {
-    if ( m_minor_build >= VISTA_RTM_VER && m_minor_build <= VISTA_SP1_VER )
-        return 9;
-    else if ( m_minor_build >= VISTA_SP2_VER && m_minor_build < W8RTM_VER )
-        return 10;
-    else if ( m_minor_build >= W8RTM_VER )
-        return 14;
-
-    return 0x0;
-}
-
 void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType &output_list) {
     WalkCallbackContext context;
 

@@ -86,3 +86,14 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     display->PrintFooter();
     display->PrintFooter();
 }
+
+unsigned __int32 WDbgArk::GetCrashdmpCallTableCount() const {
+    if ( m_minor_build >= VISTA_RTM_VER && m_minor_build <= VISTA_SP1_VER )
+        return 9;
+    else if ( m_minor_build >= VISTA_SP2_VER && m_minor_build < W8RTM_VER )
+        return 10;
+    else if ( m_minor_build >= W8RTM_VER )
+        return 14;
+
+    return 0x0;
+}
