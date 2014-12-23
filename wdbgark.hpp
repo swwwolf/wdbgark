@@ -111,19 +111,20 @@ class WDbgArk : public ExtExtension
     }
 
     ~WDbgArk() {
-        m_system_cb_commands.clear();
-        m_callout_names.clear();
-        m_gdt_selectors.clear();
+        try {
+            m_system_cb_commands.clear();
+            m_callout_names.clear();
+            m_gdt_selectors.clear();
 
-        RemoveSyntheticSymbols();
-        m_synthetic_symbols.clear();
+            //RemoveSyntheticSymbols();  // TODO: already dead on unload
+            m_synthetic_symbols.clear();
 
-        RemoveDummyPdbModule();
+            //RemoveDummyPdbModule();  // TODO: already dead on unload
+        } catch( ... ) {}
 
 #if defined(_DEBUG)
         _CrtDumpMemoryLeaks();
 #endif // _DEBUG
-
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -233,6 +234,7 @@ class WDbgArk : public ExtExtension
     unsigned __int32 GetDbgkLkmdCallbackCount() const { return 0x08; };
     unsigned __int32 GetDbgkLkmdCallbackArrayDistance() const { return 2 * m_PtrSize; };
     bool             FindDbgkLkmdCallbackArray();
+    unsigned __int32 GetCrashdmpCallTableCount() const;
 
     std::string get_service_table_routine_name_internal(const unsigned __int32 index,
                                                         const unsigned __int32 max_count,

@@ -471,9 +471,13 @@ bool WDbgArkAnalyze::SetOwnerModule(const std::string &module_name) {
     }
 
     try {
-        const unsigned __int32 index = g_Ext->FindFirstModule(module_name.c_str(), NULL, 0);
+        HRESULT result = g_Ext->m_Symbols3->GetModuleByModuleName2(module_name.c_str(),
+                                                                   0UL,
+                                                                   0UL,
+                                                                   nullptr,
+                                                                   &m_owner_module_start);
 
-        if ( SUCCEEDED(g_Ext->m_Symbols->GetModuleByIndex(index, &m_owner_module_start)) ) {
+        if ( SUCCEEDED(result) ) {
             IMAGEHLP_MODULEW64 info;
             g_Ext->GetModuleImagehlpInfo(m_owner_module_start, &info);
 
@@ -481,6 +485,8 @@ bool WDbgArkAnalyze::SetOwnerModule(const std::string &module_name) {
             m_owner_module_inited = true;
 
             return true;
+        } else {
+            err << __FUNCTION__ << ": Failed to find module by name " << module_name << endlerr;
         }
     }
     catch ( const ExtStatusException &Ex ) {

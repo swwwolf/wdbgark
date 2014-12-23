@@ -42,6 +42,13 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
         return;
     }
 
+    unsigned __int32 table_count = GetCrashdmpCallTableCount();
+
+    if ( !table_count ) {
+        err << __FUNCTION__ << ": unknown table count" << endlerr;
+        return;
+    }
+
     unsigned __int64 offset = 0;
 
     if ( !GetSymbolOffset("nt!CrashdmpCallTable", true, &offset) ) {
@@ -59,7 +66,8 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     display->PrintHeader();
 
     try {
-        for ( int i = 2; i < 0x100; i++ ) {  // skip first two entries, they're system reserved
+        // skip first two entries, they're system reserved signatures
+        for ( unsigned __int32 i = 2; i < table_count; i++ ) {
             ExtRemoteData crashdmp_call_table_entry(offset + i * m_PtrSize, m_PtrSize);
 
             if ( !crashdmp_call_table_entry.GetPtr() )  // last is null
