@@ -624,6 +624,14 @@ void WDbgArk::RemoveSyntheticSymbols(void) {
 #define IDR_RT_RCDATA2 106
 bool WDbgArk::InitDummyPdbModule(void) {
     char* resource_name = nullptr;
+    ExtCaptureOutputA ignore_output;  // destructor will call Destroy and Stop
+
+    ignore_output.Start();
+
+    if ( !RemoveDummyPdbModule() ) {
+        err << __FUNCTION__ << ": RemoveDummyPdbModule failed" << endlerr;
+        return false;
+    }
 
     if ( m_is_cur_machine64 )
         resource_name = MAKEINTRESOURCE(IDR_RT_RCDATA2);
@@ -646,7 +654,7 @@ bool WDbgArk::InitDummyPdbModule(void) {
         }
     }
 
-    if ( !SUCCEEDED(m_Symbols->Reload("/i dummypdb=0xFFFFFFFFFFFFFFFE,0x0")) ) {
+    if ( !SUCCEEDED(m_Symbols->Reload("/i dummypdb=0xFFFFFFFFFFFFF000,0xFFF")) ) {
         err << __FUNCTION__ << ": Reload failed" << endlerr;
         return false;
     }
@@ -654,8 +662,13 @@ bool WDbgArk::InitDummyPdbModule(void) {
     return true;
 }
 
-void WDbgArk::RemoveDummyPdbModule(void) {
-    if ( !SUCCEEDED(m_Symbols->Reload("/u dummypdb")) ) {
-        warn << __FUNCTION__ << ": Unload failed" << endlwarn;
+bool WDbgArk::RemoveDummyPdbModule(void) {
+    if ( SUCCEEDED(m_Symbols->GetModuleByModuleName("dummypdb", 0, nullptr, nullptr)) ) {
+        if ( !SUCCEEDED(m_Symbols->Reload("/u dummypdb")) ) {
+            err << __FUNCTION__ << ": Failed to unload dummypdb module" << endlerr;
+            return false;
+        }
     }
+
+    return true;
 }

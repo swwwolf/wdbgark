@@ -60,13 +60,6 @@ WDbgArkResHelper::WDbgArkResHelper() {
 bool WDbgArkResHelper::DropResource(const char* resource_name,
                                     const std::string &type,
                                     const std::string &file_name) {
-    std::ofstream check_file_locked(m_temp_path + file_name, std::ios::out | std::ios::binary | std::ios::trunc);
-
-    if ( check_file_locked.fail() )  // file already exists and locked by WinDbg
-        return true;
-    else
-        check_file_locked.close();
-
     HRSRC resource = FindResource(g_Ext->s_Module, resource_name, type.c_str());
 
     if ( !resource ) {

@@ -197,7 +197,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
 }
 
 std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteTyped &object) {
-    std::string output_string = "";
+    std::string output_string = "*UNKNOWN*";
 
     if ( !IsInited() ) {
         err << __FUNCTION__ << ": class is not initialized" << endlerr;

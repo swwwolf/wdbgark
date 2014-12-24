@@ -195,6 +195,7 @@
     <ClCompile Include="idt_gdt.cpp" />
     <ClCompile Include="objhelper.cpp" />
     <ClCompile Include="objtype.cpp" />
+    <ClCompile Include="objtypecb.cpp" />
     <ClCompile Include="objtypeidx.cpp" />
     <ClCompile Include="pnptable.cpp" />
     <ClCompile Include="process.cpp" />
@@ -208,8 +209,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="COPYING" />
-    <None Include="dummypdb_build\Release\dummypdb_x86.pdb" />
-    <None Include="dummypdb_build\x64\Release\dummypdb_x64.pdb" />
     <None Include="README.md" />
     <None Include="wdbgark.def" />
   </ItemGroup>

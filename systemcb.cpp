@@ -201,7 +201,7 @@ EXT_COMMAND(wa_systemcb,
             "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, powersetting, callbackdir, "\
             "shutdown, shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, "\
             "pnp, lego, debugprint, alpcplog, empcb, ioperf, dbgklkmd}") {
-    std::string type;
+    std::string type = "*";
     walkresType output_list;
 
     RequireKernelMode();
@@ -212,13 +212,13 @@ EXT_COMMAND(wa_systemcb,
     if ( HasArg("type") )   // callback type was provided
         type.assign(GetArgStr("type"));
 
-    out << "Displaying OS registered callback(s) " << type << endlout;
+    out << "Displaying OS registered callback(s) with type " << type << endlout;
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeCallback));
     display->PrintFooter();
 
     try {
-        if ( type.empty() ) {
+        if ( type == "*" ) {
             for ( callbacksInfo::const_iterator citer = m_system_cb_commands.cbegin();
                   citer != m_system_cb_commands.cend();
                   ++citer ) {

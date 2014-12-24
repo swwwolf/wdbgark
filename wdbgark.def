@@ -18,6 +18,7 @@ EXPORTS
 	wa_systemcb
 	wa_objtype
 	wa_objtypeidx
+	wa_objtypecb
 	wa_callouts
 	wa_pnptable
 	wa_ssdt

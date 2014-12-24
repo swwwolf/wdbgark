@@ -135,6 +135,7 @@ class WDbgArk : public ExtExtension
     EXT_COMMAND_METHOD(wa_systemcb);
     EXT_COMMAND_METHOD(wa_objtype);
     EXT_COMMAND_METHOD(wa_objtypeidx);
+    EXT_COMMAND_METHOD(wa_objtypecb);
     EXT_COMMAND_METHOD(wa_callouts);
     EXT_COMMAND_METHOD(wa_pnptable);
     EXT_COMMAND_METHOD(wa_ssdt);
@@ -220,6 +221,10 @@ class WDbgArk : public ExtExtension
                                                const ExtRemoteTyped &object,
                                                void* context);
 
+    static HRESULT DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class,
+                                                           const ExtRemoteTyped &object,
+                                                           void* context);
+
     static HRESULT DeviceNodeCallback(WDbgArk* wdbg_ark_class,
                                       ExtRemoteTyped &device_node,
                                       void* context);
@@ -252,7 +257,7 @@ class WDbgArk : public ExtExtension
     void InitGDTSelectors(void);
     void RemoveSyntheticSymbols(void);
     bool InitDummyPdbModule(void);
-    void RemoveDummyPdbModule(void);
+    bool RemoveDummyPdbModule(void);
 
     //////////////////////////////////////////////////////////////////////////
     // variables

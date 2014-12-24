@@ -67,7 +67,9 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
     try {
         // skip first two entries, they're system reserved signatures
-        for ( unsigned __int32 i = 2; i < table_count; i++ ) {
+        offset += 2 * sizeof(unsigned __int32);
+
+        for ( unsigned __int32 i = 0; i < table_count; i++ ) {
             ExtRemoteData crashdmp_call_table_entry(offset + i * m_PtrSize, m_PtrSize);
 
             if ( !crashdmp_call_table_entry.GetPtr() )  // last is null
@@ -89,11 +91,11 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
 unsigned __int32 WDbgArk::GetCrashdmpCallTableCount() const {
     if ( m_minor_build >= VISTA_RTM_VER && m_minor_build <= VISTA_SP1_VER )
-        return 9;
+        return 7;
     else if ( m_minor_build >= VISTA_SP2_VER && m_minor_build < W8RTM_VER )
-        return 10;
+        return 8;
     else if ( m_minor_build >= W8RTM_VER )
-        return 14;
+        return 12;
 
-    return 0x0;
+    return 0;
 }

@@ -36,6 +36,7 @@ WDbgArkAnalyze::WDbgArkAnalyze() : m_inited(false),
                                    m_owner_module_end(0ULL),
                                    tp(nullptr) {
     tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
+    m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new WDbgArkObjHelper);
     m_inited = true;
 }
 
@@ -45,6 +46,7 @@ WDbgArkAnalyze::WDbgArkAnalyze(const AnalyzeTypeInit type) : m_inited(false),
                                                              m_owner_module_end(0ULL),
                                                              tp(nullptr) {
     tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
+    m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new WDbgArkObjHelper);
     m_inited = true;
 
     if ( type == AnalyzeTypeDefault ) {    // width = 180
@@ -148,25 +150,8 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, c
         return;
     }
 
-    std::unique_ptr<WDbgArkObjHelper> obj_helper(new WDbgArkObjHelper);
-
-    std::pair<HRESULT, std::string> result = obj_helper->GetObjectName(object);
-
-    if ( !SUCCEEDED( result.first ) )
-        warn << __FUNCTION__ ": GetObjectName failed" << endlwarn;
-    else
-        object_name = result.second;
-
     try {
-        std::stringstream object_command;
-        std::stringstream object_name_ext;
-
-        object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
-        object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
-        object_name_ext << object_name;
-
-        *tp << object_command.str() << object_name_ext.str();
-        tp->flush_out();
+        PrintObjectDmlCmd(object);
         tp->PrintFooter();
 
         AnalyzeAddressAsRoutine(obj_type_info.Field("DumpProcedure").GetPtr(), "DumpProcedure", "");
@@ -507,4 +492,30 @@ bool WDbgArkAnalyze::IsSuspiciousAddress(const unsigned __int64 address) {
         return false;
 
     return true;
+}
+
+void WDbgArkAnalyze::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
+    std::string object_name = "*UNKNOWN*";
+
+    if ( !IsInited() ) {
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return;
+    }
+
+    std::pair<HRESULT, std::string> result = m_obj_helper->GetObjectName(object);
+
+    if ( !SUCCEEDED(result.first) )
+        warn << __FUNCTION__ ": GetObjectName failed" << endlwarn;
+    else
+        object_name = result.second;
+
+    std::stringstream object_command;
+    std::stringstream object_name_ext;
+
+    object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
+    object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
+    object_name_ext << object_name;
+
+    *tp << object_command.str() << object_name_ext.str();
+    tp->flush_out();
 }

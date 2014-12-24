@@ -90,9 +90,10 @@ enum OBJ_HEADER_INFO_FLAG {
     HeaderProcessInfoFlag = 0x10
 };
 
-#define NOTIFY_DEVICE_CLASS_HASH_BUCKETS 13
-#define MAX_FAST_REFS_X64                15
-#define MAX_FAST_REFS_X86                7
+#define NOTIFY_DEVICE_CLASS_HASH_BUCKETS  13
+#define MAX_FAST_REFS_X64                 15
+#define MAX_FAST_REFS_X86                 7
+#define OBJTYPE_SUPPORTS_OBJECT_CALLBACKS (1 << 6)
 
 //////////////////////////////////////////////////////////////////////////
 // MSRs

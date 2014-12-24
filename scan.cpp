@@ -127,6 +127,14 @@ EXT_COMMAND(wa_scan,
     }
 
     try {
+        out << "<b>!wa_objtypecb</b>" << endlout;
+        wa_objtypecb();
+    }
+    catch ( const ExtStatusException &Ex ) {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    try {
         out << "<b>!wa_callouts</b>" << endlout;
         wa_callouts();
     }

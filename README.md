@@ -27,6 +27,7 @@ Public symbols are required, so use them, force to reload them, ignore checksum 
 * [!wa_systemcb](https://github.com/swwwolf/wdbgark/wiki/!wa_systemcb)
 * [!wa_objtype](https://github.com/swwwolf/wdbgark/wiki/!wa_objtype)
 * [!wa_objtypeidx](https://github.com/swwwolf/wdbgark/wiki/!wa_objtypeidx)
+* [!wa_objtypecb](https://github.com/swwwolf/wdbgark/wiki/!wa_objtypecb)
 * [!wa_callouts](https://github.com/swwwolf/wdbgark/wiki/!wa_callouts)
 * [!wa_pnptable](https://github.com/swwwolf/wdbgark/wiki/!wa_pnptable)
 * [!wa_crashdmpcall](https://github.com/swwwolf/wdbgark/wiki/!wa_crashdmpcall)
@@ -122,7 +123,9 @@ Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
   !wa_gdt          - Output processors GDT
   !wa_idt          - Output processors IDT
   !wa_objtype      - Output kernel-mode object type(s)
-  !wa_objtypeidx   - Output kernel-mode ObTypeIndexTable
+  !wa_objtypecb    - Output kernel-mode callbacks registered with
+                     ObRegisterCallbacks
+  !wa_objtypeidx   - Output kernel-mode nt!ObTypeIndexTable
   !wa_pnptable     - Output kernel-mode nt!PlugPlayHandlerTable
   !wa_scan         - Scan system (execute all commands)
   !wa_ssdt         - Output the System Service Descriptor Table

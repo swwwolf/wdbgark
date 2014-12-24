@@ -21,6 +21,16 @@
 
 #include "./init.h"
 
+typedef struct _OBJECT_CALLBACK_ENTRY_COMMON {
+    LIST_ENTRY                  CallbackList;
+    OB_OPERATION                Operations;
+    ULONG                       Active;
+    PVOID                       Handle;
+    POBJECT_TYPE                ObjectType;
+    POB_PRE_OPERATION_CALLBACK  PreOperation;
+    POB_POST_OPERATION_CALLBACK PostOperation;
+} OBJECT_CALLBACK_ENTRY_COMMON, *POBJECT_CALLBACK_ENTRY_COMMON;
+
 NTSTATUS NTAPI DriverEntry(IN PDRIVER_OBJECT driver, IN PUNICODE_STRING driverKeyName) {
     UNREFERENCED_PARAMETER(driver);
     UNREFERENCED_PARAMETER(driverKeyName);

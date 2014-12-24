@@ -38,6 +38,7 @@
 #include <engextcpp.hpp>
 #include <bprinter/table_printer.h>
 #include "manipulators.hpp"
+#include "objhelper.hpp"
 
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print routines
@@ -57,12 +58,21 @@ class WDbgArkAnalyze
     ~WDbgArkAnalyze() {}
 
     bool IsInited(void) const { return m_inited; }
+
+    //////////////////////////////////////////////////////////////////////////
+    // brinter routines
+    //////////////////////////////////////////////////////////////////////////
     void PrintHeader(void) { if ( IsInited() ) tp->PrintHeader(); }
     void PrintFooter(void) { if ( IsInited() ) tp->PrintFooter(); }
     void AddColumn(const std::string &header_name, const int column_width) {
         if ( IsInited() )
             tp->AddColumn(header_name, column_width);
     }
+    void StreamToTable(const std::string &what) { if ( IsInited() ) *tp << what; }
+    void FlushOut(void) { if ( IsInited() ) tp->flush_out(); }
+    void FlushWarn(void) { if ( IsInited() ) tp->flush_warn(); }
+    void FlushErr(void) { if ( IsInited() ) tp->flush_err(); }
+    void PrintObjectDmlCmd(const ExtRemoteTyped &object);
 
     //////////////////////////////////////////////////////////////////////////
     // owner module routines
@@ -109,7 +119,7 @@ class WDbgArkAnalyze
     unsigned __int64 m_owner_module_end;
 
     std::unique_ptr<bprinter::TablePrinter> tp;
-
+    std::unique_ptr<WDbgArkObjHelper>       m_obj_helper;
     //////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////

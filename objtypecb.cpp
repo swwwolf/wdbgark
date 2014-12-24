@@ -20,13 +20,15 @@
 */
 
 #include <string>
+#include <sstream>
 #include <memory>
+#include <utility>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_objtype,
-            "Output kernel-mode object type(s)",
+EXT_COMMAND(wa_objtypecb,
+            "Output kernel-mode callbacks registered with ObRegisterCallbacks",
             "{type;s;o;type,Object type name}") {
     std::string type = "*";
 
@@ -38,7 +40,12 @@ EXT_COMMAND(wa_objtype,
     if ( HasArg("type") )   // object type was provided
         type.assign(GetArgStr("type"));
 
-    out << "Displaying \\ObjectTypes\\" << type << endlout;
+    out << "Displaying callbacks registered with ObRegisterCallbacks with type " << type << endlout;
+
+    if ( m_minor_build < VISTA_SP1_VER ) {
+        out << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        return;
+    }
 
     unsigned __int64 object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes", 0);
 
@@ -48,17 +55,13 @@ EXT_COMMAND(wa_objtype,
     }
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
-
-    if ( !display->SetOwnerModule("nt") )
-        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
-
     display->PrintHeader();
 
     try {
         if ( type == "*" ) {
             WalkDirectoryObject(object_types_directory_offset,
                                 reinterpret_cast<void*>(display.get()),
-                                DirectoryObjectTypeCallback);
+                                DirectoryObjectTypeCallbackListCallback);
         } else {
             ExtRemoteTyped object_type("nt!_OBJECT_TYPE",
                                        m_obj_helper->FindObjectByName(type, object_types_directory_offset),
@@ -66,8 +69,11 @@ EXT_COMMAND(wa_objtype,
                                        NULL,
                                        NULL);
 
-            if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
-                warn << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlwarn;
+            if ( !SUCCEEDED(DirectoryObjectTypeCallbackListCallback(this,
+                                                                    object_type,
+                                                                    reinterpret_cast<void*>(display.get()))) ) {
+                warn << __FUNCTION__ << ": DirectoryObjectTypeCallbackListCallback failed" << endlwarn;
+            }
         }
     }
     catch ( const ExtRemoteException &Ex ) {
@@ -80,14 +86,42 @@ EXT_COMMAND(wa_objtype,
     display->PrintFooter();
 }
 
-HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
+HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class,
+                                                         const ExtRemoteTyped &object,
+                                                         void* context) {
     WDbgArkAnalyze* display = reinterpret_cast<WDbgArkAnalyze*>(context);
 
     try {
         ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
-        ExtRemoteTyped typeinfo = object_type.Field("TypeInfo");
+        unsigned __int8 object_type_flags = object_type.Field("TypeInfo").Field("ObjectTypeFlags").GetUchar();
 
-        display->AnalyzeObjectTypeInfo(typeinfo, object);
+        if ( !(object_type_flags & OBJTYPE_SUPPORTS_OBJECT_CALLBACKS) )
+            return S_OK;
+
+        display->PrintObjectDmlCmd(object);
+        display->PrintFooter();
+
+        ExtRemoteTypedList list_head(object_type.Field("CallbackList").m_Offset,
+                                     "dummypdb!_OBJECT_CALLBACK_ENTRY_COMMON",
+                                     "CallbackList",
+                                     0ULL,
+                                     0,
+                                     nullptr,
+                                     true);
+
+        for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
+            ExtRemoteTyped callback_entry = list_head.GetTypedNode();
+
+            display->AnalyzeAddressAsRoutine(callback_entry.Field("PreOperation").GetPtr(),
+                                             "OB_PRE_OPERATION_CALLBACK",
+                                             "");
+
+            display->AnalyzeAddressAsRoutine(callback_entry.Field("PostOperation").GetPtr(),
+                                             "OB_POST_OPERATION_CALLBACK",
+                                             "");
+
+            display->PrintFooter();
+        }
     }
     catch ( const ExtRemoteException &Ex ) {
         std::stringstream tmperr;

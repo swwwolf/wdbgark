@@ -122,6 +122,9 @@
     <ClCompile Include="resources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="objtypecb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="wdbgark.def">
@@ -133,8 +136,6 @@
     <None Include="COPYING">
       <Filter>Header Files\COPYING</Filter>
     </None>
-    <None Include="dummypdb_build\Release\dummypdb_x86.pdb" />
-    <None Include="dummypdb_build\x64\Release\dummypdb_x64.pdb" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wdbgark.rc">
