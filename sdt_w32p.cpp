@@ -19280,7 +19280,7 @@ static const char* W32pServiceTable_Win8Sp0_x64[] = {
     "NtGdiGetPhysicalMonitors",
     "NtGdiGetRealizationInfo",
     "NtGdiGetServerMetaFileBits",
-    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ",    // TODO(swwwolf): strange
+    "CCompositionBuffer::GetAndClearCurrentFenceForSignaling",
     "NtGdiGetStats",
     "NtGdiGetStringBitmapW",
     "NtGdiGetSuggestedOPMProtectedOutputArraySize",
@@ -19354,7 +19354,7 @@ static const char* W32pServiceTable_Win8Sp0_x64[] = {
     "NtGdiSwapBuffers",
     "NtGdiTransparentBlt",
     "NtGdiUMPDEngFreeUserMem",
-    "?GetWindow@CCompositionBuffer@@UEBAPEAUHWND__@@XZ",    // TODO(swwwolf): strange
+    "CCompositionBuffer::GetAndClearCurrentFenceForSignaling",
     "NlsNullProc",
     "NtGdiUpdateColors",
     "NtGdiUpdateTransform",

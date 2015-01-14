@@ -146,7 +146,9 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     bool Init(void);
     bool IsInited(void) const { return m_inited; }
-    bool IsLiveKernel(void) const { return m_DebuggeeClass == DEBUG_KERNEL_CONNECTION; }
+    bool IsLiveKernel(void) const {
+        return ((m_DebuggeeClass == DEBUG_CLASS_KERNEL) && (m_DebuggeeQual == DEBUG_KERNEL_CONNECTION));
+    }
 
     void RequireLiveKernelMode(void) const throw(...) {
         if ( !IsLiveKernel() ) { throw ExtStatusException(S_OK, "live kernel-mode only"); }

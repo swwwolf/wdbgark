@@ -98,9 +98,9 @@ enum OBJ_HEADER_INFO_FLAG {
 //////////////////////////////////////////////////////////////////////////
 // MSRs
 //////////////////////////////////////////////////////////////////////////
-#define SYSENTER_CS_MSR                  0x174
-#define SYSENTER_ESP_MSR                 0x175
-#define SYSENTER_EIP_MSR                 0x176
+#define IA32_SYSENTER_EIP                0x176
+#define MSR_LSTAR                        0xC0000082  // system call 64-bit entry
+#define MSR_CSTAR                        0xC0000083  // system call 32-bit entry
 
 //////////////////////////////////////////////////////////////////////////
 // kernel object types

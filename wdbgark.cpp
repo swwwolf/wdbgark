@@ -33,6 +33,8 @@ bool WDbgArk::Init() {
     if ( IsInited() )
         return true;
 
+    m_Symbols->Reload("");  // revise debuggee modules list
+
     if ( !CheckSymbolsPath(MS_PUBLIC_SYMBOLS_SERVER, true) )
         warn << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 

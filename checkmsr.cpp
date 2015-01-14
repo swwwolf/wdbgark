@@ -25,7 +25,6 @@
 #include "analyze.hpp"
 
 EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
-    RequireKernelMode();
     RequireLiveKernelMode();
 
     if ( !Init() )
@@ -39,13 +38,31 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     display->PrintHeader();
 
     try {
-        unsigned __int64  msr_address = 0;
-        std::stringstream expression;
+        if ( !m_is_cur_machine64 ) {
+            unsigned __int64  msr_address = 0;
+            std::stringstream expression;
 
-        ReadMsr(SYSENTER_EIP_MSR, &msr_address);
+            ReadMsr(IA32_SYSENTER_EIP, &msr_address);
+            expression << std::showbase << std::hex << msr_address;
+            display->AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression.str().c_str()), "IA32_SYSENTER_EIP", "");
+        } else {
+            unsigned __int64  msr_address_lstar = 0;
+            unsigned __int64  msr_address_cstar = 0;
+            std::stringstream expression_lstar;
+            std::stringstream expression_cstar;
 
-        expression << std::showbase << std::hex << msr_address;
-        display->AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression.str().c_str()), "SYSENTER_EIP_MSR", "");
+            ReadMsr(MSR_LSTAR, &msr_address_lstar);
+            expression_lstar << std::showbase << std::hex << msr_address_lstar;
+            display->AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression_lstar.str().c_str()),
+                                                                "MSR_LSTAR",
+                                                                "");
+
+            ReadMsr(MSR_CSTAR, &msr_address_cstar);
+            expression_cstar << std::showbase << std::hex << msr_address_cstar;
+            display->AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression_cstar.str().c_str()),
+                                                                "MSR_CSTAR",
+                                                                "");
+        }
     }
     catch ( const ExtStatusException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
