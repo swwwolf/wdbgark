@@ -30,7 +30,7 @@
     #define _CRTDBG_MAP_ALLOC
     #include <stdlib.h>
     #include <crtdbg.h>
-#endif // _DEBUG
+#endif  // _DEBUG
 
 #include <string>
 #include <sstream>
@@ -49,8 +49,7 @@
 //////////////////////////////////////////////////////////////////////////
 // main class
 //////////////////////////////////////////////////////////////////////////
-class WDbgArk : public ExtExtension
-{
+class WDbgArk : public ExtExtension {
  public:
     //////////////////////////////////////////////////////////////////////////
     // class typedefs
@@ -101,13 +100,11 @@ class WDbgArk : public ExtExtension
           m_service_pack_number(0),
           m_obj_helper(nullptr),
           m_color_hack(nullptr) {
-
 #if defined(_DEBUG)
-        _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-        _CrtSetReportMode( _CRT_WARN, _CRTDBG_MODE_DEBUG );
-        //_CrtSetBreakAlloc( 143 );
-#endif // _DEBUG
-        
+        _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+        _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+        // _CrtSetBreakAlloc( 143 );
+#endif  // _DEBUG
     }
 
     ~WDbgArk() {
@@ -116,15 +113,13 @@ class WDbgArk : public ExtExtension
             m_callout_names.clear();
             m_gdt_selectors.clear();
 
-            //RemoveSyntheticSymbols();  // TODO: already dead on unload
+            // RemoveSyntheticSymbols();  //    TODO: already dead on unload
             m_synthetic_symbols.clear();
-
-            //RemoveDummyPdbModule();  // TODO: already dead on unload
         } catch( ... ) {}
 
 #if defined(_DEBUG)
         _CrtDumpMemoryLeaks();
-#endif // _DEBUG
+#endif  // _DEBUG
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -236,8 +231,8 @@ class WDbgArk : public ExtExtension
     unsigned __int32 GetPowerCallbackItemFunctionOffset() const;
     unsigned __int32 GetPnpCallbackItemFunctionOffset() const;
     unsigned __int32 GetEmpCallbackItemLinkOffset() const;
-    unsigned __int32 GetDbgkLkmdCallbackCount() const { return 0x08; };
-    unsigned __int32 GetDbgkLkmdCallbackArrayDistance() const { return 2 * m_PtrSize; };
+    unsigned __int32 GetDbgkLkmdCallbackCount() const { return 0x08; }
+    unsigned __int32 GetDbgkLkmdCallbackArrayDistance() const { return 2 * m_PtrSize; }
     bool             FindDbgkLkmdCallbackArray();
     unsigned __int32 GetCrashdmpCallTableCount() const;
 
@@ -284,4 +279,4 @@ class WDbgArk : public ExtExtension
     std::stringstream err;
 };
 
-#endif // WDBGARK_HPP_
+#endif  // WDBGARK_HPP_

@@ -12043,7 +12043,7 @@ static const char* W32pServiceTable_Win8Sp0_x86[] = {
     "NtGdiInvertRgn",
     "NtGdiIntersectClipRect",
     "NtGdiInitSpool",
-    "?GetType@CCompositionBuffer@@UBE?AW4CompositionBufferType@@XZ",    // TODO(swwwolf): strange
+    "CFlipToken::GetModel",
     "NtGdiIcmBrushInfo",
     "NtGdiHfontCreate",
     "NtGdiGradientFill",

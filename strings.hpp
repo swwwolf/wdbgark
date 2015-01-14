@@ -32,6 +32,7 @@
 
 #include <string>
 #include <sstream>
+#include <utility>
 
 #include <engextcpp.hpp>
 #include "manipulators.hpp"
@@ -63,10 +64,11 @@ static std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemo
         }
 
         if ( maxlen >= sizeof(wchar_t) && (maxlen % sizeof(wchar_t) == 0) ) {
-            unsigned short max_len_wide = maxlen / sizeof(wchar_t) + 1;
-            std::unique_ptr<wchar_t[]> test_name(new wchar_t[max_len_wide]);
+            unsigned __int16 max_len_wide = maxlen / sizeof(wchar_t) + 1;
 
-            ZeroMemory(test_name.get(), max_len_wide * sizeof(wchar_t));
+            std::unique_ptr<wchar_t[]> test_name(new wchar_t[max_len_wide]);
+            std::memset(test_name.get(), 0, max_len_wide * sizeof(wchar_t));
+
             unsigned __int32 read = buffer.ReadBuffer(test_name.get(), maxlen, true);
 
             if ( read == maxlen )
@@ -85,4 +87,4 @@ static std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemo
     return std::make_pair(E_INVALIDARG, output_string);
 }
 
-#endif // STRINGS_HPP_
+#endif  // STRINGS_HPP_

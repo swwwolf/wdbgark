@@ -143,7 +143,6 @@ void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
 
 void WDbgArkAnalyze::AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object) {
     ExtRemoteTyped   obj_type_info = ex_type_info;
-    std::string      object_name   = "*UNKNOWN*";
 
     if ( !IsInited() ) {
         err << __FUNCTION__ << ": class is not initialized" << endlerr;
@@ -338,9 +337,11 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                                        std::string &image_name,
                                        std::string &module_name,
                                        std::string &loaded_image_name) {
-    unsigned __int32  len1, len2, len3 = 0;
-    unsigned __int64  module_base      = 0;
-    unsigned __int32  module_index     = 0;
+    unsigned __int32  img_name_size           = 0;
+    unsigned __int32  module_name_size        = 0;
+    unsigned __int32  loaded_module_name_size = 0;
+    unsigned __int64  module_base             = 0;
+    unsigned __int32  module_index            = 0;
     ExtCaptureOutputA ignore_output;
 
     if ( !address )
@@ -362,33 +363,37 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                                                   module_base,
                                                   NULL,
                                                   0,
-                                                  reinterpret_cast<PULONG>(&len1),
+                                                  reinterpret_cast<PULONG>(&img_name_size),
                                                   NULL,
                                                   0,
-                                                  reinterpret_cast<PULONG>(&len2),
+                                                  reinterpret_cast<PULONG>(&module_name_size),
                                                   NULL,
                                                   0,
-                                                  reinterpret_cast<PULONG>(&len3));
+                                                  reinterpret_cast<PULONG>(&loaded_module_name_size));
 
         if ( SUCCEEDED(result) ) {
-            buf1.reset(new char[len1+1]);
-            buf2.reset(new char[len2+1]);
-            buf3.reset(new char[len3+1]);
+            size_t img_name_buf_length = static_cast<size_t>(img_name_size + 1);
+            buf1.reset(new char[img_name_buf_length]);
+            std::memset(buf1.get(), 0, img_name_buf_length);
 
-            ZeroMemory(buf1.get(), len1 + 1);
-            ZeroMemory(buf2.get(), len2 + 1);
-            ZeroMemory(buf3.get(), len3 + 1);
+            size_t module_name_buf_length = static_cast<size_t>(module_name_size + 1);
+            buf2.reset(new char[module_name_buf_length]);
+            std::memset(buf2.get(), 0, module_name_buf_length);
+
+            size_t loaded_module_name_buf_length = static_cast<size_t>(loaded_module_name_size + 1);
+            buf3.reset(new char[loaded_module_name_buf_length]);
+            std::memset(buf3.get(), 0, loaded_module_name_buf_length);
 
             result = g_Ext->m_Symbols->GetModuleNames(module_index,
                                                       module_base,
                                                       buf1.get(),
-                                                      len1 + 1,
+                                                      static_cast<ULONG>(img_name_buf_length),
                                                       NULL,
                                                       buf2.get(),
-                                                      len2 + 1,
+                                                      static_cast<ULONG>(module_name_buf_length),
                                                       NULL,
                                                       buf3.get(),
-                                                      len3 + 1,
+                                                      static_cast<ULONG>(loaded_module_name_buf_length),
                                                       NULL);
 
             if ( SUCCEEDED(result) ) {
@@ -426,9 +431,9 @@ std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned _
     ignore_output.Stop();
 
     if ( SUCCEEDED(result) && name_buffer_size ) {
-        std::unique_ptr<char[]> tmp_name(new char[name_buffer_size + 1]);
-
-        ZeroMemory(tmp_name.get(), name_buffer_size + 1);
+        size_t buf_size = static_cast<size_t>(name_buffer_size + 1);
+        std::unique_ptr<char[]> tmp_name(new char[buf_size]);
+        std::memset(tmp_name.get(), 0, buf_size);
 
         ignore_output.Start();
         result = g_Ext->m_Symbols->GetNameByOffset(address, tmp_name.get(), name_buffer_size, NULL, NULL);

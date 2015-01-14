@@ -29,4 +29,4 @@
 #define VER_MAJOR 1
 #define VER_MINOR 5
 
-#endif // VER_HPP_
+#endif  // VER_HPP_

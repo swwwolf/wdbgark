@@ -34,6 +34,7 @@
 #include <sstream>
 #include <iomanip>
 #include <memory>
+#include <utility>
 
 #include <engextcpp.hpp>
 #include <bprinter/table_printer.h>
@@ -43,8 +44,7 @@
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print routines
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkAnalyze
-{
+class WDbgArkAnalyze {
  public:
      enum AnalyzeTypeInit {
          AnalyzeTypeDefault,
@@ -54,7 +54,7 @@ class WDbgArkAnalyze
      };
 
     WDbgArkAnalyze();
-    WDbgArkAnalyze(const AnalyzeTypeInit type);
+    explicit WDbgArkAnalyze(const AnalyzeTypeInit type);
     ~WDbgArkAnalyze() {}
 
     bool IsInited(void) const { return m_inited; }
@@ -143,4 +143,4 @@ class WDbgArkAnalyze
     std::stringstream bprinter_out;
 };
 
-#endif // ANALYZE_HPP_
+#endif  // ANALYZE_HPP_

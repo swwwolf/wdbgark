@@ -33,12 +33,12 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <utility>
 
 #include <engextcpp.hpp>
 #include "manipulators.hpp"
 
-class WDbgArkProcess
-{
+class WDbgArkProcess {
  public:
     WDbgArkProcess();
 
@@ -61,10 +61,9 @@ class WDbgArkProcess
     unsigned __int64 FindEProcessByImageFileName(const std::string &process_name);
     unsigned __int64 FindEProcessAnyGUIProcess();
     HRESULT          SetImplicitProcess(const unsigned __int64 set_eprocess);
-    
+
  private:
-     typedef struct ProcessInfoTag
-     {
+     typedef struct ProcessInfoTag {
          ExtRemoteTyped   process;
          unsigned __int64 eprocess;
          std::string      image_file_name;
@@ -77,7 +76,7 @@ class WDbgArkProcess
     bool                     m_inited;
     unsigned __int64         m_current_process;
     std::vector<ProcessInfo> m_process_list;
-    
+
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
@@ -86,4 +85,4 @@ class WDbgArkProcess
     std::stringstream err;
 };
 
-#endif // PROCESS_HPP_
+#endif  // PROCESS_HPP_

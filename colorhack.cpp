@@ -155,17 +155,18 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
     InitThemes();
 
     try {
-        char* windbg_module = reinterpret_cast<char*>(GetModuleHandle(NULL));
+        uintptr_t windbg_module_start = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL));
 
-        if ( !windbg_module )
+        if ( !windbg_module_start )
             throw ExtStatusException(S_OK, "GetModuleHandle failed");
 
-        PIMAGE_NT_HEADERS nth = ImageNtHeader(windbg_module);
+        PIMAGE_NT_HEADERS nth = ImageNtHeader(reinterpret_cast<PVOID>(windbg_module_start));
 
         if ( !nth )
             throw ExtStatusException(S_OK, "Can't get NT header");
 
-        uintptr_t windbg_module_end = reinterpret_cast<uintptr_t>(windbg_module + nth->OptionalHeader.SizeOfImage);
+        uintptr_t windbg_module_end = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
+            static_cast<ptrdiff_t>(nth->OptionalHeader.SizeOfImage));
 
         PIMAGE_SECTION_HEADER sech = reinterpret_cast<PIMAGE_SECTION_HEADER>(reinterpret_cast<char*>(nth) +\
             sizeof(*nth));
@@ -189,24 +190,27 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         if ( !sech_text || !sech_data )
             throw ExtStatusException(S_OK, "Can't get sections header");
 
-        uintptr_t* start_data = reinterpret_cast<uintptr_t*>(windbg_module + sech_data->VirtualAddress);
-        uintptr_t* end_data = reinterpret_cast<uintptr_t*>(reinterpret_cast<char*>(start_data) +\
-            sech_data->Misc.VirtualSize);
+        uintptr_t start_data = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
+            static_cast<ptrdiff_t>(sech_data->VirtualAddress));
 
-        uintptr_t start_text = reinterpret_cast<uintptr_t>(windbg_module + sech_text->VirtualAddress);
+        uintptr_t end_data = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_data) +\
+            static_cast<ptrdiff_t>(sech_data->Misc.VirtualSize));
+
+        uintptr_t start_text = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
+            static_cast<ptrdiff_t>(sech_text->VirtualAddress));
+
         uintptr_t end_text = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_text) +\
-            sech_text->Misc.VirtualSize);
+            static_cast<ptrdiff_t>(sech_text->Misc.VirtualSize));
 
-        if ( start_data >= reinterpret_cast<uintptr_t*>(windbg_module_end) ||
-             end_data > reinterpret_cast<uintptr_t*>(windbg_module_end) ||
-             start_text >= windbg_module_end ||
-             end_text > windbg_module_end ) {
+        if ( start_data >= windbg_module_end || end_data > windbg_module_end ||
+             start_text >= windbg_module_end || end_text > windbg_module_end ) {
                  throw ExtStatusException(S_OK, "Something is wrong");
         }
 
-        uintptr_t* mem_point = start_data;
+        uintptr_t* mem_point = reinterpret_cast<uintptr_t*>(start_data);
+        uintptr_t* mem_point_end = reinterpret_cast<uintptr_t*>(end_data);
 
-        while ( mem_point < end_data ) {
+        while ( mem_point < mem_point_end ) {
             try {
                 if ( *mem_point >= start_text && *mem_point <= end_text ) {
                     std::wstring check_sig = reinterpret_cast<wchar_t*>(*mem_point);
@@ -371,7 +375,7 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
 WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiColor* ui_color,
                                                                              const UiColorType ui_color_type) {
     InternalUiColor internal_color;
-    ZeroMemory(&internal_color, sizeof(internal_color));
+    std::memset(&internal_color, 0, sizeof(internal_color));
 
     internal_color.ui_color = ui_color;
     internal_color.is_changed = false;

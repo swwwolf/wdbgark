@@ -32,6 +32,7 @@
 
 #include <string>
 #include <sstream>
+#include <utility>
 
 #include "ddk.h"
 
@@ -40,8 +41,7 @@
 //////////////////////////////////////////////////////////////////////////
 // object manager routines
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkObjHelper
-{
+class WDbgArkObjHelper {
  public:
     WDbgArkObjHelper();
 
@@ -73,4 +73,4 @@ class WDbgArkObjHelper
     std::stringstream err;
 };
 
-#endif // OBJHELPER_HPP_
+#endif  // OBJHELPER_HPP_

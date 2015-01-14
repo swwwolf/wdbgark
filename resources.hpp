@@ -29,8 +29,7 @@
 #include <string>
 #include <sstream>
 
-class WDbgArkResHelper
-{
+class WDbgArkResHelper {
  public:
     WDbgArkResHelper();
 

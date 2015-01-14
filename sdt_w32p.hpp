@@ -33,4 +33,4 @@ enum ServiceTableType {
     W32pServiceTable_x64
 };
 
-#endif // SDT_W32P_HPP_
+#endif  // SDT_W32P_HPP_
