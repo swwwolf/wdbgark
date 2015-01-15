@@ -137,7 +137,7 @@ Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
 
 ## FAQ
 
-Q: What's the main purpose of the extension?  
+Q: What is the main purpose of the extension?  
 A: Well, first is educational only. Second, for fun and profit.  
 
 Q: Do you know about PyKd? I can script the whole Anti-Rootkit using Python.  
@@ -146,6 +146,16 @@ A: Yeah, i know, but C++ is much better.
 Q: Where is version 1.0?  
 A: Lost in space of Google Code.  
 
+Q: When the project starts?  
+A: February 2013 on Google Code.  
+
+Q: What version should i use?  
+A: Please use x64 version only. In the era of x64 i dunno why the heck you may need to use x86 version. x64 WinDBG is 
+able to debug both x86 and x64. Host OS bitness is the only limitation.  
+
+Q: How can i help?  
+A: Spread a word. Report issues and feature requests. I'm open for any suggestions. Thanks!  
+
 ## Help
 
 [Wiki](https://github.com/swwwolf/wdbgark/wiki) can help.
@@ -153,7 +163,7 @@ A: Lost in space of Google Code.
 ## Whoami
 
 * [LinkedIn profile](https://www.linkedin.com/in/vrusakov)
-* [Blog](http://sww-it.ru/) (russian mostly)
+* [Blog](http://sww-it.ru/)
 
 ## License
 
