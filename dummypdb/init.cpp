@@ -21,7 +21,7 @@
 
 #include "./init.h"
 
-typedef struct _OBJECT_CALLBACK_ENTRY_COMMON {
+struct _OBJECT_CALLBACK_ENTRY_COMMON {
     LIST_ENTRY                  CallbackList;
     OB_OPERATION                Operations;
     ULONG                       Active;

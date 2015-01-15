@@ -33,6 +33,8 @@ bool WDbgArk::Init() {
     if ( IsInited() )
         return true;
 
+    m_is_cur_machine64 = IsCurMachine64();
+
     m_Symbols->Reload("");  // revise debuggee modules list
 
     if ( !CheckSymbolsPath(MS_PUBLIC_SYMBOLS_SERVER, true) )
@@ -58,8 +60,6 @@ bool WDbgArk::Init() {
 
     if ( !SUCCEEDED(result) )
         warn << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlwarn;
-
-    m_is_cur_machine64 = IsCurMachine64();
 
     InitCallbackCommands();
     InitCalloutNames();

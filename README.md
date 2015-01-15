@@ -146,7 +146,7 @@ A: Yeah, i know, but C++ is much better.
 Q: Where is version 1.0?  
 A: Lost in space of Google Code.  
 
-Q: When the project starts?  
+Q: When did the project start?  
 A: February 2013 on Google Code.  
 
 Q: What version should i use?  
