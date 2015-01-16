@@ -215,24 +215,28 @@ EXT_COMMAND(wa_systemcb,
     out << "Displaying OS registered callback(s) with type " << type << endlout;
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeCallback));
-    display->PrintFooter();
 
     try {
         if ( type == "*" ) {
             for ( callbacksInfo::const_iterator citer = m_system_cb_commands.cbegin();
                   citer != m_system_cb_commands.cend();
                   ++citer ) {
+                out << "Collecting " << citer->first << " callbacks" << endlout;
                 CallCorrespondingWalkListRoutine(citer, output_list);
             }
         } else {
             callbacksInfo::const_iterator citer = m_system_cb_commands.find(type);
 
-            if ( citer != m_system_cb_commands.end() )
+            if ( citer != m_system_cb_commands.end() ) {
+                out << "Collecting " << citer->first << " callbacks" << endlout;
                 CallCorrespondingWalkListRoutine(citer, output_list);
-            else
+            } else {
                 err << __FUNCTION__ << ": invalid type was specified" << endlerr;
+            }
         }
 
+        // displaying collected information
+        display->PrintFooter();
         std::string prev_list_head;
 
         for ( const OutputWalkInfo &walk_info : output_list ) {
