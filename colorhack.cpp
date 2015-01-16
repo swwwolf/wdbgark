@@ -145,6 +145,9 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
                                        m_g_ui_colors(nullptr),
                                        m_g_out_mask_ui_colors(nullptr),
                                        tp(nullptr) {
+    if ( !IsWinDbgWindow() )
+        throw ExtStatusException(S_OK, "Can't find WinDBG window");
+
     tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
 
     tp->AddColumn("DML name", 15);
@@ -252,6 +255,27 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
     catch( ... ) {
         err << __FUNCTION__ << ": exception error" << endlerr;
     }
+}
+
+bool WDbgArkColorHack::IsWinDbgWindow(void) {
+    HWND top_window = GetTopWindow(GetForegroundWindow());
+
+    if ( top_window ) {
+        size_t window_text_len = static_cast<size_t>(GetWindowTextLength(top_window));
+
+        if ( window_text_len ) {
+            std::unique_ptr<char[]> test_name(new char[window_text_len]);
+
+            if ( GetWindowText(top_window, test_name.get(), static_cast<int>(window_text_len)) ) {
+                std::string window_text_name = test_name.get();
+
+                if ( window_text_name.find("WinDbg:") != std::string::npos )
+                    return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void WDbgArkColorHack::PrintInformation(void) {

@@ -105,6 +105,7 @@ class WDbgArkColorHack {
     void            InitThemes(void);
     bool            SetColor(const std::string &dml_name, const COLORREF color);
     InternalUiColor ConvertUiColorToInternal(UiColor* ui_color, const UiColorType ui_color_type);
+    bool            IsWinDbgWindow(void);
 
     //////////////////////////////////////////////////////////////////////////
     // output streams
