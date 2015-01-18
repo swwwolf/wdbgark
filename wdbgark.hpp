@@ -158,9 +158,6 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // walk routines
     //////////////////////////////////////////////////////////////////////////
-    void CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
-                                          walkresType &output_list);
-
     void WalkExCallbackList(const std::string &list_count_name,
                             const unsigned __int64 offset_list_count,
                             const unsigned __int32 routine_count,
@@ -236,6 +233,8 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////
+    void CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
+                                          walkresType &output_list);
     unsigned __int32 GetCmCallbackItemFunctionOffset() const;
     unsigned __int32 GetPowerCallbackItemFunctionOffset() const;
     unsigned __int32 GetPnpCallbackItemFunctionOffset() const;
@@ -255,6 +254,7 @@ class WDbgArk : public ExtExtension {
     // private inits
     //////////////////////////////////////////////////////////////////////////
     bool CheckSymbolsPath(const std::string& test_path, const bool display_error);
+    void CheckWindowsBuild(void);
     void InitCallbackCommands(void);
     void InitCalloutNames(void);
     void InitGDTSelectors(void);

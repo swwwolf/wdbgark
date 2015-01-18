@@ -63,6 +63,7 @@ bool WDbgArk::Init() {
     if ( !SUCCEEDED(result) )
         warn << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlwarn;
 
+    CheckWindowsBuild();
     InitCallbackCommands();
     InitCalloutNames();
     InitGDTSelectors();
@@ -280,6 +281,16 @@ bool WDbgArk::CheckSymbolsPath(const std::string& test_path, const bool display_
     }
 
     return result;
+}
+
+void WDbgArk::CheckWindowsBuild(void) {
+    if ( m_minor_build != WXP_VER && m_minor_build != W2K3_VER && m_minor_build != VISTA_RTM_VER
+         &&
+         m_minor_build != VISTA_SP1_VER && m_minor_build != VISTA_SP2_VER && m_minor_build != W7RTM_VER
+         &&
+         m_minor_build != W7SP1_VER && m_minor_build != W8RTM_VER && m_minor_build != W81RTM_VER ) {
+             warn << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
+    }
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
