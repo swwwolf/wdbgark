@@ -54,17 +54,16 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
     display->PrintHeader();
 
     try {
-        for ( int i = 2; i < 0x100; i++ ) {
-            ExtRemoteData object_type_ptr(offset + i * m_PtrSize, m_PtrSize);
+        walkresType output_list;
+        WalkAnyTable(offset, 2, 0x100, "", output_list, true);
 
-            if ( object_type_ptr.GetPtr() ) {
-                ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object_type_ptr.GetPtr(), false, NULL, NULL);
+        for ( const OutputWalkInfo &walk_info : output_list ) {
+            ExtRemoteTyped object_type("nt!_OBJECT_TYPE", walk_info.address, false, NULL, NULL);
 
-                if ( !SUCCEEDED(DirectoryObjectTypeCallback(this,
-                                                            object_type,
-                                                            reinterpret_cast<void*>(display.get()))) ) break;
-            } else {
-                break;
+            if ( !SUCCEEDED(DirectoryObjectTypeCallback(this,
+                                                        object_type,
+                                                        reinterpret_cast<void*>(display.get()))) ) {
+                err << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
             }
         }
     }

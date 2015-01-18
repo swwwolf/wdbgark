@@ -30,10 +30,10 @@
 #ifndef MANIPULATORS_HPP_
 #define MANIPULATORS_HPP_
 
+#include <engextcpp.hpp>
+
 #include <sstream>
 #include <iomanip>
-
-#include <engextcpp.hpp>
 
 /* global stream manipulators */
 inline std::ostream& endlout(std::ostream& arg) {

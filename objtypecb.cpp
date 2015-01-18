@@ -72,7 +72,7 @@ EXT_COMMAND(wa_objtypecb,
             if ( !SUCCEEDED(DirectoryObjectTypeCallbackListCallback(this,
                                                                     object_type,
                                                                     reinterpret_cast<void*>(display.get()))) ) {
-                warn << __FUNCTION__ << ": DirectoryObjectTypeCallbackListCallback failed" << endlwarn;
+                err << __FUNCTION__ << ": DirectoryObjectTypeCallbackListCallback failed" << endlerr;
             }
         }
     }

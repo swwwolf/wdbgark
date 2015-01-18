@@ -30,12 +30,13 @@
 #ifndef PROCESS_HPP_
 #define PROCESS_HPP_
 
+#include <engextcpp.hpp>
+
 #include <string>
 #include <sstream>
 #include <vector>
 #include <utility>
 
-#include <engextcpp.hpp>
 #include "manipulators.hpp"
 
 class WDbgArkProcess {

@@ -30,14 +30,15 @@
 #ifndef ANALYZE_HPP_
 #define ANALYZE_HPP_
 
+#include <engextcpp.hpp>
+#include <bprinter/table_printer.h>
+
 #include <string>
 #include <sstream>
 #include <iomanip>
 #include <memory>
 #include <utility>
 
-#include <engextcpp.hpp>
-#include <bprinter/table_printer.h>
 #include "manipulators.hpp"
 #include "objhelper.hpp"
 

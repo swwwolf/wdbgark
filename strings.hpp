@@ -30,11 +30,12 @@
 #ifndef STRINGS_HPP_
 #define STRINGS_HPP_
 
+#include <engextcpp.hpp>
+
 #include <string>
 #include <sstream>
 #include <utility>
 
-#include <engextcpp.hpp>
 #include "manipulators.hpp"
 
 #define make_string(x) #x

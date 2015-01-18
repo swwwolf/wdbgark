@@ -30,13 +30,13 @@
 #ifndef OBJHELPER_HPP_
 #define OBJHELPER_HPP_
 
+#include <engextcpp.hpp>
+
 #include <string>
 #include <sstream>
 #include <utility>
 
-#include "ddk.h"
-
-#include <engextcpp.hpp>
+#include "./ddk.h"
 
 //////////////////////////////////////////////////////////////////////////
 // object manager routines

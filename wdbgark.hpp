@@ -26,6 +26,10 @@
 #ifndef WDBGARK_HPP_
 #define WDBGARK_HPP_
 
+#undef EXT_CLASS
+#define EXT_CLASS WDbgArk
+#include <engextcpp.hpp>
+
 #if defined(_DEBUG)
     #define _CRTDBG_MAP_ALLOC
     #include <stdlib.h>
@@ -37,10 +41,7 @@
 #include <map>
 #include <vector>
 #include <memory>
-
-#undef EXT_CLASS
-#define EXT_CLASS WDbgArk
-#include <engextcpp.hpp>
+#include <unordered_map>
 
 #include "sdt_w32p.hpp"
 #include "objhelper.hpp"
@@ -63,12 +64,12 @@ class WDbgArk : public ExtExtension {
     typedef std::unordered_map<std::string, SystemCbCommand> callbacksInfo;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
-        unsigned __int64 routine_address;
+        unsigned __int64 address;
+        unsigned __int64 object_address;
+        unsigned __int64 list_head_address;
+        std::string      list_head_name;
         std::string      type;
         std::string      info;
-        std::string      list_head_name;
-        unsigned __int64 object_offset;
-        unsigned __int64 list_head_offset;
     } OutputWalkInfo;
 
     typedef std::vector<OutputWalkInfo> walkresType;
@@ -77,7 +78,7 @@ class WDbgArk : public ExtExtension {
         std::string      type;
         std::string      list_head_name;
         walkresType*     output_list_pointer;
-        unsigned __int64 list_head_offset;
+        unsigned __int64 list_head_address;
     } WalkCallbackContext;
     //////////////////////////////////////////////////////////////////////////
     typedef HRESULT (*pfn_object_directory_walk_callback_routine)(WDbgArk* wdbg_ark_class,
@@ -192,6 +193,12 @@ class WDbgArk : public ExtExtension {
     void WalkShutdownList(const std::string &list_head_name, const std::string &type, walkresType &output_list);
     void WalkPnpLists(const std::string &type, walkresType &output_list);
     void WalkCallbackDirectory(const std::string &type, walkresType &output_list);
+    void WalkAnyTable(const unsigned __int64 table_start,
+                      const unsigned __int32 offset_table_skip_start,
+                      const unsigned __int32 table_count,
+                      const std::string &type,
+                      walkresType &output_list,
+                      bool break_on_null = false);
 
     void AddSymbolPointer(const std::string &symbol_name,
                           const std::string &type,
@@ -247,7 +254,6 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // private inits
     //////////////////////////////////////////////////////////////////////////
-    #define MS_PUBLIC_SYMBOLS_SERVER "http://msdl.microsoft.com/download/symbols"
     bool CheckSymbolsPath(const std::string& test_path, const bool display_error);
     void InitCallbackCommands(void);
     void InitCalloutNames(void);
@@ -266,6 +272,7 @@ class WDbgArk : public ExtExtension {
     unsigned __int32 m_minor_build;
     unsigned __int32 m_service_pack_number;
 
+    static const std::string          m_ms_public_symbols_server;
     callbacksInfo                     m_system_cb_commands;
     std::vector<std::string>          m_callout_names;
     std::vector<unsigned __int32>     m_gdt_selectors;

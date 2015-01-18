@@ -67,7 +67,7 @@ EXT_COMMAND(wa_objtype,
                                        NULL);
 
             if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
-                warn << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlwarn;
+                err << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
         }
     }
     catch ( const ExtRemoteException &Ex ) {

@@ -66,20 +66,14 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     display->PrintHeader();
 
     try {
+        walkresType output_list;
+
         // skip first two entries, they're system reserved signatures
-        offset += 2 * sizeof(unsigned __int32);
+        WalkAnyTable(offset, 2, table_count, "", output_list);
 
-        for ( unsigned __int32 i = 0; i < table_count; i++ ) {
-            ExtRemoteData crashdmp_call_table_entry(offset + i * m_PtrSize, m_PtrSize);
-
-            if ( !crashdmp_call_table_entry.GetPtr() )  // last is null
-                break;
-
-            display->AnalyzeAddressAsRoutine(crashdmp_call_table_entry.GetPtr(), "", "");
+        for ( const OutputWalkInfo &walk_info : output_list ) {
+            display->AnalyzeAddressAsRoutine(walk_info.address, walk_info.type, walk_info.info);
         }
-    }
-    catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;

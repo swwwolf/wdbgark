@@ -29,6 +29,8 @@
 
 EXT_DECLARE_GLOBALS();
 
+const std::string WDbgArk::m_ms_public_symbols_server = "http://msdl.microsoft.com/download/symbols";
+
 bool WDbgArk::Init() {
     if ( IsInited() )
         return true;
@@ -37,7 +39,7 @@ bool WDbgArk::Init() {
 
     m_Symbols->Reload("");  // revise debuggee modules list
 
-    if ( !CheckSymbolsPath(MS_PUBLIC_SYMBOLS_SERVER, true) )
+    if ( !CheckSymbolsPath(m_ms_public_symbols_server, true) )
         warn << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
     if ( !InitDummyPdbModule() )
@@ -317,12 +319,12 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
             if ( routine ) {
                 OutputWalkInfo info;
 
-                info.routine_address = routine;
+                info.address = routine;
                 info.type = type;
                 info.info = ext_info;
                 info.list_head_name = list_head_name;
-                info.object_offset = node;
-                info.list_head_offset = list_head_offset_out;
+                info.object_address = node;
+                info.list_head_address = list_head_offset_out;
 
                 output_list.push_back(info);
             }
@@ -444,6 +446,39 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
     }
 }
 
+void WDbgArk::WalkAnyTable(const unsigned __int64 table_start,
+                           const unsigned __int32 offset_table_skip_start,
+                           const unsigned __int32 table_count,
+                           const std::string &type,
+                           walkresType &output_list,
+                           bool break_on_null) {
+    unsigned __int64 offset = table_start + offset_table_skip_start * m_PtrSize;
+
+    try {
+        for ( unsigned __int32 i = 0; i < table_count; i++ ) {
+            ExtRemoteData data(offset + i * m_PtrSize, m_PtrSize);
+
+            if ( data.GetPtr() ) {
+                OutputWalkInfo info;
+
+                info.address = data.GetPtr();
+                info.type = type;
+                info.info.clear();
+                info.list_head_name.clear();
+                info.object_address = 0ULL;
+                info.list_head_address = 0ULL;
+
+                output_list.push_back(info);
+            } else if ( break_on_null ) {
+                break;
+            }
+        }
+    }
+    catch ( const ExtRemoteException &Ex ) {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+}
+
 void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
                                const std::string &type,
                                const std::string &additional_info,
@@ -460,12 +495,12 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
             if ( offset ) {
                 OutputWalkInfo info;
 
-                info.routine_address = offset;
+                info.address = offset;
                 info.type = type;
                 info.info = additional_info;
                 info.list_head_name = symbol_name;
-                info.object_offset = 0ULL;
-                info.list_head_offset = symbol_offset;
+                info.object_address = 0ULL;
+                info.list_head_address = symbol_offset;
 
                 output_list.push_back(info);
             }

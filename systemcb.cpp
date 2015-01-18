@@ -243,14 +243,14 @@ EXT_COMMAND(wa_systemcb,
             if ( prev_list_head != walk_info.list_head_name ) {
                 out << walk_info.list_head_name;
 
-                if ( walk_info.list_head_offset )
-                    out << ": " << std::hex << std::showbase << walk_info.list_head_offset;
+                if ( walk_info.list_head_address )
+                    out << ": " << std::hex << std::showbase << walk_info.list_head_address;
 
                 out << endlout;
                 display->PrintHeader();
             }
 
-            display->AnalyzeAddressAsRoutine(walk_info.routine_address, walk_info.type, walk_info.info);
+            display->AnalyzeAddressAsRoutine(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
 
             prev_list_head = walk_info.list_head_name;
@@ -467,12 +467,12 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
                 if ( notify_routine ) {
                     OutputWalkInfo info;
 
-                    info.routine_address = notify_routine;
+                    info.address = notify_routine;
                     info.type = type;
                     info.info.clear();
                     info.list_head_name = list_head_name;
-                    info.object_offset = 0ULL;
-                    info.list_head_offset = list_head_offset_out;
+                    info.object_address = 0ULL;
+                    info.list_head_address = list_head_offset_out;
 
                     output_list.push_back(info);
                 }
@@ -576,7 +576,7 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
     context.list_head_name = list_head_name;
     context.output_list_pointer = &output_list;
 
-    if ( !GetSymbolOffset( list_head_name.c_str(), true, &context.list_head_offset ) )
+    if ( !GetSymbolOffset( list_head_name.c_str(), true, &context.list_head_address ) )
         warn << __FUNCTION__ << ": GetSymbolOffset failed with " << list_head_name << endlwarn;
 
     WalkAnyListWithOffsetToObjectPointer(list_head_name,
@@ -612,12 +612,12 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
 
         OutputWalkInfo winfo;
 
-        winfo.routine_address = routine_address;
+        winfo.address = routine_address;
         winfo.type = type;
         winfo.info = info.str();
         winfo.list_head_name = cb_context->list_head_name;
-        winfo.object_offset = 0ULL;
-        winfo.list_head_offset = cb_context->list_head_offset;
+        winfo.object_address = 0ULL;
+        winfo.list_head_address = cb_context->list_head_address;
 
         cb_context->output_list_pointer->push_back(winfo);
     }

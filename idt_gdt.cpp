@@ -640,19 +640,19 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                    output_list);
 
                     for ( const OutputWalkInfo &walk_info : output_list ) {
-                        if ( !walk_info.routine_address )
+                        if ( !walk_info.address )
                             continue;
 
                         std::stringstream info_intr_list;
                         info_intr_list << std::setw(41);
 
                         info_intr_list << "<exec cmd=\"dt nt!_KINTERRUPT ";
-                        info_intr_list << std::hex << std::showbase << walk_info.object_offset;
+                        info_intr_list << std::hex << std::showbase << walk_info.object_address;
                         info_intr_list << "\">dt" << "</exec>" << " ";
                         info_intr_list << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                         info_intr_list << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                        display->AnalyzeAddressAsRoutine(walk_info.routine_address,
+                        display->AnalyzeAddressAsRoutine(walk_info.address,
                                                          walk_info.type,
                                                          info_intr_list.str());
                     }

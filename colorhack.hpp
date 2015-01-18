@@ -26,7 +26,10 @@
 #ifndef COLORHACK_HPP_
 #define COLORHACK_HPP_
 
+#include <bprinter/table_printer.h>
+
 #include <windows.h>
+
 #include <string>
 #include <sstream>
 #include <vector>
@@ -34,7 +37,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include <bprinter/table_printer.h>
 //////////////////////////////////////////////////////////////////////////
 // hack WinDbg colors
 //////////////////////////////////////////////////////////////////////////
