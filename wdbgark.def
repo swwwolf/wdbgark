@@ -28,3 +28,4 @@ EXPORTS
 	wa_gdt
 	wa_colorize
 	wa_crashdmpcall
+	wa_haltables

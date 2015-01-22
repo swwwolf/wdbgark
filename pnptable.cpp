@@ -154,6 +154,7 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
 
             ExtRemoteData pnp_table_entry_routine(init_offset, m_PtrSize);
             display->AnalyzeAddressAsRoutine(pnp_table_entry_routine.GetPtr(), "", "");
+            display->PrintFooter();
         }
     }
     catch ( const ExtRemoteException &Ex ) {
@@ -163,6 +164,5 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
         throw;
     }
 
-    display->PrintFooter();
     display->PrintFooter();
 }

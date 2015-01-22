@@ -32,7 +32,10 @@
 
 WDbgArkObjHelper::WDbgArkObjHelper() : m_inited(false),
                                        object_header_old(true),
-                                       ObpInfoMaskToOffset(0) {
+                                       ObpInfoMaskToOffset(0),
+                                       out(),
+                                       warn(),
+                                       err() {
     // determine object header format
     unsigned __int32 type_index_offset = 0;
 

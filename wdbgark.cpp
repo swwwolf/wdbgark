@@ -63,10 +63,14 @@ bool WDbgArk::Init() {
     if ( !SUCCEEDED(result) )
         warn << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlwarn;
 
+    m_strict_minor_build = GetWindowsStrictMinorBuild();
+    InitKnownWindowsBuilds();
     CheckWindowsBuild();
+
     InitCallbackCommands();
     InitCalloutNames();
     InitGDTSelectors();
+    InitHalTables();
 
     if ( !FindDbgkLkmdCallbackArray() )
         warn << __FUNCTION__ ": FindDbgkLkmdCallbackArray failed" << endlwarn;
@@ -243,6 +247,36 @@ void WDbgArk::InitGDTSelectors(void) {
     }
 }
 
+void WDbgArk::InitHalTables(void) {
+    m_hal_tbl_info.insert(haltblInfo::value_type(WXP_VER, HalDispatchTablesInfo(0x15, 0x12, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(W2K3_VER, HalDispatchTablesInfo(0x16, 0x14, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_RTM_VER, HalDispatchTablesInfo(0x16, 0x1B, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP1_VER, HalDispatchTablesInfo(0x18, 0x21, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP2_VER, HalDispatchTablesInfo(0x17, 0x24, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(W7RTM_VER, HalDispatchTablesInfo(0x16, 0x2E, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(W7SP1_VER, HalDispatchTablesInfo(0x16, 0x2D, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(W8RTM_VER, HalDispatchTablesInfo(0x16, 0x5A, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(W81RTM_VER, HalDispatchTablesInfo(0x16, 0x69, 0x0B, 0x1)));
+}
+
+void WDbgArk::InitKnownWindowsBuilds(void) {
+    m_known_windows_builds.insert(WXP_VER);
+    m_known_windows_builds.insert(W2K3_VER);
+    m_known_windows_builds.insert(VISTA_RTM_VER);
+    m_known_windows_builds.insert(VISTA_SP1_VER);
+    m_known_windows_builds.insert(VISTA_SP2_VER);
+    m_known_windows_builds.insert(W7RTM_VER);
+    m_known_windows_builds.insert(W7SP1_VER);
+    m_known_windows_builds.insert(W8RTM_VER);
+    m_known_windows_builds.insert(W81RTM_VER);
+}
+
+void WDbgArk::CheckWindowsBuild(void) {
+    if ( m_known_windows_builds.find(m_minor_build) == m_known_windows_builds.end() ) {
+        warn << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
+    }
+}
+
 bool WDbgArk::CheckSymbolsPath(const std::string& test_path, const bool display_error) {
     unsigned __int32 buffer_size = 0;
     bool             result      = false;
@@ -281,16 +315,6 @@ bool WDbgArk::CheckSymbolsPath(const std::string& test_path, const bool display_
     }
 
     return result;
-}
-
-void WDbgArk::CheckWindowsBuild(void) {
-    if ( m_minor_build != WXP_VER && m_minor_build != W2K3_VER && m_minor_build != VISTA_RTM_VER
-         &&
-         m_minor_build != VISTA_SP1_VER && m_minor_build != VISTA_SP2_VER && m_minor_build != W7RTM_VER
-         &&
-         m_minor_build != W7SP1_VER && m_minor_build != W8RTM_VER && m_minor_build != W81RTM_VER ) {
-             warn << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
-    }
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
@@ -462,14 +486,15 @@ void WDbgArk::WalkAnyTable(const unsigned __int64 table_start,
                            const unsigned __int32 table_count,
                            const std::string &type,
                            walkresType &output_list,
-                           bool break_on_null) {
+                           bool break_on_null,
+                           bool collect_null) {
     unsigned __int64 offset = table_start + offset_table_skip_start * m_PtrSize;
 
     try {
         for ( unsigned __int32 i = 0; i < table_count; i++ ) {
             ExtRemoteData data(offset + i * m_PtrSize, m_PtrSize);
 
-            if ( data.GetPtr() ) {
+            if ( data.GetPtr() || collect_null ) {
                 OutputWalkInfo info;
 
                 info.address = data.GetPtr();
@@ -656,6 +681,27 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
         warn << __FUNCTION__ << ": failed to set assembly options" << endlwarn;
 
     return result;
+}
+
+unsigned __int32 WDbgArk::GetWindowsStrictMinorBuild(void) const {
+    if ( m_minor_build <= WXP_VER )
+        return WXP_VER;
+    else if ( m_minor_build > WXP_VER && m_minor_build <= W2K3_VER )
+        return W2K3_VER;
+    else if ( m_minor_build > W2K3_VER && m_minor_build <= VISTA_RTM_VER )
+        return VISTA_RTM_VER;
+    else if ( m_minor_build > VISTA_SP1_VER && m_minor_build <= VISTA_SP2_VER )
+        return VISTA_SP2_VER;
+    else if ( m_minor_build > VISTA_SP2_VER && m_minor_build <= W7RTM_VER )
+        return W7RTM_VER;
+    else if ( m_minor_build > W7RTM_VER && m_minor_build <= W7SP1_VER )
+        return W7SP1_VER;
+    else if ( m_minor_build > W7SP1_VER && m_minor_build <= W8RTM_VER )
+        return W8RTM_VER;
+    else if ( m_minor_build > W8RTM_VER && m_minor_build <= W81RTM_VER )
+        return W81RTM_VER;
+
+    return 0UL;
 }
 
 void WDbgArk::RemoveSyntheticSymbols(void) {

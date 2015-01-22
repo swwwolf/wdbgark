@@ -144,7 +144,14 @@ void __stdcall InitUiColors()
 WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
                                        m_g_ui_colors(nullptr),
                                        m_g_out_mask_ui_colors(nullptr),
-                                       tp(nullptr) {
+                                       m_internal_colors(),
+                                       tp(nullptr),
+                                       m_cur_theme(),
+                                       m_themes(),
+                                       out(),
+                                       warn(),
+                                       err(),
+                                       bprinter_out() {
     if ( !IsWinDbgWindow() )
         throw ExtStatusException(S_OK, "Can't find WinDBG window");
 

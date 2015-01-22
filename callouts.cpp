@@ -102,6 +102,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
                 if ( GetSymbolOffset(callout_name.c_str(), true, &offset) ) {
                     ExtRemoteData callout_routine(offset, m_PtrSize);
                     display->AnalyzeAddressAsRoutine(callout_routine.GetPtr(), callout_name, "");
+                    display->PrintFooter();
                 }
             }
         } else {
@@ -118,6 +119,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
                         m_PtrSize);
 
                     display->AnalyzeAddressAsRoutine(routine_block.GetPtr(), "nt!PsWin32CallBack", "");
+                    display->PrintFooter();
                 }
             }
         }
@@ -129,6 +131,5 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
         throw;
     }
 
-    display->PrintFooter();
     display->PrintFooter();
 }

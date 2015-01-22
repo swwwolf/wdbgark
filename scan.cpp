@@ -158,6 +158,14 @@ EXT_COMMAND(wa_scan,
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
+    try {
+        out << "<b>!wa_haltables</b>" << endlout;
+        wa_haltables();
+    }
+    catch ( const ExtStatusException &Ex ) {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
     out << "--------------------------------------------------------------------------" << endlout;
     out << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << endlout;
 

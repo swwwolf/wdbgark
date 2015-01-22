@@ -267,7 +267,7 @@ EXT_COMMAND(wa_systemcb,
 void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
                                                walkresType &output_list) {
     if ( citer->first == "registry" ) {
-        if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER ) {
+        if ( m_minor_build >= WXP_VER && m_minor_build <= W2K3_VER ) {
             WalkExCallbackList(citer->second.list_count_name,
                                0ULL,
                                0,
@@ -638,14 +638,14 @@ void WDbgArk::WalkPnpLists(const std::string &type, walkresType &output_list) {
     unsigned __int64       offset            = 0;
     const unsigned __int32 offset_to_routine = GetPnpCallbackItemFunctionOffset();
 
-    if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER )
+    if ( m_minor_build >= WXP_VER && m_minor_build <= W2K3_VER )
         list_head_name = "nt!IopProfileNotifyList";
     else
         list_head_name = "nt!PnpProfileNotifyList";
 
     WalkAnyListWithOffsetToRoutine(list_head_name, 0ULL, 0, true, offset_to_routine, type, "", output_list);
 
-    if ( m_minor_build == WXP_VER || m_minor_build == W2K3_VER )
+    if ( m_minor_build >= WXP_VER && m_minor_build <= W2K3_VER )
         list_head_name = "nt!IopDeviceClassNotifyList";
     else
         list_head_name = "nt!PnpDeviceClassNotifyList";

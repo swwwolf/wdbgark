@@ -73,13 +73,13 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
         for ( const OutputWalkInfo &walk_info : output_list ) {
             display->AnalyzeAddressAsRoutine(walk_info.address, walk_info.type, walk_info.info);
+            display->PrintFooter();
         }
     }
     catch( const ExtInterruptException& ) {
         throw;
     }
 
-    display->PrintFooter();
     display->PrintFooter();
 }
 

@@ -26,8 +26,12 @@
 #include "resources.hpp"
 #include "manipulators.hpp"
 
-WDbgArkResHelper::WDbgArkResHelper() {
-    m_temp_path.clear();
+WDbgArkResHelper::WDbgArkResHelper() : m_main_subdir(),
+                                       m_platform_subdir(),
+                                       m_temp_path(),
+                                       out(),
+                                       warn(),
+                                       err() {
     m_main_subdir = "wdbgark";
 
     if ( g_Ext->IsCurMachine32() )

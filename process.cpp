@@ -30,7 +30,11 @@
 #include "manipulators.hpp"
 
 WDbgArkProcess::WDbgArkProcess() : m_inited(false),
-                                   m_current_process(0) {
+                                   m_current_process(0),
+                                   m_process_list(),
+                                   out(),
+                                   warn(),
+                                   err() {
     try {
         ExtRemoteTypedList list_head = ExtNtOsInformation::GetKernelProcessList();
 

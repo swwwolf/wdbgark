@@ -42,6 +42,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <set>
 
 #include "sdt_w32p.hpp"
 #include "objhelper.hpp"
@@ -81,6 +82,23 @@ class WDbgArk : public ExtExtension {
         unsigned __int64 list_head_address;
     } WalkCallbackContext;
     //////////////////////////////////////////////////////////////////////////
+    struct HalDispatchTablesInfo {
+        HalDispatchTablesInfo() : hdt_count(0), hpdt_count(0), hiommu_count(0), skip(0) {}
+        HalDispatchTablesInfo(unsigned __int8 hdt_c,
+                              unsigned __int8 hpdt_c,
+                              unsigned __int8 hio_c,
+                              unsigned __int8 skip) : hdt_count(hdt_c),
+                                                      hpdt_count(hpdt_c),
+                                                      hiommu_count(hio_c),
+                                                      skip(skip) {}
+        unsigned __int8 hdt_count;      // HalDispatchTable table count
+        unsigned __int8 hpdt_count;     // HalPrivateDispatchTable table count
+        unsigned __int8 hiommu_count;   // HalIommuDispatch table count (W8.1+)
+        unsigned __int8 skip;           // Skip first N entries
+    };
+
+    typedef std::map<unsigned __int32, HalDispatchTablesInfo> haltblInfo;
+    //////////////////////////////////////////////////////////////////////////
     typedef HRESULT (*pfn_object_directory_walk_callback_routine)(WDbgArk* wdbg_ark_class,
                                                                   const ExtRemoteTyped &object,
                                                                   void* context);
@@ -92,15 +110,24 @@ class WDbgArk : public ExtExtension {
     typedef HRESULT (*pfn_device_node_walk_callback_routine)(WDbgArk* wdbg_ark_class,
                                                              ExtRemoteTyped &device_node,
                                                              void* context);
-    WDbgArk()
-        : m_inited(false),
-          m_is_cur_machine64(false),
-          m_platform_id(0),
-          m_major_build(0),
-          m_minor_build(0),
-          m_service_pack_number(0),
-          m_obj_helper(nullptr),
-          m_color_hack(nullptr) {
+    WDbgArk() : m_inited(false),
+                m_is_cur_machine64(false),
+                m_platform_id(0),
+                m_major_build(0),
+                m_minor_build(0),
+                m_strict_minor_build(0),
+                m_service_pack_number(0),
+                m_system_cb_commands(),
+                m_callout_names(),
+                m_gdt_selectors(),
+                m_hal_tbl_info(),
+                m_known_windows_builds(),
+                m_synthetic_symbols(),
+                m_obj_helper(nullptr),
+                m_color_hack(nullptr),
+                out(),
+                warn(),
+                err() {
 #if defined(_DEBUG)
         _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
         _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
@@ -113,6 +140,8 @@ class WDbgArk : public ExtExtension {
             m_system_cb_commands.clear();
             m_callout_names.clear();
             m_gdt_selectors.clear();
+            m_hal_tbl_info.clear();
+            m_known_windows_builds.clear();
 
             // RemoveSyntheticSymbols();  //    TODO: already dead on unload
             m_synthetic_symbols.clear();
@@ -141,6 +170,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_gdt);
     EXT_COMMAND_METHOD(wa_colorize);
     EXT_COMMAND_METHOD(wa_crashdmpcall);
+    EXT_COMMAND_METHOD(wa_haltables);
 
     //////////////////////////////////////////////////////////////////////////
     // init
@@ -195,7 +225,8 @@ class WDbgArk : public ExtExtension {
                       const unsigned __int32 table_count,
                       const std::string &type,
                       walkresType &output_list,
-                      bool break_on_null = false);
+                      bool break_on_null = false,
+                      bool collect_null = false);
 
     void AddSymbolPointer(const std::string &symbol_name,
                           const std::string &type,
@@ -243,6 +274,7 @@ class WDbgArk : public ExtExtension {
     unsigned __int32 GetDbgkLkmdCallbackArrayDistance() const { return 2 * m_PtrSize; }
     bool             FindDbgkLkmdCallbackArray();
     unsigned __int32 GetCrashdmpCallTableCount() const;
+    unsigned __int32 GetWindowsStrictMinorBuild(void) const;
 
     std::string get_service_table_routine_name_internal(const unsigned __int32 index,
                                                         const unsigned __int32 max_count,
@@ -255,9 +287,13 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     bool CheckSymbolsPath(const std::string& test_path, const bool display_error);
     void CheckWindowsBuild(void);
+    //////////////////////////////////////////////////////////////////////////
     void InitCallbackCommands(void);
     void InitCalloutNames(void);
     void InitGDTSelectors(void);
+    void InitHalTables(void);
+    void InitKnownWindowsBuilds(void);
+    //////////////////////////////////////////////////////////////////////////
     void RemoveSyntheticSymbols(void);
     bool InitDummyPdbModule(void);
     bool RemoveDummyPdbModule(void);
@@ -270,12 +306,15 @@ class WDbgArk : public ExtExtension {
     unsigned __int32 m_platform_id;
     unsigned __int32 m_major_build;
     unsigned __int32 m_minor_build;
+    unsigned __int32 m_strict_minor_build;
     unsigned __int32 m_service_pack_number;
 
     static const std::string          m_ms_public_symbols_server;
     callbacksInfo                     m_system_cb_commands;
     std::vector<std::string>          m_callout_names;
     std::vector<unsigned __int32>     m_gdt_selectors;
+    haltblInfo                        m_hal_tbl_info;
+    std::set<unsigned __int32>        m_known_windows_builds;
     std::vector<DEBUG_MODULE_AND_ID>  m_synthetic_symbols;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;

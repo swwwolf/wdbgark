@@ -36,6 +36,7 @@ Public symbols are required, so use them, force to reload them, ignore checksum 
 * [!wa_checkmsr](https://github.com/swwwolf/wdbgark/wiki/!wa_checkmsr)
 * [!wa_idt](https://github.com/swwwolf/wdbgark/wiki/!wa_idt)
 * [!wa_gdt](https://github.com/swwwolf/wdbgark/wiki/!wa_gdt)
+* [!wa_haltables](https://github.com/swwwolf/wdbgark/wiki/!wa_haltables)
 * [!wa_colorize](https://github.com/swwwolf/wdbgark/wiki/!wa_colorize)
 
 ## Supported targets
@@ -121,6 +122,7 @@ Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
                      parameters)
   !wa_crashdmpcall - Output kernel-mode nt!CrashdmpCallTable
   !wa_gdt          - Output processors GDT
+  !wa_haltables    - Output kernel-mode HAL tables
   !wa_idt          - Output processors IDT
   !wa_objtype      - Output kernel-mode object type(s)
   !wa_objtypecb    - Output kernel-mode callbacks registered with
