@@ -52,6 +52,7 @@ alpcplog
 empcb
 ioperf
 dbgklkmd
+kdppower
 
 Default: all of them
 
@@ -200,7 +201,7 @@ EXT_COMMAND(wa_systemcb,
             "{type;s;o;type,Callback type name:\n"\
             "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, powersetting, callbackdir, "\
             "shutdown, shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, "\
-            "pnp, lego, debugprint, alpcplog, empcb, ioperf, dbgklkmd}") {
+            "pnp, lego, debugprint, alpcplog, empcb, ioperf, dbgklkmd, kdppower}") {
     std::string type = "*";
     walkresType output_list;
 
@@ -306,6 +307,15 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        "",
                                        output_list);
     } else if ( citer->first == "powersetting" && m_minor_build > W2K3_VER ) {
+        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       0ULL,
+                                       0,
+                                       true,
+                                       citer->second.offset_to_routine,
+                                       citer->first,
+                                       "",
+                                       output_list);
+    } else if ( citer->first == "kdppower" && m_minor_build >= W81RTM_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        0ULL,
                                        0,

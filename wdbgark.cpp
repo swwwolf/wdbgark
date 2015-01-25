@@ -120,6 +120,11 @@ void WDbgArk::InitCallbackCommands(void) {
     m_system_cb_commands["powersetting"] = command_info;
 
     command_info.list_count_name.clear();
+    command_info.list_head_name = "nt!KdpPowerListHead";
+    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
+    m_system_cb_commands["kdppower"] = command_info;
+
+    command_info.list_count_name.clear();
     command_info.list_head_name.clear();
     command_info.offset_to_routine = 0;
     m_system_cb_commands["callbackdir"] = command_info;
