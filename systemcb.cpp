@@ -53,6 +53,7 @@ empcb
 ioperf
 dbgklkmd
 kdppower
+ioptimer
 
 Default: all of them
 
@@ -188,6 +189,36 @@ IopProfileNotifyList and IopDeviceClassNotifyList were replaced by PnpProfileNot
 
 */
 
+/*
+IopTimer
+
+NTSTATUS __stdcall IoInitializeTimer(PDEVICE_OBJECT DeviceObject, PIO_TIMER_ROUTINE TimerRoutine, PVOID Context)
+{
+  _IO_TIMER *IoTimer; // edx@1
+
+  IoTimer = DeviceObject->Timer;
+
+  if ( !IoTimer )
+  {
+    IoTimer = (_IO_TIMER *)ExAllocatePoolWithTag(0, 0x18u, 'iToI');
+
+    if ( !IoTimer )
+      return STATUS_INSUFFICIENT_RESOURCES;
+
+    memset(IoTimer, 0, sizeof(_IO_TIMER));
+    IoTimer->Type = 9;
+    IoTimer->DeviceObject = DeviceObject;
+    DeviceObject->Timer = IoTimer;
+  }
+
+  IoTimer->TimerRoutine = TimerRoutine;
+  IoTimer->Context = Context;
+  ExfInterlockedInsertTailList(&IopTimerQueueHead, &IoTimer->TimerList, &IopTimerLock);
+
+  return 0;
+}
+*/
+
 #include <map>
 #include <string>
 #include <utility>
@@ -201,7 +232,7 @@ EXT_COMMAND(wa_systemcb,
             "{type;s;o;type,Callback type name:\n"\
             "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, powersetting, callbackdir, "\
             "shutdown, shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, "\
-            "pnp, lego, debugprint, alpcplog, empcb, ioperf, dbgklkmd, kdppower}") {
+            "pnp, lego, debugprint, alpcplog, empcb, ioperf, dbgklkmd, kdppower, ioptimer}") {
     std::string type = "*";
     walkresType output_list;
 
@@ -426,6 +457,21 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                            GetDbgkLkmdCallbackArrayDistance(),
                            "dbgklkmd",
                            output_list);
+    } else if ( citer->first == "ioptimer" ) {
+        unsigned __int32 link_offset = 0;
+
+        if ( GetFieldOffset("nt!_IO_TIMER", "TimerList", reinterpret_cast<PULONG>(&link_offset)) != 0 ) {
+            warn << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerList" << endlwarn;
+        } else {
+            WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                           0ULL,
+                                           link_offset,
+                                           true,
+                                           citer->second.offset_to_routine,
+                                           citer->first,
+                                           "",
+                                           output_list);
+        }
     }
 }
 

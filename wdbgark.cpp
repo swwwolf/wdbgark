@@ -199,6 +199,17 @@ void WDbgArk::InitCallbackCommands(void) {
     command_info.list_head_name = "nt!DbgkLkmdCallbackArray";
     command_info.offset_to_routine = 0;
     m_system_cb_commands["dbgklkmd"] = command_info;
+
+    unsigned __int32 timer_routine_offset = 0;
+
+    if ( GetFieldOffset("nt!_IO_TIMER", "TimerRoutine", reinterpret_cast<PULONG>(&timer_routine_offset)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
+    } else {
+        command_info.list_count_name.clear();
+        command_info.list_head_name = "nt!IopTimerQueueHead";
+        command_info.offset_to_routine = timer_routine_offset;
+        m_system_cb_commands["ioptimer"] = command_info;
+    }
 }
 
 void WDbgArk::InitCalloutNames(void) {

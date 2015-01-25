@@ -220,6 +220,7 @@ class WDbgArk : public ExtExtension {
     void WalkShutdownList(const std::string &list_head_name, const std::string &type, walkresType &output_list);
     void WalkPnpLists(const std::string &type, walkresType &output_list);
     void WalkCallbackDirectory(const std::string &type, walkresType &output_list);
+
     void WalkAnyTable(const unsigned __int64 table_start,
                       const unsigned __int32 offset_table_skip_start,
                       const unsigned __int32 table_count,
