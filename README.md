@@ -48,6 +48,8 @@ Public symbols are required, so use them, force to reload them, ignore checksum 
 * Microsoft Windows 8.x (x86/x64)
 * Microsoft Windows 10.x (theoretically)
 
+Multiple targets debugging is not supported!
+
 Windows BETA/RC is supported by design, but read a few notes. First, i don't care about checked builds. Second, i don't care
 if you don't have [symbols](http://msdn.microsoft.com/en-us/windows/hardware/gg463028.aspx) (public or private).
 IA64/ARM is unsupported (and will not).
