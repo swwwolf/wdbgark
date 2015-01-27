@@ -28,7 +28,8 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 
-EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables", "") {
+EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
+            "nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable", "") {
     RequireKernelMode();
 
     if ( !Init() )

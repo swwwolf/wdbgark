@@ -122,7 +122,8 @@ Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
                      parameters)
   !wa_crashdmpcall - Output kernel-mode nt!CrashdmpCallTable
   !wa_gdt          - Output processors GDT
-  !wa_haltables    - Output kernel-mode HAL tables
+  !wa_haltables    - Output kernel-mode HAL tables: nt!HalDispatchTable,
+                     nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable
   !wa_idt          - Output processors IDT
   !wa_objtype      - Output kernel-mode object type(s)
   !wa_objtypecb    - Output kernel-mode callbacks registered with
