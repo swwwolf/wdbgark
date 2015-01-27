@@ -56,11 +56,15 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // class typedefs
     //////////////////////////////////////////////////////////////////////////
-    typedef struct SystemCbCommandTag {
+    struct SystemCbCommand {
+        SystemCbCommand() : list_count_name(), list_head_name(), offset_to_routine(0) {}
+        SystemCbCommand(std::string lcn,
+                        std::string lhn,
+                        unsigned __int32 oftr) : list_count_name(lcn), list_head_name(lhn), offset_to_routine(oftr) {}
         std::string      list_count_name;
         std::string      list_head_name;
         unsigned __int32 offset_to_routine;
-    } SystemCbCommand;
+    };
 
     typedef std::unordered_map<std::string, SystemCbCommand> callbacksInfo;
     //////////////////////////////////////////////////////////////////////////

@@ -80,135 +80,137 @@ bool WDbgArk::Init() {
     return m_inited;
 }
 
+// TODO(swwwolf): optimize by calculating offsets in constructor only once
 void WDbgArk::InitCallbackCommands(void) {
-    // TODO(swwwolf): optimize by calculating offsets in constructor only once
-    // init systemcb map
-    SystemCbCommand command_info = { "nt!PspLoadImageNotifyRoutineCount", "nt!PspLoadImageNotifyRoutine", 0 };
-    m_system_cb_commands["image"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("image",
+                                                          SystemCbCommand("nt!PspLoadImageNotifyRoutineCount",
+                                                                          "nt!PspLoadImageNotifyRoutine",
+                                                                          0)));
 
-    command_info.list_count_name = "nt!PspCreateProcessNotifyRoutineCount";
-    command_info.list_head_name = "nt!PspCreateProcessNotifyRoutine";
-    m_system_cb_commands["process"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("process",
+                                                          SystemCbCommand("nt!PspCreateProcessNotifyRoutineCount",
+                                                                          "nt!PspCreateProcessNotifyRoutine",
+                                                                          0)));
 
-    command_info.list_count_name = "nt!PspCreateThreadNotifyRoutineCount";
-    command_info.list_head_name = "nt!PspCreateThreadNotifyRoutine";
-    m_system_cb_commands["thread"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("thread",
+                                                          SystemCbCommand("nt!PspCreateThreadNotifyRoutineCount",
+                                                                          "nt!PspCreateThreadNotifyRoutine",
+                                                                          0)));
 
-    command_info.list_count_name = "nt!CmpCallBackCount";
-    command_info.list_head_name = "nt!CmpCallBackVector";
-    command_info.offset_to_routine = GetCmCallbackItemFunctionOffset();
-    m_system_cb_commands["registry"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("registry",
+                                                          SystemCbCommand("nt!CmpCallBackCount",
+                                                                          "nt!CmpCallBackVector",
+                                                                          GetCmCallbackItemFunctionOffset())));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!KeBugCheckCallbackListHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    m_system_cb_commands["bugcheck"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("bugcheck",
+                                                          SystemCbCommand("",
+                                                                          "nt!KeBugCheckCallbackListHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY"))));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!KeBugCheckReasonCallbackListHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    m_system_cb_commands["bugcheckreason"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("bugcheckreason",
+                                                          SystemCbCommand("",
+                                                                          "nt!KeBugCheckReasonCallbackListHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY"))));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!KeBugCheckAddPagesCallbackListHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    m_system_cb_commands["bugcheckaddpages"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("bugcheckaddpages",
+                                                          SystemCbCommand("",
+                                                                          "nt!KeBugCheckAddPagesCallbackListHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY"))));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!PopRegisteredPowerSettingCallbacks";
-    command_info.offset_to_routine = GetPowerCallbackItemFunctionOffset();
-    m_system_cb_commands["powersetting"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("powersetting",
+                                                          SystemCbCommand("",
+                                                                          "nt!PopRegisteredPowerSettingCallbacks",
+                                                                          GetPowerCallbackItemFunctionOffset())));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!KdpPowerListHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    m_system_cb_commands["kdppower"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("kdppower",
+                                                          SystemCbCommand("",
+                                                                          "nt!KdpPowerListHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY"))));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name.clear();
-    command_info.offset_to_routine = 0;
-    m_system_cb_commands["callbackdir"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("callbackdir", SystemCbCommand()));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!IopNotifyShutdownQueueHead";
-    m_system_cb_commands["shutdown"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("shutdown",
+                                                          SystemCbCommand("",
+                                                                          "nt!IopNotifyShutdownQueueHead",
+                                                                          0)));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!IopNotifyLastChanceShutdownQueueHead";
-    m_system_cb_commands["shutdownlast"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("shutdownlast",
+                                                          SystemCbCommand("",
+                                                                          "nt!IopNotifyLastChanceShutdownQueueHead",
+                                                                          0)));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!IopDriverReinitializeQueueHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
-    m_system_cb_commands["drvreinit"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("drvreinit",
+                                                          SystemCbCommand("",
+                                                                          "nt!IopDriverReinitializeQueueHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize)));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!IopBootDriverReinitializeQueueHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
-    m_system_cb_commands["bootdrvreinit"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("bootdrvreinit",
+                                                          SystemCbCommand("",
+                                                                          "nt!IopBootDriverReinitializeQueueHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize)));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!IopFsNotifyChangeQueueHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize;
-    m_system_cb_commands["fschange"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("fschange",
+                                                          SystemCbCommand("",
+                                                                          "nt!IopFsNotifyChangeQueueHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize)));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!KiNmiCallbackListHead";
-    command_info.offset_to_routine = m_PtrSize;
-    m_system_cb_commands["nmi"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("nmi",
+                                                          SystemCbCommand("",
+                                                                          "nt!KiNmiCallbackListHead",
+                                                                          m_PtrSize)));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!SeFileSystemNotifyRoutinesHead";
-    command_info.offset_to_routine = m_PtrSize;
-    m_system_cb_commands["logonsessionroutine"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("logonsessionroutine",
+                                                          SystemCbCommand("",
+                                                                          "nt!SeFileSystemNotifyRoutinesHead",
+                                                                          m_PtrSize)));
 
-    command_info.list_count_name = "nt!IopUpdatePriorityCallbackRoutineCount";
-    command_info.list_head_name = "nt!IopUpdatePriorityCallbackRoutine";
-    command_info.offset_to_routine = 0;
-    m_system_cb_commands["prioritycallback"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("prioritycallback",
+                                                          SystemCbCommand("nt!IopUpdatePriorityCallbackRoutineCount",
+                                                                          "nt!IopUpdatePriorityCallbackRoutine",
+                                                                          0)));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name.clear();
-    m_system_cb_commands["pnp"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("pnp", SystemCbCommand()));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!PspLegoNotifyRoutine";    // actually just a pointer
-    m_system_cb_commands["lego"] = command_info;
+    // actually just a pointer
+    m_system_cb_commands.insert(callbacksInfo::value_type("lego",
+                                                          SystemCbCommand("",
+                                                                          "nt!PspLegoNotifyRoutine",
+                                                                          0)));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!RtlpDebugPrintCallbackList";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    m_system_cb_commands["debugprint"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("debugprint",
+                                                          SystemCbCommand("",
+                                                                          "nt!RtlpDebugPrintCallbackList",
+                                                                          GetTypeSize("nt!_LIST_ENTRY"))));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!AlpcpLogCallbackListHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    m_system_cb_commands["alpcplog"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("alpcplog",
+                                                          SystemCbCommand("",
+                                                                          "nt!AlpcpLogCallbackListHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY"))));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!EmpCallbackListHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_GUID");
-    m_system_cb_commands["empcb"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("empcb",
+                                                          SystemCbCommand("",
+                                                                          "nt!EmpCallbackListHead",
+                                                                          GetTypeSize("nt!_GUID"))));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!IopPerfIoTrackingListHead";
-    command_info.offset_to_routine = GetTypeSize("nt!_LIST_ENTRY");
-    m_system_cb_commands["ioperf"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("ioperf",
+                                                          SystemCbCommand("",
+                                                                          "nt!IopPerfIoTrackingListHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY"))));
 
-    command_info.list_count_name.clear();
-    command_info.list_head_name = "nt!DbgkLkmdCallbackArray";
-    command_info.offset_to_routine = 0;
-    m_system_cb_commands["dbgklkmd"] = command_info;
+    m_system_cb_commands.insert(callbacksInfo::value_type("dbgklkmd",
+                                                          SystemCbCommand("",
+                                                                          "nt!DbgkLkmdCallbackArray",
+                                                                          0)));
 
     unsigned __int32 timer_routine_offset = 0;
 
     if ( GetFieldOffset("nt!_IO_TIMER", "TimerRoutine", reinterpret_cast<PULONG>(&timer_routine_offset)) != 0 ) {
         warn << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
     } else {
-        command_info.list_count_name.clear();
-        command_info.list_head_name = "nt!IopTimerQueueHead";
-        command_info.offset_to_routine = timer_routine_offset;
-        m_system_cb_commands["ioptimer"] = command_info;
+        m_system_cb_commands.insert(callbacksInfo::value_type("ioptimer",
+                                                              SystemCbCommand("",
+                                                                              "nt!IopTimerQueueHead",
+                                                                              timer_routine_offset)));
     }
 }
 

@@ -496,7 +496,7 @@ bool WDbgArkAnalyze::SetOwnerModule(const std::string &module_name) {
     return false;
 }
 
-bool WDbgArkAnalyze::IsSuspiciousAddress(const unsigned __int64 address) {
+bool WDbgArkAnalyze::IsSuspiciousAddress(const unsigned __int64 address) const {
     if ( !m_owner_module_inited )
         return false;
 

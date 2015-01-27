@@ -132,7 +132,7 @@ class WDbgArkAnalyze {
 
     std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address);
 
-    bool        IsSuspiciousAddress(const unsigned __int64 address);
+    bool        IsSuspiciousAddress(const unsigned __int64 address) const;
     std::string GetGDTSelectorName(const unsigned __int32 selector) const;
 
     //////////////////////////////////////////////////////////////////////////

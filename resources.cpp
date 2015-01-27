@@ -26,14 +26,12 @@
 #include "resources.hpp"
 #include "manipulators.hpp"
 
-WDbgArkResHelper::WDbgArkResHelper() : m_main_subdir(),
+WDbgArkResHelper::WDbgArkResHelper() : m_main_subdir("wdbgark"),
                                        m_platform_subdir(),
                                        m_temp_path(),
                                        out(),
                                        warn(),
                                        err() {
-    m_main_subdir = "wdbgark";
-
     if ( g_Ext->IsCurMachine32() )
         m_platform_subdir = "x86";
     else
