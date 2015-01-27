@@ -66,7 +66,7 @@ class WDbgArk : public ExtExtension {
         unsigned __int32 offset_to_routine;
     };
 
-    typedef std::unordered_map<std::string, SystemCbCommand> callbacksInfo;
+    typedef std::map<std::string, SystemCbCommand> callbacksInfo;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
         unsigned __int64 address;
@@ -108,12 +108,13 @@ class WDbgArk : public ExtExtension {
                                                                   void* context);
 
     typedef HRESULT (*pfn_any_list_w_pobject_walk_callback_routine)(WDbgArk* wdbg_ark_class,
-                                                                    ExtRemoteData &object_pointer,
+                                                                    const ExtRemoteData &object_pointer,
                                                                     void* context);
 
     typedef HRESULT (*pfn_device_node_walk_callback_routine)(WDbgArk* wdbg_ark_class,
-                                                             ExtRemoteTyped &device_node,
+                                                             const ExtRemoteTyped &device_node,
                                                              void* context);
+    //////////////////////////////////////////////////////////////////////////
     WDbgArk() : m_inited(false),
                 m_is_cur_machine64(false),
                 m_platform_id(0),
@@ -199,7 +200,7 @@ class WDbgArk : public ExtExtension {
                             const unsigned __int64 offset_list_head,
                             const unsigned __int32 array_distance,
                             const std::string &type,
-                            walkresType &output_list);
+                            walkresType* output_list);
 
     void WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
                                         const unsigned __int64 offset_list_head,
@@ -208,7 +209,7 @@ class WDbgArk : public ExtExtension {
                                         const unsigned __int32 offset_to_routine,
                                         const std::string &type,
                                         const std::string &ext_info,
-                                        walkresType &output_list);
+                                        walkresType* output_list);
 
     void WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_name,
                                               const unsigned __int64 offset_list_head,
@@ -221,22 +222,22 @@ class WDbgArk : public ExtExtension {
                         void* context,
                         pfn_device_node_walk_callback_routine callback);
 
-    void WalkShutdownList(const std::string &list_head_name, const std::string &type, walkresType &output_list);
-    void WalkPnpLists(const std::string &type, walkresType &output_list);
-    void WalkCallbackDirectory(const std::string &type, walkresType &output_list);
+    void WalkShutdownList(const std::string &list_head_name, const std::string &type, walkresType* output_list);
+    void WalkPnpLists(const std::string &type, walkresType* output_list);
+    void WalkCallbackDirectory(const std::string &type, walkresType* output_list);
 
     void WalkAnyTable(const unsigned __int64 table_start,
                       const unsigned __int32 offset_table_skip_start,
                       const unsigned __int32 table_count,
                       const std::string &type,
-                      walkresType &output_list,
+                      walkresType* output_list,
                       bool break_on_null = false,
                       bool collect_null = false);
 
     void AddSymbolPointer(const std::string &symbol_name,
                           const std::string &type,
                           const std::string &additional_info,
-                          walkresType &output_list);
+                          walkresType* output_list);
 
     void WalkDirectoryObject(const unsigned __int64 directory_address,
                              void* context,
@@ -251,7 +252,7 @@ class WDbgArk : public ExtExtension {
                                            void* context);
 
     static HRESULT ShutdownListCallback(WDbgArk* wdbg_ark_class,
-                                        ExtRemoteData &object_pointer,
+                                        const ExtRemoteData &object_pointer,
                                         void* context);
 
     static HRESULT DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class,
@@ -263,14 +264,14 @@ class WDbgArk : public ExtExtension {
                                                            void* context);
 
     static HRESULT DeviceNodeCallback(WDbgArk* wdbg_ark_class,
-                                      ExtRemoteTyped &device_node,
+                                      const ExtRemoteTyped &device_node,
                                       void* context);
 
     //////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////
     void CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
-                                          walkresType &output_list);
+                                          walkresType* output_list);
     unsigned __int32 GetCmCallbackItemFunctionOffset() const;
     unsigned __int32 GetPowerCallbackItemFunctionOffset() const;
     unsigned __int32 GetPnpCallbackItemFunctionOffset() const;

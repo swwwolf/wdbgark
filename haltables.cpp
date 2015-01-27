@@ -77,7 +77,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
                          citer->second.skip,
                          citer->second.hdt_count,
                          "",
-                         output_list_hdt,
+                         &output_list_hdt,
                          false,
                          true);
         }
@@ -87,7 +87,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
                          citer->second.skip,
                          citer->second.hpdt_count,
                          "",
-                         output_list_hpdt,
+                         &output_list_hpdt,
                          false,
                          true);
         }
@@ -97,7 +97,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
                          0,
                          citer->second.hiommu_count,
                          "",
-                         output_list_hiommu,
+                         &output_list_hiommu,
                          false,
                          true);
         }

@@ -126,9 +126,9 @@ class WDbgArkAnalyze {
     //////////////////////////////////////////////////////////////////////////
     // TODO(swwwolf): don't return into referenced objects here
     HRESULT GetModuleNames(const unsigned __int64 address,
-                           std::string &image_name,
-                           std::string &module_name,
-                           std::string &loaded_image_name);
+                           std::string* image_name,
+                           std::string* module_name,
+                           std::string* loaded_image_name);
 
     std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address);
 

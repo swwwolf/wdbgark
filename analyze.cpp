@@ -112,7 +112,7 @@ void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
         symbol_name = "*UNKNOWN*";
         module_name = "*UNKNOWN*";
 
-        if ( !SUCCEEDED(GetModuleNames(address, image_name, module_name, loaded_image_name)) )
+        if ( !SUCCEEDED(GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) )
             suspicious = true;
 
         module_command_buf << "<exec cmd=\"lmvm " << module_name << "\">" << std::setw(16) << module_name << "</exec>";
@@ -342,11 +342,10 @@ std::string WDbgArkAnalyze::GetGDTSelectorName(const unsigned __int32 selector) 
     }
 }
 
-// TODO(swwwolf): return values not by reference
 HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
-                                       std::string &image_name,
-                                       std::string &module_name,
-                                       std::string &loaded_image_name) {
+                                       std::string* image_name,
+                                       std::string* module_name,
+                                       std::string* loaded_image_name) {
     unsigned __int32  img_name_size           = 0;
     unsigned __int32  module_name_size        = 0;
     unsigned __int32  loaded_module_name_size = 0;
@@ -407,14 +406,17 @@ HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                                                       NULL);
 
             if ( SUCCEEDED(result) ) {
-                image_name = buf1.get();
-                std::transform(image_name.begin(), image_name.end(), image_name.begin(), tolower);
+                image_name->assign(buf1.get());
+                std::transform(image_name->begin(), image_name->end(), image_name->begin(), tolower);
 
-                module_name = buf2.get();
-                std::transform(module_name.begin(), module_name.end(), module_name.begin(), tolower);
+                module_name->assign(buf2.get());
+                std::transform(module_name->begin(), module_name->end(), module_name->begin(), tolower);
 
-                loaded_image_name = buf3.get();
-                std::transform(loaded_image_name.begin(), loaded_image_name.end(), loaded_image_name.begin(), tolower);
+                loaded_image_name->assign(buf3.get());
+                std::transform(loaded_image_name->begin(),
+                               loaded_image_name->end(),
+                               loaded_image_name->begin(),
+                               tolower);
             }
         }
     }

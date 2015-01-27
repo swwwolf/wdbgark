@@ -627,7 +627,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                        message_service_offset,
                                                        processor_index.str(),
                                                        "",
-                                                       output_list);
+                                                       &output_list);
                     }
 
                     WalkAnyListWithOffsetToRoutine("",
@@ -637,7 +637,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                    service_routine_offset,
                                                    processor_index.str(),
                                                    "",
-                                                   output_list);
+                                                   &output_list);
 
                     for ( const OutputWalkInfo &walk_info : output_list ) {
                         if ( !walk_info.address )

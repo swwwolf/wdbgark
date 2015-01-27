@@ -45,11 +45,11 @@ EXT_COMMAND(wa_scan,
     out << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
 
     char time_buffer[26];
-    std::time_t time_result = std::time(nullptr);
+    std::time_t time_start = std::time(nullptr);
 
     out << "Scan start: ";
 
-    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_result) ) {
+    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_start) ) {
         time_buffer[24] = '\0';  // remove \n
         out << time_buffer;
     }
@@ -169,15 +169,18 @@ EXT_COMMAND(wa_scan,
     out << "--------------------------------------------------------------------------" << endlout;
     out << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << endlout;
 
-    time_result = std::time(nullptr);
+    std::time_t time_end = std::time(nullptr);
     out << "Scan end: ";
 
-    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_result) ) {
+    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_end) ) {
         time_buffer[24] = '\0';  // remove \n
         out << time_buffer;
     }
 
     out << endlout;
+
+    out << "Scan took ";
+    out << std::fixed << std::setprecision(2) << difftime(time_end, time_start) << " seconds" << endlout;
 
     out << "--------------------------------------------------------------------------" << endlout;
 

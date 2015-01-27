@@ -55,7 +55,7 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
 
     try {
         walkresType output_list;
-        WalkAnyTable(offset, 2, 0x100, "", output_list, true);
+        WalkAnyTable(offset, 2, 0x100, "", &output_list, true);
 
         for ( const OutputWalkInfo &walk_info : output_list ) {
             ExtRemoteTyped object_type("nt!_OBJECT_TYPE", walk_info.address, false, NULL, NULL);

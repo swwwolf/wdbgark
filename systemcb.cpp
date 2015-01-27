@@ -254,14 +254,14 @@ EXT_COMMAND(wa_systemcb,
                   citer != m_system_cb_commands.cend();
                   ++citer ) {
                 out << "Collecting " << citer->first << " callbacks" << endlout;
-                CallCorrespondingWalkListRoutine(citer, output_list);
+                CallCorrespondingWalkListRoutine(citer, &output_list);
             }
         } else {
             callbacksInfo::const_iterator citer = m_system_cb_commands.find(type);
 
             if ( citer != m_system_cb_commands.end() ) {
                 out << "Collecting " << citer->first << " callbacks" << endlout;
-                CallCorrespondingWalkListRoutine(citer, output_list);
+                CallCorrespondingWalkListRoutine(citer, &output_list);
             } else {
                 err << __FUNCTION__ << ": invalid type was specified" << endlerr;
             }
@@ -297,7 +297,7 @@ EXT_COMMAND(wa_systemcb,
 }
 
 void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
-                                               walkresType &output_list) {
+                                               walkresType* output_list) {
     if ( citer->first == "registry" ) {
         if ( m_minor_build >= WXP_VER && m_minor_build <= W2K3_VER ) {
             WalkExCallbackList(citer->second.list_count_name,
@@ -482,7 +482,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
                                  const unsigned __int64 offset_list_head,
                                  const unsigned __int32 array_distance,
                                  const std::string &type,
-                                 walkresType &output_list) {
+                                 walkresType* output_list) {
     unsigned __int64 offset = offset_list_count;
     unsigned __int32 rcount = count;
     ExtRemoteData    routine_count;
@@ -530,7 +530,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
                     info.object_address = 0ULL;
                     info.list_head_address = list_head_offset_out;
 
-                    output_list.push_back(info);
+                    output_list->push_back(info);
                 }
             }
         }
@@ -582,11 +582,11 @@ unsigned __int32 WDbgArk::GetEmpCallbackItemLinkOffset() const {
     return 0x28;
 }
 
-void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType &output_list) {
+void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType* output_list) {
     WalkCallbackContext context;
 
     context.type = type;
-    context.output_list_pointer = &output_list;
+    context.output_list_pointer = output_list;
 
     WalkDirectoryObject(m_obj_helper->FindObjectByName("Callback", 0ULL),
                         reinterpret_cast<void*>(&context),
@@ -620,17 +620,17 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemot
                                                    offset_to_routine,
                                                    type,
                                                    "",
-                                                   *cb_context->output_list_pointer);
+                                                   cb_context->output_list_pointer);
 
     return S_OK;
 }
 
-void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::string &type, walkresType &output_list) {
+void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::string &type, walkresType* output_list) {
     WalkCallbackContext context;
 
     context.type = type;
     context.list_head_name = list_head_name;
-    context.output_list_pointer = &output_list;
+    context.output_list_pointer = output_list;
 
     if ( !GetSymbolOffset( list_head_name.c_str(), true, &context.list_head_address ) )
         warn << __FUNCTION__ << ": GetSymbolOffset failed with " << list_head_name << endlwarn;
@@ -643,22 +643,24 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
                                          ShutdownListCallback);
 }
 
-HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &object_pointer, void* context) {
+HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, const ExtRemoteData &object_pointer, void* context) {
     WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
     std::string          type       = cb_context->type;
 
     try {
-        ExtRemoteTyped device_object("nt!_DEVICE_OBJECT", object_pointer.GetPtr(), false, NULL, NULL);
+        unsigned __int64 object_ptr = const_cast<ExtRemoteData &>(object_pointer).GetPtr();
+
+        ExtRemoteTyped device_object("nt!_DEVICE_OBJECT", object_ptr, false, NULL, NULL);
         ExtRemoteTyped driver_object_ptr = device_object.Field("DriverObject");
         ExtRemoteTyped driver_object = *driver_object_ptr;
         ExtRemoteTyped major_functions = driver_object.Field("MajorFunction");
 
         std::stringstream info;
 
-        info << "<exec cmd=\"!devobj " << std::hex << std::showbase << object_pointer.GetPtr();
+        info << "<exec cmd=\"!devobj " << std::hex << std::showbase << object_ptr;
         info << "\">!devobj" << "</exec>" << " ";
 
-        info << "<exec cmd=\"!devstack " << std::hex << std::showbase << object_pointer.GetPtr();
+        info << "<exec cmd=\"!devstack " << std::hex << std::showbase << object_ptr;
         info << "\">!devstack" << "</exec>" << " ";
 
         info << "<exec cmd=\"!drvobj " << std::hex << std::showbase << driver_object.m_Offset;
@@ -689,7 +691,7 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, ExtRemoteData &ob
 
 // IopProfileNotifyList and IopDeviceClassNotifyList were replaced
 // by PnpProfileNotifyList and PnpDeviceClassNotifyList in Vista+
-void WDbgArk::WalkPnpLists(const std::string &type, walkresType &output_list) {
+void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
     std::string            list_head_name;
     unsigned __int64       offset            = 0;
     const unsigned __int32 offset_to_routine = GetPnpCallbackItemFunctionOffset();
@@ -725,12 +727,12 @@ void WDbgArk::WalkPnpLists(const std::string &type, walkresType &output_list) {
 
     context.type = type;
     context.list_head_name = "nt!IopRootDeviceNode";
-    context.output_list_pointer = &output_list;
+    context.output_list_pointer = output_list;
 
     WalkDeviceNode(0ULL, reinterpret_cast<void*>(&context), DeviceNodeCallback);
 }
 
-HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &device_node, void* context) {
+HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &device_node, void* context) {
     WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
 
     std::stringstream info;
@@ -738,14 +740,24 @@ HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, ExtRemoteTyped &dev
     info << std::setw(37) << "<exec cmd=\"!devnode " << std::hex << std::showbase << device_node.m_Offset;
     info << "\">!devnode" << "</exec>";
 
-    wdbg_ark_class->WalkAnyListWithOffsetToRoutine(cb_context->list_head_name,
-                                                   device_node.Field("TargetDeviceNotify").m_Offset,
-                                                   0,
-                                                   true,
-                                                   wdbg_ark_class->GetPnpCallbackItemFunctionOffset(),
-                                                   cb_context->type,
-                                                   info.str(),
-                                                   *cb_context->output_list_pointer);
+    try {
+        ExtRemoteTyped target_dev_notify = const_cast<ExtRemoteTyped &>(device_node).Field("TargetDeviceNotify");
+
+        wdbg_ark_class->WalkAnyListWithOffsetToRoutine(cb_context->list_head_name,
+                                                       target_dev_notify.m_Offset,
+                                                       0,
+                                                       true,
+                                                       wdbg_ark_class->GetPnpCallbackItemFunctionOffset(),
+                                                       cb_context->type,
+                                                       info.str(),
+                                                       cb_context->output_list_pointer);
+    }
+    catch ( const ExtRemoteException &Ex ) {
+        std::stringstream tmperr;
+        tmperr << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+
+        return Ex.GetStatus();
+    }
 
     return S_OK;
 }

@@ -342,7 +342,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
                                              const unsigned __int32 offset_to_routine,
                                              const std::string &type,
                                              const std::string &ext_info,
-                                             walkresType &output_list) {
+                                             walkresType* output_list) {
     unsigned __int64 offset               = offset_list_head;
     unsigned __int64 list_head_offset_out = 0;
 
@@ -379,7 +379,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
                 info.object_address = node;
                 info.list_head_address = list_head_offset_out;
 
-                output_list.push_back(info);
+                output_list->push_back(info);
             }
         }
     }
@@ -503,7 +503,7 @@ void WDbgArk::WalkAnyTable(const unsigned __int64 table_start,
                            const unsigned __int32 offset_table_skip_start,
                            const unsigned __int32 table_count,
                            const std::string &type,
-                           walkresType &output_list,
+                           walkresType* output_list,
                            bool break_on_null,
                            bool collect_null) {
     unsigned __int64 offset = table_start + offset_table_skip_start * m_PtrSize;
@@ -522,7 +522,7 @@ void WDbgArk::WalkAnyTable(const unsigned __int64 table_start,
                 info.object_address = 0ULL;
                 info.list_head_address = 0ULL;
 
-                output_list.push_back(info);
+                output_list->push_back(info);
             } else if ( break_on_null ) {
                 break;
             }
@@ -536,7 +536,7 @@ void WDbgArk::WalkAnyTable(const unsigned __int64 table_start,
 void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
                                const std::string &type,
                                const std::string &additional_info,
-                               walkresType &output_list) {
+                               walkresType* output_list) {
     unsigned __int64 offset = 0;
 
     try {
@@ -556,7 +556,7 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
                 info.object_address = 0ULL;
                 info.list_head_address = symbol_offset;
 
-                output_list.push_back(info);
+                output_list->push_back(info);
             }
         }
     }
