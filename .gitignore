@@ -19,6 +19,7 @@ coverity.cmd
 
 # User-specific folders
 *.sln.ide/
+test/result/*.*
 
 # Build results
 # wdbgark
