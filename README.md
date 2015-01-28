@@ -161,6 +161,9 @@ able to debug both x86 and x64. Host OS bitness is the only limitation.
 Q: How can i help?  
 A: Spread a word. Report issues and feature requests. I'm open for any suggestions. Thanks!  
 
+Q: How to report an issue?  
+A: Feel free to report an issue using GitHub or email to me directly, but please, attach kernel-mode crash dump file.  
+
 ## Help
 
 [Wiki](https://github.com/swwwolf/wdbgark/wiki) can help.
