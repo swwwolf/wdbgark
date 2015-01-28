@@ -152,19 +152,19 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
                                        warn(),
                                        err(),
                                        bprinter_out() {
-    if ( !IsWinDbgWindow() )
-        throw ExtStatusException(S_OK, "Can't find WinDBG window");
-
-    tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
-
-    tp->AddColumn("DML name", 15);
-    tp->AddColumn("Description", 70);
-    tp->AddColumn("Original", 10);
-    tp->AddColumn("New color", 10);
-
-    InitThemes();
-
     try {
+        if ( !IsWinDbgWindow() )
+            throw ExtStatusException(S_OK, "Can't find WinDBG window");
+
+        tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
+
+        tp->AddColumn("DML name", 15);
+        tp->AddColumn("Description", 70);
+        tp->AddColumn("Original", 10);
+        tp->AddColumn("New color", 10);
+
+        InitThemes();
+
         uintptr_t windbg_module_start = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL));
 
         if ( !windbg_module_start )
@@ -264,25 +264,43 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
     }
 }
 
-bool WDbgArkColorHack::IsWinDbgWindow(void) {
-    HWND top_window = GetTopWindow(GetForegroundWindow());
+BOOL CALLBACK WDbgArkColorHack::EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+    bool*            found = reinterpret_cast<bool*>(lParam);
+    unsigned __int32 pid   = 0;
 
-    if ( top_window ) {
-        size_t window_text_len = static_cast<size_t>(GetWindowTextLength(top_window));
+    GetWindowThreadProcessId(hwnd, reinterpret_cast<LPDWORD>(&pid));
 
-        if ( window_text_len ) {
-            std::unique_ptr<char[]> test_name(new char[window_text_len]);
+    if ( pid == GetCurrentProcessId() ) {
+        HWND top_window = GetTopWindow(hwnd);
 
-            if ( GetWindowText(top_window, test_name.get(), static_cast<int>(window_text_len)) ) {
-                std::string window_text_name = test_name.get();
+        if ( top_window ) {
+            size_t window_text_len = static_cast<size_t>(GetWindowTextLength(top_window));
 
-                if ( window_text_name.find("WinDbg:") != std::string::npos )
-                    return true;
+            if ( window_text_len ) {
+                std::unique_ptr<char[]> test_name(new char[window_text_len]);
+
+                if ( GetWindowText(top_window, test_name.get(), static_cast<int>(window_text_len)) ) {
+                    std::string window_text_name = test_name.get();
+
+                    if ( window_text_name.find("WinDbg:") != std::string::npos ) {
+                        *found = true;
+                        return FALSE;  // stop enumeration
+                    }
+                }
             }
         }
     }
 
-    return false;
+    return TRUE;
+}
+
+bool WDbgArkColorHack::IsWinDbgWindow(void) {
+    bool found = false;
+
+    if ( !EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&found)) && !found )
+        return false;
+
+    return true;
 }
 
 void WDbgArkColorHack::PrintInformation(void) {

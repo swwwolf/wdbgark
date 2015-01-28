@@ -109,6 +109,8 @@ class WDbgArkColorHack {
     InternalUiColor ConvertUiColorToInternal(UiColor* ui_color, const UiColorType ui_color_type);
     bool            IsWinDbgWindow(void);
 
+    static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
+
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
