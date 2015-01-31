@@ -1,5 +1,6 @@
 .unload wdbgark
 .load wdbgark
+!wdbgark.wa_ver
 !wdbgark.help
 !wa_colorize /enable
 !wdbgark.wa_scan /log ${$arg1}

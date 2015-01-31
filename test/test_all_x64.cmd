@@ -1,3 +1,4 @@
+:: %1 - path to the folder with dumps
 @echo off
 set output="result"
 if not exist %output% mkdir %output%
