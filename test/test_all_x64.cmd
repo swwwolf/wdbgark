@@ -2,6 +2,7 @@
 @echo off
 set output="result"
 if not exist %output% mkdir %output%
+@del /Q %output%\*.*
 setlocal enableextensions
 for /r %1 %%f in (*.dmp) do call :process "%%f" %output%
 endlocal
