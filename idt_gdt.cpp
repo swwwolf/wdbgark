@@ -447,19 +447,27 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
         }
     }
 
-    if ( GetFieldOffset("nt!_KPCR",
+    if ( !m_is_cur_machine64
+         &&
+         m_minor_build >= W81RTM_VER
+         &&
+         GetFieldOffset("nt!_KPCR",
                         "PrcbData.VectorToInterruptObject",
                         reinterpret_cast<PULONG>(&vector_to_interrupt_object)) != 0 ) {
         warn << __FUNCTION__ << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
     }
 
-    if ( GetFieldOffset("nt!_KINTERRUPT",
+    if ( !(!m_is_cur_machine64 && m_minor_build >= W81RTM_VER)
+         &&
+         GetFieldOffset("nt!_KINTERRUPT",
                         "DispatchCode",
                         reinterpret_cast<PULONG>(&dispatch_code_offset)) != 0 ) {
         warn << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
     }
 
-    if ( GetFieldOffset("nt!_KINTERRUPT",
+    if ( m_minor_build >= VISTA_RTM_VER
+         &&
+         GetFieldOffset("nt!_KINTERRUPT",
                         "MessageServiceRoutine",
                         reinterpret_cast<PULONG>(&message_service_offset)) != 0 ) {
         warn << __FUNCTION__ << ": GetFieldOffset failed with MessageServiceRoutine" << endlwarn;
