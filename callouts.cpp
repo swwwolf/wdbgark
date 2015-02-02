@@ -78,6 +78,7 @@ void __stdcall PsEstablishWin32Callouts(int a1)
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
     RequireKernelMode();

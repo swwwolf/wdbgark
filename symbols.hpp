@@ -23,20 +23,11 @@
 #pragma once
 #endif
 
-#ifndef SDT_W32P_HPP_
-#define SDT_W32P_HPP_
+#ifndef SYMBOLS_HPP_
+#define SYMBOLS_HPP_
 
 #include <string>
 
-enum ServiceTableType {
-    KiServiceTable_x86 = 0,
-    KiServiceTable_x64,
-    W32pServiceTable_x86,
-    W32pServiceTable_x64
-};
+bool CheckSymbolsPath(const std::string& test_path, const bool display_error);
 
-std::string get_service_table_routine_name(const unsigned __int32 minor_build,
-                                           const ServiceTableType type,
-                                           const unsigned __int32 index);
-
-#endif  // SDT_W32P_HPP_
+#endif  // SYMBOLS_HPP_

@@ -23,20 +23,36 @@
 #pragma once
 #endif
 
-#ifndef SDT_W32P_HPP_
-#define SDT_W32P_HPP_
+#ifndef DUMMYPDB_HPP_
+#define DUMMYPDB_HPP_
 
 #include <string>
+#include <sstream>
 
-enum ServiceTableType {
-    KiServiceTable_x86 = 0,
-    KiServiceTable_x64,
-    W32pServiceTable_x86,
-    W32pServiceTable_x64
+class WDbgArkDummyPdb {
+ public:
+    WDbgArkDummyPdb();
+    ~WDbgArkDummyPdb();
+
+    bool        IsInited(void) const { return m_inited; }
+    std::string GetLongName(void) const { return m_dummy_pdb_name_long; }
+    std::string GetShortName(void) const { return m_dummy_pdb_name_short; }
+
+ private:
+     bool        m_inited;
+     std::string m_dummy_pdb_name_long;
+     std::string m_dummy_pdb_name_short;
+     std::string m_drop_path;
+
+     bool InitDummyPdbModule(void);
+     bool RemoveDummyPdbModule(void);
+
+    //////////////////////////////////////////////////////////////////////////
+    // output streams
+    //////////////////////////////////////////////////////////////////////////
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
 };
 
-std::string get_service_table_routine_name(const unsigned __int32 minor_build,
-                                           const ServiceTableType type,
-                                           const unsigned __int32 index);
-
-#endif  // SDT_W32P_HPP_
+#endif  // DUMMYPDB_HPP_

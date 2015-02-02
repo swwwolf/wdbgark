@@ -176,12 +176,14 @@
     <ClInclude Include="analyze.hpp" />
     <ClInclude Include="colorhack.hpp" />
     <ClInclude Include="ddk.h" />
+    <ClInclude Include="dummypdb.hpp" />
     <ClInclude Include="manipulators.hpp" />
     <ClInclude Include="objhelper.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resources.hpp" />
     <ClInclude Include="sdt_w32p.hpp" />
     <ClInclude Include="strings.hpp" />
+    <ClInclude Include="symbols.hpp" />
     <ClInclude Include="ver.hpp" />
     <ClInclude Include="wdbgark.hpp" />
     <ClInclude Include="process.hpp" />
@@ -194,6 +196,7 @@
     <ClCompile Include="colorhack.cpp" />
     <ClCompile Include="colorize.cpp" />
     <ClCompile Include="crashdmpcall.cpp" />
+    <ClCompile Include="dummypdb.cpp" />
     <ClCompile Include="haltables.cpp" />
     <ClCompile Include="idt_gdt.cpp" />
     <ClCompile Include="objhelper.cpp" />
@@ -206,6 +209,7 @@
     <ClCompile Include="scan.cpp" />
     <ClCompile Include="sdt_w32p.cpp" />
     <ClCompile Include="ssdt.cpp" />
+    <ClCompile Include="symbols.cpp" />
     <ClCompile Include="systemcb.cpp" />
     <ClCompile Include="ver.cpp" />
     <ClCompile Include="wdbgark.cpp" />

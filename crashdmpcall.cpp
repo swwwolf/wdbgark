@@ -28,6 +28,7 @@
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     RequireKernelMode();

@@ -27,6 +27,7 @@
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             "nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable", "") {

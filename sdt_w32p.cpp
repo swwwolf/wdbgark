@@ -21,8 +21,18 @@
 
 // TODO(swwwolf): check routine names (subXXX, unknown, etc...)
 
+#include <engextcpp.hpp>
+
 #include <string>
-#include "wdbgark.hpp"
+#include "sdt_w32p.hpp"
+#include "./ddk.h"
+
+//////////////////////////////////////////////////////////////////////////
+std::string get_service_table_routine_name_internal(const unsigned __int32 index,
+                                                    const unsigned __int32 max_count,
+                                                    const char** service_table);
+std::string get_service_table_prefix_name(const ServiceTableType type);
+//////////////////////////////////////////////////////////////////////////
 
 static const char* KiServiceTable_XpSp3_x86[] = {
     "NtAcceptConnectPort",
@@ -20723,16 +20733,16 @@ static const unsigned __int32 Service_Tables_countof[][9] = {
       _countof(W32pServiceTable_Win8Sp0_x64), _countof(W32pServiceTable_Win8Sp1_x64) }
 };
 
-std::string WDbgArk::get_service_table_routine_name_internal(const unsigned __int32 index,
+std::string get_service_table_routine_name_internal(const unsigned __int32 index,
                                                              const unsigned __int32 max_count,
-                                                             const char** service_table) const {
+                                                             const char** service_table) {
     if ( service_table && max_count && index < max_count )
         return service_table[index];
 
     return "*UNKNOWN*";
 }
 
-std::string WDbgArk::get_service_table_prefix_name(const ServiceTableType type) const {
+std::string get_service_table_prefix_name(const ServiceTableType type) {
     if ( type == KiServiceTable_x86 || type == KiServiceTable_x64 )
         return "nt!";
     else if ( type == W32pServiceTable_x86 || type == W32pServiceTable_x64 )
@@ -20741,36 +20751,38 @@ std::string WDbgArk::get_service_table_prefix_name(const ServiceTableType type) 
     return "";
 }
 
-std::string WDbgArk::get_service_table_routine_name(const ServiceTableType type, const unsigned __int32 index) const {
+std::string get_service_table_routine_name(const unsigned __int32 minor_build,
+                                           const ServiceTableType type,
+                                           const unsigned __int32 index) {
     std::string      routine       = get_service_table_prefix_name(type);
     unsigned __int32 max_count     = 0;
     const char**     service_table = nullptr;
 
-    if ( m_minor_build >= WXP_VER && m_minor_build < W2K3_VER ) {
+    if ( minor_build >= WXP_VER && minor_build < W2K3_VER ) {
         max_count = Service_Tables_countof[type][0];
         service_table = Service_Tables[type][0];
-    } else if ( m_minor_build >= W2K3_VER && m_minor_build < VISTA_RTM_VER ) {
+    } else if ( minor_build >= W2K3_VER && minor_build < VISTA_RTM_VER ) {
         max_count = Service_Tables_countof[type][1];
         service_table = Service_Tables[type][1];
-    } else if ( m_minor_build >= VISTA_RTM_VER && m_minor_build < VISTA_SP1_VER ) {
+    } else if ( minor_build >= VISTA_RTM_VER && minor_build < VISTA_SP1_VER ) {
         max_count = Service_Tables_countof[type][2];
         service_table = Service_Tables[type][2];
-    } else if ( m_minor_build >= VISTA_SP1_VER && m_minor_build < VISTA_SP2_VER ) {
+    } else if ( minor_build >= VISTA_SP1_VER && minor_build < VISTA_SP2_VER ) {
         max_count = Service_Tables_countof[type][3];
         service_table = Service_Tables[type][3];
-    } else if ( m_minor_build >= VISTA_SP2_VER && m_minor_build < W7RTM_VER ) {
+    } else if ( minor_build >= VISTA_SP2_VER && minor_build < W7RTM_VER ) {
         max_count = Service_Tables_countof[type][4];
         service_table = Service_Tables[type][4];
-    } else if ( m_minor_build >= W7RTM_VER && m_minor_build < W7SP1_VER ) {
+    } else if ( minor_build >= W7RTM_VER && minor_build < W7SP1_VER ) {
         max_count = Service_Tables_countof[type][5];
         service_table = Service_Tables[type][5];
-    } else if ( m_minor_build >= W7SP1_VER && m_minor_build < W8RTM_VER ) {
+    } else if ( minor_build >= W7SP1_VER && minor_build < W8RTM_VER ) {
         max_count = Service_Tables_countof[type][6];
         service_table = Service_Tables[type][6];
-    } else if ( m_minor_build >= W8RTM_VER && m_minor_build < W81RTM_VER ) {
+    } else if ( minor_build >= W8RTM_VER && minor_build < W81RTM_VER ) {
         max_count = Service_Tables_countof[type][7];
         service_table = Service_Tables[type][7];
-    } else if ( m_minor_build >= W81RTM_VER /*&& m_minor_build < XXX */ ) {
+    } else if ( minor_build >= W81RTM_VER /*&& minor_build < XXX */ ) {
         max_count = Service_Tables_countof[type][8];
         service_table = Service_Tables[type][8];
     } else {

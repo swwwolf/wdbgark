@@ -25,11 +25,52 @@
 
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
-#include "resources.hpp"
+#include "symbols.hpp"
 
 EXT_DECLARE_GLOBALS();
 
 const std::string WDbgArk::m_ms_public_symbols_server = "http://msdl.microsoft.com/download/symbols";
+
+WDbgArk::WDbgArk() : m_inited(false),
+                     m_is_cur_machine64(false),
+                     m_platform_id(0),
+                     m_major_build(0),
+                     m_minor_build(0),
+                     m_strict_minor_build(0),
+                     m_service_pack_number(0),
+                     m_system_cb_commands(),
+                     m_callout_names(),
+                     m_gdt_selectors(),
+                     m_hal_tbl_info(),
+                     m_known_windows_builds(),
+                     m_synthetic_symbols(),
+                     m_obj_helper(nullptr),
+                     m_color_hack(nullptr),
+                     m_dummy_pdb(nullptr),
+                     out(),
+                     warn(),
+                     err() {
+#if defined(_DEBUG)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+    // _CrtSetBreakAlloc( 143 );
+#endif  // _DEBUG
+}
+
+WDbgArk::~WDbgArk() {
+    m_system_cb_commands.clear();
+    m_callout_names.clear();
+    m_gdt_selectors.clear();
+    m_hal_tbl_info.clear();
+    m_known_windows_builds.clear();
+
+    // RemoveSyntheticSymbols();  //    TODO(swwwolf): already dead on unload
+    m_synthetic_symbols.clear();
+
+#if defined(_DEBUG)
+    _CrtDumpMemoryLeaks();
+#endif  // _DEBUG
+}
 
 bool WDbgArk::Init() {
     if ( IsInited() )
@@ -42,11 +83,20 @@ bool WDbgArk::Init() {
     if ( !CheckSymbolsPath(m_ms_public_symbols_server, true) )
         warn << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
-    if ( !InitDummyPdbModule() )
-        warn << __FUNCTION__ ": InitDummyPdbModule failed" << endlwarn;
-
     m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new WDbgArkObjHelper);
+
+    if ( !m_obj_helper->IsInited() )
+        warn << __FUNCTION__ ": WDbgArkObjHelper init failed" << endlwarn;
+
     m_color_hack = std::unique_ptr<WDbgArkColorHack>(new WDbgArkColorHack);
+
+    if ( !m_color_hack->IsInited() )
+        warn << __FUNCTION__ ": WDbgArkColorHack init failed" << endlwarn;
+
+    m_dummy_pdb = std::unique_ptr<WDbgArkDummyPdb>(new WDbgArkDummyPdb);
+
+    if ( !m_dummy_pdb->IsInited() )
+        warn << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;
 
     // get system version
     HRESULT result = m_Control->GetSystemVersion(reinterpret_cast<PULONG>(&m_platform_id),
@@ -293,46 +343,6 @@ void WDbgArk::CheckWindowsBuild(void) {
     if ( m_known_windows_builds.find(m_minor_build) == m_known_windows_builds.end() ) {
         warn << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
     }
-}
-
-bool WDbgArk::CheckSymbolsPath(const std::string& test_path, const bool display_error) {
-    unsigned __int32 buffer_size = 0;
-    bool             result      = false;
-
-    HRESULT hresult = m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&buffer_size));
-
-    if ( !SUCCEEDED(hresult) ) {
-        err << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
-        return false;
-    }
-
-    std::unique_ptr<char[]> symbol_path_buffer(new char[buffer_size]);
-
-    hresult = m_Symbols->GetSymbolPath(symbol_path_buffer.get(),
-                                       buffer_size,
-                                       reinterpret_cast<PULONG>(&buffer_size));
-
-    if ( !SUCCEEDED(hresult) ) {
-        err << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
-        return false;
-    }
-
-    std::string check_path = symbol_path_buffer.get();
-
-    if ( check_path.empty() || check_path == " " ) {
-        if ( display_error ) {
-            err << __FUNCTION__ << ": seems that your symbol path is empty. Fix it!" << endlerr;
-        }
-    } else if ( check_path.find(test_path) == std::string::npos ) {
-        if ( display_error ) {
-            warn << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
-            warn << "Include symbol path (" << test_path << ")" << endlwarn;
-        }
-    } else {
-        result = true;
-    }
-
-    return result;
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
@@ -724,63 +734,9 @@ unsigned __int32 WDbgArk::GetWindowsStrictMinorBuild(void) const {
 
 void WDbgArk::RemoveSyntheticSymbols(void) {
     for ( DEBUG_MODULE_AND_ID id : m_synthetic_symbols ) {
-        if ( !SUCCEEDED(g_Ext->m_Symbols3->RemoveSyntheticSymbol(&id)) ) {
+        if ( !SUCCEEDED(m_Symbols3->RemoveSyntheticSymbol(&id)) ) {
             warn << __FUNCTION__ << ": failed to remove synthetic symbol ";
             warn << std::hex << std::showbase << id.Id << endlwarn;
         }
     }
-}
-
-// don't include resource.h
-#define IDR_RT_RCDATA1 105
-#define IDR_RT_RCDATA2 106
-bool WDbgArk::InitDummyPdbModule(void) {
-    char* resource_name = nullptr;
-    ExtCaptureOutputA ignore_output;  // destructor will call Destroy and Stop
-
-    ignore_output.Start();
-
-    if ( !RemoveDummyPdbModule() ) {
-        err << __FUNCTION__ << ": RemoveDummyPdbModule failed" << endlerr;
-        return false;
-    }
-
-    if ( m_is_cur_machine64 )
-        resource_name = MAKEINTRESOURCE(IDR_RT_RCDATA2);
-    else
-        resource_name = MAKEINTRESOURCE(IDR_RT_RCDATA1);
-
-    std::unique_ptr<WDbgArkResHelper> res_helper(new WDbgArkResHelper);
-
-    if ( !res_helper->DropResource(resource_name, "RT_RCDATA", "dummypdb.pdb") ) {
-        err << __FUNCTION__ << ": DropResource failed" << endlerr;
-        return false;
-    }
-
-    std::string drop_path = res_helper->GetDropPath();
-
-    if ( !CheckSymbolsPath(drop_path, false) ) {
-        if ( !SUCCEEDED(m_Symbols->AppendSymbolPath(drop_path.c_str())) ) {
-            err << __FUNCTION__ << ": AppendSymbolPath failed" << endlerr;
-            return false;
-        }
-    }
-
-    if ( !SUCCEEDED(m_Symbols->Reload("/i dummypdb=0xFFFFFFFFFFFFF000,0xFFF")) ) {
-        err << __FUNCTION__ << ": Reload failed" << endlerr;
-        return false;
-    }
-
-    return true;
-}
-
-bool WDbgArk::RemoveDummyPdbModule(void) {
-    if ( SUCCEEDED(m_Symbols->GetModuleByModuleName("dummypdb", 0, nullptr, nullptr)) ) {
-        if ( !SUCCEEDED(m_Symbols->Reload("/u dummypdb")) ) {
-            err << __FUNCTION__ << ": Failed to unload dummypdb module" << endlerr;
-            return false;
-        }
-    }
-
-    return true;
 }

@@ -23,6 +23,7 @@
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     RequireLiveKernelMode();

@@ -23,6 +23,7 @@
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
     RequireKernelMode();

@@ -44,17 +44,12 @@ class WDbgArkProcess {
     WDbgArkProcess();
 
     ~WDbgArkProcess() {
-        try {
-            m_process_list.clear();
+        m_process_list.clear();
 
-            if ( m_current_process ) {
-                if ( !SUCCEEDED(g_Ext->m_System2->SetImplicitProcessDataOffset(m_current_process)) )
-                    err << __FUNCTION__ << ": failed to revert" << endlerr;
-
-                m_current_process = 0ULL;
-            }
+        if ( m_current_process ) {
+            if ( !SUCCEEDED(g_Ext->m_System2->SetImplicitProcessDataOffset(m_current_process)) )
+                err << __FUNCTION__ << ": failed to revert" << endlerr;
         }
-        catch( ... ) {}
     }
 
     bool IsInited(void) const { return m_inited; }

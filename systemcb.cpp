@@ -19,9 +19,6 @@
     * the COPYING file in the top-level directory.
 */
 
-// TODO(swwwolf): DbgkLkmdRegisterCallback (WINDOWS 7+), ObRegisterCallbacks, CrashdmpCallTable,
-//                KdRegisterPowerHandler, IoRegisterIoTracking
-
 /*
 
 "!systemcb /type type_name"
@@ -226,6 +223,7 @@ NTSTATUS __stdcall IoInitializeTimer(PDEVICE_OBJECT DeviceObject, PIO_TIMER_ROUT
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_systemcb,
             "Output kernel-mode registered callback(s)",

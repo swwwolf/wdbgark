@@ -16,11 +16,11 @@
     <Filter Include="Source Files\bprinter">
       <UniqueIdentifier>{d0d465b1-6342-47e4-82e2-2a7f6767b075}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\README">
-      <UniqueIdentifier>{3d3c9713-9633-499c-b568-47272d6c68a1}</UniqueIdentifier>
+    <Filter Include="Information">
+      <UniqueIdentifier>{6437a03d-07bb-4c79-9ddb-e6600257b74a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\COPYING">
-      <UniqueIdentifier>{4c4b974e-feac-4372-bc4a-d92ebafc309e}</UniqueIdentifier>
+    <Filter Include="Source Files\Commands">
+      <UniqueIdentifier>{3f34cb4e-9638-4440-92c6-b40feb4e2d45}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -37,9 +37,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wdbgark.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="objhelper.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="process.hpp">
@@ -60,39 +57,18 @@
     <ClInclude Include="resources.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dummypdb.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="objhelper.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="symbols.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wdbgark.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="systemcb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="objtype.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="callouts.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pnptable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="scan.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="objtypeidx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ssdt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="checkmsr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="idt_gdt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sdt_w32p.cpp">
@@ -113,19 +89,55 @@
     <ClCompile Include="colorhack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="colorize.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="crashdmpcall.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="resources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="objtypecb.cpp">
+    <ClCompile Include="dummypdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="callouts.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="checkmsr.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="colorize.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="crashdmpcall.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
     <ClCompile Include="haltables.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="idt_gdt.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="objtype.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="objtypecb.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="objtypeidx.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="pnptable.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="scan.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="ssdt.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="systemcb.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="ver.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="symbols.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -134,10 +146,10 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="README.md">
-      <Filter>Header Files\README</Filter>
+      <Filter>Information</Filter>
     </None>
     <None Include="COPYING">
-      <Filter>Header Files\COPYING</Filter>
+      <Filter>Information</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

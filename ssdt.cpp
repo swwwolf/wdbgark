@@ -81,7 +81,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     try {
         for ( unsigned __int32 i = 0; i < limit; i++ ) {
             if ( m_is_cur_machine64 ) {
-                std::string routine_name = get_service_table_routine_name(KiServiceTable_x64, i);
+                std::string routine_name = get_service_table_routine_name(m_minor_build, KiServiceTable_x64, i);
 
                 ExtRemoteData service_offset_full(offset + i * sizeof(int), sizeof(int));
                 int service_offset = service_offset_full.GetLong();
@@ -94,7 +94,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
                 display->AnalyzeAddressAsRoutine(offset + service_offset, routine_name, "");
                 display->PrintFooter();
             } else {
-                std::string routine_name = get_service_table_routine_name(KiServiceTable_x86, i);
+                std::string routine_name = get_service_table_routine_name(m_minor_build, KiServiceTable_x86, i);
 
                 ExtRemoteData service_address(offset + i * m_PtrSize, m_PtrSize);
                 display->AnalyzeAddressAsRoutine(service_address.GetPtr(), routine_name, "");
@@ -180,7 +180,7 @@ EXT_COMMAND(wa_w32psdt,
     try {
         for ( unsigned __int32 i = 0; i < limit; i++ ) {
             if ( m_is_cur_machine64 ) {
-                std::string routine_name = get_service_table_routine_name(W32pServiceTable_x64, i);
+                std::string routine_name = get_service_table_routine_name(m_minor_build, W32pServiceTable_x64, i);
 
                 ExtRemoteData service_offset_full(offset + i * sizeof(int), sizeof(int));
                 int service_offset = service_offset_full.GetLong();
@@ -193,7 +193,7 @@ EXT_COMMAND(wa_w32psdt,
                 display->AnalyzeAddressAsRoutine(offset + service_offset, routine_name, "");
                 display->PrintFooter();
             } else {
-                std::string routine_name = get_service_table_routine_name(W32pServiceTable_x86, i);
+                std::string routine_name = get_service_table_routine_name(m_minor_build, W32pServiceTable_x86, i);
 
                 ExtRemoteData service_address(offset + i * m_PtrSize, m_PtrSize);
                 display->AnalyzeAddressAsRoutine(service_address.GetPtr(), routine_name, "");

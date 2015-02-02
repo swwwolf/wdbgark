@@ -35,11 +35,9 @@
 
 #include <string>
 #include <sstream>
-#include <iomanip>
 #include <memory>
 #include <utility>
 
-#include "manipulators.hpp"
 #include "objhelper.hpp"
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,7 +122,6 @@ class WDbgArkAnalyze {
     //////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////
-    // TODO(swwwolf): don't return into referenced objects here
     HRESULT GetModuleNames(const unsigned __int64 address,
                            std::string* image_name,
                            std::string* module_name,

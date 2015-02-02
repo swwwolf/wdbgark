@@ -24,6 +24,7 @@
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_objtype,
             "Output kernel-mode object type(s)",

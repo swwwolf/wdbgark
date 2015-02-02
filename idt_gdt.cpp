@@ -409,6 +409,7 @@ Algorithm:
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     RequireKernelMode();

@@ -26,6 +26,7 @@
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
+#include "manipulators.hpp"
 
 EXT_COMMAND(wa_objtypecb,
             "Output kernel-mode callbacks registered with ObRegisterCallbacks",
@@ -101,8 +102,11 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
         display->PrintObjectDmlCmd(object);
         display->PrintFooter();
 
+        std::string dummy_pdb_callback_entry_common = wdbg_ark_class->m_dummy_pdb->GetShortName() +\
+            "!_OBJECT_CALLBACK_ENTRY_COMMON";
+
         ExtRemoteTypedList list_head(object_type.Field("CallbackList").m_Offset,
-                                     "dummypdb!_OBJECT_CALLBACK_ENTRY_COMMON",
+                                     dummy_pdb_callback_entry_common.c_str(),
                                      "CallbackList",
                                      0ULL,
                                      0,

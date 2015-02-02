@@ -44,9 +44,9 @@
 #include <unordered_map>
 #include <set>
 
-#include "sdt_w32p.hpp"
 #include "objhelper.hpp"
 #include "colorhack.hpp"
+#include "dummypdb.hpp"
 
 //////////////////////////////////////////////////////////////////////////
 // main class
@@ -115,47 +115,8 @@ class WDbgArk : public ExtExtension {
                                                              const ExtRemoteTyped &device_node,
                                                              void* context);
     //////////////////////////////////////////////////////////////////////////
-    WDbgArk() : m_inited(false),
-                m_is_cur_machine64(false),
-                m_platform_id(0),
-                m_major_build(0),
-                m_minor_build(0),
-                m_strict_minor_build(0),
-                m_service_pack_number(0),
-                m_system_cb_commands(),
-                m_callout_names(),
-                m_gdt_selectors(),
-                m_hal_tbl_info(),
-                m_known_windows_builds(),
-                m_synthetic_symbols(),
-                m_obj_helper(nullptr),
-                m_color_hack(nullptr),
-                out(),
-                warn(),
-                err() {
-#if defined(_DEBUG)
-        _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-        _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-        // _CrtSetBreakAlloc( 143 );
-#endif  // _DEBUG
-    }
-
-    ~WDbgArk() {
-        try {
-            m_system_cb_commands.clear();
-            m_callout_names.clear();
-            m_gdt_selectors.clear();
-            m_hal_tbl_info.clear();
-            m_known_windows_builds.clear();
-
-            // RemoveSyntheticSymbols();  //    TODO: already dead on unload
-            m_synthetic_symbols.clear();
-        } catch( ... ) {}
-
-#if defined(_DEBUG)
-        _CrtDumpMemoryLeaks();
-#endif  // _DEBUG
-    }
+    WDbgArk();
+    ~WDbgArk();
 
     //////////////////////////////////////////////////////////////////////////
     // main commands
@@ -282,16 +243,9 @@ class WDbgArk : public ExtExtension {
     unsigned __int32 GetCrashdmpCallTableCount() const;
     unsigned __int32 GetWindowsStrictMinorBuild(void) const;
 
-    std::string get_service_table_routine_name_internal(const unsigned __int32 index,
-                                                        const unsigned __int32 max_count,
-                                                        const char** service_table) const;
-    std::string get_service_table_routine_name(const ServiceTableType type, const unsigned __int32 index) const;
-    std::string get_service_table_prefix_name(const ServiceTableType type) const;
-
     //////////////////////////////////////////////////////////////////////////
     // private inits
     //////////////////////////////////////////////////////////////////////////
-    bool CheckSymbolsPath(const std::string& test_path, const bool display_error);
     void CheckWindowsBuild(void);
     //////////////////////////////////////////////////////////////////////////
     void InitCallbackCommands(void);
@@ -301,8 +255,6 @@ class WDbgArk : public ExtExtension {
     void InitKnownWindowsBuilds(void);
     //////////////////////////////////////////////////////////////////////////
     void RemoveSyntheticSymbols(void);
-    bool InitDummyPdbModule(void);
-    bool RemoveDummyPdbModule(void);
 
     //////////////////////////////////////////////////////////////////////////
     // variables
@@ -324,6 +276,7 @@ class WDbgArk : public ExtExtension {
     std::vector<DEBUG_MODULE_AND_ID>  m_synthetic_symbols;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
+    std::unique_ptr<WDbgArkDummyPdb>  m_dummy_pdb;
 
     //////////////////////////////////////////////////////////////////////////
     // output streams
