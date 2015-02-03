@@ -1,6 +1,6 @@
 :: You should already have PowerShell installed. Minimum required version is 3.0.
 :: Install Windows Management Framework.
-:: %1 - version number (e.g. "1.5")
+:: %1 - version number (e.g. 1.5)
 @echo off
 :main
 setlocal enableextensions
@@ -10,6 +10,7 @@ set output="%temp%\wdbgark.%1\"
 set log="release_build.log"
 call :create %output%
 
+:: build using VS 2012 command line
 :build
 if exist %log% del /Q %log%
 call %vs2012% wdbgark.sln /clean "Release|Win32" /out %log%
@@ -21,6 +22,7 @@ call %vs2012% wdbgark.sln /project wdbgark /rebuild "Release|x64" /out %log%
 call :copy %output%
 call :check %output%
 
+:: zip copied files using PowerShell command
 :zip
 if exist wdbgark.%1.zip del /Q wdbgark.%1.zip
 call :dequote output
@@ -35,10 +37,12 @@ if not exist wdbgark.%1.zip (
 endlocal
 goto :eof
 
+:: remove quotes
 :dequote
 for /f "delims=" %%A in ('echo %%%1%%') do set %1=%%~A
 goto :eof
 
+:: remove and recreate temp directory
 :create
 if exist %1 rmdir /Q /S %1
 if not exist %1 mkdir %1
@@ -46,6 +50,7 @@ mkdir %1\x86\pdb
 mkdir %1\x64\pdb
 goto :eof
 
+:: copy all files into temp directory
 :copy
 copy /A COPYING %1
 copy /A README.md %1
@@ -56,6 +61,7 @@ copy /B x64\Release\wdbgark.dll %1\x64
 copy /B x64\Release\wdbgark.pdb %1\x64\pdb
 goto :eof
 
+:: check that copied files exists
 :check
 if not exist %1\COPYING call :error
 if not exist %1\README.md call :error

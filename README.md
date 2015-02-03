@@ -7,6 +7,7 @@
 * [Sources and build](#sources-and-build)
     * [Build using VS2012](#build-using-vs2012)
     * [Build using BUILD](#build-using-build)
+    * [Build using CMD](#build-using-cmd)
 * [Using](#using)
 * [FAQ](#faq)
 * [Help](#help)
@@ -80,6 +81,16 @@ Post-build event is enabled for debug build. It automatically copies linked exte
 ### Build using BUILD
 
 Depricated.
+
+### Build using CMD
+
+Yeah, it's possible to build all the stuff using simple batch script.
+
+* Make sure that you have already installed PowerShell at least version 3.0.
+    * If not, then download and install [Windows Management Framework](http://www.microsoft.com/en-US/download/details.aspx?id=40855).
+* Execute the [release_build.cmd](release_build.cmd) with a single parameter - a version.
+* Voila! If there were no errors, the archive file will be created (e.g. wdbgark.X.Y.zip).
+    * If something is wrong, check the path to the Visual Studio 2012 in the script and/or output log file (release_build.log).
 
 ## Using
 
