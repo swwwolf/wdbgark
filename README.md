@@ -86,6 +86,7 @@ Depricated.
 
 Yeah, it's possible to build all the stuff using simple batch script.
 
+* Do first two steps in [Build using VS2012](#build-using-vs2012).
 * Make sure that you have already installed PowerShell at least version 3.0.
     * If not, then download and install [Windows Management Framework](http://www.microsoft.com/en-US/download/details.aspx?id=40855).
 * Execute the [release_build.cmd](release_build.cmd) with a single parameter - a version.
