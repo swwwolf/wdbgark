@@ -15,11 +15,13 @@
 
 ## Preface
 
-WDBGARK is an extension (dynamic library) for the [Microsoft Debugging Tools for Windows](http://msdn.microsoft.com/en-US/library/windows/hardware/ff551063).
-It main purpose is to view and analyze anomalies in Windows kernel using kernel debugger. It is possible to view various system callbacks,
-system tables, object types and so on. For more user-friendly view extension uses DML. For the most of commands kernel-mode connection is required.
-Feel free to use extension with live kernel-mode debugging or with kernel-mode crash dump analysis (some commands will not work).
-Public symbols are required, so use them, force to reload them, ignore checksum problems, prepare them before analysis and you'll be happy.
+[WDBGARK](https://github.com/swwwolf/wdbgark) is an extension (dynamic library) for the
+[Microsoft Debugging Tools for Windows](http://msdn.microsoft.com/en-US/library/windows/hardware/ff551063).
+It main purpose is to view and analyze anomalies in Windows kernel using kernel debugger. It is possible to view
+various system callbacks, system tables, object types and so on. For more user-friendly view extension uses DML.
+For the most of commands kernel-mode connection is required. Feel free to use extension with live kernel-mode debugging
+or with kernel-mode crash dump analysis (some commands will not work). Public symbols are required, so use them, force
+to reload them, ignore checksum problems, prepare them before analysis and you'll be happy.
 
 ## Supported commands
 
@@ -50,9 +52,9 @@ Public symbols are required, so use them, force to reload them, ignore checksum 
 
 Multiple targets debugging is not supported!
 
-Windows BETA/RC is supported by design, but read a few notes. First, i don't care about checked builds. Second, i don't care
-if you don't have [symbols](http://msdn.microsoft.com/en-us/windows/hardware/gg463028.aspx) (public or private).
-IA64/ARM is unsupported (and will not).
+Windows BETA/RC is supported by design, but read a few notes. First, i don't care about checked builds.
+Second, i don't care if you don't have [symbols](http://msdn.microsoft.com/en-us/windows/hardware/gg463028.aspx)
+(public or private). IA64/ARM is unsupported (and will not).
 
 ## Sources and build
 
@@ -62,9 +64,9 @@ Sources are organized as a Visual Studio 2012 solution.
 
 * Download and install latest [WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365)
 * Define system environment variables (e.g. WDK 8.1).
-    * DBGSDK_INC_PATH = C:\WinDDK\8.1\Debuggers\inc
-    * DBGSDK_LIB_PATH = C:\WinDDK\8.1\Debuggers\lib
-    * WDKDIR = C:\WinDDK\8.1
+    * DBGSDK_INC_PATH = ```C:\WinDDK\8.1\Debuggers\inc```
+    * DBGSDK_LIB_PATH = ```C:\WinDDK\8.1\Debuggers\lib```
+    * WDKDIR = ```C:\WinDDK\8.1```
 * Select **Build -> Batch Build** from the menu and build dummypdb module (x86 and x64).
 ![Batch Build](https://raw.githubusercontent.com/swwwolf/wdbgark/master/images/batch_build.png)
 * Choose solution configuration and platform for the main project.
@@ -73,7 +75,7 @@ Sources are organized as a Visual Studio 2012 solution.
 #### NOTE!
 
 Post-build event is enabled for debug build. It automatically copies linked extension into WinDBG's plugins folder (e.g. x64 target:  
-_"copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$(TargetName)$(TargetExt)"_).
+```"copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$(TargetName)$(TargetExt)"```).
 
 ### Build using BUILD
 
@@ -85,8 +87,8 @@ Depricated.
 * [Build](#sources-and-build) or download the extention.
 * Make sure that [Visual C++ Redistributable for Visual Studio 2012](http://www.microsoft.com/en-US/download/details.aspx?id=30679) has already been installed.
 * Copy extension to the WDK debugger's directory (e.g. WDK 8.1):
-    * x64: C:\WinDDK\8.1\Debuggers\x64\winext\
-    * x86: C:\WinDDK\8.1\Debuggers\x86\winext\
+    * x64: ```C:\WinDDK\8.1\Debuggers\x64\winext\```
+    * x86: ```C:\WinDDK\8.1\Debuggers\x86\winext\```
 * Start WinDBG.
 * [Setup](http://support.microsoft.com/kb/311503/en-us) WinDBG to use Microsoft Symbol Server correctly or deal with them manually.
 * Load extension by **.load wdbgark** (you can see loaded extensions with a **.chain** command).
