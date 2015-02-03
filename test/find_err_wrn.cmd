@@ -1,7 +1,7 @@
 @echo off
+setlocal enableextensions
 set input=%~dp0result
 @del /Q %input%\*.txt.err
-setlocal enableextensions
 for /r %input% %%f in (*.*) do call :process "%%f"
 endlocal
 goto :eof

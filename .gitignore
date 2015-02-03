@@ -6,6 +6,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.zip
 
 # Visual Lint files
 Visual Lint/
