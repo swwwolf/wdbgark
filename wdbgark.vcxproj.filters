@@ -22,133 +22,95 @@
     <Filter Include="Source Files\Commands">
       <UniqueIdentifier>{3f34cb4e-9638-4440-92c6-b40feb4e2d45}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Support">
+      <UniqueIdentifier>{026aa900-18b6-45c7-a7bb-0fb372c1a9fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ddk.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sdt_w32p.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ver.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wdbgark.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="process.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="analyze.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="manipulators.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="colorhack.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="strings.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resources.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dummypdb.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="objhelper.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="symbols.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="wdbgark.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sdt_w32p.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="objhelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="analyze.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bprinter\src\table_printer.cpp">
+    <ClCompile Include="src\bprinter\src\table_printer.cpp">
       <Filter>Source Files\bprinter</Filter>
     </ClCompile>
-    <ClCompile Include="process.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="colorhack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="resources.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dummypdb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="callouts.cpp">
+    <ClCompile Include="src\callouts.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="checkmsr.cpp">
+    <ClCompile Include="src\checkmsr.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="colorize.cpp">
+    <ClCompile Include="src\crashdmpcall.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="crashdmpcall.cpp">
+    <ClCompile Include="src\haltables.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="haltables.cpp">
+    <ClCompile Include="src\idt_gdt.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="idt_gdt.cpp">
+    <ClCompile Include="src\objtype.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="objtype.cpp">
+    <ClCompile Include="src\objtypecb.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="objtypecb.cpp">
+    <ClCompile Include="src\objtypeidx.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="objtypeidx.cpp">
+    <ClCompile Include="src\pnptable.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="pnptable.cpp">
+    <ClCompile Include="src\scan.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="scan.cpp">
+    <ClCompile Include="src\ssdt.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="ssdt.cpp">
+    <ClCompile Include="src\systemcb.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="systemcb.cpp">
+    <ClCompile Include="src\ver.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="ver.cpp">
-      <Filter>Source Files\Commands</Filter>
+    <ClCompile Include="src\analyze.cpp">
+      <Filter>Source Files\Support</Filter>
     </ClCompile>
-    <ClCompile Include="symbols.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\colorhack.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dummypdb.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\objhelper.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\process.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sdt_w32p.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\symbols.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\wdbgark.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\colorize.cpp">
+      <Filter>Source Files\Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="wdbgark.def">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="README.md">
       <Filter>Information</Filter>
     </None>
     <None Include="COPYING">
+      <Filter>Information</Filter>
+    </None>
+    <None Include="src\wdbgark.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="README.html">
       <Filter>Information</Filter>
     </None>
   </ItemGroup>
@@ -156,5 +118,49 @@
     <ResourceCompile Include="wdbgark.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\analyze.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\colorhack.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ddk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dummypdb.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\manipulators.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\objhelper.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\process.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sdt_w32p.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\strings.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\symbols.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ver.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\wdbgark.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -88,7 +88,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WDBGARK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;src\bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
@@ -97,7 +97,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(DBGSDK_LIB_PATH)\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>wdbgark.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x86\winext\$(TargetName)$(TargetExt)</Command>
@@ -109,7 +109,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WDBGARK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;src\bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
@@ -118,7 +118,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(DBGSDK_LIB_PATH)\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>wdbgark.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
       <Command>copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$(TargetName)$(TargetExt)</Command>
@@ -132,7 +132,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WDBGARK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;src\bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
@@ -145,7 +145,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(DBGSDK_LIB_PATH)\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>wdbgark.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,7 +156,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WDBGARK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DBGSDK_INC_PATH);$(WDKDIR)\Include\Shared;$(WDKDIR)\Include\km;$(WDKDIR)\Include\um;src\bprinter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
@@ -169,58 +169,59 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(DBGSDK_LIB_PATH)\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;advapi32.lib;wininet.lib;engextcpp.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>wdbgark.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="analyze.hpp" />
-    <ClInclude Include="colorhack.hpp" />
-    <ClInclude Include="ddk.h" />
-    <ClInclude Include="dummypdb.hpp" />
-    <ClInclude Include="manipulators.hpp" />
-    <ClInclude Include="objhelper.hpp" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="resources.hpp" />
-    <ClInclude Include="sdt_w32p.hpp" />
-    <ClInclude Include="strings.hpp" />
-    <ClInclude Include="symbols.hpp" />
-    <ClInclude Include="ver.hpp" />
-    <ClInclude Include="wdbgark.hpp" />
-    <ClInclude Include="process.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="analyze.cpp" />
-    <ClCompile Include="bprinter\src\table_printer.cpp" />
-    <ClCompile Include="callouts.cpp" />
-    <ClCompile Include="checkmsr.cpp" />
-    <ClCompile Include="colorhack.cpp" />
-    <ClCompile Include="colorize.cpp" />
-    <ClCompile Include="crashdmpcall.cpp" />
-    <ClCompile Include="dummypdb.cpp" />
-    <ClCompile Include="haltables.cpp" />
-    <ClCompile Include="idt_gdt.cpp" />
-    <ClCompile Include="objhelper.cpp" />
-    <ClCompile Include="objtype.cpp" />
-    <ClCompile Include="objtypecb.cpp" />
-    <ClCompile Include="objtypeidx.cpp" />
-    <ClCompile Include="pnptable.cpp" />
-    <ClCompile Include="process.cpp" />
-    <ClCompile Include="resources.cpp" />
-    <ClCompile Include="scan.cpp" />
-    <ClCompile Include="sdt_w32p.cpp" />
-    <ClCompile Include="ssdt.cpp" />
-    <ClCompile Include="symbols.cpp" />
-    <ClCompile Include="systemcb.cpp" />
-    <ClCompile Include="ver.cpp" />
-    <ClCompile Include="wdbgark.cpp" />
+    <ClCompile Include="src\analyze.cpp" />
+    <ClCompile Include="src\bprinter\src\table_printer.cpp" />
+    <ClCompile Include="src\callouts.cpp" />
+    <ClCompile Include="src\checkmsr.cpp" />
+    <ClCompile Include="src\colorhack.cpp" />
+    <ClCompile Include="src\colorize.cpp" />
+    <ClCompile Include="src\crashdmpcall.cpp" />
+    <ClCompile Include="src\dummypdb.cpp" />
+    <ClCompile Include="src\haltables.cpp" />
+    <ClCompile Include="src\idt_gdt.cpp" />
+    <ClCompile Include="src\objhelper.cpp" />
+    <ClCompile Include="src\objtype.cpp" />
+    <ClCompile Include="src\objtypecb.cpp" />
+    <ClCompile Include="src\objtypeidx.cpp" />
+    <ClCompile Include="src\pnptable.cpp" />
+    <ClCompile Include="src\process.cpp" />
+    <ClCompile Include="src\resources.cpp" />
+    <ClCompile Include="src\scan.cpp" />
+    <ClCompile Include="src\sdt_w32p.cpp" />
+    <ClCompile Include="src\ssdt.cpp" />
+    <ClCompile Include="src\symbols.cpp" />
+    <ClCompile Include="src\systemcb.cpp" />
+    <ClCompile Include="src\ver.cpp" />
+    <ClCompile Include="src\wdbgark.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="COPYING" />
+    <None Include="README.html" />
     <None Include="README.md" />
-    <None Include="wdbgark.def" />
+    <None Include="src\wdbgark.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wdbgark.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="src\analyze.hpp" />
+    <ClInclude Include="src\colorhack.hpp" />
+    <ClInclude Include="src\ddk.h" />
+    <ClInclude Include="src\dummypdb.hpp" />
+    <ClInclude Include="src\manipulators.hpp" />
+    <ClInclude Include="src\objhelper.hpp" />
+    <ClInclude Include="src\process.hpp" />
+    <ClInclude Include="src\resources.hpp" />
+    <ClInclude Include="src\sdt_w32p.hpp" />
+    <ClInclude Include="src\strings.hpp" />
+    <ClInclude Include="src\symbols.hpp" />
+    <ClInclude Include="src\ver.hpp" />
+    <ClInclude Include="src\wdbgark.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

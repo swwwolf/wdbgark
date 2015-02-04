@@ -13,17 +13,24 @@ call :create %output%
 :: build using VS 2012 command line
 :build
 if exist %log% del /Q %log%
+echo Cleaning Release-Win32
 call %vs2012% wdbgark.sln /clean "Release|Win32" /out %log%
+echo Cleaning Release-x64
 call %vs2012% wdbgark.sln /clean "Release|x64" /out %log%
+echo Building dummypdb Release-Win32
 call %vs2012% wdbgark.sln /project dummypdb /rebuild "Release|Win32" /out %log%
+echo Building dummypdb Release-x64
 call %vs2012% wdbgark.sln /project dummypdb /rebuild "Release|x64" /out %log%
+echo Building wdbgark Release-Win32
 call %vs2012% wdbgark.sln /project wdbgark /rebuild "Release|Win32" /out %log%
+echo Building wdbgark Release-x64
 call %vs2012% wdbgark.sln /project wdbgark /rebuild "Release|x64" /out %log%
 call :copy %output%
 call :check %output%
 
 :: zip copied files using PowerShell command
 :zip
+echo Zipping files
 if exist wdbgark.%1.zip del /Q wdbgark.%1.zip
 call :dequote output
 set command="& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::CreateFromDirectory('%output%', 'wdbgark.%1.zip'); }"
@@ -31,6 +38,7 @@ powershell.exe -nologo -noprofile -command %command%
 if not exist wdbgark.%1.zip (
     call :error
 ) else (
+    echo Cleaning up temp files
     rmdir /Q /S %output%
     @echo Success!
 )
@@ -52,6 +60,7 @@ goto :eof
 
 :: copy all files into temp directory
 :copy
+echo Copying files to %1
 copy /A COPYING %1
 copy /A README.md %1
 copy /A README.html %1
@@ -63,6 +72,7 @@ goto :eof
 
 :: check that copied files exists
 :check
+echo Checking files in %1
 if not exist %1\COPYING call :error
 if not exist %1\README.md call :error
 if not exist %1\README.html call :error
