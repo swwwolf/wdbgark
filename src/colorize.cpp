@@ -23,6 +23,8 @@
 #include "colorhack.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_colorize,
             "Adjust WinDBG colors dynamically (prints info with no parameters)",
             "{enable;b;o;enable,Enable colorizing}{disable;b;o;disable,Disable colorizing}") {
@@ -54,3 +56,5 @@ EXT_COMMAND(wa_colorize,
         out << "Colorizing disabled" << endlout;
     }
 }
+
+}   // namespace wa

@@ -26,7 +26,11 @@
 #ifndef VER_HPP_
 #define VER_HPP_
 
+namespace wa {
+
 #define VER_MAJOR 1
 #define VER_MINOR 5
+
+}   // namespace wa
 
 #endif  // VER_HPP_

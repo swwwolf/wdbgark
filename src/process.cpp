@@ -29,6 +29,8 @@
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 WDbgArkProcess::WDbgArkProcess() : m_inited(false),
                                    m_current_process(0),
                                    m_process_list(),
@@ -175,3 +177,5 @@ bool WDbgArkProcess::FindProcessInfoByImageFileName(const std::string &process_n
 
     return false;
 }
+
+}   // namespace wa

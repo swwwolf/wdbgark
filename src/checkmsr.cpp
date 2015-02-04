@@ -25,6 +25,8 @@
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     RequireLiveKernelMode();
 
@@ -74,3 +76,5 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
 
     display->PrintFooter();
 }
+
+}   // namespace wa

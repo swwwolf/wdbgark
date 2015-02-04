@@ -29,6 +29,8 @@
 
 #include "manipulators.hpp"
 
+namespace wa {
+
 bool CheckSymbolsPath(const std::string& test_path, const bool display_error) {
     unsigned __int32  buffer_size = 0;
     bool              result      = false;
@@ -71,3 +73,5 @@ bool CheckSymbolsPath(const std::string& test_path, const bool display_error) {
 
     return result;
 }
+
+}   // namespace wa

@@ -29,6 +29,8 @@
 #include <string>
 #include <sstream>
 
+namespace wa {
+
 class WDbgArkResHelper {
  public:
     WDbgArkResHelper();
@@ -51,5 +53,7 @@ class WDbgArkResHelper {
     std::stringstream warn;
     std::stringstream err;
 };
+
+}   // namespace wa
 
 #endif  // RESOURCES_HPP_

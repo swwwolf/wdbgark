@@ -25,6 +25,8 @@
 #include "ver.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_scan,
             "Scan system (execute all commands)",
             "{log;s;o;log,Log file name}"\
@@ -187,3 +189,5 @@ EXT_COMMAND(wa_scan,
     if ( HasArg("log") )
         Execute(".logclose");
 }
+
+}   // namespace wa

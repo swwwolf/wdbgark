@@ -37,6 +37,8 @@
 #include <memory>
 #include <unordered_map>
 
+namespace wa {
+
 //////////////////////////////////////////////////////////////////////////
 // hack WinDbg colors
 //////////////////////////////////////////////////////////////////////////
@@ -119,5 +121,7 @@ class WDbgArkColorHack {
     std::stringstream err;
     std::stringstream bprinter_out;
 };
+
+}   // namespace wa
 
 #endif  // COLORHACK_HPP_

@@ -27,7 +27,7 @@
 #define WDBGARK_HPP_
 
 #undef EXT_CLASS
-#define EXT_CLASS WDbgArk
+#define EXT_CLASS wa::WDbgArk
 #include <engextcpp.hpp>
 
 #if defined(_DEBUG)
@@ -48,6 +48,7 @@
 #include "colorhack.hpp"
 #include "dummypdb.hpp"
 
+namespace wa {
 //////////////////////////////////////////////////////////////////////////
 // main class
 //////////////////////////////////////////////////////////////////////////
@@ -285,5 +286,7 @@ class WDbgArk : public ExtExtension {
     std::stringstream warn;
     std::stringstream err;
 };
+
+}   // namespace wa
 
 #endif  // WDBGARK_HPP_

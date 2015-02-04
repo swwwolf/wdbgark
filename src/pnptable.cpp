@@ -118,6 +118,8 @@ PAGEDATA:005C4554 00 00 00 00                   dd 0
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     RequireKernelMode();
 
@@ -167,3 +169,5 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
 
     display->PrintFooter();
 }
+
+}   // namespace wa

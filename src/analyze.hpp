@@ -40,6 +40,8 @@
 
 #include "objhelper.hpp"
 
+namespace wa {
+
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print routines
 //////////////////////////////////////////////////////////////////////////
@@ -140,5 +142,7 @@ class WDbgArkAnalyze {
     std::stringstream err;
     std::stringstream bprinter_out;
 };
+
+}   // namespace wa
 
 #endif  // ANALYZE_HPP_

@@ -28,6 +28,8 @@
 
 #include <string>
 
+namespace wa {
+
 enum ServiceTableType {
     KiServiceTable_x86 = 0,
     KiServiceTable_x64,
@@ -38,5 +40,7 @@ enum ServiceTableType {
 std::string get_service_table_routine_name(const unsigned __int32 minor_build,
                                            const ServiceTableType type,
                                            const unsigned __int32 index);
+
+}   // namespace wa
 
 #endif  // SDT_W32P_HPP_

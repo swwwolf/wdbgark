@@ -38,6 +38,8 @@
 
 #include "manipulators.hpp"
 
+namespace wa {
+
 #define make_string(x) #x
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,5 +89,7 @@ static std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemo
 
     return std::make_pair(E_INVALIDARG, output_string);
 }
+
+}   // namespace wa
 
 #endif  // STRINGS_HPP_

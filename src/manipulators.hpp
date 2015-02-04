@@ -35,6 +35,8 @@
 #include <sstream>
 #include <iomanip>
 
+namespace wa {
+
 /* global stream manipulators */
 inline std::ostream& endlout(std::ostream& arg) {
     std::stringstream ss;
@@ -62,5 +64,7 @@ inline std::ostream& endlerr(std::ostream& arg) {
     g_Ext->DmlErr("%s", ss.str().c_str());
     return arg.flush();
 }
+
+}   // namespace wa
 
 #endif  // MANIPULATORS_HPP_

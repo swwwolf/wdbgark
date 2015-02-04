@@ -27,6 +27,8 @@
 #include "sdt_w32p.hpp"
 #include "./ddk.h"
 
+namespace wa {
+
 //////////////////////////////////////////////////////////////////////////
 std::string get_service_table_routine_name_internal(const unsigned __int32 index,
                                                     const unsigned __int32 max_count,
@@ -20791,3 +20793,5 @@ std::string get_service_table_routine_name(const unsigned __int32 minor_build,
 
     return routine.append(get_service_table_routine_name_internal(index, max_count, service_table));
 }
+
+}   // namespace wa

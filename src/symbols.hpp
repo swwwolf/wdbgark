@@ -28,6 +28,10 @@
 
 #include <string>
 
+namespace wa {
+
 bool CheckSymbolsPath(const std::string& test_path, const bool display_error);
+
+}   // namespace wa
 
 #endif  // SYMBOLS_HPP_

@@ -23,8 +23,10 @@
 #pragma once
 #endif
 
-#ifndef DDK_H_
-#define DDK_H_
+#ifndef SRC_DDK_H_
+#define SRC_DDK_H_
+
+namespace wa {
 
 //////////////////////////////////////////////////////////////////////////
 // macroses
@@ -205,4 +207,6 @@ typedef union _KIDT_HANDLER_ADDRESS {
 #define SEG_CODE_EXRDC     0x0E                       // Execute/Read, conforming
 #define SEG_CODE_EXRDCA    0x0F                       // Execute/Read, conforming, accessed
 
-#endif  // DDK_H_
+}   // namespace wa
+
+#endif  // SRC_DDK_H_

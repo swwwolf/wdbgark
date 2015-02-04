@@ -28,6 +28,8 @@
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_objtypecb,
             "Output kernel-mode callbacks registered with ObRegisterCallbacks",
             "{type;s;o;type,Object type name}") {
@@ -135,3 +137,5 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
 
     return S_OK;
 }
+
+}   // namespace wa

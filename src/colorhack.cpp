@@ -141,6 +141,8 @@ void __stdcall InitUiColors()
 
 #include "strings.hpp"
 
+namespace wa {
+
 WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
                                        m_g_ui_colors(nullptr),
                                        m_g_out_mask_ui_colors(nullptr),
@@ -493,3 +495,5 @@ bool WDbgArkColorHack::SetColor(const std::string &dml_name, const COLORREF colo
 
     return false;
 }
+
+}   // namespace wa

@@ -29,6 +29,8 @@
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             "nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable", "") {
     RequireKernelMode();
@@ -135,3 +137,5 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
 
     display->PrintFooter();
 }
+
+}   // namespace wa

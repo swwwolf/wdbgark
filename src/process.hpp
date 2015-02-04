@@ -39,6 +39,8 @@
 
 #include "manipulators.hpp"
 
+namespace wa {
+
 class WDbgArkProcess {
  public:
     WDbgArkProcess();
@@ -80,5 +82,7 @@ class WDbgArkProcess {
     std::stringstream warn;
     std::stringstream err;
 };
+
+}   // namespace wa
 
 #endif  // PROCESS_HPP_

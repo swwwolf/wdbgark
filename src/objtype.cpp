@@ -26,6 +26,8 @@
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_objtype,
             "Output kernel-mode object type(s)",
             "{type;s;o;type,Object type name}") {
@@ -98,3 +100,5 @@ HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, const ExtR
 
     return S_OK;
 }
+
+}   // namespace wa

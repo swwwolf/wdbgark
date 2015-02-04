@@ -225,6 +225,8 @@ NTSTATUS __stdcall IoInitializeTimer(PDEVICE_OBJECT DeviceObject, PIO_TIMER_ROUT
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_systemcb,
             "Output kernel-mode registered callback(s)",
             "{type;s;o;type,Callback type name:\n"\
@@ -759,3 +761,5 @@ HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteType
 
     return S_OK;
 }
+
+}   // namespace wa

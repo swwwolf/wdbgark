@@ -38,6 +38,8 @@
 
 #include "./ddk.h"
 
+namespace wa {
+
 //////////////////////////////////////////////////////////////////////////
 // object manager routines
 //////////////////////////////////////////////////////////////////////////
@@ -72,5 +74,7 @@ class WDbgArkObjHelper {
     std::stringstream warn;
     std::stringstream err;
 };
+
+}   // namespace wa
 
 #endif  // OBJHELPER_HPP_

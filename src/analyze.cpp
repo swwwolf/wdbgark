@@ -30,6 +30,8 @@
 #include "objhelper.hpp"
 #include "strings.hpp"
 
+namespace wa {
+
 WDbgArkAnalyze::WDbgArkAnalyze() : m_inited(false),
                                    m_owner_module_inited(false),
                                    m_owner_module_start(0ULL),
@@ -536,3 +538,5 @@ void WDbgArkAnalyze::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     *tp << object_command.str() << object_name_ext.str();
     tp->flush_out();
 }
+
+}   // namespace wa

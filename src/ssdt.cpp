@@ -27,6 +27,8 @@
 #include "process.hpp"
 #include "analyze.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     RequireKernelMode();
 
@@ -210,3 +212,5 @@ EXT_COMMAND(wa_w32psdt,
 
     display->PrintFooter();
 }
+
+}   // namespace wa

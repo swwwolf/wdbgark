@@ -26,6 +26,8 @@
 #include "resources.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 WDbgArkResHelper::WDbgArkResHelper() : m_main_subdir("wdbgark"),
                                        m_platform_subdir(),
                                        m_temp_path(),
@@ -118,3 +120,5 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
 
     return true;
 }
+
+}   // namespace wa

@@ -30,6 +30,8 @@
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     RequireKernelMode();
 
@@ -94,3 +96,5 @@ unsigned __int32 WDbgArk::GetCrashdmpCallTableCount() const {
 
     return 0;
 }
+
+}   // namespace wa

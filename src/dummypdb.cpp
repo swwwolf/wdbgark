@@ -30,6 +30,8 @@
 #include "manipulators.hpp"
 #include "symbols.hpp"
 
+namespace wa {
+
 WDbgArkDummyPdb::WDbgArkDummyPdb() : m_inited(false),
                                      m_dummy_pdb_name_long(),
                                      m_dummy_pdb_name_short(),
@@ -114,3 +116,5 @@ bool WDbgArkDummyPdb::RemoveDummyPdbModule(void) {
 
     return true;
 }
+
+}   // namespace wa

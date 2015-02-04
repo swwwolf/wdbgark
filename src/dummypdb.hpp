@@ -29,6 +29,8 @@
 #include <string>
 #include <sstream>
 
+namespace wa {
+
 class WDbgArkDummyPdb {
  public:
     WDbgArkDummyPdb();
@@ -54,5 +56,7 @@ class WDbgArkDummyPdb {
     std::stringstream warn;
     std::stringstream err;
 };
+
+}   // namespace wa
 
 #endif  // DUMMYPDB_HPP_

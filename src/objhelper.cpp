@@ -30,6 +30,8 @@
 #include "manipulators.hpp"
 #include "strings.hpp"
 
+namespace wa {
+
 WDbgArkObjHelper::WDbgArkObjHelper() : m_inited(false),
                                        object_header_old(true),
                                        ObpInfoMaskToOffset(0),
@@ -225,3 +227,5 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteT
 
     return UnicodeStringStructToString(unicode_string);
 }
+
+}   // namespace wa

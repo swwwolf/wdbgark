@@ -80,6 +80,8 @@ void __stdcall PsEstablishWin32Callouts(int a1)
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
     RequireKernelMode();
 
@@ -134,3 +136,5 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
 
     display->PrintFooter();
 }
+
+}   // namespace wa

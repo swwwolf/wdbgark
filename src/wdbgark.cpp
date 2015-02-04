@@ -29,6 +29,8 @@
 
 EXT_DECLARE_GLOBALS();
 
+namespace wa {
+
 const std::string WDbgArk::m_ms_public_symbols_server = "http://msdl.microsoft.com/download/symbols";
 
 WDbgArk::WDbgArk() : m_inited(false),
@@ -740,3 +742,5 @@ void WDbgArk::RemoveSyntheticSymbols(void) {
         }
     }
 }
+
+}   // namespace wa

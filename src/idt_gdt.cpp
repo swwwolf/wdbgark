@@ -411,6 +411,8 @@ Algorithm:
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
+namespace wa {
+
 EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     RequireKernelMode();
 
@@ -849,3 +851,5 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
 
     display->PrintFooter();
 }
+
+}   // namespace wa
