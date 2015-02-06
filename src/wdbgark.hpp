@@ -47,6 +47,7 @@
 #include "objhelper.hpp"
 #include "colorhack.hpp"
 #include "dummypdb.hpp"
+#include "ver.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -118,6 +119,19 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     WDbgArk();
     ~WDbgArk();
+
+    HRESULT __thiscall Initialize(void) {
+        m_ExtMajorVersion = VER_MAJOR;
+        m_ExtMinorVersion = VER_MINOR;
+
+        return S_OK;
+    }
+
+    /*
+    void __thiscall Uninitialize(void) {
+        m_inited = true;
+    }
+    */
 
     //////////////////////////////////////////////////////////////////////////
     // main commands

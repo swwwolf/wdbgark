@@ -47,11 +47,7 @@ class WDbgArkColorHack {
     WDbgArkColorHack();
 
     ~WDbgArkColorHack() {
-        m_g_out_mask_ui_colors = nullptr;
-        m_g_ui_colors = nullptr;
         RevertColors();
-        m_internal_colors.clear();
-        m_themes.clear();
     }
 
     bool IsInited(void) const { return m_inited; }

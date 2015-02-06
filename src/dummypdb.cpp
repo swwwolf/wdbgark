@@ -43,6 +43,7 @@ WDbgArkDummyPdb::WDbgArkDummyPdb() : m_inited(false),
 }
 
 WDbgArkDummyPdb::~WDbgArkDummyPdb() {
+    /*
     std::string filename = m_drop_path + m_dummy_pdb_name_long;
     std::ifstream file(filename);
 
@@ -53,6 +54,7 @@ WDbgArkDummyPdb::~WDbgArkDummyPdb() {
         if ( std::remove(filename.c_str()) != 0 )
             err << __FUNCTION__ << ": Failed to remove " << filename << endlerr;
     }
+    */
 }
 
 //////////////////////////////////////////////////////////////////////////

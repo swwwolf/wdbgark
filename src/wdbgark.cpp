@@ -60,14 +60,7 @@ WDbgArk::WDbgArk() : m_inited(false),
 }
 
 WDbgArk::~WDbgArk() {
-    m_system_cb_commands.clear();
-    m_callout_names.clear();
-    m_gdt_selectors.clear();
-    m_hal_tbl_info.clear();
-    m_known_windows_builds.clear();
-
     // RemoveSyntheticSymbols();  //    TODO(swwwolf): already dead on unload
-    m_synthetic_symbols.clear();
 
 #if defined(_DEBUG)
     _CrtDumpMemoryLeaks();
