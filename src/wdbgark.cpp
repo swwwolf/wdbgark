@@ -518,7 +518,7 @@ void WDbgArk::WalkAnyTable(const unsigned __int64 table_start,
                            walkresType* output_list,
                            bool break_on_null,
                            bool collect_null) {
-    unsigned __int64 offset = table_start + offset_table_skip_start * m_PtrSize;
+    unsigned __int64 offset = table_start + offset_table_skip_start;
 
     try {
         for ( unsigned __int32 i = 0; i < table_count; i++ ) {

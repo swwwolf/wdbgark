@@ -77,7 +77,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
 
         if ( offset_hdt ) {
             WalkAnyTable(offset_hdt,
-                         citer->second.skip,
+                         citer->second.skip * m_PtrSize,
                          citer->second.hdt_count,
                          "",
                          &output_list_hdt,
@@ -87,7 +87,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
 
         if ( offset_hpdt ) {
             WalkAnyTable(offset_hpdt,
-                         citer->second.skip,
+                         citer->second.skip * m_PtrSize,
                          citer->second.hpdt_count,
                          "",
                          &output_list_hpdt,
