@@ -43,6 +43,7 @@
 #include <memory>
 #include <unordered_map>
 #include <set>
+#include <utility>
 
 #include "objhelper.hpp"
 #include "colorhack.hpp"
@@ -59,15 +60,28 @@ class WDbgArk : public ExtExtension {
     // class typedefs
     //////////////////////////////////////////////////////////////////////////
     struct SystemCbCommand {
-        SystemCbCommand() : list_count_name(), list_head_name(), offset_to_routine(0) {}
+        SystemCbCommand() : list_count_name(),
+                            list_head_name(),
+                            offset_to_routine(0),
+                            list_count_address(0ULL),
+                            list_head_address(0ULL) {}
         SystemCbCommand(std::string lcn,
                         std::string lhn,
-                        unsigned __int32 oftr) : list_count_name(lcn), list_head_name(lhn), offset_to_routine(oftr) {}
+                        unsigned __int32 oftr,
+                        unsigned __int64 lca,
+                        unsigned __int64 lha) : list_count_name(lcn),
+                                                list_head_name(lhn),
+                                                offset_to_routine(oftr),
+                                                list_count_address(lca),
+                                                list_head_address(lha) {}
         std::string      list_count_name;
         std::string      list_head_name;
         unsigned __int32 offset_to_routine;
+        unsigned __int64 list_count_address;
+        unsigned __int64 list_head_address;
     };
 
+    typedef std::pair<std::string, SystemCbCommand> callbackPair;
     typedef std::map<std::string, SystemCbCommand> callbacksInfo;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
