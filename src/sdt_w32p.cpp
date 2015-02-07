@@ -19,8 +19,6 @@
     * the COPYING file in the top-level directory.
 */
 
-// TODO(swwwolf): check routine names (subXXX, unknown, etc...)
-
 #include <engextcpp.hpp>
 
 #include <string>
@@ -8218,7 +8216,7 @@ static const char* W32pServiceTable_VistaSp0_x86[] = {
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "?bUnMap@SURFACE@@QAEHXZ",  // TODO(swwwolf): strange
+    "SURFACE::bUnMap",
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -8993,7 +8991,7 @@ static const char* W32pServiceTable_VistaSp1_x86[] = {
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "?bUnMap@SURFACE@@QAEHXZ",  // TODO(swwwolf): strange
+    "SURFACE::bUnMap",
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -9768,7 +9766,7 @@ static const char* W32pServiceTable_VistaSp2_x86[] = {
     "NtGdiGradientFill",
     "NtGdiHfontCreate",
     "NtGdiIcmBrushInfo",
-    "?bUnMap@SURFACE@@QAEHXZ",  // TODO(swwwolf): strange
+    "SURFACE::bUnMap",
     "NtGdiInitSpool",
     "NtGdiIntersectClipRect",
     "NtGdiInvertRgn",
@@ -20380,7 +20378,7 @@ static const char* W32pServiceTable_Win8Sp1_x64[] = {
     "NtGdiSwapBuffers",
     "NtGdiTransparentBlt",
     "NtGdiUMPDEngFreeUserMem",
-    "?GetModel@CTokenBase@@UEBA?AW4TokenModel@1@XZ",    // TODO(swwwolf): strange
+    "CToken::CalcSurfaceSyncRefresh",
     "NlsNullProc",
     "NtGdiUpdateColors",
     "NtGdiUpdateTransform",
