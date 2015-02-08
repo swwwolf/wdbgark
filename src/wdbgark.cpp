@@ -376,9 +376,9 @@ void WDbgArk::InitHalTables(void) {
     m_hal_tbl_info.insert(haltblInfo::value_type(WXP_VER, HalDispatchTablesInfo(0x15, 0x12, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(W2K3_VER, HalDispatchTablesInfo(0x16, 0x14, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_RTM_VER, HalDispatchTablesInfo(0x16, 0x1B, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP1_VER, HalDispatchTablesInfo(0x18, 0x21, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP2_VER, HalDispatchTablesInfo(0x17, 0x24, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(W7RTM_VER, HalDispatchTablesInfo(0x16, 0x2E, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP1_VER, HalDispatchTablesInfo(0x18, 0x22, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP2_VER, HalDispatchTablesInfo(0x17, 0x23, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(W7RTM_VER, HalDispatchTablesInfo(0x16, 0x2D, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(W7SP1_VER, HalDispatchTablesInfo(0x16, 0x2D, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(W8RTM_VER, HalDispatchTablesInfo(0x16, 0x5A, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(W81RTM_VER, HalDispatchTablesInfo(0x16, 0x69, 0x0B, 0x1)));
