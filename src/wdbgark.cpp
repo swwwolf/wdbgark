@@ -374,7 +374,7 @@ void WDbgArk::InitGDTSelectors(void) {
 
 void WDbgArk::InitHalTables(void) {
     m_hal_tbl_info.insert(haltblInfo::value_type(WXP_VER, HalDispatchTablesInfo(0x15, 0x12, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(W2K3_VER, HalDispatchTablesInfo(0x16, 0x14, 0x0, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(W2K3_VER, HalDispatchTablesInfo(0x15, 0x13, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_RTM_VER, HalDispatchTablesInfo(0x16, 0x1B, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP1_VER, HalDispatchTablesInfo(0x18, 0x22, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP2_VER, HalDispatchTablesInfo(0x17, 0x23, 0x0, 0x1)));
