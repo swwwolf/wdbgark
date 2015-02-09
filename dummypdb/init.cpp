@@ -21,6 +21,9 @@
 
 #include "./init.h"
 
+//////////////////////////////////////////////////////////////////////////
+// _OBJECT_CALLBACK_ENTRY_COMMON
+//////////////////////////////////////////////////////////////////////////
 struct _OBJECT_CALLBACK_ENTRY_COMMON {
     LIST_ENTRY                  CallbackList;
     OB_OPERATION                Operations;
@@ -31,6 +34,21 @@ struct _OBJECT_CALLBACK_ENTRY_COMMON {
     POB_POST_OPERATION_CALLBACK PostOperation;
 } OBJECT_CALLBACK_ENTRY_COMMON, *POBJECT_CALLBACK_ENTRY_COMMON;
 
+#ifdef _X86_
+    static_assert(sizeof(_OBJECT_CALLBACK_ENTRY_COMMON) == 0x20, "Invalid OBJECT_CALLBACK_ENTRY_COMMON size");
+    static_assert(FIELD_OFFSET(_OBJECT_CALLBACK_ENTRY_COMMON, CallbackList) == 0x00, "Invalid CallbackList offset");
+    static_assert(FIELD_OFFSET(_OBJECT_CALLBACK_ENTRY_COMMON, PreOperation) == 0x18, "Invalid PreOperation offset");
+    static_assert(FIELD_OFFSET(_OBJECT_CALLBACK_ENTRY_COMMON, PostOperation) == 0x1C, "Invalid PostOperation offset");
+#else   // _WIN64
+    static_assert(sizeof(_OBJECT_CALLBACK_ENTRY_COMMON) == 0x38, "Invalid OBJECT_CALLBACK_ENTRY_COMMON size");
+    static_assert(FIELD_OFFSET(_OBJECT_CALLBACK_ENTRY_COMMON, CallbackList) == 0x00, "Invalid CallbackList offset");
+    static_assert(FIELD_OFFSET(_OBJECT_CALLBACK_ENTRY_COMMON, PreOperation) == 0x28, "Invalid PreOperation offset");
+    static_assert(FIELD_OFFSET(_OBJECT_CALLBACK_ENTRY_COMMON, PostOperation) == 0x30, "Invalid PostOperation offset");
+#endif  // _X86_
+
+//////////////////////////////////////////////////////////////////////////
+// DriverEntry
+//////////////////////////////////////////////////////////////////////////
 NTSTATUS NTAPI DriverEntry(IN PDRIVER_OBJECT driver, IN PUNICODE_STRING driverKeyName) {
     UNREFERENCED_PARAMETER(driver);
     UNREFERENCED_PARAMETER(driverKeyName);
