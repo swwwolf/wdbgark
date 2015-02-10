@@ -26,6 +26,8 @@
 #ifndef DUMMYPDB_HPP_
 #define DUMMYPDB_HPP_
 
+#include <engextcpp.hpp>
+
 #include <string>
 #include <sstream>
 
@@ -39,6 +41,7 @@ class WDbgArkDummyPdb {
     bool        IsInited(void) const { return m_inited; }
     std::string GetLongName(void) const { return m_dummy_pdb_name_long; }
     std::string GetShortName(void) const { return m_dummy_pdb_name_short; }
+    bool        RemoveDummyPdbModule(const ExtCheckedPointer<IDebugSymbols3> &symbols3_iface);
 
  private:
      bool        m_inited;
@@ -47,8 +50,6 @@ class WDbgArkDummyPdb {
      std::string m_drop_path;
 
      bool InitDummyPdbModule(void);
-     bool RemoveDummyPdbModule(void);
-
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////

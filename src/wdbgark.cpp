@@ -49,6 +49,7 @@ WDbgArk::WDbgArk() : m_inited(false),
                      m_obj_helper(nullptr),
                      m_color_hack(nullptr),
                      m_dummy_pdb(nullptr),
+                     m_symbols3_iface("The extension did not initialize properly."),
                      out(),
                      warn(),
                      err() {
@@ -67,9 +68,17 @@ WDbgArk::~WDbgArk() {
 #endif  // _DEBUG
 }
 
+#define REQ_IF(_If, _member) \
+    if ( m_Client->QueryInterface(__uuidof(_If), reinterpret_cast<PVOID*>(&_member)) != S_OK ) { \
+        _member.Set(nullptr); \
+        err << __FUNCTION__ << ": Failed to initialize interface" << endlerr; \
+    }
+
 bool WDbgArk::Init() {
     if ( IsInited() )
         return true;
+
+    REQ_IF(IDebugSymbols3, m_symbols3_iface);
 
     m_is_cur_machine64 = IsCurMachine64();
 
@@ -791,10 +800,7 @@ unsigned __int32 WDbgArk::GetWindowsStrictMinorBuild(void) const {
 
 void WDbgArk::RemoveSyntheticSymbols(void) {
     for ( DEBUG_MODULE_AND_ID id : m_synthetic_symbols ) {
-        if ( !SUCCEEDED(m_Symbols3->RemoveSyntheticSymbol(&id)) ) {
-            warn << __FUNCTION__ << ": failed to remove synthetic symbol ";
-            warn << std::hex << std::showbase << id.Id << endlwarn;
-        }
+        m_symbols3_iface->RemoveSyntheticSymbol(&id);
     }
 }
 

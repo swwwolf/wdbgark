@@ -42,19 +42,15 @@ WDbgArkDummyPdb::WDbgArkDummyPdb() : m_inited(false),
     m_inited = InitDummyPdbModule();
 }
 
+// symbols should be already unloaded (.reload /u)
 WDbgArkDummyPdb::~WDbgArkDummyPdb() {
-    /*
     std::string filename = m_drop_path + m_dummy_pdb_name_long;
     std::ifstream file(filename);
 
     if ( file.good() ) {
         file.close();
-
-        // TODO(swwwolf): doesn't work 'coz WinDBG keeps handle to the file
-        if ( std::remove(filename.c_str()) != 0 )
-            err << __FUNCTION__ << ": Failed to remove " << filename << endlerr;
+        std::remove(filename.c_str());
     }
-    */
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,7 +66,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     m_dummy_pdb_name_long = m_dummy_pdb_name_short + ".pdb";
 
     // it is not possible to remove this fake module on unload
-    if ( !RemoveDummyPdbModule() ) {
+    if ( !RemoveDummyPdbModule(g_Ext->m_Symbols3) ) {
         err << __FUNCTION__ << ": RemoveDummyPdbModule failed" << endlerr;
         return false;
     }
@@ -106,14 +102,12 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     return true;
 }
 
-bool WDbgArkDummyPdb::RemoveDummyPdbModule(void) {
-    if ( SUCCEEDED(g_Ext->m_Symbols->GetModuleByModuleName(m_dummy_pdb_name_short.c_str(), 0, nullptr, nullptr)) ) {
+bool WDbgArkDummyPdb::RemoveDummyPdbModule(const ExtCheckedPointer<IDebugSymbols3> &symbols3_iface) {
+    if ( SUCCEEDED(symbols3_iface->GetModuleByModuleName(m_dummy_pdb_name_short.c_str(), 0, nullptr, nullptr)) ) {
         std::string unload_cmd = "/u " + m_dummy_pdb_name_short;
 
-        if ( !SUCCEEDED(g_Ext->m_Symbols->Reload(unload_cmd.c_str())) ) {
-            err << __FUNCTION__ << ": Failed to unload " << m_dummy_pdb_name_short << " module" << endlerr;
+        if ( !SUCCEEDED(symbols3_iface->Reload(unload_cmd.c_str())) )
             return false;
-        }
     }
 
     return true;

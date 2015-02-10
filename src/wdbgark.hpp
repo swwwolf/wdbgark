@@ -141,11 +141,13 @@ class WDbgArk : public ExtExtension {
         return S_OK;
     }
 
-    /*
+    // this one is called _before_ main class destructor, but ExtExtension class is already dead
+    // so, don't output any errors in these routines, don't call g_Ext->m_Something and so on
     void __thiscall Uninitialize(void) {
-        m_inited = true;
+        m_dummy_pdb->RemoveDummyPdbModule(m_symbols3_iface);    // unload dummypdb fake module
+        RemoveSyntheticSymbols();                               // remove our symbols
+        EXT_RELEASE(m_symbols3_iface);
     }
-    */
 
     //////////////////////////////////////////////////////////////////////////
     // main commands
@@ -306,7 +308,7 @@ class WDbgArk : public ExtExtension {
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
     std::unique_ptr<WDbgArkDummyPdb>  m_dummy_pdb;
-
+    ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface;
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
