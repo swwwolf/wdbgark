@@ -34,6 +34,8 @@ namespace wa {
 #define MAKEULONG(x, y) ( ((((unsigned __int32)(x)) << 16) & 0xFFFF0000) | ((unsigned __int32)(y) & 0xFFFF) )
 #define CHECK_BIT_SET(x, y) (x & (1 << y))
 
+#define PAGE_SIZE  0x1000
+#define PAGE_SHIFT 12L
 //////////////////////////////////////////////////////////////////////////
 // Windows builds
 //////////////////////////////////////////////////////////////////////////
@@ -183,31 +185,73 @@ typedef union _KIDT_HANDLER_ADDRESS {
 // http://wiki.osdev.org/GDT_Tutorial
 // Each define here is for a specific flag in the descriptor.
 // Refer to the intel documentation for a description of what each one does.
-#define SEG_DESCTYPE(x)    ((x) << 0x04)              // Descriptor type (0 for system, 1 for code/data)
-#define SEG_PRES(x)        ((x) << 0x07)              // Present
-#define SEG_SAVL(x)        ((x) << 0x0C)              // Available for system use
-#define SEG_LONG(x)        ((x) << 0x0D)              // Long mode
-#define SEG_SIZE(x)        ((x) << 0x0E)              // Size (0 for 16-bit, 1 for 32)
-#define SEG_GRAN(x)        ((x) << 0x0F)              // Granularity (0 for 1B - 1MB, 1 for 4KB - 4GB)
-#define SEG_PRIV(x)        (((x) & 0x03) << 0x05)     // Set privilege level (0 - 3)
+// Intel manual 3.4.5.1
+#define SEG_DESCTYPE(x)                  ((x) << 0x04)              // Descriptor type (0 for system, 1 for code/data)
+#define SEG_PRES(x)                      ((x) << 0x07)              // Present
+#define SEG_SAVL(x)                      ((x) << 0x0C)              // Available for system use
+#define SEG_LONG(x)                      ((x) << 0x0D)              // Long mode
+#define SEG_SIZE(x)                      ((x) << 0x0E)              // Size (0 for 16-bit, 1 for 32)
+#define SEG_GRAN(x)                      ((x) << 0x0F)              // Granularity (0 for 1B - 1MB, 1 for 4KB - 4GB)
+#define SEG_PRIV(x)                      (((x) & 0x03) << 0x05)     // Set privilege level (0 - 3)
 
-#define SEG_DATA_RD        0x00                       // Read-Only
-#define SEG_DATA_RDA       0x01                       // Read-Only, accessed
-#define SEG_DATA_RDWR      0x02                       // Read/Write
-#define SEG_DATA_RDWRA     0x03                       // Read/Write, accessed
-#define SEG_DATA_RDEXPD    0x04                       // Read-Only, expand-down
-#define SEG_DATA_RDEXPDA   0x05                       // Read-Only, expand-down, accessed
-#define SEG_DATA_RDWREXPD  0x06                       // Read/Write, expand-down
-#define SEG_DATA_RDWREXPDA 0x07                       // Read/Write, expand-down, accessed
-#define SEG_CODE_EX        0x08                       // Execute-Only
-#define SEG_CODE_EXA       0x09                       // Execute-Only, accessed
-#define SEG_CODE_EXRD      0x0A                       // Execute/Read
-#define SEG_CODE_EXRDA     0x0B                       // Execute/Read, accessed
-#define SEG_CODE_EXC       0x0C                       // Execute-Only, conforming
-#define SEG_CODE_EXCA      0x0D                       // Execute-Only, conforming, accessed
-#define SEG_CODE_EXRDC     0x0E                       // Execute/Read, conforming
-#define SEG_CODE_EXRDCA    0x0F                       // Execute/Read, conforming, accessed
-
+//////////////////////////////////////////////////////////////////////////
+// Code/Data
+//////////////////////////////////////////////////////////////////////////
+#define SEG_DATA_RD                      0x00                       // Read-Only
+#define SEG_DATA_RDA                     0x01                       // Read-Only, accessed
+#define SEG_DATA_RDWR                    0x02                       // Read/Write
+#define SEG_DATA_RDWRA                   0x03                       // Read/Write, accessed
+#define SEG_DATA_RDEXPD                  0x04                       // Read-Only, expand-down
+#define SEG_DATA_RDEXPDA                 0x05                       // Read-Only, expand-down, accessed
+#define SEG_DATA_RDWREXPD                0x06                       // Read/Write, expand-down
+#define SEG_DATA_RDWREXPDA               0x07                       // Read/Write, expand-down, accessed
+#define SEG_CODE_EX                      0x08                       // Execute-Only
+#define SEG_CODE_EXA                     0x09                       // Execute-Only, accessed
+#define SEG_CODE_EXRD                    0x0A                       // Execute/Read
+#define SEG_CODE_EXRDA                   0x0B                       // Execute/Read, accessed
+#define SEG_CODE_EXC                     0x0C                       // Execute-Only, conforming
+#define SEG_CODE_EXCA                    0x0D                       // Execute-Only, conforming, accessed
+#define SEG_CODE_EXRDC                   0x0E                       // Execute/Read, conforming
+#define SEG_CODE_EXRDCA                  0x0F                       // Execute/Read, conforming, accessed
+//////////////////////////////////////////////////////////////////////////
+// System type x86
+//////////////////////////////////////////////////////////////////////////
+#define SEG_SYS_RESERVED_0               0x00                       // Reserved
+#define SEG_SYS_TSS16_AVL                0x01                       // 16-bit TSS (Available)
+#define SEG_SYS_LDT                      0x02                       // LDT
+#define SEG_SYS_TSS16_BUSY               0x03                       // 16-bit TSS (Busy)
+#define SEG_SYS_CALLGATE_16              0x04                       // 16-bit Call Gate
+#define SEG_SYS_TASKGATE                 0x05                       // Task Gate
+#define SEG_SYS_INT_GATE_16              0x06                       // 16-bit Interrupt Gate
+#define SEG_SYS_TRAP_GATE_16             0x07                       // 16-bit Trap Gate
+#define SEG_SYS_RESERVED_8               0x08                       // Reserved
+#define SEG_SYS_TSS32_AVL                0x09                       // 32-bit TSS (Available)
+#define SEG_SYS_RESERVED_10              0x0A                       // Reserved
+#define SEG_SYS_TSS32_BUSY               0x0B                       // 32-bit TSS (Busy)
+#define SEG_SYS_CALLGATE_32              0x0C                       // 32-bit Call Gate
+#define SEG_SYS_RESERVED_13              0x0D                       // Reserved
+#define SEG_SYS_INT_GATE_32              0x0E                       // 32-bit Interrupt Gate
+#define SEG_SYS_TRAP_GATE_32             0x0F                       // 32-bit Trap Gate
+//////////////////////////////////////////////////////////////////////////
+// System type x64 (yes, same names)
+//////////////////////////////////////////////////////////////////////////
+#define SEG_SYS_UPPER_8_BYTE             0x00                       // Upper 8 byte of an 16-byte descriptor
+#define SEG_SYS_RESERVED_1               0x01                       // Reserved
+#define SEG_SYS_LDT                      0x02                       // LDT
+#define SEG_SYS_RESERVED_3               0x03                       // Reserved
+#define SEG_SYS_RESERVED_4               0x04                       // Reserved
+#define SEG_SYS_RESERVED_5               0x05                       // Reserved
+#define SEG_SYS_RESERVED_6               0x06                       // Reserved
+#define SEG_SYS_RESERVED_7               0x07                       // Reserved
+#define SEG_SYS_RESERVED_8               0x08                       // Reserved
+#define SEG_SYS_TSS64_AVL                0x09                       // 64-bit TSS (Available)
+#define SEG_SYS_RESERVED_10              0x0A                       // Reserved
+#define SEG_SYS_TSS64_BUSY               0x0B                       // 64-bit TSS (Busy)
+#define SEG_SYS_CALLGATE_64              0x0C                       // 64-bit Call Gate
+#define SEG_SYS_RESERVED_13              0x0D                       // Reserved
+#define SEG_SYS_INT_GATE_64              0x0E                       // 64-bit Interrupt Gate
+#define SEG_SYS_TRAP_GATE_64             0x0F                       // 64-bit Trap Gate
+//////////////////////////////////////////////////////////////////////////
 }   // namespace wa
 
 #endif  // SRC_DDK_H_

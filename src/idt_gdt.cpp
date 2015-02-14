@@ -419,7 +419,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Dumping IDT" << endlout;
+    out << "Dumping IDTs" << endlout;
 
     unsigned __int64 start_unexpected_range     = 0;
     unsigned __int64 end_unexpected_range       = 0;
@@ -758,84 +758,80 @@ full_address = selector.BaseLow | selector.HighWord.Bytes.BaseMid << 16 | select
 
 */
 
-// TODO(swwwolf): deal with flags
+void DisplayOneGDTEntry(const std::string &gdt_entry_name,
+                        const unsigned __int64 entry_address,
+                        const unsigned __int32 gdt_entry_size,
+                        const unsigned __int32 gdt_selector,
+                        const unsigned int cpu_idx,
+                        std::unique_ptr<WDbgArkAnalyze> const &display);
+
 EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
     RequireKernelMode();
 
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Dumping GDT" << endlout;
+    out << "Dumping GDTs" << endlout;
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeGDT));
     display->PrintHeader();
 
     try {
-        for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ ) {
+        unsigned __int32 gdt_entry_size = 0;
+        std::string gdt_entry_name;
+
+        if ( m_is_cur_machine64 ) {
+            gdt_entry_size = GetTypeSize("nt!_KGDTENTRY64");
+            gdt_entry_name = "nt!_KGDTENTRY64";
+        } else {
+            gdt_entry_size = GetTypeSize("nt!_KGDTENTRY");
+            gdt_entry_name = "nt!_KGDTENTRY";
+        }
+
+        for ( unsigned int cpu_idx = 0; cpu_idx < g_Ext->m_NumProcessors; cpu_idx++ ) {
             unsigned __int64 kpcr_offset     = 0;
             unsigned __int64 gdt_entry_start = 0;
-            unsigned __int32 gdt_entry_size  = 0;
 
-            HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(i,
+            HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(cpu_idx,
                                                                     DEBUG_DATA_KPCR_OFFSET,
                                                                     &kpcr_offset,
                                                                     sizeof(kpcr_offset),
                                                                     NULL);
 
             if ( !SUCCEEDED(result) ) {
-                err << __FUNCTION__ << ": ReadProcessorSystemData failed with error = " << result;
-                break;
+                err << __FUNCTION__ << ": CPU " << cpu_idx << ": ReadProcessorSystemData failed with error " << result;
+                continue;
             }
 
             ExtRemoteTyped pcr("nt!_KPCR", kpcr_offset, false, NULL, NULL);
 
-            if ( m_is_cur_machine64 ) {
+            if ( m_is_cur_machine64 )
                 gdt_entry_start = pcr.Field("GdtBase").GetPtr();    // _KGDTENTRY64*
-                gdt_entry_size = GetTypeSize("nt!_KGDTENTRY64");
-            } else {
-                gdt_entry_start = pcr.Field("GDT").GetPtr();    // _KGDTENTRY*
-                gdt_entry_size = GetTypeSize("nt!_KGDTENTRY");
+            else
+                gdt_entry_start = pcr.Field("GDT").GetPtr();        // _KGDTENTRY*
+
+            unsigned __int32 gdt_selector = 0;
+
+            if ( m_is_cur_machine64 ) {    // special case for x64
+                for ( const unsigned __int32 gdt_selector_x64 : m_gdt_selectors ) {
+                    DisplayOneGDTEntry(gdt_entry_name,
+                                       gdt_entry_start + gdt_selector_x64,
+                                       gdt_entry_size,
+                                       gdt_selector_x64,
+                                       cpu_idx,
+                                       display);
+
+                    gdt_selector = gdt_selector_x64 + gdt_entry_size;   // because last one is "normal"
+                }
             }
 
-            for ( const unsigned __int32 gdt_selector : m_gdt_selectors ) {
-                std::stringstream processor_index;
-                std::stringstream info;
-
-                if ( m_is_cur_machine64 ) {
-                    ExtRemoteTyped gdt_entry("nt!_KGDTENTRY64",
-                                             gdt_entry_start + gdt_selector,
-                                             false,
-                                             NULL,
-                                             NULL);
-
-                    info << std::setw(48);
-                    info << "<exec cmd=\"dt nt!_KGDTENTRY64 " << std::hex << std::showbase << gdt_entry.m_Offset;
-                    info << " -r1\">dt" << "</exec>" << " ";
-                    info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>";
-
-                    processor_index << std::setw(2) << i << " / " << std::setw(2);
-                    processor_index << std::hex << gdt_selector / gdt_entry_size;
-
-                    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), gdt_selector, info.str());
-                    display->PrintFooter();
-                } else {
-                    ExtRemoteTyped gdt_entry("nt!_KGDTENTRY",
-                                             gdt_entry_start + gdt_selector,
-                                             false,
-                                             NULL,
-                                             NULL);
-
-                    info << std::setw(46);
-                    info << "<exec cmd=\"dt nt!_KGDTENTRY " << std::hex << std::showbase << gdt_entry.m_Offset;
-                    info << " -r2\">dt" << "</exec>" << " ";
-                    info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>";
-
-                    processor_index << std::setw(2) << i << " / " << std::setw(2);
-                    processor_index << std::hex << gdt_selector / gdt_entry_size;
-
-                    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), gdt_selector, info.str());
-                    display->PrintFooter();
-                }
+            for ( ; gdt_selector < 0x400; gdt_selector += gdt_entry_size ) {
+                DisplayOneGDTEntry(gdt_entry_name,
+                                   gdt_entry_start + gdt_selector,
+                                   gdt_entry_size,
+                                   gdt_selector,
+                                   cpu_idx,
+                                   display);
             }
         }
     }
@@ -849,6 +845,40 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
         throw;
     }
 
+    display->PrintFooter();
+}
+
+void DisplayOneGDTEntry(const std::string &gdt_entry_name,
+                        const unsigned __int64 entry_address,
+                        const unsigned __int32 gdt_entry_size,
+                        const unsigned __int32 gdt_selector,
+                        const unsigned int cpu_idx,
+                        std::unique_ptr<WDbgArkAnalyze> const &display) {
+    std::stringstream processor_index;
+    std::stringstream info;
+
+    ExtRemoteTyped gdt_entry(gdt_entry_name.c_str(),
+                             entry_address,
+                             false,
+                             NULL,
+                             NULL);
+
+    if ( g_Ext->IsCurMachine64() ) {
+        info << std::setw(48);
+        info << "<exec cmd=\"dt nt!_KGDTENTRY64 " << std::hex << std::showbase << gdt_entry.m_Offset;
+        info << " -r1\">dt" << "</exec>" << " ";
+        info << "<exec cmd=\"!pcr " << cpu_idx << "\">!pcr" << "</exec>";
+    } else {
+        info << std::setw(46);
+        info << "<exec cmd=\"dt nt!_KGDTENTRY " << std::hex << std::showbase << gdt_entry.m_Offset;
+        info << " -r2\">dt" << "</exec>" << " ";
+        info << "<exec cmd=\"!pcr " << cpu_idx << "\">!pcr" << "</exec>";
+    }
+
+    processor_index << std::setw(2) << cpu_idx << " / " << std::setw(2);
+    processor_index << std::hex << gdt_selector / gdt_entry_size;
+
+    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), gdt_selector, info.str());
     display->PrintFooter();
 }
 

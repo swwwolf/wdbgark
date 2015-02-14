@@ -130,9 +130,19 @@ class WDbgArkAnalyze {
                            std::string* loaded_image_name);
 
     std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address);
-
-    bool        IsSuspiciousAddress(const unsigned __int64 address) const;
+    bool IsSuspiciousAddress(const unsigned __int64 address) const;
+    //////////////////////////////////////////////////////////////////////////
+    // GDT
+    //////////////////////////////////////////////////////////////////////////
     std::string GetGDTSelectorName(const unsigned __int32 selector) const;
+    unsigned __int32 GetGDTType(const ExtRemoteTyped &gdt_entry);
+    std::string GetGDTTypeName(const ExtRemoteTyped &gdt_entry);
+    unsigned __int32 GetGDTLimit(const ExtRemoteTyped &gdt_entry);
+    unsigned __int64 GetGDTBase(const ExtRemoteTyped &gdt_entry);
+    bool IsGDTPageGranularity(const ExtRemoteTyped &gdt_entry);
+    bool IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry);
+    bool IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry);
+    unsigned __int32 GetGDTDpl(const ExtRemoteTyped &gdt_entry);
 
     //////////////////////////////////////////////////////////////////////////
     // output streams

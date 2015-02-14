@@ -81,13 +81,16 @@ WDbgArkAnalyze::WDbgArkAnalyze(const AnalyzeTypeInit type) : m_inited(false),
         tp->AddColumn("Module", 16);
         tp->AddColumn("Suspicious", 10);
         tp->AddColumn("Info", 25);
-    } else if ( type == AnalyzeTypeGDT ) {    // width = 105
+    } else if ( type == AnalyzeTypeGDT ) {    // width = 133
         tp->AddColumn("Base", 18);
-        tp->AddColumn("Limit", 6);
+        tp->AddColumn("Limit", 10);
         tp->AddColumn("CPU / Idx", 10);
         tp->AddColumn("Offset", 10);
         tp->AddColumn("Selector name", 20);
-        tp->AddColumn("Type", 16);
+        tp->AddColumn("Type", 20);
+        tp->AddColumn("DPL", 4);
+        tp->AddColumn("Gr", 4);     // Granularity
+        tp->AddColumn("Pr", 4);     // Present
         tp->AddColumn("Info", 25);
     } else {
         m_inited = false;
@@ -179,43 +182,112 @@ void WDbgArkAnalyze::AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, c
     }
 }
 
+//////////////////////////////////////////////////////////////////////////
+// GDT stuff
+//////////////////////////////////////////////////////////////////////////
+bool WDbgArkAnalyze::IsGDTPageGranularity(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    std::string field_name;
+
+    if ( g_Ext->IsCurMachine64() )
+        field_name = "Bits.Granularity";
+    else
+        field_name = "HighWord.Bits.Granularity";
+
+    return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
+}
+
+bool WDbgArkAnalyze::IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    std::string field_name;
+
+    if ( g_Ext->IsCurMachine64() )
+        field_name = "Bits.Present";
+    else
+        field_name = "HighWord.Bits.Pres";
+
+    return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
+}
+
+unsigned __int32 WDbgArkAnalyze::GetGDTDpl(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    std::string field_name;
+
+    if ( g_Ext->IsCurMachine64() )
+        field_name = "Bits.Dpl";
+    else
+        field_name = "HighWord.Bits.Dpl";
+
+    return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
+}
+
+unsigned __int32 WDbgArkAnalyze::GetGDTType(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    std::string field_name;
+
+    if ( g_Ext->IsCurMachine64() )
+        field_name = "Bits.Type";
+    else
+        field_name = "HighWord.Bits.Type";
+
+    return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
+}
+
+bool WDbgArkAnalyze::IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry) {
+    return (GetGDTType(gdt_entry) & SEG_DESCTYPE(1)) == 0;
+}
+
+unsigned __int32 WDbgArkAnalyze::GetGDTLimit(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped   loc_gdt_entry = gdt_entry;
+    unsigned __int32 limit         = 0;
+    unsigned __int32 granularity   = 0;
+
+    if ( g_Ext->IsCurMachine64() ) {
+        limit = (loc_gdt_entry.Field("Bits.LimitHigh").GetUlong() << 16) |\
+                (loc_gdt_entry.Field("LimitLow").GetUshort());
+    } else {
+        limit = (loc_gdt_entry.Field("HighWord.Bits.LimitHi").GetUlong() << 16) |\
+                (loc_gdt_entry.Field("LimitLow").GetUshort());
+    }
+
+    if ( IsGDTPageGranularity(gdt_entry) )  // 4k segment
+        limit = ((limit + 1) << PAGE_SHIFT) - 1;
+
+    return limit;
+}
+
+unsigned __int64 WDbgArkAnalyze::GetGDTBase(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped   loc_gdt_entry = gdt_entry;
+    unsigned __int64 base          = 0;
+
+    if ( g_Ext->IsCurMachine64() ) {
+        base =\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseMiddle").GetUchar()) << 16) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseHigh").GetUchar()) << 24) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseUpper").GetUlong()) << 32);
+    } else {
+        base =\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseMid").GetUchar()) << 16) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseHi").GetUchar()) << 24);
+    }
+
+    return base;
+}
+
 void WDbgArkAnalyze::AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
                                      const std::string &cpu_idx,
                                      const unsigned __int32 selector,
                                      const std::string &additional_info) {
-    ExtRemoteTyped loc_gdt_entry = gdt_entry;
-
     if ( !IsInited() ) {
         err << __FUNCTION__ << ": class is not initialized" << endlerr;
         return;
     }
 
     try {
-        unsigned __int64 address = 0;
-        unsigned __int32 limit   = 0;
-
-        if ( g_Ext->IsCurMachine64() ) {
-            if ( selector != KGDT64_R0_DATA && selector != KGDT64_R3_DATA ) {
-                address =\
-                    (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
-                    (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseMiddle").GetUchar()) << 16) |\
-                    (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseHigh").GetUchar()) << 24) |\
-                    (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseUpper").GetUlong()) << 32);
-
-                limit =\
-                    (loc_gdt_entry.Field("LimitLow").GetUshort()) |\
-                    (loc_gdt_entry.Field("Bits").GetUlong() & 0x0F0000);
-            }
-        } else {
-            address =\
-                (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
-                (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseMid").GetUchar()) << 16) |\
-                (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseHi").GetUchar()) << 24);
-
-            limit =\
-                (loc_gdt_entry.Field("LimitLow").GetUshort()) |\
-                (loc_gdt_entry.Field("HighWord.Bits").GetUlong() & 0x0F0000);
-        }
+        unsigned __int64 address = GetGDTBase(gdt_entry);
+        unsigned __int32 limit = GetGDTLimit(gdt_entry);
 
         std::stringstream expression;
         expression << std::hex << std::showbase <<  address;
@@ -254,8 +326,29 @@ void WDbgArkAnalyze::AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
         std::stringstream selector_ext;
         selector_ext << std::hex << std::showbase << selector;
 
-        *tp << addr_ext.str() << limit << cpu_idx << selector_ext.str();
-        *tp << GetGDTSelectorName(selector) << "type" << additional_info;
+        std::stringstream limit_ext;
+        limit_ext << std::internal << std::setw(10) << std::setfill('0') << std::hex << std::showbase << limit;
+
+        std::stringstream dpl;
+        dpl << std::dec << GetGDTDpl(gdt_entry);
+
+        std::stringstream granularity;
+
+        if ( IsGDTPageGranularity(gdt_entry) )
+            granularity << "Page";
+        else
+            granularity << "Byte";
+
+        std::stringstream present;
+
+        if ( IsGDTFlagPresent(gdt_entry) )
+            present << "P";
+        else
+            present << "NP";
+
+        *tp << addr_ext.str() << limit_ext.str() << cpu_idx << selector_ext.str();
+        *tp << GetGDTSelectorName(selector) << GetGDTTypeName(gdt_entry);
+        *tp << dpl.str() << granularity.str() << present.str() << additional_info;
 
         tp->flush_out();
     }
@@ -292,7 +385,7 @@ std::string WDbgArkAnalyze::GetGDTSelectorName(const unsigned __int32 selector) 
                 return make_string( KGDT64_R3_CMTEB );
 
             default:
-                return "*UNKNOWN*";
+                return "*RESERVED*";
         }
     } else {
         switch ( selector ) {
@@ -339,10 +432,176 @@ std::string WDbgArkAnalyze::GetGDTSelectorName(const unsigned __int32 selector) 
                 return make_string( KGDT_STACK16 );
 
             default:
+                return "*RESERVED*";
+        }
+    }
+}
+
+// TODO(swwwolf): map
+std::string WDbgArkAnalyze::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
+    unsigned __int32 type = GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1);
+
+    if ( IsGDTTypeSystem(gdt_entry) ) {
+        if ( g_Ext->IsCurMachine64() ) {    // system, x64
+            switch ( type ) {
+                case SEG_SYS_UPPER_8_BYTE:
+                    return make_string(SEG_SYS_UPPER_8_BYTE);
+
+                case SEG_SYS_RESERVED_1:
+                    return make_string(SEG_SYS_RESERVED_1);
+
+                case SEG_SYS_LDT:
+                    return make_string(SEG_SYS_LDT);
+
+                case SEG_SYS_RESERVED_3:
+                    return make_string(SEG_SYS_RESERVED_3);
+
+                case SEG_SYS_RESERVED_4:
+                    return make_string(SEG_SYS_RESERVED_4);
+
+                case SEG_SYS_RESERVED_5:
+                    return make_string(SEG_SYS_RESERVED_5);
+
+                case SEG_SYS_RESERVED_6:
+                    return make_string(SEG_SYS_RESERVED_6);
+
+                case SEG_SYS_RESERVED_7:
+                    return make_string(SEG_SYS_RESERVED_7);
+
+                case SEG_SYS_RESERVED_8:
+                    return make_string(SEG_SYS_RESERVED_8);
+
+                case SEG_SYS_TSS64_AVL:
+                    return make_string(SEG_SYS_TSS64_AVL);
+
+                case SEG_SYS_RESERVED_10:
+                    return make_string(SEG_SYS_RESERVED_10);
+
+                case SEG_SYS_TSS64_BUSY:
+                    return make_string(SEG_SYS_TSS64_BUSY);
+
+                case SEG_SYS_CALLGATE_64:
+                    return make_string(SEG_SYS_CALLGATE_64);
+
+                case SEG_SYS_RESERVED_13:
+                    return make_string(SEG_SYS_RESERVED_13);
+
+                case SEG_SYS_INT_GATE_64:
+                    return make_string(SEG_SYS_INT_GATE_64);
+
+                case SEG_SYS_TRAP_GATE_64:
+                    return make_string(SEG_SYS_TRAP_GATE_64);
+                default:
+                    return "*UNKNOWN*";
+            }
+        } else {    // system, x86
+            switch ( type ) {
+                case SEG_SYS_RESERVED_0:
+                    return make_string(SEG_SYS_RESERVED_0);
+
+                case SEG_SYS_TSS16_AVL:
+                    return make_string(SEG_SYS_TSS16_AVL);
+
+                case SEG_SYS_LDT:
+                    return make_string(SEG_SYS_LDT);
+
+                case SEG_SYS_TSS16_BUSY:
+                    return make_string(SEG_SYS_TSS16_BUSY);
+
+                case SEG_SYS_CALLGATE_16:
+                    return make_string(SEG_SYS_CALLGATE_16);
+
+                case SEG_SYS_TASKGATE:
+                    return make_string(SEG_SYS_TASKGATE);
+
+                case SEG_SYS_INT_GATE_16:
+                    return make_string(SEG_SYS_INT_GATE_16);
+
+                case SEG_SYS_TRAP_GATE_16:
+                    return make_string(SEG_SYS_TRAP_GATE_16);
+
+                case SEG_SYS_RESERVED_8:
+                    return make_string(SEG_SYS_RESERVED_8);
+
+                case SEG_SYS_TSS32_AVL:
+                    return make_string(SEG_SYS_TSS32_AVL);
+
+                case SEG_SYS_RESERVED_10:
+                    return make_string(SEG_SYS_RESERVED_10);
+
+                case SEG_SYS_TSS32_BUSY:
+                    return make_string(SEG_SYS_TSS32_BUSY);
+
+                case SEG_SYS_CALLGATE_32:
+                    return make_string(SEG_SYS_CALLGATE_32);
+
+                case SEG_SYS_RESERVED_13:
+                    return make_string(SEG_SYS_RESERVED_13);
+
+                case SEG_SYS_INT_GATE_32:
+                    return make_string(SEG_SYS_INT_GATE_32);
+
+                case SEG_SYS_TRAP_GATE_32:
+                    return make_string(SEG_SYS_TRAP_GATE_32);
+                default:
+                    return "*UNKNOWN*";
+            }
+        }
+    } else {    // Code/Data x86/x64
+        switch ( type ) {
+            case SEG_DATA_RD:
+                return make_string(SEG_DATA_RD);
+
+            case SEG_DATA_RDA:
+                return make_string(SEG_DATA_RDA);
+
+            case SEG_DATA_RDWR:
+                return make_string(SEG_DATA_RDWR);
+
+            case SEG_DATA_RDWRA:
+                return make_string(SEG_DATA_RDWRA);
+
+            case SEG_DATA_RDEXPD:
+                return make_string(SEG_DATA_RDEXPD);
+
+            case SEG_DATA_RDEXPDA:
+                return make_string(SEG_DATA_RDEXPDA);
+
+            case SEG_DATA_RDWREXPD:
+                return make_string(SEG_DATA_RDWREXPD);
+
+            case SEG_DATA_RDWREXPDA:
+                return make_string(SEG_DATA_RDWREXPDA);
+
+            case SEG_CODE_EX:
+                return make_string(SEG_CODE_EX);
+
+            case SEG_CODE_EXA:
+                return make_string(SEG_CODE_EXA);
+
+            case SEG_CODE_EXRD:
+                return make_string(SEG_CODE_EXRD);
+
+            case SEG_CODE_EXRDA:
+                return make_string(SEG_CODE_EXRDA);
+
+            case SEG_CODE_EXC:
+                return make_string(SEG_CODE_EXC);
+
+            case SEG_CODE_EXCA:
+                return make_string(SEG_CODE_EXCA);
+
+            case SEG_CODE_EXRDC:
+                return make_string(SEG_CODE_EXRDC);
+
+            case SEG_CODE_EXRDCA:
+                return make_string(SEG_CODE_EXRDCA);
+            default:
                 return "*UNKNOWN*";
         }
     }
 }
+//////////////////////////////////////////////////////////////////////////
 
 HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
                                        std::string* image_name,
