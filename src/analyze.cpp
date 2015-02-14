@@ -240,7 +240,6 @@ bool WDbgArkAnalyze::IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry) {
 unsigned __int32 WDbgArkAnalyze::GetGDTLimit(const ExtRemoteTyped &gdt_entry) {
     ExtRemoteTyped   loc_gdt_entry = gdt_entry;
     unsigned __int32 limit         = 0;
-    unsigned __int32 granularity   = 0;
 
     if ( g_Ext->IsCurMachine64() ) {
         limit = (loc_gdt_entry.Field("Bits.LimitHigh").GetUlong() << 16) |\
