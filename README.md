@@ -108,28 +108,24 @@ Yeah, it's possible to build all the stuff using simple batch script.
 * Have fun!
 
 ```
-kd> .load wdbgark  
-kd> .chain  
-Extension DLL search Path:  
-<...>  
-Extension DLL chain:  
-    wdbgark: image 1.5.0.0, API 1.0.0, built Thu Nov 27 00:18:33 2014
+0: kd> .load wdbgark
+0: kd> .chain
+Extension DLL search Path:
+<...>
+Extension DLL chain:
+    wdbgark: image 1.5.0.0, API 1.5.0, built Sat Feb 14 10:38:51 2015
         [path: C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll]
-    WdfKd.dll: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 15:18:45 2013
-        [path: C:\WinDDK\8.1\Debuggers\x64\winext\WdfKd.dll]
-    dbghelp: image 6.3.9600.16384, API 6.3.6, built Thu Aug 22 15:25:28 2013
+    dbghelp: image 6.3.9600.17029, API 6.3.6, built Thu Feb 20 12:02:36 2014
         [path: C:\WinDDK\8.1\Debuggers\x64\dbghelp.dll]
-    ext: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 15:39:42 2013
+    ext: image 6.3.9600.17029, API 1.0.0, built Thu Feb 20 12:23:58 2014
         [path: C:\WinDDK\8.1\Debuggers\x64\winext\ext.dll]
-    exts: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 15:32:48 2013
+    exts: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 14:32:48 2013
         [path: C:\WinDDK\8.1\Debuggers\x64\WINXP\exts.dll]
-    kext: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 15:34:26 2013
+    kext: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 14:34:26 2013
         [path: C:\WinDDK\8.1\Debuggers\x64\winext\kext.dll]
-    kdexts: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 15:34:37 2013
+    kdexts: image 6.3.9600.17029, API 1.0.0, built Thu Feb 20 12:16:37 2014
         [path: C:\WinDDK\8.1\Debuggers\x64\WINXP\kdexts.dll]
-```
-```
-kd> !wdbgark.help
+0: kd> !wdbgark.help
 Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
   !help            - Displays information on available extension commands
   !wa_callouts     - Output kernel-mode win32k callouts
