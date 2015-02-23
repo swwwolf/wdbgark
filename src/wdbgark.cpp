@@ -61,8 +61,6 @@ WDbgArk::WDbgArk() : m_inited(false),
 }
 
 WDbgArk::~WDbgArk() {
-    // RemoveSyntheticSymbols();  //    TODO(swwwolf): already dead on unload
-
 #if defined(_DEBUG)
     _CrtDumpMemoryLeaks();
 #endif  // _DEBUG
