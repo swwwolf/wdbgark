@@ -158,7 +158,7 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         if ( !IsWinDbgWindow() )
             throw ExtStatusException(S_OK, "Can't find WinDBG window");
 
-        tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
+        tp.reset(new bprinter::TablePrinter(&bprinter_out));
 
         tp->AddColumn("DML name", 15);
         tp->AddColumn("Description", 70);

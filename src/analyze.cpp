@@ -42,8 +42,8 @@ WDbgArkAnalyze::WDbgArkAnalyze() : m_inited(false),
                                    warn(),
                                    err(),
                                    bprinter_out() {
-    tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
-    m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new WDbgArkObjHelper);
+    tp.reset(new bprinter::TablePrinter(&bprinter_out));
+    m_obj_helper.reset(new WDbgArkObjHelper);
     m_inited = true;
 }
 
@@ -57,8 +57,8 @@ WDbgArkAnalyze::WDbgArkAnalyze(const AnalyzeTypeInit type) : m_inited(false),
                                                              warn(),
                                                              err(),
                                                              bprinter_out() {
-    tp = std::unique_ptr<bprinter::TablePrinter>(new bprinter::TablePrinter(&bprinter_out));
-    m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new WDbgArkObjHelper);
+    tp.reset(new bprinter::TablePrinter(&bprinter_out));
+    m_obj_helper.reset(new WDbgArkObjHelper);
     m_inited = true;
 
     if ( type == AnalyzeTypeDefault ) {    // width = 180

@@ -26,6 +26,7 @@
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
 #include "symbols.hpp"
+#include "udis.hpp"
 
 EXT_DECLARE_GLOBALS();
 
@@ -85,17 +86,17 @@ bool WDbgArk::Init() {
     if ( !CheckSymbolsPath(m_ms_public_symbols_server, true) )
         warn << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
-    m_obj_helper = std::unique_ptr<WDbgArkObjHelper>(new WDbgArkObjHelper);
+    m_obj_helper.reset(new WDbgArkObjHelper);
 
     if ( !m_obj_helper->IsInited() )
         warn << __FUNCTION__ ": WDbgArkObjHelper init failed" << endlwarn;
 
-    m_color_hack = std::unique_ptr<WDbgArkColorHack>(new WDbgArkColorHack);
+    m_color_hack.reset(new WDbgArkColorHack);
 
     if ( !m_color_hack->IsInited() )
         warn << __FUNCTION__ ": WDbgArkColorHack init failed" << endlwarn;
 
-    m_dummy_pdb = std::unique_ptr<WDbgArkDummyPdb>(new WDbgArkDummyPdb);
+    m_dummy_pdb.reset(new WDbgArkDummyPdb);
 
     if ( !m_dummy_pdb->IsInited() )
         warn << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;
@@ -641,8 +642,6 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
 
 // TODO(swwwolf): get human disassembler, not this piece of shit with strings
 bool WDbgArk::FindDbgkLkmdCallbackArray() {
-    #define MAX_INSN_LENGTH 15
-
     unsigned __int64 offset = 0;
     bool             result = false;
 
