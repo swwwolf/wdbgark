@@ -37,6 +37,19 @@ enum ServiceTableType {
     W32pServiceTable_x64
 };
 
+enum ServiceTableIndex {
+    ServiceTableXpSp3 = 0,
+    ServiceTableW2k3Sp2,
+    ServiceTableVistaSp0,
+    ServiceTableVistaSp1,
+    ServiceTableVistaSp2,
+    ServiceTableW7Sp0,
+    ServiceTableW7Sp1,
+    ServiceTableW8Sp0,
+    ServiceTableW8Sp1,
+    ServiceTableW10Sp0
+};
+
 std::string get_service_table_routine_name(const unsigned __int32 minor_build,
                                            const ServiceTableType type,
                                            const unsigned __int32 index);

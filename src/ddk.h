@@ -48,7 +48,7 @@ namespace wa {
 #define W7SP1_VER       7601    // Windows 7 SP1
 #define W8RTM_VER       9200    // Windows 8 SP0
 #define W81RTM_VER      9600    // Windows 8.1 RTM
-#define W10RTM_VER      10000   // Windows 10 RTM (predict build number)
+#define W10RTM_VER      11000   // Windows 10 TP    // TODO(swwwolf): fill with RTM number
 
 //////////////////////////////////////////////////////////////////////////
 // drivers

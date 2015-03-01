@@ -98,7 +98,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
     display->PrintHeader();
 
     try {
-        if ( m_minor_build < W8RTM_VER ) {
+        if ( m_strict_minor_build <= W7SP1_VER ) {
             for ( const std::string &callout_name : m_callout_names ) {
                 unsigned __int64 offset = 0;
 

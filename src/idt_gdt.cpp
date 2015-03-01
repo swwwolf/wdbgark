@@ -451,7 +451,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
     if ( !m_is_cur_machine64
          &&
-         m_minor_build >= W81RTM_VER
+         m_strict_minor_build >= W81RTM_VER
          &&
          GetFieldOffset("nt!_KPCR",
                         "PrcbData.VectorToInterruptObject",
@@ -459,7 +459,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
         warn << __FUNCTION__ << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
     }
 
-    if ( !(!m_is_cur_machine64 && m_minor_build >= W81RTM_VER)
+    if ( !(!m_is_cur_machine64 && m_strict_minor_build >= W81RTM_VER)
          &&
          GetFieldOffset("nt!_KINTERRUPT",
                         "DispatchCode",
@@ -467,7 +467,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
         warn << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
     }
 
-    if ( m_minor_build >= VISTA_RTM_VER
+    if ( m_strict_minor_build >= VISTA_RTM_VER
          &&
          GetFieldOffset("nt!_KINTERRUPT",
                         "MessageServiceRoutine",

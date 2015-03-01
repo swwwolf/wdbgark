@@ -67,19 +67,40 @@ WDbgArk::~WDbgArk() {
 #endif  // _DEBUG
 }
 
+bool WDbgArk::Init() {
+    if ( IsInited() )
+        return true;
+
 #define REQ_IF(_If, _member) \
     if ( m_Client->QueryInterface(__uuidof(_If), reinterpret_cast<PVOID*>(&_member)) != S_OK ) { \
         _member.Set(nullptr); \
         err << __FUNCTION__ << ": Failed to initialize interface" << endlerr; \
     }
 
-bool WDbgArk::Init() {
-    if ( IsInited() )
-        return true;
-
     REQ_IF(IDebugSymbols3, m_symbols3_iface);
 
+#undef REQ_IF
+
     m_is_cur_machine64 = IsCurMachine64();
+
+    // get system version
+    HRESULT result = m_Control->GetSystemVersion(reinterpret_cast<PULONG>(&m_platform_id),
+                                                 reinterpret_cast<PULONG>(&m_major_build),
+                                                 reinterpret_cast<PULONG>(&m_minor_build),
+                                                 NULL,
+                                                 0,
+                                                 NULL,
+                                                 reinterpret_cast<PULONG>(&m_service_pack_number),
+                                                 NULL,
+                                                 0,
+                                                 NULL);
+
+    if ( !SUCCEEDED(result) )
+        warn << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlwarn;
+
+    m_strict_minor_build = GetWindowsStrictMinorBuild();
+    InitKnownWindowsBuilds();
+    CheckWindowsBuild();
 
     m_Symbols->Reload("");  // revise debuggee modules list
 
@@ -101,31 +122,12 @@ bool WDbgArk::Init() {
     if ( !m_dummy_pdb->IsInited() )
         warn << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;
 
-    // get system version
-    HRESULT result = m_Control->GetSystemVersion(reinterpret_cast<PULONG>(&m_platform_id),
-                                                 reinterpret_cast<PULONG>(&m_major_build),
-                                                 reinterpret_cast<PULONG>(&m_minor_build),
-                                                 NULL,
-                                                 0,
-                                                 NULL,
-                                                 reinterpret_cast<PULONG>(&m_service_pack_number),
-                                                 NULL,
-                                                 0,
-                                                 NULL);
-
-    if ( !SUCCEEDED(result) )
-        warn << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlwarn;
-
-    m_strict_minor_build = GetWindowsStrictMinorBuild();
-    InitKnownWindowsBuilds();
-    CheckWindowsBuild();
-
     InitCallbackCommands();
     InitCalloutNames();
     InitGDTSelectors();
     InitHalTables();
 
-    if ( m_minor_build >= W7RTM_VER && !FindDbgkLkmdCallbackArray() )
+    if ( m_strict_minor_build >= W7RTM_VER && !FindDbgkLkmdCallbackArray() )
         warn << __FUNCTION__ ": FindDbgkLkmdCallbackArray failed" << endlwarn;
 
     m_inited = true;
@@ -179,6 +181,13 @@ void WDbgArk::InitCallbackCommands(void) {
     m_system_cb_commands.insert(callbacksInfo::value_type("bugcheckaddpages",
                                                           SystemCbCommand("",
                                                                           "nt!KeBugCheckAddPagesCallbackListHead",
+                                                                          GetTypeSize("nt!_LIST_ENTRY"),
+                                                                          0ULL,
+                                                                          0ULL)));
+
+    m_system_cb_commands.insert(callbacksInfo::value_type("bugcheckaddremovepages",
+                                                          SystemCbCommand("",
+                                                                          "nt!KeBugCheckAddRemovePagesCallbackListHead",
                                                                           GetTypeSize("nt!_LIST_ENTRY"),
                                                                           0ULL,
                                                                           0ULL)));
@@ -330,7 +339,7 @@ void WDbgArk::InitCallbackCommands(void) {
 }
 
 void WDbgArk::InitCalloutNames(void) {
-    if ( m_minor_build < W8RTM_VER ) {
+    if ( m_strict_minor_build <= W7SP1_VER ) {
         m_callout_names.push_back("nt!PspW32ProcessCallout");
         m_callout_names.push_back("nt!PspW32ThreadCallout");
         m_callout_names.push_back("nt!ExGlobalAtomTableCallout");
@@ -390,6 +399,7 @@ void WDbgArk::InitHalTables(void) {
     m_hal_tbl_info.insert(haltblInfo::value_type(W7SP1_VER, HalDispatchTablesInfo(0x16, 0x2D, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(W8RTM_VER, HalDispatchTablesInfo(0x16, 0x5A, 0x0, 0x1)));
     m_hal_tbl_info.insert(haltblInfo::value_type(W81RTM_VER, HalDispatchTablesInfo(0x16, 0x69, 0x0B, 0x1)));
+    m_hal_tbl_info.insert(haltblInfo::value_type(W10RTM_VER, HalDispatchTablesInfo(0x16, 0x71, 0x10, 0x1)));
 }
 
 void WDbgArk::InitKnownWindowsBuilds(void) {
@@ -402,6 +412,32 @@ void WDbgArk::InitKnownWindowsBuilds(void) {
     m_known_windows_builds.insert(W7SP1_VER);
     m_known_windows_builds.insert(W8RTM_VER);
     m_known_windows_builds.insert(W81RTM_VER);
+    // m_known_windows_builds.insert(W10RTM_VER);    // TODO(swwwolf): !!!
+}
+
+unsigned __int32 WDbgArk::GetWindowsStrictMinorBuild(void) const {
+    if ( m_minor_build <= WXP_VER )
+        return WXP_VER;
+    else if ( m_minor_build > WXP_VER && m_minor_build <= W2K3_VER )
+        return W2K3_VER;
+    else if ( m_minor_build > W2K3_VER && m_minor_build <= VISTA_RTM_VER )
+        return VISTA_RTM_VER;
+    else if ( m_minor_build > VISTA_RTM_VER && m_minor_build <= VISTA_SP1_VER )
+        return VISTA_SP1_VER;
+    else if ( m_minor_build > VISTA_SP1_VER && m_minor_build <= VISTA_SP2_VER )
+        return VISTA_SP2_VER;
+    else if ( m_minor_build > VISTA_SP2_VER && m_minor_build <= W7RTM_VER )
+        return W7RTM_VER;
+    else if ( m_minor_build > W7RTM_VER && m_minor_build <= W7SP1_VER )
+        return W7SP1_VER;
+    else if ( m_minor_build > W7SP1_VER && m_minor_build <= W8RTM_VER )
+        return W8RTM_VER;
+    else if ( m_minor_build > W8RTM_VER && m_minor_build <= W81RTM_VER )
+        return W81RTM_VER;
+    else if ( m_minor_build > W81RTM_VER && m_minor_build <= W10RTM_VER )
+        return W10RTM_VER;
+
+    return 0UL;
 }
 
 void WDbgArk::CheckWindowsBuild(void) {
@@ -692,7 +728,7 @@ PAGE:0000000140482184 E8 37 B1 F0 FF                                call    ExRe
 */
 
 bool WDbgArk::FindDbgkLkmdCallbackArray() {
-    if ( m_minor_build < W7RTM_VER ) {
+    if ( m_strict_minor_build <= VISTA_SP2_VER ) {
         out << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return false;
     }
@@ -766,27 +802,6 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
     }
 
     return false;
-}
-
-unsigned __int32 WDbgArk::GetWindowsStrictMinorBuild(void) const {
-    if ( m_minor_build <= WXP_VER )
-        return WXP_VER;
-    else if ( m_minor_build > WXP_VER && m_minor_build <= W2K3_VER )
-        return W2K3_VER;
-    else if ( m_minor_build > W2K3_VER && m_minor_build <= VISTA_RTM_VER )
-        return VISTA_RTM_VER;
-    else if ( m_minor_build > VISTA_SP1_VER && m_minor_build <= VISTA_SP2_VER )
-        return VISTA_SP2_VER;
-    else if ( m_minor_build > VISTA_SP2_VER && m_minor_build <= W7RTM_VER )
-        return W7RTM_VER;
-    else if ( m_minor_build > W7RTM_VER && m_minor_build <= W7SP1_VER )
-        return W7SP1_VER;
-    else if ( m_minor_build > W7SP1_VER && m_minor_build <= W8RTM_VER )
-        return W8RTM_VER;
-    else if ( m_minor_build > W8RTM_VER && m_minor_build <= W81RTM_VER )
-        return W81RTM_VER;
-
-    return 0UL;
 }
 
 void WDbgArk::RemoveSyntheticSymbols(void) {

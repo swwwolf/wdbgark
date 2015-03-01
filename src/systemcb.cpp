@@ -32,6 +32,7 @@ registry
 bugcheck
 bugcheckreason
 bugcheckaddpages
+bugcheckaddremovepages
 powersetting
 callbackdir
 shutdown
@@ -230,7 +231,8 @@ namespace wa {
 EXT_COMMAND(wa_systemcb,
             "Output kernel-mode registered callback(s)",
             "{type;s;o;type,Callback type name:\n"\
-            "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, powersetting, callbackdir, "\
+            "image, process, thread, registry, bugcheck, bugcheckreason, bugcheckaddpages, bugcheckaddremovepages, "\
+            "powersetting, callbackdir, "\
             "shutdown, shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, "\
             "pnp, lego, debugprint, alpcplog, empcb, ioperf, dbgklkmd, kdppower, ioptimer}") {
     std::string type = "*";
@@ -299,7 +301,7 @@ EXT_COMMAND(wa_systemcb,
 void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
                                                walkresType* output_list) {
     if ( citer->first == "registry" ) {
-        if ( m_minor_build >= WXP_VER && m_minor_build <= W2K3_VER ) {
+        if ( m_strict_minor_build <= W2K3_VER ) {
             WalkExCallbackList(citer->second.list_count_name,
                                citer->second.list_count_address,
                                0,
@@ -327,8 +329,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                            m_PtrSize,
                            citer->first,
                            output_list);
-    } else if ( citer->first == "bugcheck" || citer->first == "bugcheckreason" ||
-              (citer->first == "bugcheckaddpages" && m_minor_build >= VISTA_SP1_VER) ) {
+    } else if ( citer->first == "bugcheck" || citer->first == "bugcheckreason" ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        citer->second.list_head_address,
                                        0,
@@ -337,7 +338,11 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        citer->first,
                                        "",
                                        output_list);
-    } else if ( citer->first == "powersetting" && m_minor_build > W2K3_VER ) {
+    } else if ( citer->first == "bugcheckaddpages"
+                &&
+                m_strict_minor_build >= VISTA_SP1_VER
+                &&
+                m_strict_minor_build <= W81RTM_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        citer->second.list_head_address,
                                        0,
@@ -346,7 +351,25 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        citer->first,
                                        "",
                                        output_list);
-    } else if ( citer->first == "kdppower" && m_minor_build >= W81RTM_VER ) {
+    } else if ( citer->first == "bugcheckaddremovepages" && m_strict_minor_build >= W10RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       citer->second.list_head_address,
+                                       0,
+                                       true,
+                                       citer->second.offset_to_routine,
+                                       citer->first,
+                                       "",
+                                       output_list);
+    } else if ( citer->first == "powersetting" && m_strict_minor_build >= VISTA_RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
+                                       citer->second.list_head_address,
+                                       0,
+                                       true,
+                                       citer->second.offset_to_routine,
+                                       citer->first,
+                                       "",
+                                       output_list);
+    } else if ( citer->first == "kdppower" && m_strict_minor_build >= W81RTM_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        citer->second.list_head_address,
                                        0,
@@ -377,7 +400,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        citer->first,
                                        "",
                                        output_list);
-    } else if ( citer->first == "nmi" && m_minor_build > WXP_VER ) {
+    } else if ( citer->first == "nmi" && m_strict_minor_build >= W2K3_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        citer->second.list_head_address,
                                        0,
@@ -395,7 +418,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        citer->first,
                                        "",
                                        output_list);
-    } else if ( citer->first == "prioritycallback" && m_minor_build >= W7RTM_VER ) {
+    } else if ( citer->first == "prioritycallback" && m_strict_minor_build >= W7RTM_VER ) {
         WalkExCallbackList(citer->second.list_count_name,
                            citer->second.list_count_address,
                            0,
@@ -408,8 +431,8 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
         WalkPnpLists(citer->first, output_list);
     } else if ( citer->first == "lego" ) {
         AddSymbolPointer(citer->second.list_head_name, citer->first, "", output_list);
-    } else if ( citer->first == "debugprint" && m_minor_build >= VISTA_RTM_VER ) {
-        if ( m_minor_build == VISTA_RTM_VER ) {
+    } else if ( citer->first == "debugprint" && m_strict_minor_build >= VISTA_RTM_VER ) {
+        if ( m_strict_minor_build == VISTA_RTM_VER ) {
             AddSymbolPointer("nt!RtlpDebugPrintCallback", citer->first, "", output_list);
         } else {
             WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
@@ -421,7 +444,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                            "",
                                            output_list);
         }
-    } else if ( citer->first == "alpcplog" && m_minor_build >= VISTA_RTM_VER ) {
+    } else if ( citer->first == "alpcplog" && m_strict_minor_build >= VISTA_RTM_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        citer->second.list_head_address,
                                        0,
@@ -430,7 +453,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        citer->first,
                                        "",
                                        output_list);
-    } else if ( citer->first == "empcb" && m_minor_build >= VISTA_RTM_VER ) {
+    } else if ( citer->first == "empcb" && m_strict_minor_build >= VISTA_RTM_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        citer->second.list_head_address,
                                        GetEmpCallbackItemLinkOffset(),
@@ -439,7 +462,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        citer->first,
                                        "",
                                        output_list);
-    } else if ( citer->first == "ioperf" && m_minor_build >= W8RTM_VER ) {
+    } else if ( citer->first == "ioperf" && m_strict_minor_build >= W8RTM_VER ) {
         WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
                                        citer->second.list_head_address,
                                        0,
@@ -448,7 +471,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                                        citer->first,
                                        "",
                                        output_list);
-    } else if ( citer->first == "dbgklkmd" && m_minor_build >= W7RTM_VER ) {
+    } else if ( citer->first == "dbgklkmd" && m_strict_minor_build >= W7RTM_VER ) {
         WalkExCallbackList("",
                            citer->second.list_count_address,
                            GetDbgkLkmdCallbackCount(),
@@ -547,9 +570,9 @@ unsigned __int32 WDbgArk::GetCmCallbackItemFunctionOffset() const {
     if ( !m_is_cur_machine64 )
         return 0x1C;
 
-    if ( m_minor_build >= VISTA_RTM_VER && m_minor_build < W7RTM_VER )
+    if ( m_strict_minor_build >= VISTA_RTM_VER && m_strict_minor_build <= VISTA_SP2_VER )
         return 0x30;
-    else if ( m_minor_build >= W7RTM_VER )
+    else if ( m_strict_minor_build >= W7RTM_VER )
         return 0x28;
 
     return 0;
@@ -696,14 +719,14 @@ void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
     unsigned __int64       offset            = 0;
     const unsigned __int32 offset_to_routine = GetPnpCallbackItemFunctionOffset();
 
-    if ( m_minor_build >= WXP_VER && m_minor_build <= W2K3_VER )
+    if ( m_strict_minor_build <= W2K3_VER )
         list_head_name = "nt!IopProfileNotifyList";
     else
         list_head_name = "nt!PnpProfileNotifyList";
 
     WalkAnyListWithOffsetToRoutine(list_head_name, 0ULL, 0, true, offset_to_routine, type, "", output_list);
 
-    if ( m_minor_build >= WXP_VER && m_minor_build <= W2K3_VER )
+    if ( m_strict_minor_build <= W2K3_VER )
         list_head_name = "nt!IopDeviceClassNotifyList";
     else
         list_head_name = "nt!PnpDeviceClassNotifyList";

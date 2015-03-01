@@ -64,7 +64,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         err << __FUNCTION__ << ": failed to find nt!HalPrivateDispatchTable" << endlerr;
     }
 
-    if ( m_minor_build >= W81RTM_VER && !GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
+    if ( m_strict_minor_build >= W81RTM_VER && !GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
         err << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
     }
 
@@ -121,7 +121,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             display->PrintFooter();
         }
 
-        if ( m_minor_build >= W81RTM_VER ) {
+        if ( m_strict_minor_build >= W81RTM_VER ) {
             out << "nt!HalIommuDispatchTable: " << std::hex << std::showbase << offset_hiommu << endlout;
             display->PrintHeader();
 

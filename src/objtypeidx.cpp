@@ -35,7 +35,7 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
 
     out << "Displaying nt!ObTypeIndexTable" << endlout;
 
-    if ( m_minor_build < W7RTM_VER ) {
+    if ( m_strict_minor_build <= VISTA_SP2_VER ) {
         out << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
