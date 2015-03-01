@@ -81,7 +81,7 @@ WDbgArkUdis::WDbgArkUdis() : m_inited(false),
 
 WDbgArkUdis::WDbgArkUdis(unsigned __int8 mode, unsigned __int64 address, size_t size) : m_inited(false),
                                                                                         m_buffer(nullptr),
-                                                                                        m_size(size),
+                                                                                        m_size(0),
                                                                                         out(),
                                                                                         warn(),
                                                                                         err() {
@@ -95,32 +95,40 @@ WDbgArkUdis::WDbgArkUdis(unsigned __int8 mode, unsigned __int64 address, size_t 
     }
 
     Init(init_mode);
+    m_inited = SetInputBuffer(address, size);
+}
 
+bool WDbgArkUdis::SetInputBuffer(const unsigned char* buffer, const size_t size) {
+    if ( !IsInited() ) {
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return false;
+    }
+
+    m_buffer.reset(new unsigned char[size]);
+    std::memcpy(m_buffer.get(), reinterpret_cast<const void*>(buffer), size);
+    ud_set_input_buffer(&m_udis_obj, m_buffer.get(), size);
+    SetInstructionPointer(0ULL);
+    m_size = size;
+
+    return true;
+}
+
+bool WDbgArkUdis::SetInputBuffer(const unsigned __int64 address, const size_t size) {
     try {
-        ExtRemoteData data(address, static_cast<unsigned __int32>(m_size));
-        m_buffer.reset(new unsigned char[m_size]);
-        data.ReadBuffer(reinterpret_cast<void*>(m_buffer.get()), static_cast<unsigned __int32>(m_size), true);
-        ud_set_input_buffer(&m_udis_obj, m_buffer.get(), m_size);
+        ExtRemoteData data(address, static_cast<unsigned __int32>(size));
+        m_buffer.reset(new unsigned char[size]);
+        data.ReadBuffer(reinterpret_cast<void*>(m_buffer.get()), static_cast<unsigned __int32>(size), true);
+        ud_set_input_buffer(&m_udis_obj, m_buffer.get(), size);
         SetInstructionPointer(address);
+        m_size = size;
 
-        m_inited = true;
+        return true;
     }
     catch (const ExtRemoteException &Ex) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-}
 
-void WDbgArkUdis::SetInputBuffer(const unsigned char* buffer, const size_t size) {
-    if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return;
-    }
-
-    m_size = size;
-    m_buffer.reset(new unsigned char[m_size]);
-    std::memcpy(m_buffer.get(), reinterpret_cast<const void*>(buffer), m_size);
-    ud_set_input_buffer(&m_udis_obj, m_buffer.get(), m_size);
-    SetInstructionPointer(0ULL);
+    return false;
 }
 
 }   // namespace wa

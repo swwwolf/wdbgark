@@ -640,138 +640,132 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
     }
 }
 
-// TODO(swwwolf): get human disassembler, not this piece of shit with strings
-bool WDbgArk::FindDbgkLkmdCallbackArray() {
-    unsigned __int64 offset = 0;
-    bool             result = false;
+/*
+x86:
 
+PAGE:006A4FCB                               ; __stdcall DbgkLkmdUnregisterCallback(x)
+PAGE:006A4FCB                                               public _DbgkLkmdUnregisterCallback@4
+PAGE:006A4FCB                               _DbgkLkmdUnregisterCallback@4 proc near
+PAGE:006A4FCB
+PAGE:006A4FCB                               arg_0           = dword ptr  8
+PAGE:006A4FCB
+PAGE:006A4FCB 8B FF                                         mov     edi, edi
+PAGE:006A4FCD 55                                            push    ebp
+PAGE:006A4FCE 8B EC                                         mov     ebp, esp
+PAGE:006A4FD0 53                                            push    ebx
+PAGE:006A4FD1 56                                            push    esi
+PAGE:006A4FD2 57                                            push    edi
+PAGE:006A4FD3 33 DB                                         xor     ebx, ebx
+PAGE:006A4FD5 BF 20 5B 52 00                                mov     edi, offset dword_525B20 <-- !!!
+PAGE:006A4FDA
+PAGE:006A4FDA                               loc_6A4FDA:                             
+PAGE:006A4FDA 57                                            push    edi
+PAGE:006A4FDB E8 52 1C FC FF                                call    _ExReferenceCallBackBlock@4
+
+x64:
+
+PAGE:0000000140482150                               DbgkLkmdUnregisterCallback proc near
+PAGE:0000000140482150
+PAGE:0000000140482150                               arg_0           = qword ptr  8
+PAGE:0000000140482150                               arg_8           = qword ptr  10h
+PAGE:0000000140482150                               arg_10          = qword ptr  18h
+PAGE:0000000140482150
+PAGE:0000000140482150 48 89 5C 24 08                                mov     [rsp+arg_0], rbx
+PAGE:0000000140482155 48 89 6C 24 10                                mov     [rsp+arg_8], rbp
+PAGE:000000014048215A 48 89 74 24 18                                mov     [rsp+arg_10], rsi
+PAGE:000000014048215F 57                                            push    rdi
+PAGE:0000000140482160 41 54                                         push    r12
+PAGE:0000000140482162 41 55                                         push    r13
+PAGE:0000000140482164 48 83 EC 20                                   sub     rsp, 20h
+PAGE:0000000140482168 33 FF                                         xor     edi, edi
+PAGE:000000014048216A 48 8B E9                                      mov     rbp, rcx
+PAGE:000000014048216D 4C 8D 2D 9C 1E D7 FF                          lea     r13, unk_1401F4010 <-- !!!
+PAGE:0000000140482174 44 8D 67 01                                   lea     r12d, [rdi+1]
+PAGE:0000000140482178
+PAGE:0000000140482178                               loc_140482178:                          
+PAGE:0000000140482178 8B F7                                         mov     esi, edi
+PAGE:000000014048217A 48 C1 E6 04                                   shl     rsi, 4
+PAGE:000000014048217E 49 03 F5                                      add     rsi, r13
+PAGE:0000000140482181 48 8B CE                                      mov     rcx, rsi
+PAGE:0000000140482184 E8 37 B1 F0 FF                                call    ExReferenceCallBackBlock
+
+*/
+
+bool WDbgArk::FindDbgkLkmdCallbackArray() {
     if ( m_minor_build < W7RTM_VER ) {
         out << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return false;
     }
 
-    if ( GetSymbolOffset("nt!DbgkLkmdCallbackArray", true, &offset) )
+    unsigned __int64 symbol_offset = 0;
+
+    if ( GetSymbolOffset("nt!DbgkLkmdCallbackArray", true, &symbol_offset) )
         return true;
+
+    unsigned __int64 offset = 0;
 
     if ( !GetSymbolOffset("nt!DbgkLkmdUnregisterCallback", true, &offset) ) {
         err << __FUNCTION__ << ": can't find nt!DbgkLkmdUnregisterCallback" << endlerr;
         return false;
     }
 
-    try {
-        ExtRemoteData test_offset(offset, m_PtrSize);
+    std::unique_ptr<WDbgArkUdis> udis(new WDbgArkUdis(0, offset, MAX_INSN_LENGTH * 20));
+
+    if ( !udis->IsInited() ) {
+        err << __FUNCTION__ << ": can't init Udis class" << endlerr;
+        return false;
     }
-    catch( const ExtRemoteException &Ex ) {
+
+    unsigned __int64 ret_address = 0;
+
+    while ( udis->Disassemble() ) {
+        if ( !m_is_cur_machine64 && udis->InstructionLength() == 5 && udis->InstructionMnemonic() == UD_Imov
+             &&
+             udis->InstructionOperand(0)->type == UD_OP_REG ) {
+                 ret_address = static_cast<unsigned __int64>(udis->InstructionOperand(1)->lval.udword);
+                 break;
+        } else if ( m_is_cur_machine64 && udis->InstructionLength() == 7 && udis->InstructionMnemonic() == UD_Ilea
+                    &&
+                    udis->InstructionOperand(0)->type == UD_OP_REG ) {
+            ret_address = udis->InstructionOffset() + udis->InstructionOperand(1)->lval.sdword +\
+                udis->InstructionLength();
+            break;
+        }
+    }
+
+    if ( !ret_address ) {
+        err << __FUNCTION__ << ": disassembly failed" << endlerr;
+        return false;
+    }
+
+    std::stringstream string_value;
+    string_value << std::hex << std::showbase << ret_address;
+
+    try {
+        ret_address = g_Ext->EvalExprU64(string_value.str().c_str());
+    }
+    catch (const ExtStatusException &Ex) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return false;
     }
 
-    unsigned __int64 cur_pointer = offset;
-    unsigned __int64 end         = cur_pointer + MAX_INSN_LENGTH * 20;
+    // do not reload nt module after that
+    DEBUG_MODULE_AND_ID id;
 
-    std::unique_ptr<char[]> disasm_buf(new char[0x100]);
+    HRESULT hresult = m_Symbols3->AddSyntheticSymbol(ret_address,
+                                                     m_PtrSize,
+                                                     "DbgkLkmdCallbackArray",
+                                                     DEBUG_ADDSYNTHSYM_DEFAULT,
+                                                     &id);
 
-    unsigned __int32 asm_options;
-
-    if ( !SUCCEEDED(m_Control3->GetAssemblyOptions(reinterpret_cast<PULONG>(&asm_options))) )
-        warn << __FUNCTION__ << ": failed to get assembly options" << endlwarn;
-
-    if ( !SUCCEEDED(m_Control3->SetAssemblyOptions(DEBUG_ASMOPT_NO_CODE_BYTES)) )
-        warn << __FUNCTION__ << ": failed to set assembly options" << endlwarn;
-
-    while ( cur_pointer < end ) {
-        HRESULT disasm_result = m_Control->Disassemble(cur_pointer,
-                                                       0,
-                                                       disasm_buf.get(),
-                                                       0x100,
-                                                       nullptr,
-                                                       &cur_pointer);
-
-        if ( !SUCCEEDED(disasm_result) ) {
-            err << __FUNCTION__ " : disassembly failed at " << std::hex << std::showbase << cur_pointer << endlerr;
-            break;
-        }
-
-        std::string disasm   = disasm_buf.get();
-        size_t      posstart = 0;
-        size_t      posend   = 0;
-        size_t      pos      = 0;
-
-        // TODO(swwwolf): regexp?
-        if ( m_is_cur_machine64 ) {
-            pos = disasm.find("lea", 0);
-
-            if ( pos == std::string::npos )
-                continue;
-
-            pos = disasm.find(",[", pos);
-
-            if ( pos == std::string::npos )
-                continue;
-
-            posstart = disasm.find("(", pos);
-
-            if ( posstart == std::string::npos )
-                continue;
-
-            posend = disasm.find(")", posstart);
-
-            if ( posstart == std::string::npos )
-                continue;
-        } else {
-            pos = disasm.find("mov", 0);
-
-            if ( pos == std::string::npos )
-                continue;
-
-            pos = disasm.find(",offset", pos);
-
-            if ( pos == std::string::npos )
-                continue;
-
-            posstart = disasm.find("(", pos);
-
-            if ( posstart == std::string::npos )
-                continue;
-
-            posend = disasm.find(")", posstart);
-
-            if ( posstart == std::string::npos )
-                continue;
-        }
-
-        std::string string_value(disasm.substr(posstart + 1, posend - posstart - 1));
-
-        try {
-            unsigned __int64 ret_address = g_Ext->EvalExprU64(string_value.c_str());
-
-            // do not reload nt module after that
-            DEBUG_MODULE_AND_ID id;
-
-            HRESULT hresult = m_Symbols3->AddSyntheticSymbol(ret_address,
-                                                             m_PtrSize,
-                                                             "DbgkLkmdCallbackArray",
-                                                             DEBUG_ADDSYNTHSYM_DEFAULT,
-                                                             &id);
-
-            if ( !SUCCEEDED(hresult) ) {
-                err << __FUNCTION__ << ": failed to add synthetic symbol DbgkLkmdCallbackArray" << endlerr;
-            } else {
-                m_synthetic_symbols.push_back(id);
-                result = true;
-            }
-        }
-        catch ( const ExtStatusException &Ex ) {
-            err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        }
-
-        break;
+    if ( !SUCCEEDED(hresult) ) {
+        err << __FUNCTION__ << ": failed to add synthetic symbol DbgkLkmdCallbackArray" << endlerr;
+    } else {
+        m_synthetic_symbols.push_back(id);
+        return true;
     }
 
-    if ( !SUCCEEDED(m_Control3->SetAssemblyOptions(asm_options)) )
-        warn << __FUNCTION__ << ": failed to set assembly options" << endlwarn;
-
-    return result;
+    return false;
 }
 
 unsigned __int32 WDbgArk::GetWindowsStrictMinorBuild(void) const {

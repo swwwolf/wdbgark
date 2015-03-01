@@ -41,7 +41,7 @@ namespace wa {
 class WDbgArkUdis {
  public:
     WDbgArkUdis();
-    WDbgArkUdis(unsigned __int8 mode, unsigned __int64 address, size_t size);
+    WDbgArkUdis(unsigned __int8 mode, unsigned __int64 address, size_t size);   // mode = 32/64, 0 - default
     ~WDbgArkUdis() {}
 
     bool IsInited(void) const { return m_inited; }
@@ -57,7 +57,8 @@ class WDbgArkUdis {
     const ud_operand_t* InstructionOperand(const unsigned __int32 n) { return ud_insn_opr(&m_udis_obj, n); }
     enum ud_mnemonic_code InstructionMnemonic(void) { return ud_insn_mnemonic(&m_udis_obj); }
 
-    void SetInputBuffer(const unsigned char* buffer, const size_t size);
+    bool SetInputBuffer(const unsigned char* buffer, const size_t size);
+    bool SetInputBuffer(const unsigned __int64 address, const size_t size);
 
  private:
     void Init(const unsigned __int8 mode);
