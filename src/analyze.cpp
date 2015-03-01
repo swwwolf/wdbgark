@@ -67,10 +67,10 @@ WDbgArkAnalyze::WDbgArkAnalyze(const AnalyzeTypeInit type) : m_inited(false),
         tp->AddColumn("Symbol", 68);
         tp->AddColumn("Module", 16);
         tp->AddColumn("Suspicious", 10);
-    } else if ( type == AnalyzeTypeCallback ) {    // width = 170
+    } else if ( type == AnalyzeTypeCallback ) {    // width = 180
         tp->AddColumn("Address", 18);
-        tp->AddColumn("Type", 20);
-        tp->AddColumn("Symbol", 81);
+        tp->AddColumn("Type", 25);
+        tp->AddColumn("Symbol", 86);
         tp->AddColumn("Module", 16);
         tp->AddColumn("Suspicious", 10);
         tp->AddColumn("Info", 25);

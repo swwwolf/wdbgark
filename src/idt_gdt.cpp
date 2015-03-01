@@ -413,6 +413,18 @@ Algorithm:
 
 namespace wa {
 
+typedef struct IdtSupportTag {
+    unsigned __int64 start_unexpected_range;
+    unsigned __int64 end_unexpected_range;
+    unsigned __int32 vector_to_interrupt_object;
+    unsigned __int32 dispatch_code_offset;
+    unsigned __int32 message_service_offset;
+    unsigned __int32 service_routine_offset;
+    unsigned __int32 interrupt_list_entry;
+} IdtSupport;
+
+bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* support_info);
+
 EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     RequireKernelMode();
 
@@ -421,70 +433,10 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
     out << "Dumping IDTs" << endlout;
 
-    unsigned __int64 start_unexpected_range     = 0;
-    unsigned __int64 end_unexpected_range       = 0;
-    unsigned __int32 vector_to_interrupt_object = 0;
-    unsigned __int32 dispatch_code_offset       = 0;
-    unsigned __int32 message_service_offset     = 0;
-    unsigned __int32 service_routine_offset     = 0;
-    unsigned __int32 interrupt_list_entry       = 0;
+    IdtSupport support_info = {0};
 
-    if ( m_is_cur_machine64 ) {
-        if ( !GetSymbolOffset("nt!KxUnexpectedInterrupt0", true, &start_unexpected_range) ) {
-            err << __FUNCTION__ << ": failed to get nt!KxUnexpectedInterrupt0" << endlerr;
-            return;
-        }
-
-        end_unexpected_range = start_unexpected_range +\
-            ((MAXIMUM_IDTVECTOR + 1) * GetTypeSize("nt!_UNEXPECTED_INTERRUPT"));
-    } else {
-        if ( !GetSymbolOffset("nt!KiStartUnexpectedRange", true, &start_unexpected_range) ) {
-            err << __FUNCTION__ << ": failed to get nt!KiStartUnexpectedRange" << endlerr;
-            return;
-        }
-
-        if ( !GetSymbolOffset("nt!KiEndUnexpectedRange", true, &end_unexpected_range) ) {
-            err << __FUNCTION__ << ": failed to get nt!KiEndUnexpectedRange" << endlerr;
-            return;
-        }
-    }
-
-    if ( !m_is_cur_machine64
-         &&
-         m_strict_minor_build >= W81RTM_VER
-         &&
-         GetFieldOffset("nt!_KPCR",
-                        "PrcbData.VectorToInterruptObject",
-                        reinterpret_cast<PULONG>(&vector_to_interrupt_object)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
-    }
-
-    if ( !(!m_is_cur_machine64 && m_strict_minor_build >= W81RTM_VER)
-         &&
-         GetFieldOffset("nt!_KINTERRUPT",
-                        "DispatchCode",
-                        reinterpret_cast<PULONG>(&dispatch_code_offset)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
-    }
-
-    if ( m_strict_minor_build >= VISTA_RTM_VER
-         &&
-         GetFieldOffset("nt!_KINTERRUPT",
-                        "MessageServiceRoutine",
-                        reinterpret_cast<PULONG>(&message_service_offset)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with MessageServiceRoutine" << endlwarn;
-    }
-
-    if ( GetFieldOffset("nt!_KINTERRUPT",
-                        "ServiceRoutine",
-                        reinterpret_cast<PULONG>(&service_routine_offset)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with ServiceRoutine" << endlwarn;
-    }
-
-    if ( GetFieldOffset("nt!_KINTERRUPT",
-                        "InterruptListEntry",
-                        reinterpret_cast<PULONG>(&interrupt_list_entry)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with InterruptListEntry" << endlwarn;
+    if ( !InitIdtSupport(m_strict_minor_build, &support_info) ) {
+        err << __FUNCTION__ << ": InitIdtSupport failed" << endlerr;
     }
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeIDT));
@@ -581,10 +533,12 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 ExtRemoteTyped interrupt;
                 bool           valid_interrupt = false;
 
-                if ( isr_address < start_unexpected_range || isr_address > end_unexpected_range ) {
-                    if ( m_is_cur_machine64 || !vector_to_interrupt_object ) {
+                if ( isr_address < support_info.start_unexpected_range
+                     ||
+                     isr_address > support_info.end_unexpected_range ) {
+                    if ( m_is_cur_machine64 || !support_info.vector_to_interrupt_object ) {
                         ExtRemoteTyped loc_interrupt("nt!_KINTERRUPT",
-                                                     isr_address - dispatch_code_offset,
+                                                     isr_address - support_info.dispatch_code_offset,
                                                      false,
                                                      NULL,
                                                      NULL);
@@ -594,7 +548,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                             valid_interrupt = true;
                         }
                     }
-                } else if ( !m_is_cur_machine64 && vector_to_interrupt_object ) {    // x86 Windows 8.1+
+                } else if ( !m_is_cur_machine64 && support_info.vector_to_interrupt_object ) {    // x86 Windows 8.1+
                     if ( j >= PRIMARY_VECTOR_BASE ) {
                         ExtRemoteTyped vector_to_interrupt = pcr.Field("PrcbData.VectorToInterruptObject");
 
@@ -619,7 +573,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                     unsigned __int64 message_address = 0;
 
-                    if ( message_service_offset )
+                    if ( support_info.message_service_offset )
                         message_address = interrupt.Field("MessageServiceRoutine").GetPtr();
 
                     if ( !message_address )
@@ -630,12 +584,12 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                     walkresType    output_list;
                     ExtRemoteTyped list_entry = interrupt.Field("InterruptListEntry");
 
-                    if ( message_service_offset )                     {
+                    if ( support_info.message_service_offset )                     {
                         WalkAnyListWithOffsetToRoutine("",
                                                        list_entry.m_Offset,
-                                                       interrupt_list_entry,
+                                                       support_info.interrupt_list_entry,
                                                        true,
-                                                       message_service_offset,
+                                                       support_info.message_service_offset,
                                                        processor_index.str(),
                                                        "",
                                                        &output_list);
@@ -643,9 +597,9 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                     WalkAnyListWithOffsetToRoutine("",
                                                    list_entry.m_Offset,
-                                                   interrupt_list_entry,
+                                                   support_info.interrupt_list_entry,
                                                    true,
-                                                   service_routine_offset,
+                                                   support_info.service_routine_offset,
                                                    processor_index.str(),
                                                    "",
                                                    &output_list);
@@ -686,6 +640,71 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     }
 
     display->PrintFooter();
+}
+
+bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* support_info) {
+    std::stringstream warn;
+    std::stringstream err;
+
+    if ( g_Ext->IsCurMachine64() ) {
+        if ( !g_Ext->GetSymbolOffset("nt!KxUnexpectedInterrupt0", true, &support_info->start_unexpected_range) ) {
+            err << __FUNCTION__ << ": failed to get nt!KxUnexpectedInterrupt0" << endlerr;
+            return false;
+        }
+
+        support_info->end_unexpected_range = support_info->start_unexpected_range +\
+            ((MAXIMUM_IDTVECTOR + 1) * GetTypeSize("nt!_UNEXPECTED_INTERRUPT"));
+    } else {
+        if ( !g_Ext->GetSymbolOffset("nt!KiStartUnexpectedRange", true, &support_info->start_unexpected_range) ) {
+            err << __FUNCTION__ << ": failed to get nt!KiStartUnexpectedRange" << endlerr;
+            return false;
+        }
+
+        if ( !g_Ext->GetSymbolOffset("nt!KiEndUnexpectedRange", true, &support_info->end_unexpected_range) ) {
+            err << __FUNCTION__ << ": failed to get nt!KiEndUnexpectedRange" << endlerr;
+            return false;
+        }
+    }
+
+    if ( g_Ext->IsCurMachine32()
+         &&
+         strict_minor_build >= W81RTM_VER
+         &&
+         GetFieldOffset("nt!_KPCR",
+                        "PrcbData.VectorToInterruptObject",
+                        reinterpret_cast<PULONG>(&support_info->vector_to_interrupt_object)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
+    }
+
+    if ( (g_Ext->IsCurMachine64() || strict_minor_build <= W8RTM_VER)
+         &&
+         GetFieldOffset("nt!_KINTERRUPT",
+                        "DispatchCode",
+                        reinterpret_cast<PULONG>(&support_info->dispatch_code_offset)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
+    }
+
+    if ( strict_minor_build >= VISTA_RTM_VER
+         &&
+         GetFieldOffset("nt!_KINTERRUPT",
+                        "MessageServiceRoutine",
+                        reinterpret_cast<PULONG>(&support_info->message_service_offset)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with MessageServiceRoutine" << endlwarn;
+    }
+
+    if ( GetFieldOffset("nt!_KINTERRUPT",
+                        "ServiceRoutine",
+                        reinterpret_cast<PULONG>(&support_info->service_routine_offset)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with ServiceRoutine" << endlwarn;
+    }
+
+    if ( GetFieldOffset("nt!_KINTERRUPT",
+                        "InterruptListEntry",
+                        reinterpret_cast<PULONG>(&support_info->interrupt_list_entry)) != 0 ) {
+        warn << __FUNCTION__ << ": GetFieldOffset failed with InterruptListEntry" << endlwarn;
+    }
+
+    return true;
 }
 
 /*
