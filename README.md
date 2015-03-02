@@ -49,7 +49,7 @@ to reload them, ignore checksum problems, prepare them before analysis and you'l
 * Microsoft Windows Vista (x86/x64)
 * Microsoft Windows 7 (x86/x64)
 * Microsoft Windows 8.x (x86/x64)
-* Microsoft Windows 10.x (theoretically)
+* Microsoft Windows 10 (x86/x64)
 
 Multiple targets debugging is not supported!
 
