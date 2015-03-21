@@ -70,6 +70,9 @@ bool WDbgArkAnalyzeWhiteList::AddSymbolWhiteList(const std::string &symbol_name,
 }
 
 bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const unsigned __int64 address) const {
+    if ( m_ranges.empty() )
+        return true;
+
     Ranges::iterator it = std::find_if(m_ranges.begin(),
                                        m_ranges.end(),
                                        [address](const Range &range) {
