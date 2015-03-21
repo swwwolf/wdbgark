@@ -52,8 +52,8 @@ EXT_COMMAND(wa_objtype,
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
-    if ( !display->SetOwnerModule("nt") )
-        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+    if ( !display->AddRangeWhiteList("nt") )
+        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 

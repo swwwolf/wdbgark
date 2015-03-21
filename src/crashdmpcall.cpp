@@ -63,8 +63,8 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
-    if ( !display->SetOwnerModule( "crashdmp" ) )
-        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+    if ( !display->AddRangeWhiteList("crashdmp") )
+        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 

@@ -92,8 +92,8 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
-    if ( !display->SetOwnerModule("win32k") )
-        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+    if ( !display->AddRangeWhiteList("win32k") )
+        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 

@@ -37,15 +37,45 @@
 #include <sstream>
 #include <memory>
 #include <utility>
+#include <set>
 
 #include "objhelper.hpp"
 
 namespace wa {
+//////////////////////////////////////////////////////////////////////////
+// white list range
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeWhiteList {
+ public:
+    typedef std::pair<unsigned __int64, unsigned __int64> Range;    // start, end
+    typedef std::set<Range> Ranges;
 
+    WDbgArkAnalyzeWhiteList() : m_ranges(), err() {}
+
+    void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int64 end) {
+        m_ranges.insert(std::make_pair(start, end));
+    }
+
+    void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int32 size) {
+        m_ranges.insert(std::make_pair(start, start + size));
+    }
+
+    bool AddRangeWhiteList(const std::string &module_name);
+    bool AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size);
+    bool IsAddressInWhiteList(const unsigned __int64 address) const;
+
+ private:
+    Ranges m_ranges;
+
+    //////////////////////////////////////////////////////////////////////////
+    // output streams
+    //////////////////////////////////////////////////////////////////////////
+    std::stringstream err;
+};
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print routines
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkAnalyze {
+class WDbgArkAnalyze : public WDbgArkAnalyzeWhiteList {
  public:
      enum AnalyzeTypeInit {
          AnalyzeTypeDefault,
@@ -76,30 +106,6 @@ class WDbgArkAnalyze {
     void PrintObjectDmlCmd(const ExtRemoteTyped &object);
 
     //////////////////////////////////////////////////////////////////////////
-    // owner module routines
-    //////////////////////////////////////////////////////////////////////////
-    bool SetOwnerModule(void) {
-        m_owner_module_start = 0ULL;
-        m_owner_module_end = 0ULL;
-        m_owner_module_inited = false;
-
-        return false;
-    }
-
-    bool SetOwnerModule(const unsigned __int64 mod_start, const unsigned __int64 mod_end) {
-        if ( !mod_start || !mod_end )
-            return false;
-
-        m_owner_module_start = mod_start;
-        m_owner_module_end = mod_end;
-        m_owner_module_inited = true;
-
-        return true;
-    }
-
-    bool SetOwnerModule(const std::string &module_name);
-
-    //////////////////////////////////////////////////////////////////////////
     // analyze routines
     //////////////////////////////////////////////////////////////////////////
     void AnalyzeAddressAsRoutine(const unsigned __int64 address,
@@ -114,10 +120,7 @@ class WDbgArkAnalyze {
                          const std::string &additional_info);
 
  private:
-    bool             m_inited;
-    bool             m_owner_module_inited;
-    unsigned __int64 m_owner_module_start;
-    unsigned __int64 m_owner_module_end;
+    bool m_inited;
 
     std::unique_ptr<bprinter::TablePrinter> tp;
     std::unique_ptr<WDbgArkObjHelper>       m_obj_helper;

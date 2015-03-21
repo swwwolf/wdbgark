@@ -32,10 +32,57 @@
 
 namespace wa {
 
+//////////////////////////////////////////////////////////////////////////
+bool WDbgArkAnalyzeWhiteList::AddRangeWhiteList(const std::string &module_name) {
+    try {
+        unsigned __int64 module_start = 0;
+        HRESULT result = g_Ext->m_Symbols3->GetModuleByModuleName2(module_name.c_str(),
+                                                                   0UL,
+                                                                   0UL,
+                                                                   nullptr,
+                                                                   &module_start);
+
+        if ( SUCCEEDED(result) ) {
+            IMAGEHLP_MODULEW64 info;
+            g_Ext->GetModuleImagehlpInfo(module_start, &info);
+            AddRangeWhiteList(module_start, static_cast<unsigned __int32>(info.ImageSize));
+            return true;
+        } else {
+            err << __FUNCTION__ << ": Failed to find module by name " << module_name << endlerr;
+        }
+    }
+    catch ( const ExtStatusException &Ex ) {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    return false;
+}
+
+bool WDbgArkAnalyzeWhiteList::AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size) {
+    unsigned __int64 symbol_offset = 0;
+    g_Ext->GetSymbolOffset(symbol_name.c_str(), true, &symbol_offset);
+
+    if ( !symbol_offset )
+        return false;
+
+    AddRangeWhiteList(symbol_offset, symbol_offset + size);
+    return true;
+}
+
+bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const unsigned __int64 address) const {
+    Ranges::iterator it = std::find_if(m_ranges.begin(),
+                                       m_ranges.end(),
+                                       [address](const Range &range) {
+                                           return ((address >= range.first) && (address <= range.second)); });
+    if ( it != m_ranges.end() )
+        return true;
+
+    return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 WDbgArkAnalyze::WDbgArkAnalyze() : m_inited(false),
-                                   m_owner_module_inited(false),
-                                   m_owner_module_start(0ULL),
-                                   m_owner_module_end(0ULL),
                                    tp(nullptr),
                                    m_obj_helper(nullptr),
                                    out(),
@@ -48,9 +95,6 @@ WDbgArkAnalyze::WDbgArkAnalyze() : m_inited(false),
 }
 
 WDbgArkAnalyze::WDbgArkAnalyze(const AnalyzeTypeInit type) : m_inited(false),
-                                                             m_owner_module_inited(false),
-                                                             m_owner_module_start(0ULL),
-                                                             m_owner_module_end(0ULL),
                                                              tp(nullptr),
                                                              m_obj_helper(nullptr),
                                                              out(),
@@ -726,46 +770,11 @@ std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned _
     return std::make_pair(result, output_name);
 }
 
-bool WDbgArkAnalyze::SetOwnerModule(const std::string &module_name) {
-    if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return false;
-    }
-
-    try {
-        HRESULT result = g_Ext->m_Symbols3->GetModuleByModuleName2(module_name.c_str(),
-                                                                   0UL,
-                                                                   0UL,
-                                                                   nullptr,
-                                                                   &m_owner_module_start);
-
-        if ( SUCCEEDED(result) ) {
-            IMAGEHLP_MODULEW64 info;
-            g_Ext->GetModuleImagehlpInfo(m_owner_module_start, &info);
-
-            m_owner_module_end = m_owner_module_start + info.ImageSize;
-            m_owner_module_inited = true;
-
-            return true;
-        } else {
-            err << __FUNCTION__ << ": Failed to find module by name " << module_name << endlerr;
-        }
-    }
-    catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-    }
-
-    return false;
-}
-
 bool WDbgArkAnalyze::IsSuspiciousAddress(const unsigned __int64 address) const {
-    if ( !m_owner_module_inited )
-        return false;
-
     if ( !address )
         return false;
 
-    if ( address >= m_owner_module_start && address <= m_owner_module_end )
+    if ( IsAddressInWhiteList(address) )
         return false;
 
     return true;

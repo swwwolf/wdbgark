@@ -51,8 +51,8 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
 
     std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
 
-    if ( !display->SetOwnerModule("nt") )
-        warn << __FUNCTION__ ": SetOwnerModule failed" << endlwarn;
+    if ( !display->AddRangeWhiteList("nt") )
+        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 
