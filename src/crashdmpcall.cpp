@@ -61,7 +61,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
     out << "nt!CrashdmpCallTable: " << std::hex << std::showbase << offset << endlout;
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
+    auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("crashdmp") )
         warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -76,7 +76,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
         WalkAnyTable(offset, skip_offset, table_count, "", &output_list);
 
         for ( const OutputWalkInfo &walk_info : output_list ) {
-            display->AnalyzeAddressAsRoutine(walk_info.address, walk_info.type, walk_info.info);
+            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
         }
     }

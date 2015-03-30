@@ -73,7 +73,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
         throw;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
+    auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -93,13 +93,13 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
                 else
                     service_offset &= ~MAX_FAST_REFS_X64;
 
-                display->AnalyzeAddressAsRoutine(offset + service_offset, routine_name, "");
+                display->Analyze(offset + service_offset, routine_name, "");
                 display->PrintFooter();
             } else {
                 std::string routine_name = get_service_table_routine_name(m_strict_minor_build, KiServiceTable_x86, i);
 
                 ExtRemoteData service_address(offset + i * m_PtrSize, m_PtrSize);
-                display->AnalyzeAddressAsRoutine(service_address.GetPtr(), routine_name, "");
+                display->Analyze(service_address.GetPtr(), routine_name, "");
                 display->PrintFooter();
             }
         }
@@ -172,9 +172,9 @@ EXT_COMMAND(wa_w32psdt,
         throw;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
+    auto display = WDbgArkAnalyzeBase::Create();
 
-    if ( !display->AddRangeWhiteList( "win32k" ) )
+    if ( !display->AddRangeWhiteList("win32k") )
         warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
@@ -194,7 +194,7 @@ EXT_COMMAND(wa_w32psdt,
                 else
                     service_offset &= ~MAX_FAST_REFS_X64;
 
-                display->AnalyzeAddressAsRoutine(offset + service_offset, routine_name, "");
+                display->Analyze(offset + service_offset, routine_name, "");
                 display->PrintFooter();
             } else {
                 std::string routine_name = get_service_table_routine_name(m_strict_minor_build,
@@ -202,7 +202,7 @@ EXT_COMMAND(wa_w32psdt,
                                                                           i);
 
                 ExtRemoteData service_address(offset + i * m_PtrSize, m_PtrSize);
-                display->AnalyzeAddressAsRoutine(service_address.GetPtr(), routine_name, "");
+                display->Analyze(service_address.GetPtr(), routine_name, "");
                 display->PrintFooter();
             }
         }

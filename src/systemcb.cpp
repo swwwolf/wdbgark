@@ -248,7 +248,7 @@ EXT_COMMAND(wa_systemcb,
 
     out << "Displaying OS registered callback(s) with type " << type << endlout;
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeCallback));
+    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeCallback);
 
     try {
         if ( type == "*" ) {
@@ -284,7 +284,7 @@ EXT_COMMAND(wa_systemcb,
                 display->PrintHeader();
             }
 
-            display->AnalyzeAddressAsRoutine(walk_info.address, walk_info.type, walk_info.info);
+            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
 
             prev_list_head = walk_info.list_head_name;

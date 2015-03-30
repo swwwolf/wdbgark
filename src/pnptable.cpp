@@ -139,7 +139,7 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
 
     out << "nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
+    auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -156,7 +156,7 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
             unsigned __int64 init_offset = offset + i * size + sizeof(unsigned __int32) + sizeof(unsigned __int32);
 
             ExtRemoteData pnp_table_entry_routine(init_offset, m_PtrSize);
-            display->AnalyzeAddressAsRoutine(pnp_table_entry_routine.GetPtr(), "", "");
+            display->Analyze(pnp_table_entry_routine.GetPtr(), "", "");
             display->PrintFooter();
         }
     }

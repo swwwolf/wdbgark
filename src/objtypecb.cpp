@@ -57,7 +57,7 @@ EXT_COMMAND(wa_objtypecb,
         return;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
+    auto display = WDbgArkAnalyzeBase::Create();
     display->PrintHeader();
 
     try {
@@ -92,7 +92,7 @@ EXT_COMMAND(wa_objtypecb,
 HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class,
                                                          const ExtRemoteTyped &object,
                                                          void* context) {
-    WDbgArkAnalyze* display = reinterpret_cast<WDbgArkAnalyze*>(context);
+    WDbgArkAnalyzeBase* display = reinterpret_cast<WDbgArkAnalyzeBase*>(context);
 
     try {
         ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
@@ -118,13 +118,8 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
         for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
             ExtRemoteTyped callback_entry = list_head.GetTypedNode();
 
-            display->AnalyzeAddressAsRoutine(callback_entry.Field("PreOperation").GetPtr(),
-                                             "OB_PRE_OPERATION_CALLBACK",
-                                             "");
-
-            display->AnalyzeAddressAsRoutine(callback_entry.Field("PostOperation").GetPtr(),
-                                             "OB_POST_OPERATION_CALLBACK",
-                                             "");
+            display->Analyze(callback_entry.Field("PreOperation").GetPtr(), "OB_PRE_OPERATION_CALLBACK", "");
+            display->Analyze(callback_entry.Field("PostOperation").GetPtr(), "OB_POST_OPERATION_CALLBACK", "");
 
             display->PrintFooter();
         }

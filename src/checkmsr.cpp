@@ -33,7 +33,7 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
+    auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -47,7 +47,7 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
 
             ReadMsr(IA32_SYSENTER_EIP, &msr_address);
             expression << std::showbase << std::hex << msr_address;
-            display->AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression.str().c_str()), "IA32_SYSENTER_EIP", "");
+            display->Analyze(g_Ext->EvalExprU64(expression.str().c_str()), "IA32_SYSENTER_EIP", "");
         } else {
             unsigned __int64  msr_address_lstar = 0;
             unsigned __int64  msr_address_cstar = 0;
@@ -56,15 +56,11 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
 
             ReadMsr(MSR_LSTAR, &msr_address_lstar);
             expression_lstar << std::showbase << std::hex << msr_address_lstar;
-            display->AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression_lstar.str().c_str()),
-                                                                "MSR_LSTAR",
-                                                                "");
+            display->Analyze(g_Ext->EvalExprU64(expression_lstar.str().c_str()), "MSR_LSTAR", "");
 
             ReadMsr(MSR_CSTAR, &msr_address_cstar);
             expression_cstar << std::showbase << std::hex << msr_address_cstar;
-            display->AnalyzeAddressAsRoutine(g_Ext->EvalExprU64(expression_cstar.str().c_str()),
-                                                                "MSR_CSTAR",
-                                                                "");
+            display->Analyze(g_Ext->EvalExprU64(expression_cstar.str().c_str()), "MSR_CSTAR", "");
         }
     }
     catch ( const ExtStatusException &Ex ) {

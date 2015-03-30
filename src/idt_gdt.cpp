@@ -439,7 +439,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
         err << __FUNCTION__ << ": InitIdtSupport failed" << endlerr;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeIDT));
+    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeIDT);
     display->PrintHeader();
 
     try {
@@ -522,7 +522,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 info << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
                 // display idt entry
-                display->AnalyzeAddressAsRoutine(isr_address, processor_index.str(), info.str());
+                display->Analyze(isr_address, processor_index.str(), info.str());
 
                 if ( !(isr_address >> 32) ) {
                     display->PrintFooter();
@@ -579,7 +579,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                     if ( !message_address )
                         message_address = interrupt.Field("ServiceRoutine").GetPtr();
 
-                    display->AnalyzeAddressAsRoutine(message_address, processor_index.str(), info_intr.str());
+                    display->Analyze(message_address, processor_index.str(), info_intr.str());
 
                     walkresType    output_list;
                     ExtRemoteTyped list_entry = interrupt.Field("InterruptListEntry");
@@ -617,9 +617,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                         info_intr_list << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
                         info_intr_list << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
 
-                        display->AnalyzeAddressAsRoutine(walk_info.address,
-                                                         walk_info.type,
-                                                         info_intr_list.str());
+                        display->Analyze(walk_info.address, walk_info.type, info_intr_list.str());
                     }
 
                     output_list.clear();
@@ -782,7 +780,7 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
                         const unsigned __int32 gdt_entry_size,
                         const unsigned __int32 gdt_selector,
                         const unsigned int cpu_idx,
-                        std::unique_ptr<WDbgArkAnalyze> const &display);
+                        std::unique_ptr<WDbgArkAnalyzeBase> const &display);
 
 EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
     RequireKernelMode();
@@ -792,7 +790,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
 
     out << "Dumping GDTs" << endlout;
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeGDT));
+    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeGDT);
     display->PrintHeader();
 
     try {
@@ -872,7 +870,7 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
                         const unsigned __int32 gdt_entry_size,
                         const unsigned __int32 gdt_selector,
                         const unsigned int cpu_idx,
-                        std::unique_ptr<WDbgArkAnalyze> const &display) {
+                        std::unique_ptr<WDbgArkAnalyzeBase> const &display) {
     std::stringstream processor_index;
     std::stringstream info;
 
@@ -897,7 +895,7 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
     processor_index << std::setw(2) << cpu_idx << " / " << std::setw(2);
     processor_index << std::hex << gdt_selector / gdt_entry_size;
 
-    display->AnalyzeGDTEntry(gdt_entry, processor_index.str(), gdt_selector, info.str());
+    display->Analyze(gdt_entry, processor_index.str(), gdt_selector, info.str());
     display->PrintFooter();
 }
 

@@ -39,9 +39,17 @@
 #include <utility>
 #include <set>
 
-#include "objhelper.hpp"
+#include "manipulators.hpp"
 
 namespace wa {
+//////////////////////////////////////////////////////////////////////////
+// helpers
+//////////////////////////////////////////////////////////////////////////
+std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address);
+HRESULT GetModuleNames(const unsigned __int64 address,
+                       std::string* image_name,
+                       std::string* module_name,
+                       std::string* loaded_image_name);
 //////////////////////////////////////////////////////////////////////////
 // white list range
 //////////////////////////////////////////////////////////////////////////
@@ -66,77 +74,123 @@ class WDbgArkAnalyzeWhiteList {
 
  private:
     Ranges m_ranges;
-
-    //////////////////////////////////////////////////////////////////////////
-    // output streams
-    //////////////////////////////////////////////////////////////////////////
     std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print routines
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkAnalyze : public WDbgArkAnalyzeWhiteList {
+class WDbgArkAnalyzeBase: public WDbgArkAnalyzeWhiteList {
  public:
-     enum AnalyzeTypeInit {
-         AnalyzeTypeDefault,
-         AnalyzeTypeCallback,
-         AnalyzeTypeIDT,
-         AnalyzeTypeGDT
-     };
+    enum class AnalyzeType {
+        AnalyzeTypeDefault,
+        AnalyzeTypeCallback,
+        AnalyzeTypeObjType,
+        AnalyzeTypeIDT,
+        AnalyzeTypeGDT
+    };
 
-    WDbgArkAnalyze();
-    explicit WDbgArkAnalyze(const AnalyzeTypeInit type);
-    ~WDbgArkAnalyze() {}
-
-    bool IsInited(void) const { return m_inited; }
+    WDbgArkAnalyzeBase() : bprinter_out(),
+                           tp(new bprinter::TablePrinter(&bprinter_out)) {}
+    virtual ~WDbgArkAnalyzeBase() {}
+    static std::unique_ptr<WDbgArkAnalyzeBase> Create(const AnalyzeType type = AnalyzeType::AnalyzeTypeDefault);
 
     //////////////////////////////////////////////////////////////////////////
     // brinter routines
     //////////////////////////////////////////////////////////////////////////
-    void PrintHeader(void) { if ( IsInited() ) tp->PrintHeader(); }
-    void PrintFooter(void) { if ( IsInited() ) tp->PrintFooter(); }
-    void AddColumn(const std::string &header_name, const int column_width) {
-        if ( IsInited() )
-            tp->AddColumn(header_name, column_width);
+    virtual void PrintHeader(void) { tp->PrintHeader(); }
+    virtual void PrintFooter(void) { tp->PrintFooter(); }
+    virtual void AddColumn(const std::string &header_name, const int column_width) {
+        tp->AddColumn(header_name, column_width);
     }
-    void StreamToTable(const std::string &what) { if ( IsInited() ) *tp << what; }
-    void FlushOut(void) { if ( IsInited() ) tp->flush_out(); }
-    void FlushWarn(void) { if ( IsInited() ) tp->flush_warn(); }
-    void FlushErr(void) { if ( IsInited() ) tp->flush_err(); }
-    void PrintObjectDmlCmd(const ExtRemoteTyped &object);
+    virtual void StringToTable(const std::string &what) { *tp << what; }
+    virtual void FlushOut(void) { tp->flush_out(); }
+    virtual void FlushWarn(void) { tp->flush_warn(); }
+    virtual void FlushErr(void) { tp->flush_err(); }
+    virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
 
     //////////////////////////////////////////////////////////////////////////
     // analyze routines
     //////////////////////////////////////////////////////////////////////////
-    void AnalyzeAddressAsRoutine(const unsigned __int64 address,
-                                 const std::string &type,
-                                 const std::string &additional_info);
+    virtual bool IsSuspiciousAddress(const unsigned __int64 address) const;
+    virtual void Analyze(const unsigned __int64 address, const std::string &type, const std::string &additional_info);
+    virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object) {
+        std::stringstream err;
+        err << __FUNCTION__ << ": unimplemented" << endlerr;
+    }
+    virtual void Analyze(const ExtRemoteTyped &gdt_entry,
+                         const std::string &cpu_idx,
+                         const unsigned __int32 selector,
+                         const std::string &additional_info) {
+        std::stringstream err;
+        err << __FUNCTION__ << ": unimplemented" << endlerr;
+    }
 
-    void AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object);
+ private:
+    std::stringstream bprinter_out;
+    std::unique_ptr<bprinter::TablePrinter> tp;
+};
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
+ public:
+    WDbgArkAnalyzeDefault();
+    virtual ~WDbgArkAnalyzeDefault() {}
 
-    void AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
+ private:
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
+};
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeCallback: public WDbgArkAnalyzeBase {
+ public:
+    WDbgArkAnalyzeCallback();
+    virtual ~WDbgArkAnalyzeCallback() {}
+
+ private:
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
+};
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
+ public:
+    WDbgArkAnalyzeObjType();
+    virtual ~WDbgArkAnalyzeObjType() {}
+
+    virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object);
+
+ private:
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
+};
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeIDT: public WDbgArkAnalyzeBase {
+ public:
+    WDbgArkAnalyzeIDT();
+    virtual ~WDbgArkAnalyzeIDT() {}
+
+ private:
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
+};
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
+ public:
+    WDbgArkAnalyzeGDT();
+    virtual ~WDbgArkAnalyzeGDT() {}
+
+    virtual void Analyze(const ExtRemoteTyped &gdt_entry,
                          const std::string &cpu_idx,
                          const unsigned __int32 selector,
                          const std::string &additional_info);
 
  private:
-    bool m_inited;
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
 
-    std::unique_ptr<bprinter::TablePrinter> tp;
-    std::unique_ptr<WDbgArkObjHelper>       m_obj_helper;
-    //////////////////////////////////////////////////////////////////////////
-    // helpers
-    //////////////////////////////////////////////////////////////////////////
-    HRESULT GetModuleNames(const unsigned __int64 address,
-                           std::string* image_name,
-                           std::string* module_name,
-                           std::string* loaded_image_name);
-
-    std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address);
-    bool IsSuspiciousAddress(const unsigned __int64 address) const;
-    //////////////////////////////////////////////////////////////////////////
-    // GDT
-    //////////////////////////////////////////////////////////////////////////
     std::string GetGDTSelectorName(const unsigned __int32 selector) const;
     unsigned __int32 GetGDTType(const ExtRemoteTyped &gdt_entry);
     std::string GetGDTTypeName(const ExtRemoteTyped &gdt_entry);
@@ -146,16 +200,8 @@ class WDbgArkAnalyze : public WDbgArkAnalyzeWhiteList {
     bool IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry);
     bool IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry);
     unsigned __int32 GetGDTDpl(const ExtRemoteTyped &gdt_entry);
-
-    //////////////////////////////////////////////////////////////////////////
-    // output streams
-    //////////////////////////////////////////////////////////////////////////
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
-    std::stringstream bprinter_out;
 };
-
+//////////////////////////////////////////////////////////////////////////
 }   // namespace wa
 
 #endif  // ANALYZE_HPP_

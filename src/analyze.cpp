@@ -31,7 +31,130 @@
 #include "strings.hpp"
 
 namespace wa {
+//////////////////////////////////////////////////////////////////////////
+HRESULT GetModuleNames(const unsigned __int64 address,
+                       std::string* image_name,
+                       std::string* module_name,
+                       std::string* loaded_image_name) {
+    unsigned __int32  img_name_size           = 0;
+    unsigned __int32  module_name_size        = 0;
+    unsigned __int32  loaded_module_name_size = 0;
+    unsigned __int64  module_base             = 0;
+    unsigned __int32  module_index            = 0;
+    ExtCaptureOutputA ignore_output;
 
+    if ( !address )
+        return E_INVALIDARG;
+
+    std::unique_ptr<char[]> buf1;
+    std::unique_ptr<char[]> buf2;
+    std::unique_ptr<char[]> buf3;
+
+    ignore_output.Start();
+
+    HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address,
+                                                         0,
+                                                         reinterpret_cast<PULONG>(&module_index),
+                                                         &module_base);
+
+    if ( SUCCEEDED(result) ) {
+        result = g_Ext->m_Symbols->GetModuleNames(module_index,
+                                                  module_base,
+                                                  NULL,
+                                                  0,
+                                                  reinterpret_cast<PULONG>(&img_name_size),
+                                                  NULL,
+                                                  0,
+                                                  reinterpret_cast<PULONG>(&module_name_size),
+                                                  NULL,
+                                                  0,
+                                                  reinterpret_cast<PULONG>(&loaded_module_name_size));
+
+        if ( SUCCEEDED(result) ) {
+            size_t img_name_buf_length = static_cast<size_t>(img_name_size + 1);
+            buf1.reset(new char[img_name_buf_length]);
+            std::memset(buf1.get(), 0, img_name_buf_length);
+
+            size_t module_name_buf_length = static_cast<size_t>(module_name_size + 1);
+            buf2.reset(new char[module_name_buf_length]);
+            std::memset(buf2.get(), 0, module_name_buf_length);
+
+            size_t loaded_module_name_buf_length = static_cast<size_t>(loaded_module_name_size + 1);
+            buf3.reset(new char[loaded_module_name_buf_length]);
+            std::memset(buf3.get(), 0, loaded_module_name_buf_length);
+
+            result = g_Ext->m_Symbols->GetModuleNames(module_index,
+                                                      module_base,
+                                                      buf1.get(),
+                                                      static_cast<ULONG>(img_name_buf_length),
+                                                      NULL,
+                                                      buf2.get(),
+                                                      static_cast<ULONG>(module_name_buf_length),
+                                                      NULL,
+                                                      buf3.get(),
+                                                      static_cast<ULONG>(loaded_module_name_buf_length),
+                                                      NULL);
+
+            if ( SUCCEEDED(result) ) {
+                image_name->assign(buf1.get());
+                std::transform(image_name->begin(), image_name->end(), image_name->begin(), tolower);
+
+                module_name->assign(buf2.get());
+                std::transform(module_name->begin(), module_name->end(), module_name->begin(), tolower);
+
+                loaded_image_name->assign(buf3.get());
+                std::transform(loaded_image_name->begin(),
+                               loaded_image_name->end(),
+                               loaded_image_name->begin(),
+                               tolower);
+            }
+        }
+    }
+
+    ignore_output.Stop();
+    return result;
+}
+
+std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address) {
+    std::string       output_name      = "*UNKNOWN*";
+    unsigned __int32  name_buffer_size = 0;
+    unsigned __int64  displacement     = 0;
+    ExtCaptureOutputA ignore_output;
+
+    if ( !address )
+        return std::make_pair(E_INVALIDARG, output_name);
+
+    ignore_output.Start();
+    HRESULT result = g_Ext->m_Symbols->GetNameByOffset(address,
+                                                       NULL,
+                                                       0,
+                                                       reinterpret_cast<PULONG>(&name_buffer_size),
+                                                       &displacement);
+    ignore_output.Stop();
+
+    if ( SUCCEEDED(result) && name_buffer_size ) {
+        size_t buf_size = static_cast<size_t>(name_buffer_size + 1);
+        std::unique_ptr<char[]> tmp_name(new char[buf_size]);
+        std::memset(tmp_name.get(), 0, buf_size);
+
+        ignore_output.Start();
+        result = g_Ext->m_Symbols->GetNameByOffset(address, tmp_name.get(), name_buffer_size, NULL, NULL);
+        ignore_output.Stop();
+
+        if ( SUCCEEDED(result) ) {
+            std::stringstream stream_name;
+
+            stream_name << tmp_name.get();
+
+            if ( displacement )
+                stream_name << "+" << std::hex << std::showbase << displacement;
+
+            output_name = stream_name.str();
+        }
+    }
+
+    return std::make_pair(result, output_name);
+}
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkAnalyzeWhiteList::AddRangeWhiteList(const std::string &module_name) {
     try {
@@ -60,9 +183,8 @@ bool WDbgArkAnalyzeWhiteList::AddRangeWhiteList(const std::string &module_name) 
 
 bool WDbgArkAnalyzeWhiteList::AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size) {
     unsigned __int64 symbol_offset = 0;
-    g_Ext->GetSymbolOffset(symbol_name.c_str(), true, &symbol_offset);
 
-    if ( !symbol_offset )
+    if ( !g_Ext->GetSymbolOffset(symbol_name.c_str(), true, &symbol_offset) )
         return false;
 
     AddRangeWhiteList(symbol_offset, symbol_offset + size);
@@ -82,81 +204,74 @@ bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const unsigned __int64 addres
 
     return false;
 }
-
 //////////////////////////////////////////////////////////////////////////
+std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const AnalyzeType type) {
+    switch ( type ) {
+        case AnalyzeType::AnalyzeTypeCallback:
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeCallback);
+        break;
 
-WDbgArkAnalyze::WDbgArkAnalyze() : m_inited(false),
-                                   tp(nullptr),
-                                   m_obj_helper(nullptr),
-                                   out(),
-                                   warn(),
-                                   err(),
-                                   bprinter_out() {
-    tp.reset(new bprinter::TablePrinter(&bprinter_out));
-    m_obj_helper.reset(new WDbgArkObjHelper);
-    m_inited = true;
-}
+        case AnalyzeType::AnalyzeTypeObjType:
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeObjType);
+        break;
 
-WDbgArkAnalyze::WDbgArkAnalyze(const AnalyzeTypeInit type) : m_inited(false),
-                                                             tp(nullptr),
-                                                             m_obj_helper(nullptr),
-                                                             out(),
-                                                             warn(),
-                                                             err(),
-                                                             bprinter_out() {
-    tp.reset(new bprinter::TablePrinter(&bprinter_out));
-    m_obj_helper.reset(new WDbgArkObjHelper);
-    m_inited = true;
+        case AnalyzeType::AnalyzeTypeIDT:
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeIDT);
+        break;
 
-    if ( type == AnalyzeTypeDefault ) {    // width = 180
-        tp->AddColumn("Address", 18);
-        tp->AddColumn("Name", 68);
-        tp->AddColumn("Symbol", 68);
-        tp->AddColumn("Module", 16);
-        tp->AddColumn("Suspicious", 10);
-    } else if ( type == AnalyzeTypeCallback ) {    // width = 180
-        tp->AddColumn("Address", 18);
-        tp->AddColumn("Type", 25);
-        tp->AddColumn("Symbol", 86);
-        tp->AddColumn("Module", 16);
-        tp->AddColumn("Suspicious", 10);
-        tp->AddColumn("Info", 25);
-    } else if ( type == AnalyzeTypeIDT ) {    // width = 160
-        tp->AddColumn("Address", 18);
-        tp->AddColumn("CPU / Idx", 11);
-        tp->AddColumn("Symbol", 80);
-        tp->AddColumn("Module", 16);
-        tp->AddColumn("Suspicious", 10);
-        tp->AddColumn("Info", 25);
-    } else if ( type == AnalyzeTypeGDT ) {    // width = 133
-        tp->AddColumn("Base", 18);
-        tp->AddColumn("Limit", 10);
-        tp->AddColumn("CPU / Idx", 10);
-        tp->AddColumn("Offset", 10);
-        tp->AddColumn("Selector name", 20);
-        tp->AddColumn("Type", 20);
-        tp->AddColumn("DPL", 4);
-        tp->AddColumn("Gr", 4);     // Granularity
-        tp->AddColumn("Pr", 4);     // Present
-        tp->AddColumn("Info", 25);
-    } else {
-        m_inited = false;
+        case AnalyzeType::AnalyzeTypeGDT:
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeGDT);
+        break;
+
+        case AnalyzeType::AnalyzeTypeDefault:
+        default:
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDefault);
+        break;
     }
 }
 
-void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
-                                             const std::string &type,
-                                             const std::string &additional_info) {
+void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
+    std::string object_name = "*UNKNOWN*";
+    std::unique_ptr<WDbgArkObjHelper> obj_helper(new WDbgArkObjHelper);
+
+    std::pair<HRESULT, std::string> result = obj_helper->GetObjectName(object);
+
+    if ( !SUCCEEDED(result.first) ) {
+        std::stringstream warn;
+        warn << __FUNCTION__ ": GetObjectName failed" << endlwarn;
+    } else {
+        object_name = result.second;
+    }
+
+    std::stringstream object_command;
+    std::stringstream object_name_ext;
+
+    object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
+    object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
+    object_name_ext << object_name;
+
+    *tp << object_command.str() << object_name_ext.str();
+    tp->flush_out();
+}
+
+bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const unsigned __int64 address) const {
+    if ( !address )
+        return false;
+
+    if ( IsAddressInWhiteList(address) )
+        return false;
+
+    return true;
+}
+
+void WDbgArkAnalyzeBase::Analyze(const unsigned __int64 address,
+                                 const std::string &type,
+                                 const std::string &additional_info) {
     std::string       symbol_name;
     std::string       module_name;
     std::string       image_name;
     std::string       loaded_image_name;
     std::stringstream module_command_buf;
-
-    if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return;
-    }
 
     bool suspicious = IsSuspiciousAddress(address);
 
@@ -203,134 +318,86 @@ void WDbgArkAnalyze::AnalyzeAddressAsRoutine(const unsigned __int64 address,
         tp->flush_out();
 }
 
-void WDbgArkAnalyze::AnalyzeObjectTypeInfo(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object) {
-    ExtRemoteTyped   obj_type_info = ex_type_info;
+//////////////////////////////////////////////////////////////////////////
+WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault() : out(), warn(), err() {
+    // width = 180
+    AddColumn("Address", 18);
+    AddColumn("Name", 68);
+    AddColumn("Symbol", 68);
+    AddColumn("Module", 16);
+    AddColumn("Suspicious", 10);
+}
+//////////////////////////////////////////////////////////////////////////
+WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback() : out(), warn(), err() {
+    // width = 180
+    AddColumn("Address", 18);
+    AddColumn("Type", 25);
+    AddColumn("Symbol", 86);
+    AddColumn("Module", 16);
+    AddColumn("Suspicious", 10);
+    AddColumn("Info", 25);
+}
+//////////////////////////////////////////////////////////////////////////
+WDbgArkAnalyzeObjType::WDbgArkAnalyzeObjType() : out(), warn(), err() {
+    // width = 180
+    AddColumn("Address", 18);
+    AddColumn("Name", 68);
+    AddColumn("Symbol", 68);
+    AddColumn("Module", 16);
+    AddColumn("Suspicious", 10);
+}
 
-    if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return;
-    }
+void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object) {
+    ExtRemoteTyped obj_type_info = ex_type_info;
 
     try {
         PrintObjectDmlCmd(object);
-        tp->PrintFooter();
+        PrintFooter();
 
-        AnalyzeAddressAsRoutine(obj_type_info.Field("DumpProcedure").GetPtr(), "DumpProcedure", "");
-        AnalyzeAddressAsRoutine(obj_type_info.Field("OpenProcedure").GetPtr(), "OpenProcedure", "");
-        AnalyzeAddressAsRoutine(obj_type_info.Field("CloseProcedure").GetPtr(), "CloseProcedure", "");
-        AnalyzeAddressAsRoutine(obj_type_info.Field("DeleteProcedure").GetPtr(), "DeleteProcedure", "");
-        AnalyzeAddressAsRoutine(obj_type_info.Field("ParseProcedure").GetPtr(), "ParseProcedure", "");
-        AnalyzeAddressAsRoutine(obj_type_info.Field("SecurityProcedure").GetPtr(), "SecurityProcedure", "");
-        AnalyzeAddressAsRoutine(obj_type_info.Field("SecurityProcedure").GetPtr(), "QueryNameProcedure", "");
-        tp->PrintFooter();
+        std::unique_ptr<WDbgArkAnalyzeBase> display = Create(AnalyzeType::AnalyzeTypeDefault);
+
+        display->Analyze(obj_type_info.Field("DumpProcedure").GetPtr(), "DumpProcedure", "");
+        display->Analyze(obj_type_info.Field("OpenProcedure").GetPtr(), "OpenProcedure", "");
+        display->Analyze(obj_type_info.Field("CloseProcedure").GetPtr(), "CloseProcedure", "");
+        display->Analyze(obj_type_info.Field("DeleteProcedure").GetPtr(), "DeleteProcedure", "");
+        display->Analyze(obj_type_info.Field("ParseProcedure").GetPtr(), "ParseProcedure", "");
+        display->Analyze(obj_type_info.Field("SecurityProcedure").GetPtr(), "SecurityProcedure", "");
+        display->Analyze(obj_type_info.Field("SecurityProcedure").GetPtr(), "QueryNameProcedure", "");
+        PrintFooter();
     }
-    catch( const ExtRemoteException &Ex ) {
+    catch(const ExtRemoteException &Ex) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
-
 //////////////////////////////////////////////////////////////////////////
-// GDT stuff
+WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT() : out(), warn(), err() {
+    // width = 160
+    AddColumn("Address", 18);
+    AddColumn("CPU / Idx", 11);
+    AddColumn("Symbol", 80);
+    AddColumn("Module", 16);
+    AddColumn("Suspicious", 10);
+    AddColumn("Info", 25);
+}
 //////////////////////////////////////////////////////////////////////////
-bool WDbgArkAnalyze::IsGDTPageGranularity(const ExtRemoteTyped &gdt_entry) {
-    ExtRemoteTyped loc_gdt_entry = gdt_entry;
-    std::string field_name;
-
-    if ( g_Ext->IsCurMachine64() )
-        field_name = "Bits.Granularity";
-    else
-        field_name = "HighWord.Bits.Granularity";
-
-    return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
+WDbgArkAnalyzeGDT::WDbgArkAnalyzeGDT() : out(), warn(), err() {
+    // width = 133
+    AddColumn("Base", 18);
+    AddColumn("Limit", 10);
+    AddColumn("CPU / Idx", 10);
+    AddColumn("Offset", 10);
+    AddColumn("Selector name", 20);
+    AddColumn("Type", 20);
+    AddColumn("DPL", 4);
+    AddColumn("Gr", 4);     // Granularity
+    AddColumn("Pr", 4);     // Present
+    AddColumn("Info", 25);
 }
 
-bool WDbgArkAnalyze::IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry) {
-    ExtRemoteTyped loc_gdt_entry = gdt_entry;
-    std::string field_name;
-
-    if ( g_Ext->IsCurMachine64() )
-        field_name = "Bits.Present";
-    else
-        field_name = "HighWord.Bits.Pres";
-
-    return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
-}
-
-unsigned __int32 WDbgArkAnalyze::GetGDTDpl(const ExtRemoteTyped &gdt_entry) {
-    ExtRemoteTyped loc_gdt_entry = gdt_entry;
-    std::string field_name;
-
-    if ( g_Ext->IsCurMachine64() )
-        field_name = "Bits.Dpl";
-    else
-        field_name = "HighWord.Bits.Dpl";
-
-    return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
-}
-
-unsigned __int32 WDbgArkAnalyze::GetGDTType(const ExtRemoteTyped &gdt_entry) {
-    ExtRemoteTyped loc_gdt_entry = gdt_entry;
-    std::string field_name;
-
-    if ( g_Ext->IsCurMachine64() )
-        field_name = "Bits.Type";
-    else
-        field_name = "HighWord.Bits.Type";
-
-    return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
-}
-
-bool WDbgArkAnalyze::IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry) {
-    return (GetGDTType(gdt_entry) & SEG_DESCTYPE(1)) == 0;
-}
-
-unsigned __int32 WDbgArkAnalyze::GetGDTLimit(const ExtRemoteTyped &gdt_entry) {
-    ExtRemoteTyped   loc_gdt_entry = gdt_entry;
-    unsigned __int32 limit         = 0;
-
-    if ( g_Ext->IsCurMachine64() ) {
-        limit = (loc_gdt_entry.Field("Bits.LimitHigh").GetUlong() << 16) |\
-                (loc_gdt_entry.Field("LimitLow").GetUshort());
-    } else {
-        limit = (loc_gdt_entry.Field("HighWord.Bits.LimitHi").GetUlong() << 16) |\
-                (loc_gdt_entry.Field("LimitLow").GetUshort());
-    }
-
-    if ( IsGDTPageGranularity(gdt_entry) )  // 4k segment
-        limit = ((limit + 1) << PAGE_SHIFT) - 1;
-
-    return limit;
-}
-
-unsigned __int64 WDbgArkAnalyze::GetGDTBase(const ExtRemoteTyped &gdt_entry) {
-    ExtRemoteTyped   loc_gdt_entry = gdt_entry;
-    unsigned __int64 base          = 0;
-
-    if ( g_Ext->IsCurMachine64() ) {
-        base =\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseMiddle").GetUchar()) << 16) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseHigh").GetUchar()) << 24) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseUpper").GetUlong()) << 32);
-    } else {
-        base =\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseMid").GetUchar()) << 16) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseHi").GetUchar()) << 24);
-    }
-
-    return base;
-}
-
-void WDbgArkAnalyze::AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
-                                     const std::string &cpu_idx,
-                                     const unsigned __int32 selector,
-                                     const std::string &additional_info) {
-    if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return;
-    }
-
+void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
+                                const std::string &cpu_idx,
+                                const unsigned __int32 selector,
+                                const std::string &additional_info) {
     try {
         unsigned __int64 address = GetGDTBase(gdt_entry);
         unsigned __int32 limit = GetGDTLimit(gdt_entry);
@@ -392,18 +459,117 @@ void WDbgArkAnalyze::AnalyzeGDTEntry(const ExtRemoteTyped &gdt_entry,
         else
             present << "NP";
 
-        *tp << addr_ext.str() << limit_ext.str() << cpu_idx << selector_ext.str();
-        *tp << GetGDTSelectorName(selector) << GetGDTTypeName(gdt_entry);
-        *tp << dpl.str() << granularity.str() << present.str() << additional_info;
+        StringToTable(addr_ext.str());
+        StringToTable(limit_ext.str());
+        StringToTable(cpu_idx);
+        StringToTable(selector_ext.str());
 
-        tp->flush_out();
+        StringToTable(GetGDTSelectorName(selector));
+        StringToTable(GetGDTTypeName(gdt_entry));
+
+        StringToTable(dpl.str());
+        StringToTable(granularity.str());
+        StringToTable(present.str());
+        StringToTable(additional_info);
+
+        FlushOut();
     }
     catch( const ExtRemoteException &Ex ) {
         err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
-std::string WDbgArkAnalyze::GetGDTSelectorName(const unsigned __int32 selector) const {
+bool WDbgArkAnalyzeGDT::IsGDTPageGranularity(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    std::string field_name;
+
+    if ( g_Ext->IsCurMachine64() )
+        field_name = "Bits.Granularity";
+    else
+        field_name = "HighWord.Bits.Granularity";
+
+    return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
+}
+
+bool WDbgArkAnalyzeGDT::IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    std::string field_name;
+
+    if ( g_Ext->IsCurMachine64() )
+        field_name = "Bits.Present";
+    else
+        field_name = "HighWord.Bits.Pres";
+
+    return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
+}
+
+unsigned __int32 WDbgArkAnalyzeGDT::GetGDTDpl(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    std::string field_name;
+
+    if ( g_Ext->IsCurMachine64() )
+        field_name = "Bits.Dpl";
+    else
+        field_name = "HighWord.Bits.Dpl";
+
+    return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
+}
+
+unsigned __int32 WDbgArkAnalyzeGDT::GetGDTType(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    std::string field_name;
+
+    if ( g_Ext->IsCurMachine64() )
+        field_name = "Bits.Type";
+    else
+        field_name = "HighWord.Bits.Type";
+
+    return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
+}
+
+bool WDbgArkAnalyzeGDT::IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry) {
+    return (GetGDTType(gdt_entry) & SEG_DESCTYPE(1)) == 0;
+}
+
+unsigned __int32 WDbgArkAnalyzeGDT::GetGDTLimit(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped   loc_gdt_entry = gdt_entry;
+    unsigned __int32 limit         = 0;
+
+    if ( g_Ext->IsCurMachine64() ) {
+        limit = (loc_gdt_entry.Field("Bits.LimitHigh").GetUlong() << 16) |\
+                (loc_gdt_entry.Field("LimitLow").GetUshort());
+    } else {
+        limit = (loc_gdt_entry.Field("HighWord.Bits.LimitHi").GetUlong() << 16) |\
+                (loc_gdt_entry.Field("LimitLow").GetUshort());
+    }
+
+    if ( IsGDTPageGranularity(gdt_entry) )  // 4k segment
+        limit = ((limit + 1) << PAGE_SHIFT) - 1;
+
+    return limit;
+}
+
+unsigned __int64 WDbgArkAnalyzeGDT::GetGDTBase(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped   loc_gdt_entry = gdt_entry;
+    unsigned __int64 base          = 0;
+
+    if ( g_Ext->IsCurMachine64() ) {
+        base =\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseMiddle").GetUchar()) << 16) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseHigh").GetUchar()) << 24) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseUpper").GetUlong()) << 32);
+    } else {
+        base =\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseMid").GetUchar()) << 16) |\
+            (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseHi").GetUchar()) << 24);
+    }
+
+    return base;
+}
+
+std::string WDbgArkAnalyzeGDT::GetGDTSelectorName(const unsigned __int32 selector) const {
     if ( g_Ext->IsCurMachine64() ) {
         switch ( selector ) {
             case KGDT64_NULL:
@@ -484,7 +650,7 @@ std::string WDbgArkAnalyze::GetGDTSelectorName(const unsigned __int32 selector) 
 }
 
 // TODO(swwwolf): map
-std::string WDbgArkAnalyze::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
+std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
     unsigned __int32 type = GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1);
 
     if ( IsGDTTypeSystem(gdt_entry) ) {
@@ -648,165 +814,4 @@ std::string WDbgArkAnalyze::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
     }
 }
 //////////////////////////////////////////////////////////////////////////
-
-HRESULT WDbgArkAnalyze::GetModuleNames(const unsigned __int64 address,
-                                       std::string* image_name,
-                                       std::string* module_name,
-                                       std::string* loaded_image_name) {
-    unsigned __int32  img_name_size           = 0;
-    unsigned __int32  module_name_size        = 0;
-    unsigned __int32  loaded_module_name_size = 0;
-    unsigned __int64  module_base             = 0;
-    unsigned __int32  module_index            = 0;
-    ExtCaptureOutputA ignore_output;
-
-    if ( !address )
-        return E_INVALIDARG;
-
-    std::unique_ptr<char[]> buf1;
-    std::unique_ptr<char[]> buf2;
-    std::unique_ptr<char[]> buf3;
-
-    ignore_output.Start();
-
-    HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address,
-                                                         0,
-                                                         reinterpret_cast<PULONG>(&module_index),
-                                                         &module_base);
-
-    if ( SUCCEEDED(result) ) {
-        result = g_Ext->m_Symbols->GetModuleNames(module_index,
-                                                  module_base,
-                                                  NULL,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&img_name_size),
-                                                  NULL,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&module_name_size),
-                                                  NULL,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&loaded_module_name_size));
-
-        if ( SUCCEEDED(result) ) {
-            size_t img_name_buf_length = static_cast<size_t>(img_name_size + 1);
-            buf1.reset(new char[img_name_buf_length]);
-            std::memset(buf1.get(), 0, img_name_buf_length);
-
-            size_t module_name_buf_length = static_cast<size_t>(module_name_size + 1);
-            buf2.reset(new char[module_name_buf_length]);
-            std::memset(buf2.get(), 0, module_name_buf_length);
-
-            size_t loaded_module_name_buf_length = static_cast<size_t>(loaded_module_name_size + 1);
-            buf3.reset(new char[loaded_module_name_buf_length]);
-            std::memset(buf3.get(), 0, loaded_module_name_buf_length);
-
-            result = g_Ext->m_Symbols->GetModuleNames(module_index,
-                                                      module_base,
-                                                      buf1.get(),
-                                                      static_cast<ULONG>(img_name_buf_length),
-                                                      NULL,
-                                                      buf2.get(),
-                                                      static_cast<ULONG>(module_name_buf_length),
-                                                      NULL,
-                                                      buf3.get(),
-                                                      static_cast<ULONG>(loaded_module_name_buf_length),
-                                                      NULL);
-
-            if ( SUCCEEDED(result) ) {
-                image_name->assign(buf1.get());
-                std::transform(image_name->begin(), image_name->end(), image_name->begin(), tolower);
-
-                module_name->assign(buf2.get());
-                std::transform(module_name->begin(), module_name->end(), module_name->begin(), tolower);
-
-                loaded_image_name->assign(buf3.get());
-                std::transform(loaded_image_name->begin(),
-                               loaded_image_name->end(),
-                               loaded_image_name->begin(),
-                               tolower);
-            }
-        }
-    }
-
-    ignore_output.Stop();
-    return result;
-}
-
-std::pair<HRESULT, std::string> WDbgArkAnalyze::GetNameByOffset(const unsigned __int64 address) {
-    std::string       output_name      = "*UNKNOWN*";
-    unsigned __int32  name_buffer_size = 0;
-    unsigned __int64  displacement     = 0;
-    ExtCaptureOutputA ignore_output;
-
-    if ( !address )
-        return std::make_pair(E_INVALIDARG, output_name);
-
-    ignore_output.Start();
-    HRESULT result = g_Ext->m_Symbols->GetNameByOffset(address,
-                                                       NULL,
-                                                       0,
-                                                       reinterpret_cast<PULONG>(&name_buffer_size),
-                                                       &displacement);
-    ignore_output.Stop();
-
-    if ( SUCCEEDED(result) && name_buffer_size ) {
-        size_t buf_size = static_cast<size_t>(name_buffer_size + 1);
-        std::unique_ptr<char[]> tmp_name(new char[buf_size]);
-        std::memset(tmp_name.get(), 0, buf_size);
-
-        ignore_output.Start();
-        result = g_Ext->m_Symbols->GetNameByOffset(address, tmp_name.get(), name_buffer_size, NULL, NULL);
-        ignore_output.Stop();
-
-        if ( SUCCEEDED(result) ) {
-            std::stringstream stream_name;
-
-            stream_name << tmp_name.get();
-
-            if ( displacement )
-                stream_name << "+" << std::hex << std::showbase << displacement;
-
-            output_name = stream_name.str();
-        }
-    }
-
-    return std::make_pair(result, output_name);
-}
-
-bool WDbgArkAnalyze::IsSuspiciousAddress(const unsigned __int64 address) const {
-    if ( !address )
-        return false;
-
-    if ( IsAddressInWhiteList(address) )
-        return false;
-
-    return true;
-}
-
-void WDbgArkAnalyze::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
-    std::string object_name = "*UNKNOWN*";
-
-    if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return;
-    }
-
-    std::pair<HRESULT, std::string> result = m_obj_helper->GetObjectName(object);
-
-    if ( !SUCCEEDED(result.first) )
-        warn << __FUNCTION__ ": GetObjectName failed" << endlwarn;
-    else
-        object_name = result.second;
-
-    std::stringstream object_command;
-    std::stringstream object_name_ext;
-
-    object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
-    object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
-    object_name_ext << object_name;
-
-    *tp << object_command.str() << object_name_ext.str();
-    tp->flush_out();
-}
-
 }   // namespace wa

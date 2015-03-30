@@ -68,7 +68,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         err << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
+    auto display = WDbgArkAnalyzeBase::Create();
 
     try {
         walkresType output_list_hdt;
@@ -109,7 +109,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         display->PrintHeader();
 
         for ( const OutputWalkInfo &walk_info : output_list_hdt ) {
-            display->AnalyzeAddressAsRoutine(walk_info.address, walk_info.type, walk_info.info);
+            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
         }
 
@@ -117,7 +117,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         display->PrintHeader();
 
         for ( const OutputWalkInfo &walk_info : output_list_hpdt ) {
-            display->AnalyzeAddressAsRoutine(walk_info.address, walk_info.type, walk_info.info);
+            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
         }
 
@@ -126,7 +126,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             display->PrintHeader();
 
             for ( const OutputWalkInfo &walk_info : output_list_hiommu ) {
-                display->AnalyzeAddressAsRoutine(walk_info.address, walk_info.type, walk_info.info);
+                display->Analyze(walk_info.address, walk_info.type, walk_info.info);
                 display->PrintFooter();
             }
         }

@@ -50,7 +50,7 @@ EXT_COMMAND(wa_objtype,
         return;
     }
 
-    std::unique_ptr<WDbgArkAnalyze> display(new WDbgArkAnalyze(WDbgArkAnalyze::AnalyzeTypeDefault));
+    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeObjType);
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -84,13 +84,13 @@ EXT_COMMAND(wa_objtype,
 }
 
 HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
-    WDbgArkAnalyze* display = reinterpret_cast<WDbgArkAnalyze*>(context);
+    WDbgArkAnalyzeBase* display = reinterpret_cast<WDbgArkAnalyzeBase*>(context);
 
     try {
         ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
         ExtRemoteTyped typeinfo = object_type.Field("TypeInfo");
 
-        display->AnalyzeObjectTypeInfo(typeinfo, object);
+        display->Analyze(typeinfo, object);
     }
     catch ( const ExtRemoteException &Ex ) {
         std::stringstream tmperr;
