@@ -45,10 +45,7 @@ namespace wa {
 class WDbgArkColorHack {
  public:
     WDbgArkColorHack();
-
-    ~WDbgArkColorHack() {
-        RevertColors();
-    }
+    ~WDbgArkColorHack() { RevertColors(); }
 
     bool IsInited(void) const { return m_inited; }
     void PrintInformation(void);
@@ -57,7 +54,7 @@ class WDbgArkColorHack {
 
  private:
     //////////////////////////////////////////////////////////////////////////
-    enum UiColorType {
+    enum class UiColorType {
         UiColorsType,
         UiColorsOutMaskType
     };
@@ -97,7 +94,8 @@ class WDbgArkColorHack {
     UiColor*                                m_g_ui_colors;
     UiColor*                                m_g_out_mask_ui_colors;
     vecUiColor                              m_internal_colors;
-    std::unique_ptr<bprinter::TablePrinter> tp;
+    std::stringstream                       m_bprinter_out;
+    std::unique_ptr<bprinter::TablePrinter> m_tp;
     std::string                             m_cur_theme;
     themes                                  m_themes;
 
@@ -115,7 +113,6 @@ class WDbgArkColorHack {
     std::stringstream out;
     std::stringstream warn;
     std::stringstream err;
-    std::stringstream bprinter_out;
 };
 
 }   // namespace wa

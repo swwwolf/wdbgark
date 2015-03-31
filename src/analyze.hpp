@@ -89,23 +89,23 @@ class WDbgArkAnalyzeBase: public WDbgArkAnalyzeWhiteList {
         AnalyzeTypeGDT
     };
 
-    WDbgArkAnalyzeBase() : bprinter_out(),
-                           tp(new bprinter::TablePrinter(&bprinter_out)) {}
+    WDbgArkAnalyzeBase() : m_bprinter_out(),
+                           m_tp(new bprinter::TablePrinter(&m_bprinter_out)) {}
     virtual ~WDbgArkAnalyzeBase() {}
     static std::unique_ptr<WDbgArkAnalyzeBase> Create(const AnalyzeType type = AnalyzeType::AnalyzeTypeDefault);
 
     //////////////////////////////////////////////////////////////////////////
     // brinter routines
     //////////////////////////////////////////////////////////////////////////
-    virtual void PrintHeader(void) { tp->PrintHeader(); }
-    virtual void PrintFooter(void) { tp->PrintFooter(); }
+    virtual void PrintHeader(void) { m_tp->PrintHeader(); }
+    virtual void PrintFooter(void) { m_tp->PrintFooter(); }
     virtual void AddColumn(const std::string &header_name, const int column_width) {
-        tp->AddColumn(header_name, column_width);
+        m_tp->AddColumn(header_name, column_width);
     }
-    virtual void StringToTable(const std::string &what) { *tp << what; }
-    virtual void FlushOut(void) { tp->flush_out(); }
-    virtual void FlushWarn(void) { tp->flush_warn(); }
-    virtual void FlushErr(void) { tp->flush_err(); }
+    virtual void StringToTable(const std::string &what) { *m_tp << what; }
+    virtual void FlushOut(void) { m_tp->flush_out(); }
+    virtual void FlushWarn(void) { m_tp->flush_warn(); }
+    virtual void FlushErr(void) { m_tp->flush_err(); }
     virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
 
     //////////////////////////////////////////////////////////////////////////
@@ -126,30 +126,20 @@ class WDbgArkAnalyzeBase: public WDbgArkAnalyzeWhiteList {
     }
 
  private:
-    std::stringstream bprinter_out;
-    std::unique_ptr<bprinter::TablePrinter> tp;
+    std::stringstream m_bprinter_out;
+    std::unique_ptr<bprinter::TablePrinter> m_tp;
 };
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
  public:
     WDbgArkAnalyzeDefault();
     virtual ~WDbgArkAnalyzeDefault() {}
-
- private:
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeCallback: public WDbgArkAnalyzeBase {
  public:
     WDbgArkAnalyzeCallback();
     virtual ~WDbgArkAnalyzeCallback() {}
-
- private:
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
@@ -160,8 +150,6 @@ class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
     virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object);
 
  private:
-    std::stringstream out;
-    std::stringstream warn;
     std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
@@ -169,11 +157,6 @@ class WDbgArkAnalyzeIDT: public WDbgArkAnalyzeBase {
  public:
     WDbgArkAnalyzeIDT();
     virtual ~WDbgArkAnalyzeIDT() {}
-
- private:
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
@@ -187,10 +170,6 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
                          const std::string &additional_info);
 
  private:
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
-
     std::string GetGDTSelectorName(const unsigned __int32 selector) const;
     unsigned __int32 GetGDTType(const ExtRemoteTyped &gdt_entry);
     std::string GetGDTTypeName(const ExtRemoteTyped &gdt_entry);
@@ -200,6 +179,8 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
     bool IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry);
     bool IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry);
     unsigned __int32 GetGDTDpl(const ExtRemoteTyped &gdt_entry);
+
+    std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
 }   // namespace wa

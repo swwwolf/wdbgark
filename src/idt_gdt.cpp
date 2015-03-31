@@ -604,7 +604,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                    "",
                                                    &output_list);
 
-                    for ( const OutputWalkInfo &walk_info : output_list ) {
+                    for ( const auto &walk_info : output_list ) {
                         if ( !walk_info.address )
                             continue;
 
@@ -830,7 +830,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
             unsigned __int32 gdt_selector = 0;
 
             if ( m_is_cur_machine64 ) {    // special case for x64
-                for ( const unsigned __int32 gdt_selector_x64 : m_gdt_selectors ) {
+                for ( const auto gdt_selector_x64 : m_gdt_selectors ) {
                     DisplayOneGDTEntry(gdt_entry_name,
                                        gdt_entry_start + gdt_selector_x64,
                                        gdt_entry_size,

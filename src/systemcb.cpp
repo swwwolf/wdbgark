@@ -252,14 +252,12 @@ EXT_COMMAND(wa_systemcb,
 
     try {
         if ( type == "*" ) {
-            for ( callbacksInfo::const_iterator citer = m_system_cb_commands.cbegin();
-                  citer != m_system_cb_commands.cend();
-                  ++citer ) {
+            for ( auto citer = m_system_cb_commands.cbegin(); citer != m_system_cb_commands.cend(); ++citer ) {
                 out << "Collecting " << citer->first << " callbacks" << endlout;
                 CallCorrespondingWalkListRoutine(citer, &output_list);
             }
         } else {
-            callbacksInfo::const_iterator citer = m_system_cb_commands.find(type);
+            auto citer = m_system_cb_commands.find(type);
 
             if ( citer != m_system_cb_commands.end() ) {
                 out << "Collecting " << citer->first << " callbacks" << endlout;
@@ -273,7 +271,7 @@ EXT_COMMAND(wa_systemcb,
         display->PrintFooter();
         std::string prev_list_head;
 
-        for ( const OutputWalkInfo &walk_info : output_list ) {
+        for ( const auto &walk_info : output_list ) {
             if ( prev_list_head != walk_info.list_head_name ) {
                 out << walk_info.list_head_name;
 

@@ -250,8 +250,8 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
     object_name_ext << object_name;
 
-    *tp << object_command.str() << object_name_ext.str();
-    tp->flush_out();
+    *m_tp << object_command.str() << object_name_ext.str();
+    m_tp->flush_out();
 }
 
 bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const unsigned __int64 address) const {
@@ -302,24 +302,24 @@ void WDbgArkAnalyzeBase::Analyze(const unsigned __int64 address,
     if ( address )
         addr_ext << "</exec>";
 
-    *tp << addr_ext.str() << type << symbol_name << module_command_buf.str();
+    *m_tp << addr_ext.str() << type << symbol_name << module_command_buf.str();
 
     if ( suspicious )
-        *tp << "Y";
+        *m_tp << "Y";
     else
-        *tp << "";
+        *m_tp << "";
 
     if ( !additional_info.empty() )
-        *tp << additional_info;
+        *m_tp << additional_info;
 
     if ( suspicious )
-        tp->flush_warn();
+        m_tp->flush_warn();
     else
-        tp->flush_out();
+        m_tp->flush_out();
 }
 
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault() : out(), warn(), err() {
+WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault() {
     // width = 180
     AddColumn("Address", 18);
     AddColumn("Name", 68);
@@ -328,7 +328,7 @@ WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault() : out(), warn(), err() {
     AddColumn("Suspicious", 10);
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback() : out(), warn(), err() {
+WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback() {
     // width = 180
     AddColumn("Address", 18);
     AddColumn("Type", 25);
@@ -338,7 +338,7 @@ WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback() : out(), warn(), err() {
     AddColumn("Info", 25);
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeObjType::WDbgArkAnalyzeObjType() : out(), warn(), err() {
+WDbgArkAnalyzeObjType::WDbgArkAnalyzeObjType() : err() {
     // width = 180
     AddColumn("Address", 18);
     AddColumn("Name", 68);
@@ -370,7 +370,7 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
     }
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT() : out(), warn(), err() {
+WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT() {
     // width = 160
     AddColumn("Address", 18);
     AddColumn("CPU / Idx", 11);
@@ -380,7 +380,7 @@ WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT() : out(), warn(), err() {
     AddColumn("Info", 25);
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeGDT::WDbgArkAnalyzeGDT() : out(), warn(), err() {
+WDbgArkAnalyzeGDT::WDbgArkAnalyzeGDT() : err() {
     // width = 133
     AddColumn("Base", 18);
     AddColumn("Limit", 10);

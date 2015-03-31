@@ -99,7 +99,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
 
     try {
         if ( m_strict_minor_build <= W7SP1_VER ) {
-            for ( const std::string &callout_name : m_callout_names ) {
+            for ( const auto &callout_name : m_callout_names ) {
                 unsigned __int64 offset = 0;
 
                 if ( GetSymbolOffset(callout_name.c_str(), true, &offset) ) {

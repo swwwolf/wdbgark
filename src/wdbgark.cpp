@@ -107,6 +107,7 @@ bool WDbgArk::Init() {
     if ( !CheckSymbolsPath(m_ms_public_symbols_server, true) )
         warn << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
+    // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized
     m_obj_helper.reset(new WDbgArkObjHelper);
 
     if ( !m_obj_helper->IsInited() )
@@ -322,7 +323,7 @@ void WDbgArk::InitCallbackCommands(void) {
                                                                               0ULL)));
     }
 
-    for ( callbackPair cb_pair : m_system_cb_commands ) {
+    for ( auto cb_pair : m_system_cb_commands ) {
         unsigned __int64 offset_count = 0ULL;
         unsigned __int64 offset_head = 0ULL;
 
@@ -504,7 +505,7 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_
                                                    const bool is_double,
                                                    const unsigned __int32 offset_to_object_pointer,
                                                    void* context,
-                                                   pfn_any_list_w_pobject_walk_callback_routine callback) {
+                                                   RemoteDataCallback callback) {
     unsigned __int64 offset = offset_list_head;
 
     if ( !offset_to_object_pointer ) {
@@ -536,7 +537,7 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_
 
 void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
                                   void* context,
-                                  pfn_object_directory_walk_callback_routine callback) {
+                                  RemoteTypedCallback callback) {
     if ( !directory_address ) {
         err << __FUNCTION__ << ": invalid directory address" << endlerr;
         return;
@@ -573,7 +574,7 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
 
 void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
                              void* context,
-                             pfn_device_node_walk_callback_routine callback) {
+                             RemoteTypedCallback callback) {
     unsigned __int64 offset = device_node_address;
 
     if ( !callback ) {
@@ -805,7 +806,7 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
 }
 
 void WDbgArk::RemoveSyntheticSymbols(void) {
-    for ( DEBUG_MODULE_AND_ID id : m_synthetic_symbols ) {
+    for ( auto id : m_synthetic_symbols ) {
         m_symbols3_iface->RemoveSyntheticSymbol(&id);
     }
 }

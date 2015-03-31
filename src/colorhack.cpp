@@ -147,23 +147,21 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
                                        m_g_ui_colors(nullptr),
                                        m_g_out_mask_ui_colors(nullptr),
                                        m_internal_colors(),
-                                       tp(nullptr),
+                                       m_bprinter_out(),
+                                       m_tp(new bprinter::TablePrinter(&m_bprinter_out)),
                                        m_cur_theme(),
                                        m_themes(),
                                        out(),
                                        warn(),
-                                       err(),
-                                       bprinter_out() {
+                                       err() {
     try {
         if ( !IsWinDbgWindow() )
             throw ExtStatusException(S_OK, "Can't find WinDBG window");
 
-        tp.reset(new bprinter::TablePrinter(&bprinter_out));
-
-        tp->AddColumn("DML name", 15);
-        tp->AddColumn("Description", 70);
-        tp->AddColumn("Original", 10);
-        tp->AddColumn("New color", 10);
+        m_tp->AddColumn("DML name", 15);
+        m_tp->AddColumn("Description", 70);
+        m_tp->AddColumn("Original", 10);
+        m_tp->AddColumn("New color", 10);
 
         InitThemes();
 
@@ -245,14 +243,14 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         UiColor* loc_ui_color = m_g_ui_colors;
 
         while ( loc_ui_color->description ) {
-            m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorsType));
+            m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorType::UiColorsType));
             loc_ui_color++;
         }
 
         loc_ui_color = m_g_out_mask_ui_colors;
 
         while ( loc_ui_color->description ) {
-            m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorsOutMaskType));
+            m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorType::UiColorsOutMaskType));
             loc_ui_color++;
         }
 
@@ -311,9 +309,9 @@ void WDbgArkColorHack::PrintInformation(void) {
         return;
     }
 
-    tp->PrintHeader();
+    m_tp->PrintHeader();
 
-    for ( const InternalUiColor &internal_color : m_internal_colors ) {
+    for ( const auto &internal_color : m_internal_colors ) {
         std::stringstream original_color;
         original_color << std::internal << std::setw(10) << std::setfill('0');
         original_color << std::hex << std::showbase << internal_color.orig_color;
@@ -322,12 +320,12 @@ void WDbgArkColorHack::PrintInformation(void) {
         new_color << std::internal << std::setw(10) << std::setfill('0');
         new_color << std::hex << std::showbase << internal_color.new_color;
 
-        *tp << internal_color.dml_name << internal_color.description << original_color.str() << new_color.str();
-        tp->flush_out();
-        tp->PrintFooter();
+        *m_tp << internal_color.dml_name << internal_color.description << original_color.str() << new_color.str();
+        m_tp->flush_out();
+        m_tp->PrintFooter();
     }
 
-    tp->PrintFooter();
+    m_tp->PrintFooter();
 }
 
 void WDbgArkColorHack::PrintMemoryInfo(void) {
@@ -411,7 +409,7 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
 
     theme_elems elems = it->second;
 
-    for ( const theme_elem &element : elems ) {
+    for ( const auto &element : elems ) {
         if ( !SetColor(element.first, element.second) ) {
             err << __FUNCTION__ << ": failed to set new color for " << element.first << endlerr;
             RevertColors();
@@ -450,7 +448,7 @@ void WDbgArkColorHack::RevertColors(void) {
     }
 
     try {
-        for ( InternalUiColor &internal_color : m_internal_colors ) {
+        for ( auto &internal_color : m_internal_colors ) {
             if ( internal_color.is_changed ) {
                 InterlockedExchange(&(internal_color.ui_color->color),
                                     static_cast<LONG>(internal_color.orig_color));

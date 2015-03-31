@@ -75,7 +75,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
         unsigned __int32 skip_offset = 2 * sizeof(unsigned __int32);
         WalkAnyTable(offset, skip_offset, table_count, "", &output_list);
 
-        for ( const OutputWalkInfo &walk_info : output_list ) {
+        for ( const auto &walk_info : output_list ) {
             display->Analyze(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
         }

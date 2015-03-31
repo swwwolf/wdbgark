@@ -108,7 +108,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         out << "nt!HalDispatchTable: " << std::hex << std::showbase << offset_hdt << endlout;
         display->PrintHeader();
 
-        for ( const OutputWalkInfo &walk_info : output_list_hdt ) {
+        for ( const auto &walk_info : output_list_hdt ) {
             display->Analyze(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
         }
@@ -116,7 +116,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         out << "nt!HalPrivateDispatchTable: " << std::hex << std::showbase << offset_hpdt << endlout;
         display->PrintHeader();
 
-        for ( const OutputWalkInfo &walk_info : output_list_hpdt ) {
+        for ( const auto &walk_info : output_list_hpdt ) {
             display->Analyze(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
         }
@@ -125,7 +125,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             out << "nt!HalIommuDispatchTable: " << std::hex << std::showbase << offset_hiommu << endlout;
             display->PrintHeader();
 
-            for ( const OutputWalkInfo &walk_info : output_list_hiommu ) {
+            for ( const auto &walk_info : output_list_hiommu ) {
                 display->Analyze(walk_info.address, walk_info.type, walk_info.info);
                 display->PrintFooter();
             }

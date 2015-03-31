@@ -44,6 +44,7 @@
 #include <unordered_map>
 #include <set>
 #include <utility>
+#include <functional>
 
 #include "objhelper.hpp"
 #include "colorhack.hpp"
@@ -119,17 +120,13 @@ class WDbgArk : public ExtExtension {
 
     typedef std::map<unsigned __int32, HalDispatchTablesInfo> haltblInfo;
     //////////////////////////////////////////////////////////////////////////
-    typedef HRESULT (*pfn_object_directory_walk_callback_routine)(WDbgArk* wdbg_ark_class,
-                                                                  const ExtRemoteTyped &object,
-                                                                  void* context);
+    typedef std::function<HRESULT(WDbgArk* wdbg_ark_class,
+                                  const ExtRemoteTyped &object,
+                                  void* context)> RemoteTypedCallback;
 
-    typedef HRESULT (*pfn_any_list_w_pobject_walk_callback_routine)(WDbgArk* wdbg_ark_class,
-                                                                    const ExtRemoteData &object_pointer,
-                                                                    void* context);
-
-    typedef HRESULT (*pfn_device_node_walk_callback_routine)(WDbgArk* wdbg_ark_class,
-                                                             const ExtRemoteTyped &device_node,
-                                                             void* context);
+    typedef std::function<HRESULT(WDbgArk* wdbg_ark_class,
+                                  const ExtRemoteData &object,
+                                  void* context)> RemoteDataCallback;
     //////////////////////////////////////////////////////////////////////////
     WDbgArk();
     ~WDbgArk();
@@ -144,9 +141,11 @@ class WDbgArk : public ExtExtension {
     // this one is called _before_ main class destructor, but ExtExtension class is already dead
     // so, don't output any errors in these routines, don't call g_Ext->m_Something and so on
     void __thiscall Uninitialize(void) {
-        m_dummy_pdb->RemoveDummyPdbModule(m_symbols3_iface);    // unload dummypdb fake module
-        RemoveSyntheticSymbols();                               // remove our symbols
-        EXT_RELEASE(m_symbols3_iface);
+        if ( m_symbols3_iface.IsSet() ) {
+            m_dummy_pdb->RemoveDummyPdbModule(m_symbols3_iface);    // unload dummypdb fake module
+            RemoveSyntheticSymbols();                               // remove our symbols
+            EXT_RELEASE(m_symbols3_iface);
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -208,11 +207,11 @@ class WDbgArk : public ExtExtension {
                                               const bool is_double,
                                               const unsigned __int32 offset_to_object_pointer,
                                               void* context,
-                                              pfn_any_list_w_pobject_walk_callback_routine callback);
+                                              RemoteDataCallback callback);
 
     void WalkDeviceNode(const unsigned __int64 device_node_address,
                         void* context,
-                        pfn_device_node_walk_callback_routine callback);
+                        RemoteTypedCallback callback);
 
     void WalkShutdownList(const std::string &list_head_name, const std::string &type, walkresType* output_list);
     void WalkPnpLists(const std::string &type, walkresType* output_list);
@@ -233,7 +232,7 @@ class WDbgArk : public ExtExtension {
 
     void WalkDirectoryObject(const unsigned __int64 directory_address,
                              void* context,
-                             pfn_object_directory_walk_callback_routine callback);
+                             RemoteTypedCallback callback);
 
  private:
     //////////////////////////////////////////////////////////////////////////
