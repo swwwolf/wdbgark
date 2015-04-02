@@ -205,6 +205,30 @@ bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const unsigned __int64 addres
     return false;
 }
 //////////////////////////////////////////////////////////////////////////
+void WDbgArkBPProxy::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
+    std::string object_name = "*UNKNOWN*";
+    std::unique_ptr<WDbgArkObjHelper> obj_helper(new WDbgArkObjHelper);
+
+    std::pair<HRESULT, std::string> result = obj_helper->GetObjectName(object);
+
+    if ( !SUCCEEDED(result.first) ) {
+        std::stringstream warn;
+        warn << __FUNCTION__ ": GetObjectName failed" << endlwarn;
+    } else {
+        object_name = result.second;
+    }
+
+    std::stringstream object_command;
+    std::stringstream object_name_ext;
+
+    object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
+    object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
+    object_name_ext << object_name;
+
+    *this << object_command.str() << object_name_ext.str();
+    m_tp->flush_out();
+}
+//////////////////////////////////////////////////////////////////////////
 std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const AnalyzeType type) {
     switch ( type ) {
         case AnalyzeType::AnalyzeTypeCallback:
@@ -228,30 +252,6 @@ std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const AnalyzeType
             return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDefault);
         break;
     }
-}
-
-void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
-    std::string object_name = "*UNKNOWN*";
-    std::unique_ptr<WDbgArkObjHelper> obj_helper(new WDbgArkObjHelper);
-
-    std::pair<HRESULT, std::string> result = obj_helper->GetObjectName(object);
-
-    if ( !SUCCEEDED(result.first) ) {
-        std::stringstream warn;
-        warn << __FUNCTION__ ": GetObjectName failed" << endlwarn;
-    } else {
-        object_name = result.second;
-    }
-
-    std::stringstream object_command;
-    std::stringstream object_name_ext;
-
-    object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
-    object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
-    object_name_ext << object_name;
-
-    *m_tp << object_command.str() << object_name_ext.str();
-    m_tp->flush_out();
 }
 
 bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const unsigned __int64 address) const {
@@ -459,18 +459,9 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
         else
             present << "NP";
 
-        StringToTable(addr_ext.str());
-        StringToTable(limit_ext.str());
-        StringToTable(cpu_idx);
-        StringToTable(selector_ext.str());
-
-        StringToTable(GetGDTSelectorName(selector));
-        StringToTable(GetGDTTypeName(gdt_entry));
-
-        StringToTable(dpl.str());
-        StringToTable(granularity.str());
-        StringToTable(present.str());
-        StringToTable(additional_info);
+        *this << addr_ext.str() << limit_ext.str() << cpu_idx << selector_ext.str();
+        *this << GetGDTSelectorName(selector) << GetGDTTypeName(gdt_entry);
+        *this << dpl.str() << granularity.str() << present.str() << additional_info;
 
         FlushOut();
     }

@@ -77,9 +77,37 @@ class WDbgArkAnalyzeWhiteList {
     std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
-// analyze, display, print routines
+// analyze, display, print
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkAnalyzeBase: public WDbgArkAnalyzeWhiteList {
+class WDbgArkBPProxy {
+ public:
+     WDbgArkBPProxy() : m_bprinter_out(),
+                        m_tp(new bprinter::TablePrinter(&m_bprinter_out)) {}
+     virtual ~WDbgArkBPProxy() {}
+
+     virtual void PrintHeader(void) { m_tp->PrintHeader(); }
+     virtual void PrintFooter(void) { m_tp->PrintFooter(); }
+     virtual void AddColumn(const std::string &header_name, const int column_width) {
+         m_tp->AddColumn(header_name, column_width);
+     }
+     virtual void FlushOut(void) { m_tp->flush_out(); }
+     virtual void FlushWarn(void) { m_tp->flush_warn(); }
+     virtual void FlushErr(void) { m_tp->flush_err(); }
+     virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
+
+     template<typename T> WDbgArkBPProxy& operator<<(T input) {
+         *m_tp << input;
+         return *this;
+     }
+
+ protected:
+     std::unique_ptr<bprinter::TablePrinter> m_tp;
+
+ private:
+    std::stringstream m_bprinter_out;
+};
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList {
  public:
     enum class AnalyzeType {
         AnalyzeTypeDefault,
@@ -89,24 +117,14 @@ class WDbgArkAnalyzeBase: public WDbgArkAnalyzeWhiteList {
         AnalyzeTypeGDT
     };
 
-    WDbgArkAnalyzeBase() : m_bprinter_out(),
-                           m_tp(new bprinter::TablePrinter(&m_bprinter_out)) {}
+    WDbgArkAnalyzeBase() {}
     virtual ~WDbgArkAnalyzeBase() {}
-    static std::unique_ptr<WDbgArkAnalyzeBase> Create(const AnalyzeType type = AnalyzeType::AnalyzeTypeDefault);
-
-    //////////////////////////////////////////////////////////////////////////
-    // brinter routines
-    //////////////////////////////////////////////////////////////////////////
-    virtual void PrintHeader(void) { m_tp->PrintHeader(); }
-    virtual void PrintFooter(void) { m_tp->PrintFooter(); }
-    virtual void AddColumn(const std::string &header_name, const int column_width) {
-        m_tp->AddColumn(header_name, column_width);
+    template<typename T> WDbgArkAnalyzeBase& operator<<(T input) {
+        *m_tp << input;
+        return *this;
     }
-    virtual void StringToTable(const std::string &what) { *m_tp << what; }
-    virtual void FlushOut(void) { m_tp->flush_out(); }
-    virtual void FlushWarn(void) { m_tp->flush_warn(); }
-    virtual void FlushErr(void) { m_tp->flush_err(); }
-    virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
+
+    static std::unique_ptr<WDbgArkAnalyzeBase> Create(const AnalyzeType type = AnalyzeType::AnalyzeTypeDefault);
 
     //////////////////////////////////////////////////////////////////////////
     // analyze routines
@@ -126,9 +144,11 @@ class WDbgArkAnalyzeBase: public WDbgArkAnalyzeWhiteList {
     }
 
  private:
-    std::stringstream m_bprinter_out;
-    std::unique_ptr<bprinter::TablePrinter> m_tp;
+    WDbgArkAnalyzeBase(WDbgArkAnalyzeBase const&);  // = delete
+    WDbgArkAnalyzeBase& operator=(WDbgArkAnalyzeBase const&);   // = delete
 };
+//////////////////////////////////////////////////////////////////////////
+// Default analyzer
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
  public:
@@ -136,11 +156,15 @@ class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
     virtual ~WDbgArkAnalyzeDefault() {}
 };
 //////////////////////////////////////////////////////////////////////////
+// Callback analyzer
+//////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeCallback: public WDbgArkAnalyzeBase {
  public:
     WDbgArkAnalyzeCallback();
     virtual ~WDbgArkAnalyzeCallback() {}
 };
+//////////////////////////////////////////////////////////////////////////
+// Object type analyzer
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
  public:
@@ -153,11 +177,15 @@ class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
     std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
+// IDT analyzer
+//////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeIDT: public WDbgArkAnalyzeBase {
  public:
     WDbgArkAnalyzeIDT();
     virtual ~WDbgArkAnalyzeIDT() {}
 };
+//////////////////////////////////////////////////////////////////////////
+// GDT analyzer
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
  public:

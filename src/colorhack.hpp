@@ -37,12 +37,14 @@
 #include <memory>
 #include <unordered_map>
 
+#include "analyze.hpp"
+
 namespace wa {
 
 //////////////////////////////////////////////////////////////////////////
 // hack WinDbg colors
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkColorHack {
+class WDbgArkColorHack : public WDbgArkBPProxy {
  public:
     WDbgArkColorHack();
     ~WDbgArkColorHack() { RevertColors(); }
@@ -90,15 +92,6 @@ class WDbgArkColorHack {
     #define COLOR_HACK_BG_ERROR   RGB(0xFF, 0xBF, 0xBF)
     #define COLOR_HACK_BG_WARNING RGB(0xFF, 0xFF, 0xBF)
     //////////////////////////////////////////////////////////////////////////
-    bool                                    m_inited;
-    UiColor*                                m_g_ui_colors;
-    UiColor*                                m_g_out_mask_ui_colors;
-    vecUiColor                              m_internal_colors;
-    std::stringstream                       m_bprinter_out;
-    std::unique_ptr<bprinter::TablePrinter> m_tp;
-    std::string                             m_cur_theme;
-    themes                                  m_themes;
-
     void            PrintMemoryInfo(void);
     void            InitThemes(void);
     bool            SetColor(const std::string &dml_name, const COLORREF color);
@@ -106,7 +99,13 @@ class WDbgArkColorHack {
     bool            IsWinDbgWindow(void);
 
     static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
-
+    //////////////////////////////////////////////////////////////////////////
+    bool        m_inited;
+    UiColor*    m_g_ui_colors;
+    UiColor*    m_g_out_mask_ui_colors;
+    vecUiColor  m_internal_colors;
+    std::string m_cur_theme;
+    themes      m_themes;
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
