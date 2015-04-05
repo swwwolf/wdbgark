@@ -1,6 +1,8 @@
 #ifndef BPRINTER_TABLE_PRINTER_H_
 #define BPRINTER_TABLE_PRINTER_H_
 
+#include <engextcpp.hpp>
+
 #include <iostream>
 #include <iomanip>
 #include <vector>
@@ -8,36 +10,9 @@
 #include <sstream>
 #include <cmath>
 
-#include <engextcpp.hpp>
+#include "..\..\..\manipulators.hpp"
 
 namespace bprinter {
-
-inline std::ostream& endlout(std::ostream& arg)
-{
-    std::stringstream ss;
-
-    ss << arg.rdbuf();
-    g_Ext->Dml("%s", ss.str().c_str());
-    return arg.flush();
-}
-
-inline std::ostream& endlwarn(std::ostream& arg)
-{
-    std::stringstream ss;
-
-    ss << arg.rdbuf();
-    g_Ext->DmlWarn("%s", ss.str().c_str());
-    return arg.flush();
-}
-
-inline std::ostream& endlerr(std::ostream& arg)
-{
-    std::stringstream ss;
-
-    ss << arg.rdbuf();
-    g_Ext->DmlErr("%s", ss.str().c_str());
-    return arg.flush();
-}
 
 class endl{};
 
@@ -60,9 +35,9 @@ class endl{};
 
   \todo Add support for padding in each table cell
   */
-class TablePrinter{
-public:
-  TablePrinter(std::ostream * output, const std::string & separator = "|");
+class TablePrinter {
+ public:
+  explicit TablePrinter(std::ostream* output, const std::string &separator = "|");
   ~TablePrinter();
 
   int get_num_columns() const;
@@ -73,14 +48,15 @@ public:
   void PrintHeader();
   void PrintFooter();
 
-  void flush_out() { *this << bprinter::endl(); *out_stream_ << bprinter::endlout; }
-  void flush_warn() { *this << bprinter::endl(); *out_stream_ << bprinter::endlwarn; }
-  void flush_err() { *this << bprinter::endl(); *out_stream_ << bprinter::endlerr; }
+  void flush_out() { *this << bprinter::endl(); *out_stream_ << wa::endlout; }
+  void flush_warn() { *this << bprinter::endl(); *out_stream_ << wa::endlwarn; }
+  void flush_err() { *this << bprinter::endl(); *out_stream_ << wa::endlerr; }
 
-  TablePrinter& operator<<(endl input){
-    while (j_ != 0){
+  TablePrinter& operator<<(endl input) {
+    while ( j_ != 0 ) {
       *this << "";
     }
+
     return *this;
   }
 
@@ -88,16 +64,15 @@ public:
   TablePrinter& operator<<(float input);
   TablePrinter& operator<<(double input);
 
-  template<typename T> TablePrinter& operator<<(T input){
-    if (j_ == 0)
+  template<typename T> TablePrinter& operator<<(T input) {
+    if ( j_ == 0 )
       *out_stream_ << "|";
 
     // Leave 3 extra space: One for negative sign, one for zero, one for decimal
-    *out_stream_ << std::setw(column_widths_.at(j_))
-                 << input;
+    *out_stream_ << std::setw(column_widths_.at(j_)) << input;
 
-    if (j_ == get_num_columns()-1){
-      *out_stream_ << "|\n";
+    if ( j_ == get_num_columns() - 1 ) {
+      *out_stream_ << "|";
       i_ = i_ + 1;
       j_ = 0;
     } else {
@@ -108,7 +83,7 @@ public:
     return *this;
   }
 
-private:
+ private:
   void PrintHorizontalLine();
 
   template<typename T> void OutputDecimalNumber(T input);
@@ -118,13 +93,13 @@ private:
   std::vector<int> column_widths_;
   std::string separator_;
 
-  int i_; // index of current row
-  int j_; // index of current column
+  int i_;   // index of current row
+  int j_;   // index of current column
 
   int table_width_;
 };
 
-}
+}   // namespace bprinter
 
 #include "impl/table_printer.tpp.h"
 #endif
