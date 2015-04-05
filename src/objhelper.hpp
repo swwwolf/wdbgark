@@ -50,10 +50,10 @@ class WDbgArkObjHelper {
     bool IsInited(void) const { return m_inited; }
 
     std::pair<HRESULT, ExtRemoteTyped> GetObjectHeader(const ExtRemoteTyped &object);
-    std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);
-    std::pair<HRESULT, std::string>    GetObjectName(const ExtRemoteTyped &object);
-    unsigned __int64                   FindObjectByName(const std::string &object_name,
-                                                        const unsigned __int64 directory_address);
+    std::pair<HRESULT, std::string> GetObjectName(const ExtRemoteTyped &object);
+    std::pair<HRESULT, ExtRemoteTyped> GetObjectType(const ExtRemoteTyped &object);
+    std::pair<HRESULT, std::string> GetObjectTypeName(const ExtRemoteTyped &object);
+    unsigned __int64 FindObjectByName(const std::string &object_name, const unsigned __int64 directory_address);
 
     unsigned __int64 ExFastRefGetObject(unsigned __int64 FastRef) const {
         if ( g_Ext->IsCurMachine32() )
@@ -63,9 +63,12 @@ class WDbgArkObjHelper {
     }
 
  private:
+    std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);
+
     bool             m_inited;
-    bool             object_header_old;
-    unsigned __int64 ObpInfoMaskToOffset;
+    bool             m_object_header_old;
+    unsigned __int64 m_ObpInfoMaskToOffset;
+    unsigned __int64 m_ObTypeIndexTableOffset;
 
     //////////////////////////////////////////////////////////////////////////
     // output streams

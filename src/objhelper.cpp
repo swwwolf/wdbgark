@@ -33,8 +33,9 @@
 namespace wa {
 
 WDbgArkObjHelper::WDbgArkObjHelper() : m_inited(false),
-                                       object_header_old(true),
-                                       ObpInfoMaskToOffset(0),
+                                       m_object_header_old(true),
+                                       m_ObpInfoMaskToOffset(0),
+                                       m_ObTypeIndexTableOffset(0),
                                        out(),
                                        warn(),
                                        err() {
@@ -45,10 +46,19 @@ WDbgArkObjHelper::WDbgArkObjHelper() : m_inited(false),
     if ( GetFieldOffset("nt!_OBJECT_HEADER", "TypeIndex", reinterpret_cast<PULONG>(&type_index_offset)) != 0 ) {
         m_inited = true;
     } else {
-        object_header_old = false;  // new header format
+        m_object_header_old = false;  // new header format
 
-        if ( g_Ext->GetSymbolOffset("nt!ObpInfoMaskToOffset", true, &ObpInfoMaskToOffset) )
-            m_inited = true;
+        if ( !g_Ext->GetSymbolOffset("nt!ObpInfoMaskToOffset", true, &m_ObpInfoMaskToOffset) ) {
+            err << __FUNCTION__ << ": failed to find nt!ObpInfoMaskToOffset";
+            return;
+        }
+
+        if ( !g_Ext->GetSymbolOffset("nt!ObTypeIndexTable", true, &m_ObTypeIndexTableOffset) ) {
+            err << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable";
+            return;
+        }
+
+        m_inited = true;
     }
 }
 
@@ -119,8 +129,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
 }
 
 std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRemoteTyped &object) {
-    unsigned __int32 offset = 0;
-    ExtRemoteTyped   object_header;
+    ExtRemoteTyped object_header;
 
     try {
         ExtRemoteTyped loc_object = object;
@@ -129,6 +138,8 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
             err << __FUNCTION__ << ": class is not initialized" << endlerr;
             return std::make_pair(E_NOT_VALID_STATE, object_header);
         }
+
+        unsigned __int32 offset = 0;
 
         if ( GetFieldOffset("nt!_OBJECT_HEADER", "Body", reinterpret_cast<PULONG>(&offset)) != 0 ) {
             err << __FUNCTION__ << ": GetFieldOffset failed" << endlerr;
@@ -161,7 +172,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
             return std::make_pair(E_NOT_VALID_STATE, object_header_name_info);
         }
 
-        if ( object_header_old ) {
+        if ( m_object_header_old ) {
             ExtRemoteTyped name_info_offset = loc_object_header.Field("NameInfoOffset");
 
             if ( name_info_offset.GetUchar() ) {
@@ -174,12 +185,13 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
                 return std::make_pair(S_OK, object_header_name_info);
             }
         } else {
-            if ( ObpInfoMaskToOffset ) {
+            if ( m_ObpInfoMaskToOffset ) {
                 ExtRemoteTyped info_mask = loc_object_header.Field("InfoMask");
 
                 if ( info_mask.GetUchar() & HeaderNameInfoFlag ) {
                     ExtRemoteData name_info_mask_to_offset(
-                        ObpInfoMaskToOffset + (info_mask.GetUchar() & (HeaderNameInfoFlag | (HeaderNameInfoFlag - 1))),
+                        m_ObpInfoMaskToOffset +\
+                        (info_mask.GetUchar() & (HeaderNameInfoFlag | (HeaderNameInfoFlag - 1))),
                         sizeof(unsigned char) );
 
                     object_header_name_info.Set("nt!_OBJECT_HEADER_NAME_INFO",
@@ -224,6 +236,58 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteT
     }
 
     ExtRemoteTyped unicode_string = result.second.Field("Name");
+
+    return UnicodeStringStructToString(unicode_string);
+}
+
+std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemoteTyped &object) {
+    ExtRemoteTyped object_type;
+
+    if ( !IsInited() ) {
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return std::make_pair(E_NOT_VALID_STATE, object_type);
+    }
+
+    try {
+        auto result_header = GetObjectHeader(object);
+
+        if ( !SUCCEEDED(result_header.first) ) {
+            err << __FUNCTION__ << ": failed to get object header" << endlerr;
+            return std::make_pair(result_header.first, object_type);
+        }
+
+        if ( m_object_header_old ) {
+            object_type = result_header.second.Field("Type");
+        } else {
+            auto type_index = result_header.second.Field("TypeIndex").GetUchar();
+            ExtRemoteData object_type_data(m_ObTypeIndexTableOffset + type_index * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+            object_type.Set("nt!_OBJECT_TYPE", object_type_data.GetPtr(), false, nullptr, nullptr);
+        }
+    }
+    catch ( const ExtRemoteException &Ex ) {
+        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        return std::make_pair(Ex.GetStatus(), object_type);
+    }
+
+    return std::make_pair(S_OK, object_type);
+}
+
+std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectTypeName(const ExtRemoteTyped &object) {
+    std::string output_string = "*UNKNOWN*";
+
+    if ( !IsInited() ) {
+        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return std::make_pair(E_NOT_VALID_STATE, output_string);
+    }
+
+    auto result_type = GetObjectType(object);
+
+    if ( !SUCCEEDED(result_type.first) ) {
+        err << __FUNCTION__ << ": failed to get object type" << endlerr;
+        return std::make_pair(result_type.first, output_string);
+    }
+
+    ExtRemoteTyped unicode_string = result_type.second.Field("Name");
 
     return UnicodeStringStructToString(unicode_string);
 }
