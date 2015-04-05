@@ -74,7 +74,7 @@ bool WDbgArk::Init() {
 #define REQ_IF(_If, _member) \
     if ( m_Client->QueryInterface(__uuidof(_If), reinterpret_cast<PVOID*>(&_member)) != S_OK ) { \
         _member.Set(nullptr); \
-        err << __FUNCTION__ << ": Failed to initialize interface" << endlerr; \
+        err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr; \
     }
 
     REQ_IF(IDebugSymbols3, m_symbols3_iface);
@@ -96,7 +96,7 @@ bool WDbgArk::Init() {
                                                  NULL);
 
     if ( !SUCCEEDED(result) )
-        warn << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlwarn;
 
     m_strict_minor_build = GetWindowsStrictMinorBuild();
     InitKnownWindowsBuilds();
@@ -105,23 +105,23 @@ bool WDbgArk::Init() {
     m_Symbols->Reload("");  // revise debuggee modules list
 
     if ( !CheckSymbolsPath(m_ms_public_symbols_server, true) )
-        warn << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
     // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized
     m_obj_helper.reset(new WDbgArkObjHelper);
 
     if ( !m_obj_helper->IsInited() )
-        warn << __FUNCTION__ ": WDbgArkObjHelper init failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": WDbgArkObjHelper init failed" << endlwarn;
 
     m_color_hack.reset(new WDbgArkColorHack);
 
     if ( !m_color_hack->IsInited() )
-        warn << __FUNCTION__ ": WDbgArkColorHack init failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": WDbgArkColorHack init failed" << endlwarn;
 
     m_dummy_pdb.reset(new WDbgArkDummyPdb);
 
     if ( !m_dummy_pdb->IsInited() )
-        warn << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;
 
     InitCallbackCommands();
     InitCalloutNames();
@@ -129,7 +129,7 @@ bool WDbgArk::Init() {
     InitHalTables();
 
     if ( m_strict_minor_build >= W7RTM_VER && !FindDbgkLkmdCallbackArray() )
-        warn << __FUNCTION__ ": FindDbgkLkmdCallbackArray failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": FindDbgkLkmdCallbackArray failed" << endlwarn;
 
     m_inited = true;
 
@@ -313,7 +313,7 @@ void WDbgArk::InitCallbackCommands(void) {
     unsigned __int32 timer_routine_offset = 0;
 
     if ( GetFieldOffset("nt!_IO_TIMER", "TimerRoutine", reinterpret_cast<PULONG>(&timer_routine_offset)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
     } else {
         m_system_cb_commands.insert(callbacksInfo::value_type("ioptimer",
                                                               SystemCbCommand("",
@@ -443,7 +443,7 @@ unsigned __int32 WDbgArk::GetWindowsStrictMinorBuild(void) const {
 
 void WDbgArk::CheckWindowsBuild(void) {
     if ( m_known_windows_builds.find(m_minor_build) == m_known_windows_builds.end() ) {
-        warn << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
     }
 }
 
@@ -459,13 +459,13 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
     unsigned __int64 list_head_offset_out = 0;
 
     if ( !offset_to_routine ) {
-        err << __FUNCTION__ << ": invalid parameter" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": invalid parameter" << endlerr;
         return;
     }
 
     if ( !offset ) {
         if ( !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
-            err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
             return;
         } else {
             list_head_offset_out = offset;
@@ -496,7 +496,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
@@ -509,12 +509,12 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_
     unsigned __int64 offset = offset_list_head;
 
     if ( !offset_to_object_pointer ) {
-        err << __FUNCTION__ << ": invalid parameter offset_to_object_pointer" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": invalid parameter offset_to_object_pointer" << endlerr;
         return;
     }
 
     if ( !offset && !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
-        err << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
         return;
     }
 
@@ -525,13 +525,13 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_
             ExtRemoteData object_pointer(list_head.GetNodeOffset() + offset_to_object_pointer, m_PtrSize);
 
             if ( !SUCCEEDED(callback(this, object_pointer, context)) ) {
-                err << __FUNCTION__ << ": error while invoking callback" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": error while invoking callback" << endlerr;
                 return;
             }
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
@@ -539,12 +539,12 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
                                   void* context,
                                   RemoteTypedCallback callback) {
     if ( !directory_address ) {
-        err << __FUNCTION__ << ": invalid directory address" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": invalid directory address" << endlerr;
         return;
     }
 
     if ( !callback ) {
-        err << __FUNCTION__ << ": invalid callback address" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": invalid callback address" << endlerr;
         return;
     }
 
@@ -561,14 +561,14 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
                 ExtRemoteTyped object = *directory_entry.Field("Object");
 
                 if ( !SUCCEEDED(callback(this, object, context)) ) {
-                    err << __FUNCTION__ << ": error while invoking callback" << endlerr;
+                    err << wa::showminus << __FUNCTION__ << ": error while invoking callback" << endlerr;
                     return;
                 }
             }
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
@@ -578,14 +578,14 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
     unsigned __int64 offset = device_node_address;
 
     if ( !callback ) {
-        err << __FUNCTION__ << ": invalid callback address" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": invalid callback address" << endlerr;
         return;
     }
 
     try {
         if ( !offset ) {
             if ( !GetSymbolOffset("nt!IopRootDeviceNode", true, &offset) ) {
-                err << __FUNCTION__ << ": failed to get nt!IopRootDeviceNode" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": failed to get nt!IopRootDeviceNode" << endlerr;
                 return;
             } else {
                 ExtRemoteData device_node_ptr(offset, m_PtrSize);
@@ -599,7 +599,7 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
               child_node.m_Offset;
               child_node = *child_node.Field("Sibling") ) {
             if ( !SUCCEEDED(callback(this, child_node, context)) ) {
-                err << __FUNCTION__ << ": error while invoking callback" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": error while invoking callback" << endlerr;
                 return;
             }
 
@@ -607,7 +607,7 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
@@ -641,7 +641,7 @@ void WDbgArk::WalkAnyTable(const unsigned __int64 table_start,
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
@@ -673,7 +673,7 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
@@ -730,7 +730,7 @@ PAGE:0000000140482184 E8 37 B1 F0 FF                                call    ExRe
 
 bool WDbgArk::FindDbgkLkmdCallbackArray() {
     if ( m_strict_minor_build <= VISTA_SP2_VER ) {
-        out << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return false;
     }
 
@@ -742,14 +742,14 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
     unsigned __int64 offset = 0;
 
     if ( !GetSymbolOffset("nt!DbgkLkmdUnregisterCallback", true, &offset) ) {
-        err << __FUNCTION__ << ": can't find nt!DbgkLkmdUnregisterCallback" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": can't find nt!DbgkLkmdUnregisterCallback" << endlerr;
         return false;
     }
 
     std::unique_ptr<WDbgArkUdis> udis(new WDbgArkUdis(0, offset, MAX_INSN_LENGTH * 20));
 
     if ( !udis->IsInited() ) {
-        err << __FUNCTION__ << ": can't init Udis class" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": can't init Udis class" << endlerr;
         return false;
     }
 
@@ -771,7 +771,7 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
     }
 
     if ( !ret_address ) {
-        err << __FUNCTION__ << ": disassembly failed" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": disassembly failed" << endlerr;
         return false;
     }
 
@@ -782,7 +782,7 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
         ret_address = g_Ext->EvalExprU64(string_value.str().c_str());
     }
     catch (const ExtStatusException &Ex) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return false;
     }
 
@@ -796,7 +796,7 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
                                                      &id);
 
     if ( !SUCCEEDED(hresult) ) {
-        err << __FUNCTION__ << ": failed to add synthetic symbol DbgkLkmdCallbackArray" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to add synthetic symbol DbgkLkmdCallbackArray" << endlerr;
     } else {
         m_synthetic_symbols.push_back(id);
         return true;
