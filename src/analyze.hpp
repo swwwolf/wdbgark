@@ -38,6 +38,7 @@
 #include <memory>
 #include <utility>
 #include <set>
+#include <vector>
 
 #include "manipulators.hpp"
 
@@ -63,10 +64,10 @@ class WDbgArkAnalyzeWhiteList {
     void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int64 end) {
         m_ranges.insert(std::make_pair(start, end));
     }
-
     void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int32 size) {
-        m_ranges.insert(std::make_pair(start, start + size));
+        AddRangeWhiteList(start, start + size);
     }
+    void RemoveAll() { m_ranges.clear(); }
 
     bool AddRangeWhiteList(const std::string &module_name);
     bool AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size);
@@ -114,7 +115,8 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
         AnalyzeTypeCallback,
         AnalyzeTypeObjType,
         AnalyzeTypeIDT,
-        AnalyzeTypeGDT
+        AnalyzeTypeGDT,
+        AnalyzeTypeDriver
     };
 
     WDbgArkAnalyzeBase() {}
@@ -133,14 +135,18 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
     virtual void Analyze(const unsigned __int64 address, const std::string &type, const std::string &additional_info);
     virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object) {
         std::stringstream err;
-        err << __FUNCTION__ << ": unimplemented" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
     virtual void Analyze(const ExtRemoteTyped &gdt_entry,
                          const std::string &cpu_idx,
                          const unsigned __int32 selector,
                          const std::string &additional_info) {
         std::stringstream err;
-        err << __FUNCTION__ << ": unimplemented" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+    }
+    virtual void Analyze(const ExtRemoteTyped &object) {
+        std::stringstream err;
+        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
 
  private:
@@ -209,6 +215,24 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
     unsigned __int32 GetGDTDpl(const ExtRemoteTyped &gdt_entry);
 
     std::stringstream err;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Driver analyzer
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
+ public:
+    WDbgArkAnalyzeDriver();
+    virtual ~WDbgArkAnalyzeDriver() {}
+
+    virtual void Analyze(const ExtRemoteTyped &object);
+
+ private:
+    std::vector<std::string> m_major_table_name;
+    std::vector<std::string> m_fast_io_table_name;
+    std::stringstream        out;
+    std::stringstream        warn;
+    std::stringstream        err;
 };
 //////////////////////////////////////////////////////////////////////////
 }   // namespace wa

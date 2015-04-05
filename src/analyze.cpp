@@ -29,6 +29,7 @@
 
 #include "objhelper.hpp"
 #include "strings.hpp"
+#include "./ddk.h"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -149,7 +150,7 @@ std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address) 
             if ( displacement )
                 stream_name << "+" << std::hex << std::showbase << displacement;
 
-            output_name = stream_name.str();
+            output_name = normalize_special_chars(stream_name.str());
         }
     }
 
@@ -171,11 +172,11 @@ bool WDbgArkAnalyzeWhiteList::AddRangeWhiteList(const std::string &module_name) 
             AddRangeWhiteList(module_start, static_cast<unsigned __int32>(info.ImageSize));
             return true;
         } else {
-            err << __FUNCTION__ << ": Failed to find module by name " << module_name << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": Failed to find module by name " << module_name << endlerr;
         }
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     return false;
@@ -213,7 +214,7 @@ void WDbgArkBPProxy::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
 
     if ( !SUCCEEDED(result.first) ) {
         std::stringstream warn;
-        warn << __FUNCTION__ ": GetObjectName failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": GetObjectName failed" << endlwarn;
     } else {
         object_name = result.second;
     }
@@ -245,6 +246,10 @@ std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const AnalyzeType
 
         case AnalyzeType::AnalyzeTypeGDT:
             return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeGDT);
+        break;
+
+        case AnalyzeType::AnalyzeTypeDriver:
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDriver);
         break;
 
         case AnalyzeType::AnalyzeTypeDefault:
@@ -366,7 +371,7 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
         PrintFooter();
     }
     catch(const ExtRemoteException &Ex) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 //////////////////////////////////////////////////////////////////////////
@@ -466,7 +471,7 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
         FlushOut();
     }
     catch( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
@@ -804,5 +809,136 @@ std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
         }
     }
 }
+//////////////////////////////////////////////////////////////////////////
+WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver() : m_major_table_name(),
+                                               m_fast_io_table_name(),
+                                               out(),
+                                               warn(),
+                                               err() {
+    // width = 180
+    AddColumn("Address", 18);
+    AddColumn("Name", 68);
+    AddColumn("Symbol", 68);
+    AddColumn("Module", 16);
+    AddColumn("Suspicious", 10);
+
+    m_major_table_name.push_back(make_string(IRP_MJ_CREATE));
+    m_major_table_name.push_back(make_string(IRP_MJ_CREATE_NAMED_PIPE));
+    m_major_table_name.push_back(make_string(IRP_MJ_CLOSE));
+    m_major_table_name.push_back(make_string(IRP_MJ_READ));
+    m_major_table_name.push_back(make_string(IRP_MJ_WRITE));
+    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_INFORMATION));
+    m_major_table_name.push_back(make_string(IRP_MJ_SET_INFORMATION));
+    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_EA));
+    m_major_table_name.push_back(make_string(IRP_MJ_SET_EA));
+    m_major_table_name.push_back(make_string(IRP_MJ_FLUSH_BUFFERS));
+    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_VOLUME_INFORMATION));
+    m_major_table_name.push_back(make_string(IRP_MJ_SET_VOLUME_INFORMATION));
+    m_major_table_name.push_back(make_string(IRP_MJ_DIRECTORY_CONTROL));
+    m_major_table_name.push_back(make_string(IRP_MJ_FILE_SYSTEM_CONTROL));
+    m_major_table_name.push_back(make_string(IRP_MJ_DEVICE_CONTROL));
+    m_major_table_name.push_back(make_string(IRP_MJ_INTERNAL_DEVICE_CONTROL));
+    m_major_table_name.push_back(make_string(IRP_MJ_SHUTDOWN));
+    m_major_table_name.push_back(make_string(IRP_MJ_LOCK_CONTROL));
+    m_major_table_name.push_back(make_string(IRP_MJ_CLEANUP));
+    m_major_table_name.push_back(make_string(IRP_MJ_CREATE_MAILSLOT));
+    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_SECURITY));
+    m_major_table_name.push_back(make_string(IRP_MJ_SET_SECURITY));
+    m_major_table_name.push_back(make_string(IRP_MJ_POWER));
+    m_major_table_name.push_back(make_string(IRP_MJ_SYSTEM_CONTROL));
+    m_major_table_name.push_back(make_string(IRP_MJ_DEVICE_CHANGE));
+    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_QUOTA));
+    m_major_table_name.push_back(make_string(IRP_MJ_SET_QUOTA));
+    m_major_table_name.push_back(make_string(IRP_MJ_PNP));
+
+    m_fast_io_table_name.push_back(make_string(FastIoCheckIfPossible));
+    m_fast_io_table_name.push_back(make_string(FastIoRead));
+    m_fast_io_table_name.push_back(make_string(FastIoWrite));
+    m_fast_io_table_name.push_back(make_string(FastIoQueryBasicInfo));
+    m_fast_io_table_name.push_back(make_string(FastIoQueryStandardInfo));
+    m_fast_io_table_name.push_back(make_string(FastIoLock));
+    m_fast_io_table_name.push_back(make_string(FastIoUnlockSingle));
+    m_fast_io_table_name.push_back(make_string(FastIoUnlockAll));
+    m_fast_io_table_name.push_back(make_string(FastIoUnlockAllByKey));
+    m_fast_io_table_name.push_back(make_string(FastIoDeviceControl));
+    m_fast_io_table_name.push_back(make_string(AcquireFileForNtCreateSection));
+    m_fast_io_table_name.push_back(make_string(ReleaseFileForNtCreateSection));
+    m_fast_io_table_name.push_back(make_string(FastIoDetachDevice));
+    m_fast_io_table_name.push_back(make_string(FastIoQueryNetworkOpenInfo));
+    m_fast_io_table_name.push_back(make_string(AcquireForModWrite));
+    m_fast_io_table_name.push_back(make_string(MdlRead));
+    m_fast_io_table_name.push_back(make_string(MdlReadComplete));
+    m_fast_io_table_name.push_back(make_string(PrepareMdlWrite));
+    m_fast_io_table_name.push_back(make_string(MdlWriteComplete));
+    m_fast_io_table_name.push_back(make_string(FastIoReadCompressed));
+    m_fast_io_table_name.push_back(make_string(FastIoWriteCompressed));
+    m_fast_io_table_name.push_back(make_string(MdlReadCompleteCompressed));
+    m_fast_io_table_name.push_back(make_string(MdlWriteCompleteCompressed));
+    m_fast_io_table_name.push_back(make_string(FastIoQueryOpen));
+    m_fast_io_table_name.push_back(make_string(ReleaseForModWrite));
+    m_fast_io_table_name.push_back(make_string(AcquireForCcFlush));
+    m_fast_io_table_name.push_back(make_string(ReleaseForCcFlush));
+}
+
+void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
+    ExtRemoteTyped loc_object = object;
+
+    try {
+        PrintObjectDmlCmd(object);
+        PrintFooter();
+
+        std::unique_ptr<WDbgArkAnalyzeBase> display = Create(AnalyzeType::AnalyzeTypeDefault);
+
+        if ( !display->AddSymbolWhiteList("nt!IopInvalidDeviceRequest", 0) )
+            warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+
+        auto driver_start = loc_object.Field("DriverStart").GetPtr();
+        unsigned __int32 driver_size = loc_object.Field("DriverSize").GetUlong();
+
+        if ( driver_start && driver_size )
+            display->AddRangeWhiteList(driver_start, driver_size);
+
+        out << wa::showplus << "Driver routines: " << endlout;
+        PrintFooter();
+
+        display->Analyze(loc_object.Field("DriverInit").GetPtr(), "DriverInit", "");
+        display->Analyze(loc_object.Field("DriverStartIo").GetPtr(), "DriverStartIo", "");
+        display->Analyze(loc_object.Field("DriverUnload").GetPtr(), "DriverUnload", "");
+        PrintFooter();
+
+        out << wa::showplus << "Major table routines: " << endlout;
+        PrintFooter();
+
+        ExtRemoteTyped major_table = loc_object.Field("MajorFunction");
+
+        for ( unsigned __int64 i = 0; i < m_major_table_name.size(); i++ )
+            display->Analyze(major_table[i].GetPtr(), m_major_table_name.at(i), "");
+
+        PrintFooter();
+
+        ExtRemoteTyped fast_io_dispatch = loc_object.Field("FastIoDispatch");
+        auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
+
+        if ( fast_io_dispatch_ptr ) {
+            out << wa::showplus << "FastIO table routines: " << endlout;
+            PrintFooter();
+
+            fast_io_dispatch_ptr += fast_io_dispatch.GetFieldOffset("FastIoCheckIfPossible");
+
+            for ( unsigned __int32 i = 0; i < m_fast_io_table_name.size(); i++ ) {
+                ExtRemoteData fast_io_dispatch_data(fast_io_dispatch_ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+                display->Analyze(fast_io_dispatch_data.GetPtr(), m_fast_io_table_name.at(i), "");
+            }
+
+            PrintFooter();
+        }
+    }
+    catch(const ExtRemoteException &Ex) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    PrintFooter();
+}
+
 //////////////////////////////////////////////////////////////////////////
 }   // namespace wa
