@@ -180,6 +180,7 @@
     <ClCompile Include="src\colorhack.cpp" />
     <ClCompile Include="src\colorize.cpp" />
     <ClCompile Include="src\crashdmpcall.cpp" />
+    <ClCompile Include="src\drvmajor.cpp" />
     <ClCompile Include="src\dummypdb.cpp" />
     <ClCompile Include="src\haltables.cpp" />
     <ClCompile Include="src\idt_gdt.cpp" />

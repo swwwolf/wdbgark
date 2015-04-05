@@ -167,6 +167,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_colorize);
     EXT_COMMAND_METHOD(wa_crashdmpcall);
     EXT_COMMAND_METHOD(wa_haltables);
+    EXT_COMMAND_METHOD(wa_drvmajor);
 
     //////////////////////////////////////////////////////////////////////////
     // init
@@ -257,6 +258,10 @@ class WDbgArk : public ExtExtension {
     static HRESULT DeviceNodeCallback(WDbgArk* wdbg_ark_class,
                                       const ExtRemoteTyped &device_node,
                                       void* context);
+
+    static HRESULT DirectoryObjectDriverCallback(WDbgArk* wdbg_ark_class,
+                                                 const ExtRemoteTyped &object,
+                                                 void* context);
 
     //////////////////////////////////////////////////////////////////////////
     // helpers

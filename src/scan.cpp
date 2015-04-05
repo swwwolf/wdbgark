@@ -43,13 +43,13 @@ EXT_COMMAND(wa_scan,
     if ( HasArg("log") )
         Execute(".logopen /t %s", GetArgStr("log"));
 
-    out << "--------------------------------------------------------------------------" << endlout;
-    out << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
+    out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
+    out << wa::showplus << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
 
     char time_buffer[26];
     std::time_t time_start = std::time(nullptr);
 
-    out << "Scan start: ";
+    out << wa::showplus << "Scan start: ";
 
     if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_start) ) {
         time_buffer[24] = '\0';  // remove \n
@@ -58,121 +58,129 @@ EXT_COMMAND(wa_scan,
 
     out << endlout;
 
-    out << "--------------------------------------------------------------------------" << endlout;
+    out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     Execute("vertarget");
-    out << "--------------------------------------------------------------------------" << endlout;
+    out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     Execute("!vm");
-    out << "--------------------------------------------------------------------------" << endlout;
+    out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
 
     try {
-        out << "<b>!wa_ssdt</b>" << endlout;
+        out << wa::showplus << "<b>!wa_ssdt</b>" << endlout;
         wa_ssdt();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_w32psdt</b>" << endlout;
+        out << wa::showplus << "<b>!wa_w32psdt</b>" << endlout;
         wa_w32psdt();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_idt</b>" << endlout;
+        out << wa::showplus << "<b>!wa_idt</b>" << endlout;
         wa_idt();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_gdt</b>" << endlout;
+        out << wa::showplus << "<b>!wa_gdt</b>" << endlout;
         wa_gdt();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_checkmsr</b>" << endlout;
+        out << wa::showplus << "<b>!wa_checkmsr</b>" << endlout;
         wa_checkmsr();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_systemcb</b>" << endlout;
+        out << wa::showplus << "<b>!wa_systemcb</b>" << endlout;
         wa_systemcb();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_objtype</b>" << endlout;
+        out << wa::showplus << "<b>!wa_objtype</b>" << endlout;
         wa_objtype();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_objtypeidx</b>" << endlout;
+        out << wa::showplus << "<b>!wa_objtypeidx</b>" << endlout;
         wa_objtypeidx();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_objtypecb</b>" << endlout;
+        out << wa::showplus << "<b>!wa_objtypecb</b>" << endlout;
         wa_objtypecb();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_callouts</b>" << endlout;
+        out << wa::showplus << "<b>!wa_callouts</b>" << endlout;
         wa_callouts();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_pnptable</b>" << endlout;
+        out << wa::showplus << "<b>!wa_pnptable</b>" << endlout;
         wa_pnptable();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_crashdmpcall</b>" << endlout;
+        out << wa::showplus << "<b>!wa_crashdmpcall</b>" << endlout;
         wa_crashdmpcall();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     try {
-        out << "<b>!wa_haltables</b>" << endlout;
+        out << wa::showplus << "<b>!wa_haltables</b>" << endlout;
         wa_haltables();
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    out << "--------------------------------------------------------------------------" << endlout;
-    out << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << endlout;
+    try {
+        out << wa::showplus << "<b>!wa_drvmajor</b>" << endlout;
+        wa_drvmajor();
+    }
+    catch ( const ExtStatusException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
+    out << wa::showplus << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << endlout;
 
     std::time_t time_end = std::time(nullptr);
-    out << "Scan end: ";
+    out << wa::showplus << "Scan end: ";
 
     if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_end) ) {
         time_buffer[24] = '\0';  // remove \n
@@ -181,10 +189,10 @@ EXT_COMMAND(wa_scan,
 
     out << endlout;
 
-    out << "Scan took ";
+    out << wa::showplus << "Scan took ";
     out << std::fixed << std::setprecision(2) << difftime(time_end, time_start) << " seconds" << endlout;
 
-    out << "--------------------------------------------------------------------------" << endlout;
+    out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
 
     if ( HasArg("log") )
         Execute(".logclose");
