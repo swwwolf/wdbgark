@@ -43,7 +43,7 @@ EXT_COMMAND(wa_objtype,
 
     out << "Displaying \\ObjectTypes\\" << type << endlout;
 
-    unsigned __int64 object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes", 0);
+    auto object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes", 0);
 
     if ( !object_types_directory_offset ) {
         err << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
