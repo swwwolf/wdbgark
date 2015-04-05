@@ -38,33 +38,33 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Displaying nt!CrashdmpCallTable" << endlout;
+    out << wa::showplus << "Displaying nt!CrashdmpCallTable" << endlout;
 
     if ( m_strict_minor_build <= W2K3_VER ) {
-        out << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
 
     unsigned __int32 table_count = GetCrashdmpCallTableCount();
 
     if ( !table_count ) {
-        err << __FUNCTION__ << ": unknown table count" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": unknown table count" << endlerr;
         return;
     }
 
     unsigned __int64 offset = 0;
 
     if ( !GetSymbolOffset("nt!CrashdmpCallTable", true, &offset) ) {
-        err << __FUNCTION__ << ": failed to find nt!CrashdmpCallTable" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to find nt!CrashdmpCallTable" << endlerr;
         return;
     }
 
-    out << "nt!CrashdmpCallTable: " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << "nt!CrashdmpCallTable: " << std::hex << std::showbase << offset << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("crashdmp") )
-        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 

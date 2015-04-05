@@ -35,38 +35,38 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Displaying nt!KiServiceTable" << endlout;
+    out << wa::showplus << "Displaying nt!KiServiceTable" << endlout;
 
     unsigned __int64 offset = 0;
     unsigned __int32 limit  = 0;
 
     try {
         if ( !GetSymbolOffset("nt!KiServiceLimit", true, &offset) ) {
-            err << __FUNCTION__ << ": failed to find nt!KiServiceLimit" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to find nt!KiServiceLimit" << endlerr;
             return;
         }
 
-        out << "nt!KiServiceLimit: " << std::hex << std::showbase << offset << endlout;
+        out << wa::showplus << "nt!KiServiceLimit: " << std::hex << std::showbase << offset << endlout;
 
         ExtRemoteData ki_service_limit(offset, sizeof(limit));
         limit = ki_service_limit.GetUlong();
 
         if ( !limit ) {
-            err << __FUNCTION__ << ": invalid service limit number" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
             return;
         }
 
-        out << "ServiceLimit:      " << std::hex << std::showbase << limit << endlout;
+        out << wa::showplus << "ServiceLimit:      " << std::hex << std::showbase << limit << endlout;
 
         if ( !GetSymbolOffset("nt!KiServiceTable", true, &offset) ) {
-            err << __FUNCTION__ << ": failed to find nt!KiServiceTable" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to find nt!KiServiceTable" << endlerr;
             return;
         }
 
-        out << "nt!KiServiceTable: " << std::hex << std::showbase << offset << endlout;
+        out << wa::showplus << "nt!KiServiceTable: " << std::hex << std::showbase << offset << endlout;
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return;
     }
     catch( const ExtInterruptException& ) {
@@ -76,7 +76,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("nt") )
-        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 
@@ -105,7 +105,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;
@@ -122,7 +122,7 @@ EXT_COMMAND(wa_w32psdt,
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Displaying win32k!W32pServiceTable" << endlout;
+    out << wa::showplus << "Displaying win32k!W32pServiceTable" << endlout;
 
     std::unique_ptr<WDbgArkProcess> process_helper(new WDbgArkProcess);
 
@@ -141,31 +141,31 @@ EXT_COMMAND(wa_w32psdt,
 
     try {
         if ( !GetSymbolOffset("win32k!W32pServiceLimit", true, &offset) ) {
-            err << __FUNCTION__ << ": failed to find win32k!W32pServiceLimit" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to find win32k!W32pServiceLimit" << endlerr;
             return;
         }
 
-        out << "win32k!W32pServiceLimit: " << std::hex << std::showbase << offset << endlout;
+        out << wa::showplus << "win32k!W32pServiceLimit: " << std::hex << std::showbase << offset << endlout;
 
         ExtRemoteData w32_service_limit(offset, sizeof(limit));
         limit = w32_service_limit.GetUlong();
 
         if ( !limit ) {
-            err << __FUNCTION__ << ": invalid service limit number" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
             return;
         }
 
-        out << "ServiceLimit:            " << std::hex << std::showbase << limit << endlout;
+        out << wa::showplus << "ServiceLimit:            " << std::hex << std::showbase << limit << endlout;
 
         if ( !GetSymbolOffset("win32k!W32pServiceTable", true, &offset) ) {
-            err << __FUNCTION__ << ": failed to find win32k!W32pServiceTable" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to find win32k!W32pServiceTable" << endlerr;
             return;
         }
 
-        out << "win32k!W32pServiceTable: " << std::hex << std::showbase << offset << endlout;
+        out << wa::showplus << "win32k!W32pServiceTable: " << std::hex << std::showbase << offset << endlout;
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return;
     }
     catch( const ExtInterruptException& ) {
@@ -175,7 +175,7 @@ EXT_COMMAND(wa_w32psdt,
     auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("win32k") )
-        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 
@@ -208,7 +208,7 @@ EXT_COMMAND(wa_w32psdt,
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;

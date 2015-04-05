@@ -48,7 +48,7 @@ WDbgArkProcess::WDbgArkProcess() : m_inited(false),
             std::pair<bool, std::string> result = GetProcessImageFileName(info.process);
 
             if ( !result.first ) {
-                warn << __FUNCTION__ << ": failed to read process file name ";
+                warn << wa::showqmark << __FUNCTION__ << ": failed to read process file name ";
                 warn << std::hex << std::showbase << info.process.m_Offset << endlwarn;
             } else {
                 std::string image_file_name = result.second;
@@ -68,7 +68,7 @@ WDbgArkProcess::WDbgArkProcess() : m_inited(false),
             m_inited = true;
     }
     catch( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 }
 
@@ -76,7 +76,7 @@ unsigned __int64 WDbgArkProcess::FindEProcessByImageFileName(const std::string &
     ProcessInfo info;
 
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return 0ULL;
     }
 
@@ -88,7 +88,7 @@ unsigned __int64 WDbgArkProcess::FindEProcessByImageFileName(const std::string &
 
 unsigned __int64 WDbgArkProcess::FindEProcessAnyGUIProcess() {
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return 0ULL;
     }
 
@@ -103,7 +103,7 @@ unsigned __int64 WDbgArkProcess::FindEProcessAnyGUIProcess() {
             return it->eprocess;
     }
     catch( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     return 0ULL;
@@ -113,17 +113,17 @@ HRESULT WDbgArkProcess::SetImplicitProcess(const unsigned __int64 set_eprocess) 
     HRESULT error;
 
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return E_UNEXPECTED;
     }
 
     if ( m_current_process ) {
-        err << __FUNCTION__ << ": implicit process already set" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": implicit process already set" << endlerr;
         return E_INVALIDARG;
     }
 
     if ( !SUCCEEDED(error = g_Ext->m_System2->GetImplicitProcessDataOffset(&m_current_process)) ) {
-        err << __FUNCTION__ << ": failed to get current EPROCESS" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to get current EPROCESS" << endlerr;
         return error;
     }
 
@@ -133,7 +133,7 @@ HRESULT WDbgArkProcess::SetImplicitProcess(const unsigned __int64 set_eprocess) 
     }
 
     if ( !SUCCEEDED(error = g_Ext->m_System2->SetImplicitProcessDataOffset(set_eprocess)) ) {
-        err << __FUNCTION__ << ": failed to set implicit process to ";
+        err << wa::showminus << __FUNCTION__ << ": failed to set implicit process to ";
         err << std::hex << std::showbase << set_eprocess << endlerr;
     }
 
@@ -154,7 +154,7 @@ std::pair<bool, std::string> WDbgArkProcess::GetProcessImageFileName(const ExtRe
         return std::make_pair(true, output_name);
     }
     catch( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     return std::make_pair(false, output_name);

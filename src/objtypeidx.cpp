@@ -33,26 +33,26 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Displaying nt!ObTypeIndexTable" << endlout;
+    out << wa::showplus << "Displaying nt!ObTypeIndexTable" << endlout;
 
     if ( m_strict_minor_build <= VISTA_SP2_VER ) {
-        out << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
 
     unsigned __int64 offset = 0;
 
     if ( !GetSymbolOffset("nt!ObTypeIndexTable", true, &offset) ) {
-        err << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;
         return;
     }
 
-    out << "nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << "nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeObjType);
 
     if ( !display->AddRangeWhiteList("nt") )
-        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 
@@ -66,12 +66,12 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
             if ( !SUCCEEDED(DirectoryObjectTypeCallback(this,
                                                         object_type,
                                                         reinterpret_cast<void*>(display.get()))) ) {
-                err << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
             }
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;

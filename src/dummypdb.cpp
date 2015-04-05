@@ -67,7 +67,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
 
     // it is not possible to remove this fake module on unload
     if ( !RemoveDummyPdbModule(g_Ext->m_Symbols3) ) {
-        err << __FUNCTION__ << ": RemoveDummyPdbModule failed" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": RemoveDummyPdbModule failed" << endlerr;
         return false;
     }
 
@@ -79,7 +79,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     std::unique_ptr<WDbgArkResHelper> res_helper(new WDbgArkResHelper);
 
     if ( !res_helper->DropResource(resource_name, "RT_RCDATA", m_dummy_pdb_name_long) ) {
-        err << __FUNCTION__ << ": DropResource failed" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": DropResource failed" << endlerr;
         return false;
     }
 
@@ -87,7 +87,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
 
     if ( !CheckSymbolsPath(m_drop_path, false) ) {
         if ( !SUCCEEDED(g_Ext->m_Symbols->AppendSymbolPath(m_drop_path.c_str())) ) {
-            err << __FUNCTION__ << ": AppendSymbolPath failed" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": AppendSymbolPath failed" << endlerr;
             return false;
         }
     }
@@ -95,7 +95,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     std::string reload_cmd = "/i " + m_dummy_pdb_name_short + "=0xFFFFFFFFFFFFF000,0xFFF";
 
     if ( !SUCCEEDED(g_Ext->m_Symbols->Reload(reload_cmd.c_str())) ) {
-        err << __FUNCTION__ << ": Reload failed" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": Reload failed" << endlerr;
         return false;
     }
 

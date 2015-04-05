@@ -83,7 +83,7 @@ static std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemo
     catch ( const ExtRemoteException &Ex ) {
         std::stringstream locerr;
 
-        locerr << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        locerr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return std::make_pair(Ex.GetStatus(), output_string);
     }
 

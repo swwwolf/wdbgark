@@ -49,12 +49,12 @@ WDbgArkObjHelper::WDbgArkObjHelper() : m_inited(false),
         m_object_header_old = false;  // new header format
 
         if ( !g_Ext->GetSymbolOffset("nt!ObpInfoMaskToOffset", true, &m_ObpInfoMaskToOffset) ) {
-            err << __FUNCTION__ << ": failed to find nt!ObpInfoMaskToOffset";
+            err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObpInfoMaskToOffset";
             return;
         }
 
         if ( !g_Ext->GetSymbolOffset("nt!ObTypeIndexTable", true, &m_ObTypeIndexTableOffset) ) {
-            err << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable";
+            err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable";
             return;
         }
 
@@ -68,12 +68,12 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
     std::string      compare_with = object_name;
 
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return 0ULL;
     }
 
     if ( object_name.empty() ) {
-        err << __FUNCTION__ << ": invalid object name" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": invalid object name" << endlerr;
         return 0ULL;
     }
 
@@ -82,7 +82,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
     try {
         if ( !offset ) {
             if ( !g_Ext->GetSymbolOffset("nt!ObpRootDirectoryObject", true, &offset) ) {
-                err << __FUNCTION__ << ": failed to get nt!ObpRootDirectoryObject" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": failed to get nt!ObpRootDirectoryObject" << endlerr;
                 return 0ULL;
             } else {
                 ExtRemoteData directory_object_ptr(offset, g_Ext->m_PtrSize);
@@ -122,7 +122,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     return 0ULL;
@@ -135,26 +135,26 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
         ExtRemoteTyped loc_object = object;
 
         if ( !IsInited() ) {
-            err << __FUNCTION__ << ": class is not initialized" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
             return std::make_pair(E_NOT_VALID_STATE, object_header);
         }
 
         unsigned __int32 offset = 0;
 
         if ( GetFieldOffset("nt!_OBJECT_HEADER", "Body", reinterpret_cast<PULONG>(&offset)) != 0 ) {
-            err << __FUNCTION__ << ": GetFieldOffset failed" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": GetFieldOffset failed" << endlerr;
             return std::make_pair(E_UNEXPECTED, object_header);
         }
 
         if ( !offset ) {
-            err << __FUNCTION__ << ": body field is missing in nt!_OBJECT_HEADER" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": body field is missing in nt!_OBJECT_HEADER" << endlerr;
             return std::make_pair(E_UNEXPECTED, object_header);
         }
 
         object_header.Set("nt!_OBJECT_HEADER", object.m_Offset - offset, false, NULL, NULL);
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return std::make_pair(Ex.GetStatus(), object_header);
     }
 
@@ -168,7 +168,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
         ExtRemoteTyped loc_object_header = object_header;
 
         if ( !IsInited() ) {
-            err << __FUNCTION__ << ": class is not initialized" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
             return std::make_pair(E_NOT_VALID_STATE, object_header_name_info);
         }
 
@@ -206,7 +206,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return std::make_pair(Ex.GetStatus(), object_header_name_info);
     }
 
@@ -217,21 +217,21 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteT
     std::string output_string = "*UNKNOWN*";
 
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return std::make_pair(E_NOT_VALID_STATE, output_string);
     }
 
     std::pair<HRESULT, ExtRemoteTyped> result = GetObjectHeader(object);
 
     if ( !SUCCEEDED(result.first) ) {
-        err << __FUNCTION__ << ": failed to get object header" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to get object header" << endlerr;
         return std::make_pair(result.first, output_string);
     }
 
     result = GetObjectHeaderNameInfo(result.second);
 
     if ( !SUCCEEDED(result.first) ) {
-        err << __FUNCTION__ << ": failed to get object header name info" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to get object header name info" << endlerr;
         return std::make_pair(result.first, output_string);
     }
 
@@ -244,7 +244,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemo
     ExtRemoteTyped object_type;
 
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return std::make_pair(E_NOT_VALID_STATE, object_type);
     }
 
@@ -252,7 +252,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemo
         auto result_header = GetObjectHeader(object);
 
         if ( !SUCCEEDED(result_header.first) ) {
-            err << __FUNCTION__ << ": failed to get object header" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to get object header" << endlerr;
             return std::make_pair(result_header.first, object_type);
         }
 
@@ -265,7 +265,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemo
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return std::make_pair(Ex.GetStatus(), object_type);
     }
 
@@ -276,14 +276,14 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectTypeName(const ExtRem
     std::string output_string = "*UNKNOWN*";
 
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return std::make_pair(E_NOT_VALID_STATE, output_string);
     }
 
     auto result_type = GetObjectType(object);
 
     if ( !SUCCEEDED(result_type.first) ) {
-        err << __FUNCTION__ << ": failed to get object type" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to get object type" << endlerr;
         return std::make_pair(result_type.first, output_string);
     }
 

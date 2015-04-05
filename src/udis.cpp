@@ -100,7 +100,7 @@ WDbgArkUdis::WDbgArkUdis(unsigned __int8 mode, unsigned __int64 address, size_t 
 
 bool WDbgArkUdis::SetInputBuffer(const unsigned char* buffer, const size_t size) {
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return false;
     }
 
@@ -125,7 +125,7 @@ bool WDbgArkUdis::SetInputBuffer(const unsigned __int64 address, const size_t si
         return true;
     }
     catch (const ExtRemoteException &Ex) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
     return false;

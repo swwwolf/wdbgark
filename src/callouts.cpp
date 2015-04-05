@@ -88,12 +88,12 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Displaying Win32k callouts" << endlout;
+    out << wa::showplus << "Displaying Win32k callouts" << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("win32k") )
-        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 
@@ -128,7 +128,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;

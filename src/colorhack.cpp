@@ -255,10 +255,10 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         m_inited = true;
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( ... ) {
-        err << __FUNCTION__ << ": exception error" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": exception error" << endlerr;
     }
 }
 
@@ -303,7 +303,7 @@ bool WDbgArkColorHack::IsWinDbgWindow(void) {
 
 void WDbgArkColorHack::PrintInformation(void) {
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return;
     }
 
@@ -328,36 +328,39 @@ void WDbgArkColorHack::PrintInformation(void) {
 
 void WDbgArkColorHack::PrintMemoryInfo(void) {
     try {
-        out << "--------------------------------------------------------------------------" << endlout;
+        out << wa::showplus << "--------------------------------------------------------------------------";
+        out << endlout;
 
         UiColor* loc_ui_color = m_g_ui_colors;
         while ( loc_ui_color->description ) {
-            out << "Description : " << wstring_to_string(loc_ui_color->description) << endlout;
-            out << "DML name    : " << wstring_to_string(loc_ui_color->dml_name) << endlout;
-            out << "Colorref    : " << std::internal << std::setw(8) << std::setfill('0');
-            out << std::hex << std::showbase << loc_ui_color->color << endlout;
-            out << "Intcolorref : " << std::internal << std::setw(8) << std::setfill('0');
-            out << std::hex << std::showbase << loc_ui_color->int_color << endlout;
-            out << "--------------------------------------------------------------------------" << endlout;
+            out << wa::showplus << "Description : " << wstring_to_string(loc_ui_color->description) << endlout;
+            out << wa::showplus << "DML name    : " << wstring_to_string(loc_ui_color->dml_name) << endlout;
+            out << wa::showplus << "Colorref    : " << std::internal << std::setw(8) << std::setfill('0');
+            out << wa::showplus << std::hex << std::showbase << loc_ui_color->color << endlout;
+            out << wa::showplus << "Intcolorref : " << std::internal << std::setw(8) << std::setfill('0');
+            out << wa::showplus << std::hex << std::showbase << loc_ui_color->int_color << endlout;
+            out << wa::showplus << "--------------------------------------------------------------------------";
+            out << endlout;
 
             loc_ui_color++;
         }
 
         loc_ui_color = m_g_out_mask_ui_colors;
         while ( loc_ui_color->description ) {
-            out << "Description : " << wstring_to_string(loc_ui_color->description) << endlout;
-            out << "DML name    : " << wstring_to_string(loc_ui_color->dml_name) << endlout;
-            out << "Colorref    : " << std::internal << std::setw(8) << std::setfill('0');
-            out << std::hex << std::showbase << loc_ui_color->color << endlout;
-            out << "Intcolorref : " << std::internal << std::setw(8) << std::setfill('0');
-            out << std::hex << std::showbase << loc_ui_color->int_color << endlout;
-            out << "--------------------------------------------------------------------------" << endlout;
+            out << wa::showplus << "Description : " << wstring_to_string(loc_ui_color->description) << endlout;
+            out << wa::showplus << "DML name    : " << wstring_to_string(loc_ui_color->dml_name) << endlout;
+            out << wa::showplus << "Colorref    : " << std::internal << std::setw(8) << std::setfill('0');
+            out << wa::showplus << std::hex << std::showbase << loc_ui_color->color << endlout;
+            out << wa::showplus << "Intcolorref : " << std::internal << std::setw(8) << std::setfill('0');
+            out << wa::showplus << std::hex << std::showbase << loc_ui_color->int_color << endlout;
+            out << wa::showplus << "--------------------------------------------------------------------------";
+            out << endlout;
 
             loc_ui_color++;
         }
     }
     catch( ... ) {
-        err << __FUNCTION__ << ": exception error" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": exception error" << endlerr;
     }
 }
 
@@ -391,7 +394,7 @@ void WDbgArkColorHack::InitThemes(void) {
 
 bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return false;
     }
 
@@ -401,7 +404,7 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
     themes::const_iterator it = m_themes.find(theme_name);
 
     if ( it == m_themes.end() ) {
-        err << __FUNCTION__ << ": failed to find theme " << theme_name << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to find theme " << theme_name << endlerr;
         return false;
     }
 
@@ -409,7 +412,7 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
 
     for ( const auto &element : elems ) {
         if ( !SetColor(element.first, element.second) ) {
-            err << __FUNCTION__ << ": failed to set new color for " << element.first << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to set new color for " << element.first << endlerr;
             RevertColors();
             return false;
         }
@@ -441,7 +444,7 @@ WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiC
 
 void WDbgArkColorHack::RevertColors(void) {
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return;
     }
 
@@ -460,7 +463,7 @@ void WDbgArkColorHack::RevertColors(void) {
         }
     }
     catch( ... ) {
-        err << __FUNCTION__ << ": exception error" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": exception error" << endlerr;
     }
 
     m_cur_theme.clear();
@@ -468,7 +471,7 @@ void WDbgArkColorHack::RevertColors(void) {
 
 bool WDbgArkColorHack::SetColor(const std::string &dml_name, const COLORREF color) {
     if ( !IsInited() ) {
-        err << __FUNCTION__ << ": class is not initialized" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return false;
     }
 

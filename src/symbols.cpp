@@ -39,7 +39,7 @@ bool CheckSymbolsPath(const std::string& test_path, const bool display_error) {
     HRESULT hresult = g_Ext->m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&buffer_size));
 
     if ( !SUCCEEDED(hresult) ) {
-        err << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
+        err << wa::showminus << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
         return false;
     }
 
@@ -50,7 +50,7 @@ bool CheckSymbolsPath(const std::string& test_path, const bool display_error) {
                                               reinterpret_cast<PULONG>(&buffer_size));
 
     if ( !SUCCEEDED(hresult) ) {
-        err << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
+        err << wa::showminus << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
         return false;
     }
 
@@ -58,13 +58,13 @@ bool CheckSymbolsPath(const std::string& test_path, const bool display_error) {
 
     if ( check_path.empty() || check_path == " " ) {
         if ( display_error ) {
-            err << __FUNCTION__ << ": seems that your symbol path is empty. Fix it!" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": seems that your symbol path is empty. Fix it!" << endlerr;
         }
     } else if ( check_path.find(test_path) == std::string::npos ) {
         if ( display_error ) {
             std::stringstream warn;
 
-            warn << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
+            warn << wa::showqmark << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
             warn << "Include symbol path (" << test_path << ")" << endlwarn;
         }
     } else {

@@ -34,35 +34,66 @@
 
 #include <sstream>
 #include <iomanip>
+#include <string>
+#include <regex>
 
 namespace wa {
 
 /* global stream manipulators */
-inline std::ostream& endlout(std::ostream& arg) {
+inline std::ostream& showplus(std::ostream &arg) {
+    arg << "[+] ";
+    return arg;
+}
+
+inline std::ostream& showminus(std::ostream &arg) {
+    arg << "[-] ";
+    return arg;
+}
+
+inline std::ostream& showqmark(std::ostream &arg) {
+    arg << "[?] ";
+    return arg;
+}
+
+inline std::ostream& endlout(std::ostream &arg) {
     std::stringstream ss;
 
     arg << "\n";
-    ss << "[+] " << arg.rdbuf();
+    ss << arg.rdbuf();
     g_Ext->Dml("%s", ss.str().c_str());
     return arg.flush();
 }
 
-inline std::ostream& endlwarn(std::ostream& arg) {
+inline std::ostream& endlwarn(std::ostream &arg) {
     std::stringstream ss;
 
     arg << "\n";
-    ss << "[?] " << arg.rdbuf();
+    ss << arg.rdbuf();
     g_Ext->DmlWarn("%s", ss.str().c_str());
     return arg.flush();
 }
 
-inline std::ostream& endlerr(std::ostream& arg) {
+inline std::ostream& endlerr(std::ostream &arg) {
     std::stringstream ss;
 
     arg << "\n";
-    ss << "[-] " << arg.rdbuf();
+    ss << arg.rdbuf();
     g_Ext->DmlErr("%s", ss.str().c_str());
     return arg.flush();
+}
+
+inline std::string normalize_special_chars(const std::string &s) {
+    std::regex regex_lt("<");
+    std::regex regex_gt(">");
+    std::regex regex_quot("\"");
+    std::regex regex_amp("&");
+
+    std::string out = std::regex_replace(s, regex_amp, "&amp;");
+    out = std::regex_replace(out, regex_lt, "&lt;");
+    out = std::regex_replace(out, regex_gt, "&gt;");
+    out = std::regex_replace(out, regex_quot, "&quot;");
+
+    return out;
 }
 
 }   // namespace wa

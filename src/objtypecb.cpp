@@ -43,17 +43,17 @@ EXT_COMMAND(wa_objtypecb,
     if ( HasArg("type") )   // object type was provided
         type.assign(GetArgStr("type"));
 
-    out << "Displaying callbacks registered with ObRegisterCallbacks with type " << type << endlout;
+    out << wa::showplus << "Displaying callbacks registered with ObRegisterCallbacks with type " << type << endlout;
 
     if ( m_strict_minor_build <= W2K3_VER ) {
-        out << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
 
     unsigned __int64 object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes", 0);
 
     if ( !object_types_directory_offset ) {
-        err << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
         return;
     }
 
@@ -75,12 +75,12 @@ EXT_COMMAND(wa_objtypecb,
             if ( !SUCCEEDED(DirectoryObjectTypeCallbackListCallback(this,
                                                                     object_type,
                                                                     reinterpret_cast<void*>(display.get()))) ) {
-                err << __FUNCTION__ << ": DirectoryObjectTypeCallbackListCallback failed" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallbackListCallback failed" << endlerr;
             }
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;
@@ -126,7 +126,7 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
     }
     catch ( const ExtRemoteException &Ex ) {
         std::stringstream tmperr;
-        tmperr << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        tmperr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
 

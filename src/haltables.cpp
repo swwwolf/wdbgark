@@ -38,17 +38,17 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Displaying HAL tables" << endlout;
+    out << wa::showplus << "Displaying HAL tables" << endlout;
 
     if ( !m_strict_minor_build ) {
-        out << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
 
     haltblInfo::const_iterator citer = m_hal_tbl_info.find(m_strict_minor_build);
 
     if ( citer == m_hal_tbl_info.end() ) {
-        err << __FUNCTION__ << ": unable to correlate internal info with the minor build" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": unable to correlate internal info with the minor build" << endlerr;
         return;
     }
 
@@ -57,15 +57,15 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
     unsigned __int64 offset_hiommu = 0;
 
     if ( !GetSymbolOffset("nt!HalDispatchTable", true, &offset_hdt) ) {
-        err << __FUNCTION__ << ": failed to find nt!HalDispatchTable" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalDispatchTable" << endlerr;
     }
 
     if ( !GetSymbolOffset("nt!HalPrivateDispatchTable", true, &offset_hpdt) ) {
-        err << __FUNCTION__ << ": failed to find nt!HalPrivateDispatchTable" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalPrivateDispatchTable" << endlerr;
     }
 
     if ( m_strict_minor_build >= W81RTM_VER && !GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
-        err << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
     }
 
     auto display = WDbgArkAnalyzeBase::Create();
@@ -105,7 +105,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
                          true);
         }
 
-        out << "nt!HalDispatchTable: " << std::hex << std::showbase << offset_hdt << endlout;
+        out << wa::showplus << "nt!HalDispatchTable: " << std::hex << std::showbase << offset_hdt << endlout;
         display->PrintHeader();
 
         for ( const auto &walk_info : output_list_hdt ) {
@@ -113,7 +113,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             display->PrintFooter();
         }
 
-        out << "nt!HalPrivateDispatchTable: " << std::hex << std::showbase << offset_hpdt << endlout;
+        out << wa::showplus << "nt!HalPrivateDispatchTable: " << std::hex << std::showbase << offset_hpdt << endlout;
         display->PrintHeader();
 
         for ( const auto &walk_info : output_list_hpdt ) {
@@ -122,7 +122,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         }
 
         if ( m_strict_minor_build >= W81RTM_VER ) {
-            out << "nt!HalIommuDispatchTable: " << std::hex << std::showbase << offset_hiommu << endlout;
+            out << wa::showplus << "nt!HalIommuDispatchTable: " << std::hex << std::showbase << offset_hiommu << endlout;
             display->PrintHeader();
 
             for ( const auto &walk_info : output_list_hiommu ) {

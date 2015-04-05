@@ -46,7 +46,7 @@ WDbgArkResHelper::WDbgArkResHelper() : m_main_subdir("wdbgark"),
         m_temp_path += (m_main_subdir + "\\");
 
         if ( _mkdir(m_temp_path.c_str()) != 0 && errno != EEXIST ) {
-            err << __FUNCTION__ << ": Failed to create directory " << m_temp_path << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": Failed to create directory " << m_temp_path << endlerr;
             m_temp_path.clear();
             return;
         }
@@ -54,7 +54,7 @@ WDbgArkResHelper::WDbgArkResHelper() : m_main_subdir("wdbgark"),
         m_temp_path += (m_platform_subdir + "\\");
 
         if ( _mkdir(m_temp_path.c_str()) != 0 && errno != EEXIST ) {
-            err << __FUNCTION__ << ": Failed to create directory " << m_temp_path << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": Failed to create directory " << m_temp_path << endlerr;
             m_temp_path.clear();
             return;
         }
@@ -67,28 +67,28 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
     HRSRC resource = FindResource(g_Ext->s_Module, resource_name, type.c_str());
 
     if ( !resource ) {
-        err << __FUNCTION__ << ": FindResource failed with error " << GetLastError() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": FindResource failed with error " << GetLastError() << endlerr;
         return false;
     }
 
     unsigned __int32 resource_size = SizeofResource(g_Ext->s_Module, resource);
 
     if ( !resource_size ) {
-        err << __FUNCTION__ << ": SizeofResource failed with error " << GetLastError() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": SizeofResource failed with error " << GetLastError() << endlerr;
         return false;
     }
 
     HGLOBAL resource_data = LoadResource(g_Ext->s_Module, resource);
 
     if ( !resource_data ) {
-        err << __FUNCTION__ << ": LoadResource failed with error " << GetLastError() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": LoadResource failed with error " << GetLastError() << endlerr;
         return false;
     }
 
     void* data = LockResource(resource_data);
 
     if ( !data ) {
-        err << __FUNCTION__ << ": LockResource failed" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": LockResource failed" << endlerr;
         return false;
     }
 
@@ -99,7 +99,7 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
     if ( drop.fail() ) {
         strerror_s(error_msg.get(), MAX_PATH, errno);
 
-        err << __FUNCTION__ << ": Error while creating file " << file_path << ", error is \"";
+        err << wa::showminus << __FUNCTION__ << ": Error while creating file " << file_path << ", error is \"";
         err << error_msg.get() << "\"" << endlerr;
         return false;
     }
@@ -109,7 +109,7 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
     if ( drop.fail() ) {
         strerror_s(error_msg.get(), MAX_PATH, errno);
 
-        err << __FUNCTION__ << ": Error while writing file " << file_path << ", error is \"";
+        err << wa::showminus << __FUNCTION__ << ": Error while writing file " << file_path << ", error is \"";
         err << error_msg.get() << "\"" << endlerr;
 
         drop.close();

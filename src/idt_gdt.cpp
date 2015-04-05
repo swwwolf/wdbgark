@@ -431,12 +431,12 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Dumping IDTs" << endlout;
+    out << wa::showplus << "Dumping IDTs" << endlout;
 
     IdtSupport support_info = {0};
 
     if ( !InitIdtSupport(m_strict_minor_build, &support_info) ) {
-        err << __FUNCTION__ << ": InitIdtSupport failed" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": InitIdtSupport failed" << endlerr;
     }
 
     auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeIDT);
@@ -455,7 +455,8 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                                     NULL);
 
             if ( !SUCCEEDED(result) ) {
-                err << __FUNCTION__ << ": ReadProcessorSystemData failed with error = " << result;
+                err << wa::showminus << __FUNCTION__ << ": ReadProcessorSystemData failed with error = " << result;
+                err << endlerr;
                 break;
             }
 
@@ -628,10 +629,10 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
         }
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;
@@ -646,7 +647,7 @@ bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* suppo
 
     if ( g_Ext->IsCurMachine64() ) {
         if ( !g_Ext->GetSymbolOffset("nt!KxUnexpectedInterrupt0", true, &support_info->start_unexpected_range) ) {
-            err << __FUNCTION__ << ": failed to get nt!KxUnexpectedInterrupt0" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to get nt!KxUnexpectedInterrupt0" << endlerr;
             return false;
         }
 
@@ -654,12 +655,12 @@ bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* suppo
             ((MAXIMUM_IDTVECTOR + 1) * GetTypeSize("nt!_UNEXPECTED_INTERRUPT"));
     } else {
         if ( !g_Ext->GetSymbolOffset("nt!KiStartUnexpectedRange", true, &support_info->start_unexpected_range) ) {
-            err << __FUNCTION__ << ": failed to get nt!KiStartUnexpectedRange" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to get nt!KiStartUnexpectedRange" << endlerr;
             return false;
         }
 
         if ( !g_Ext->GetSymbolOffset("nt!KiEndUnexpectedRange", true, &support_info->end_unexpected_range) ) {
-            err << __FUNCTION__ << ": failed to get nt!KiEndUnexpectedRange" << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": failed to get nt!KiEndUnexpectedRange" << endlerr;
             return false;
         }
     }
@@ -671,7 +672,7 @@ bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* suppo
          GetFieldOffset("nt!_KPCR",
                         "PrcbData.VectorToInterruptObject",
                         reinterpret_cast<PULONG>(&support_info->vector_to_interrupt_object)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
     }
 
     if ( (g_Ext->IsCurMachine64() || strict_minor_build <= W8RTM_VER)
@@ -679,7 +680,7 @@ bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* suppo
          GetFieldOffset("nt!_KINTERRUPT",
                         "DispatchCode",
                         reinterpret_cast<PULONG>(&support_info->dispatch_code_offset)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
     }
 
     if ( strict_minor_build >= VISTA_RTM_VER
@@ -687,19 +688,19 @@ bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* suppo
          GetFieldOffset("nt!_KINTERRUPT",
                         "MessageServiceRoutine",
                         reinterpret_cast<PULONG>(&support_info->message_service_offset)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with MessageServiceRoutine" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with MessageServiceRoutine" << endlwarn;
     }
 
     if ( GetFieldOffset("nt!_KINTERRUPT",
                         "ServiceRoutine",
                         reinterpret_cast<PULONG>(&support_info->service_routine_offset)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with ServiceRoutine" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with ServiceRoutine" << endlwarn;
     }
 
     if ( GetFieldOffset("nt!_KINTERRUPT",
                         "InterruptListEntry",
                         reinterpret_cast<PULONG>(&support_info->interrupt_list_entry)) != 0 ) {
-        warn << __FUNCTION__ << ": GetFieldOffset failed with InterruptListEntry" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with InterruptListEntry" << endlwarn;
     }
 
     return true;
@@ -788,7 +789,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Dumping GDTs" << endlout;
+    out << wa::showplus << "Dumping GDTs" << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeGDT);
     display->PrintHeader();
@@ -816,7 +817,8 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                                                                     NULL);
 
             if ( !SUCCEEDED(result) ) {
-                err << __FUNCTION__ << ": CPU " << cpu_idx << ": ReadProcessorSystemData failed with error " << result;
+                err << wa::showminus << __FUNCTION__ << ": CPU " << cpu_idx;
+                err << ": ReadProcessorSystemData failed with error " << result << endlerr;
                 continue;
             }
 
@@ -853,10 +855,10 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
         }
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;

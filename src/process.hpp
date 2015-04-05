@@ -48,7 +48,7 @@ class WDbgArkProcess {
     ~WDbgArkProcess() {
         if ( m_current_process ) {
             if ( !SUCCEEDED(g_Ext->m_System2->SetImplicitProcessDataOffset(m_current_process)) )
-                err << __FUNCTION__ << ": failed to revert" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": failed to revert" << endlerr;
         }
     }
 

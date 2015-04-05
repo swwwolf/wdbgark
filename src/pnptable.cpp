@@ -126,23 +126,23 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << "Displaying nt!PlugPlayHandlerTable" << endlout;
+    out << wa::showplus << "Displaying nt!PlugPlayHandlerTable" << endlout;
 
     // PnpControlClass + Length + Routine
     unsigned __int32 size   = sizeof(unsigned __int32) + sizeof(unsigned __int32) + m_PtrSize;
     unsigned __int64 offset = 0;
 
     if ( !GetSymbolOffset("nt!PlugPlayHandlerTable", true, &offset) ) {
-        err << __FUNCTION__ << ": failed to find nt!PlugPlayHandlerTable" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to find nt!PlugPlayHandlerTable" << endlerr;
         return;
     }
 
-    out << "nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << "nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("nt") )
-        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 
@@ -161,7 +161,7 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;

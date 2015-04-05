@@ -41,19 +41,19 @@ EXT_COMMAND(wa_objtype,
     if ( HasArg("type") )   // object type was provided
         type.assign(GetArgStr("type"));
 
-    out << "Displaying \\ObjectTypes\\" << type << endlout;
+    out << wa::showplus << "Displaying \\ObjectTypes\\" << type << endlout;
 
     auto object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes", 0);
 
     if ( !object_types_directory_offset ) {
-        err << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
         return;
     }
 
     auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeObjType);
 
     if ( !display->AddRangeWhiteList("nt") )
-        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 
@@ -70,11 +70,11 @@ EXT_COMMAND(wa_objtype,
                                        NULL);
 
             if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
-                err << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;
@@ -94,7 +94,7 @@ HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, const ExtR
     }
     catch ( const ExtRemoteException &Ex ) {
         std::stringstream tmperr;
-        tmperr << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        tmperr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
 

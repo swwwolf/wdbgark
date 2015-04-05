@@ -47,13 +47,13 @@ EXT_COMMAND(wa_colorize,
 
     if ( enable ) {
         if ( m_color_hack->SetTheme("default") ) {
-            out << "Colorizing enabled" << endlout;
+            out << wa::showplus << "Colorizing enabled" << endlout;
         } else {
-            err << "Colorizing failed" << endlerr;
+            err << wa::showminus << "Colorizing failed" << endlerr;
         }
     } else if ( disable ) {
         m_color_hack->RevertColors();
-        out << "Colorizing disabled" << endlout;
+        out << wa::showplus << "Colorizing disabled" << endlout;
     }
 }
 

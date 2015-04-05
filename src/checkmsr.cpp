@@ -36,7 +36,7 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     auto display = WDbgArkAnalyzeBase::Create();
 
     if ( !display->AddRangeWhiteList("nt") )
-        warn << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->PrintHeader();
 
@@ -64,7 +64,7 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
         }
     }
     catch ( const ExtStatusException &Ex ) {
-        err << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
     catch( const ExtInterruptException& ) {
         throw;
