@@ -664,7 +664,7 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
                                          ShutdownListCallback);
 }
 
-HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, const ExtRemoteData &object_pointer, void* context) {
+HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_pointer, void* context) {
     WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
     std::string          type       = cb_context->type;
 

@@ -48,6 +48,7 @@ void WDbgArkUdis::Init(const unsigned __int8 mode) {
     if (SUCCEEDED(result) &&
         (g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_I386 || g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_AMD64) ) {
             std::string vendor_string;
+
             if ( g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_I386 )
                 vendor_string = processor_info.X86.VendorString;
             else

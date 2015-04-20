@@ -83,7 +83,7 @@ EXT_COMMAND(wa_objtype,
     display->PrintFooter();
 }
 
-HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
+HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk*, const ExtRemoteTyped &object, void* context) {
     WDbgArkAnalyzeBase* display = reinterpret_cast<WDbgArkAnalyzeBase*>(context);
 
     try {

@@ -52,7 +52,7 @@ class TablePrinter {
   void flush_warn() { *this << bprinter::endl(); *out_stream_ << wa::endlwarn; }
   void flush_err() { *this << bprinter::endl(); *out_stream_ << wa::endlerr; }
 
-  TablePrinter& operator<<(endl input) {
+  TablePrinter& operator<<(endl) {
     while ( j_ != 0 ) {
       *this << "";
     }

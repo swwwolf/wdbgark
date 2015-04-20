@@ -133,25 +133,21 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
     //////////////////////////////////////////////////////////////////////////
     virtual bool IsSuspiciousAddress(const unsigned __int64 address) const;
     virtual void Analyze(const unsigned __int64 address, const std::string &type, const std::string &additional_info);
-    virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object) {
+    virtual void Analyze(const ExtRemoteTyped&, const ExtRemoteTyped&) {
         std::stringstream err;
         err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
-    virtual void Analyze(const ExtRemoteTyped &gdt_entry,
-                         const std::string &cpu_idx,
-                         const unsigned __int32 selector,
-                         const std::string &additional_info) {
+    virtual void Analyze(const ExtRemoteTyped&, const std::string&, const unsigned __int32, const std::string&) {
         std::stringstream err;
         err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
-    virtual void Analyze(const ExtRemoteTyped &object) {
+    virtual void Analyze(const ExtRemoteTyped&) {
         std::stringstream err;
         err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
 
- private:
-    WDbgArkAnalyzeBase(WDbgArkAnalyzeBase const&);  // = delete
-    WDbgArkAnalyzeBase& operator=(WDbgArkAnalyzeBase const&);   // = delete
+    WDbgArkAnalyzeBase(WDbgArkAnalyzeBase const&) = delete;
+    WDbgArkAnalyzeBase& operator=(WDbgArkAnalyzeBase const&) = delete;
 };
 //////////////////////////////////////////////////////////////////////////
 // Default analyzer

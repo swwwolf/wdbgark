@@ -492,9 +492,9 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                              NULL,
                                              NULL);
 
-                    idt_handler.OffsetLow = idt_entry.Field("OffsetLow").GetUshort();
-                    idt_handler.OffsetMiddle = idt_entry.Field("OffsetMiddle").GetUshort();
-                    idt_handler.OffsetHigh = idt_entry.Field("OffsetHigh").GetUlong();
+                    idt_handler.off.OffsetLow = idt_entry.Field("OffsetLow").GetUshort();
+                    idt_handler.off.OffsetMiddle = idt_entry.Field("OffsetMiddle").GetUshort();
+                    idt_handler.off.OffsetHigh = idt_entry.Field("OffsetHigh").GetUlong();
 
                     isr_address = idt_handler.Address;
 

@@ -147,7 +147,7 @@ typedef union _KIDT_HANDLER_ADDRESS {
         unsigned __int16 OffsetLow;
         unsigned __int16 OffsetMiddle;
         unsigned __int32 OffsetHigh;
-    };
+    } off;
 
     unsigned __int64   Address;
 } KIDT_HANDLER_ADDRESS, *PKIDT_HANDLER_ADDRESS;

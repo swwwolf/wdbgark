@@ -5,12 +5,13 @@
 * [Supported commands](#supported-commands)
 * [Supported targets](#supported-targets)
 * [Sources and build](#sources-and-build)
-    * [Build using VS2012](#build-using-vs2012)
+    * [Build using VS2013](#build-using-vs2013)
     * [Build using BUILD](#build-using-build)
     * [Build using CMD](#build-using-cmd)
 * [Using](#using)
 * [FAQ](#faq)
 * [Help](#help)
+* [Used code](#used-code)
 * [Whoami](#whoami)
 * [License](#license)
 
@@ -59,9 +60,9 @@ Second, i don't care if you don't have [symbols](http://msdn.microsoft.com/en-us
 
 ## Sources and build
 
-Sources are organized as a Visual Studio 2012 solution.
+Sources are organized as a Visual Studio 2013 solution.
 
-### Build using VS2012
+### Build using VS2013
 
 * Download and install latest [WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365)
 * Define system environment variables (e.g. WDK 8.1).
@@ -86,18 +87,18 @@ Depricated.
 
 Yeah, it's possible to build all the stuff using simple batch script.
 
-* Do first two steps in [Build using VS2012](#build-using-vs2012).
+* Do first two steps in [Build using VS2013](#build-using-vs2013).
 * Make sure that you have already installed PowerShell at least version 3.0.
     * If not, then download and install [Windows Management Framework](http://www.microsoft.com/en-US/download/details.aspx?id=40855).
 * Execute the [release_build.cmd](release_build.cmd) with a single parameter - a version.
 * Voila! If there were no errors, the archive file will be created (e.g. wdbgark.X.Y.zip).
-    * If something is wrong, check the path to the Visual Studio 2012 in the script and/or output log file (release_build.log).
+    * If something is wrong, check the path to the Visual Studio 2013 in the script and/or output log file (release_build.log).
 
 ## Using
 
 * Download and install Debugging Tools from the [Microsoft WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365) downloads page.
 * [Build](#sources-and-build) or download the extention.
-* Make sure that [Visual C++ Redistributable for Visual Studio 2012](http://www.microsoft.com/en-US/download/details.aspx?id=30679) has already been installed.
+* Make sure that [Visual C++ Redistributable for Visual Studio 2013](https://www.microsoft.com/en-US/download/details.aspx?id=40784) has already been installed.
 * Copy extension to the WDK debugger's directory (e.g. WDK 8.1):
     * x64: ```C:\WinDDK\8.1\Debuggers\x64\winext\```
     * x86: ```C:\WinDDK\8.1\Debuggers\x86\winext\```
@@ -180,6 +181,11 @@ A: Feel free to report an issue using GitHub or email to me directly, but please
 ## Help
 
 [Wiki](https://github.com/swwwolf/wdbgark/wiki) can help.
+
+## Used code
+
+* [BPrinter](https://github.com/dattanchu/bprinter). BSD License.
+* [Udis86](https://github.com/vmt/udis86). Simplified BSD License.
 
 ## Whoami
 

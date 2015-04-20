@@ -6,13 +6,14 @@
 <li><a href="#supported-targets">Supported targets</a></li>
 <li><a href="#sources-and-build">Sources and build</a>
 <ul>
-<li><a href="#build-using-vs2012">Build using VS2012</a></li>
+<li><a href="#build-using-vs2013">Build using VS2013</a></li>
 <li><a href="#build-using-build">Build using BUILD</a></li>
 <li><a href="#build-using-cmd">Build using CMD</a></li>
 </ul></li>
 <li><a href="#using">Using</a></li>
 <li><a href="#faq">FAQ</a></li>
 <li><a href="#help">Help</a></li>
+<li><a href="#used-code">Used code</a></li>
 <li><a href="#whoami">Whoami</a></li>
 <li><a href="#license">License</a></li>
 </ul>
@@ -48,8 +49,8 @@
 <p>Multiple targets debugging is not supported!</p>
 <p>Windows BETA/RC is supported by design, but read a few notes. First, i don't care about checked builds. Second, i don't care if you don't have <a href="http://msdn.microsoft.com/en-us/windows/hardware/gg463028.aspx">symbols</a> (public or private). IA64/ARM is unsupported (and will not).</p>
 <h2 id="sources-and-build">Sources and build</h2>
-<p>Sources are organized as a Visual Studio 2012 solution.</p>
-<h3 id="build-using-vs2012">Build using VS2012</h3>
+<p>Sources are organized as a Visual Studio 2013 solution.</p>
+<h3 id="build-using-vs2013">Build using VS2013</h3>
 <ul>
 <li>Download and install latest <a href="http://msdn.microsoft.com/en-us/windows/hardware/hh852365">WDK</a></li>
 <li>Define system environment variables (e.g. WDK 8.1).
@@ -69,7 +70,7 @@
 <h3 id="build-using-cmd">Build using CMD</h3>
 <p>Yeah, it's possible to build all the stuff using simple batch script.</p>
 <ul>
-<li>Do first two steps in <a href="#build-using-vs2012">Build using VS2012</a>.</li>
+<li>Do first two steps in <a href="#build-using-vs2013">Build using VS2013</a>.</li>
 <li>Make sure that you have already installed PowerShell at least version 3.0.
 <ul>
 <li>If not, then download and install <a href="http://www.microsoft.com/en-US/download/details.aspx?id=40855">Windows Management Framework</a>.</li>
@@ -77,14 +78,14 @@
 <li>Execute the <a href="release_build.cmd" class="uri">release_build.cmd</a> with a single parameter - a version.</li>
 <li>Voila! If there were no errors, the archive file will be created (e.g. wdbgark.X.Y.zip).
 <ul>
-<li>If something is wrong, check the path to the Visual Studio 2012 in the script and/or output log file (release_build.log).</li>
+<li>If something is wrong, check the path to the Visual Studio 2013 in the script and/or output log file (release_build.log).</li>
 </ul></li>
 </ul>
 <h2 id="using">Using</h2>
 <ul>
 <li>Download and install Debugging Tools from the <a href="http://msdn.microsoft.com/en-us/windows/hardware/hh852365">Microsoft WDK</a> downloads page.</li>
 <li><a href="#sources-and-build">Build</a> or download the extention.</li>
-<li>Make sure that <a href="http://www.microsoft.com/en-US/download/details.aspx?id=30679">Visual C++ Redistributable for Visual Studio 2012</a> has already been installed.</li>
+<li>Make sure that <a href="https://www.microsoft.com/en-US/download/details.aspx?id=40784">Visual C++ Redistributable for Visual Studio 2013</a> has already been installed.</li>
 <li>Copy extension to the WDK debugger's directory (e.g. WDK 8.1):
 <ul>
 <li>x64: <code>C:\WinDDK\8.1\Debuggers\x64\winext\</code></li>
@@ -147,6 +148,11 @@ Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
 <p>Q: How to report an issue?<br />A: Feel free to report an issue using GitHub or email to me directly, but please, attach complete memory crash dump file.</p>
 <h2 id="help">Help</h2>
 <p><a href="https://github.com/swwwolf/wdbgark/wiki">Wiki</a> can help.</p>
+<h2 id="used-code">Used code</h2>
+<ul>
+<li><a href="https://github.com/dattanchu/bprinter">BPrinter</a>. BSD License.</li>
+<li><a href="https://github.com/vmt/udis86">Udis86</a>. Simplified BSD License.</li>
+</ul>
 <h2 id="whoami">Whoami</h2>
 <ul>
 <li><a href="https://www.linkedin.com/in/vrusakov">LinkedIn profile</a></li>

@@ -911,7 +911,7 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
 
         ExtRemoteTyped major_table = loc_object.Field("MajorFunction");
 
-        for ( unsigned __int64 i = 0; i < m_major_table_name.size(); i++ )
+        for ( unsigned long i = 0; i < m_major_table_name.size(); i++ )
             display->Analyze(major_table[i].GetPtr(), m_major_table_name.at(i), "");
 
         PrintFooter();

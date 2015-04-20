@@ -5,7 +5,7 @@
 :main
 setlocal enableextensions
 if [%1]==[] goto usage
-set vs2012="c:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\devenv.exe"
+set vstudio="c:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE\devenv.exe"
 set output="%temp%\wdbgark.%1\"
 set log="release_build.log"
 call :create %output%
@@ -14,17 +14,17 @@ call :create %output%
 :build
 if exist %log% del /Q %log%
 echo Cleaning Release-Win32
-call %vs2012% wdbgark.sln /clean "Release|Win32" /out %log%
+call %vstudio% wdbgark.sln /clean "Release|Win32" /out %log%
 echo Cleaning Release-x64
-call %vs2012% wdbgark.sln /clean "Release|x64" /out %log%
+call %vstudio% wdbgark.sln /clean "Release|x64" /out %log%
 echo Building dummypdb Release-Win32
-call %vs2012% wdbgark.sln /project dummypdb /rebuild "Release|Win32" /out %log%
+call %vstudio% wdbgark.sln /project dummypdb /rebuild "Release|Win32" /out %log%
 echo Building dummypdb Release-x64
-call %vs2012% wdbgark.sln /project dummypdb /rebuild "Release|x64" /out %log%
+call %vstudio% wdbgark.sln /project dummypdb /rebuild "Release|x64" /out %log%
 echo Building wdbgark Release-Win32
-call %vs2012% wdbgark.sln /project wdbgark /rebuild "Release|Win32" /out %log%
+call %vstudio% wdbgark.sln /project wdbgark /rebuild "Release|Win32" /out %log%
 echo Building wdbgark Release-x64
-call %vs2012% wdbgark.sln /project wdbgark /rebuild "Release|x64" /out %log%
+call %vstudio% wdbgark.sln /project wdbgark /rebuild "Release|x64" /out %log%
 call :copy %output%
 call :check %output%
 
