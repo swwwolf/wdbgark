@@ -40,12 +40,12 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
 
     out << wa::showplus << "Displaying HAL tables" << endlout;
 
-    if ( !m_strict_minor_build ) {
+    if ( !m_system_ver->IsInited() ) {
         out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
 
-    haltblInfo::const_iterator citer = m_hal_tbl_info.find(m_strict_minor_build);
+    haltblInfo::const_iterator citer = m_hal_tbl_info.find(m_system_ver->GetStrictVer());
 
     if ( citer == m_hal_tbl_info.end() ) {
         err << wa::showminus << __FUNCTION__ << ": unable to correlate internal info with the minor build" << endlerr;
@@ -64,7 +64,9 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalPrivateDispatchTable" << endlerr;
     }
 
-    if ( m_strict_minor_build >= W81RTM_VER && !GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
+    if ( m_system_ver->GetStrictVer() >= W81RTM_VER
+         &&
+         !GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
     }
 
@@ -121,8 +123,9 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             display->PrintFooter();
         }
 
-        if ( m_strict_minor_build >= W81RTM_VER ) {
-            out << wa::showplus << "nt!HalIommuDispatchTable: " << std::hex << std::showbase << offset_hiommu << endlout;
+        if ( m_system_ver->GetStrictVer() >= W81RTM_VER ) {
+            out << wa::showplus << "nt!HalIommuDispatchTable: ";
+            out << std::hex << std::showbase << offset_hiommu << endlout;
             display->PrintHeader();
 
             for ( const auto &walk_info : output_list_hiommu ) {

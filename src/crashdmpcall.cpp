@@ -40,7 +40,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
     out << wa::showplus << "Displaying nt!CrashdmpCallTable" << endlout;
 
-    if ( m_strict_minor_build <= W2K3_VER ) {
+    if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
         out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
@@ -88,11 +88,11 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 }
 
 unsigned __int32 WDbgArk::GetCrashdmpCallTableCount() const {
-    if ( m_strict_minor_build >= VISTA_RTM_VER && m_strict_minor_build <= VISTA_SP1_VER )
+    if ( m_system_ver->IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP1_VER) )
         return 7;
-    else if ( m_strict_minor_build >= VISTA_SP2_VER && m_strict_minor_build <= W7SP1_VER )
+    else if ( m_system_ver->IsBuildInRangeStrict(VISTA_SP2_VER, W7SP1_VER) )
         return 8;
-    else if ( m_strict_minor_build >= W8RTM_VER )
+    else if ( m_system_ver->GetStrictVer() >= W8RTM_VER )
         return 12;
 
     return 0;

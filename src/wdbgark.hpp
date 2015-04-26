@@ -41,14 +41,13 @@
 #include <map>
 #include <vector>
 #include <memory>
-#include <unordered_map>
-#include <set>
 #include <utility>
 #include <functional>
 
 #include "objhelper.hpp"
 #include "colorhack.hpp"
 #include "dummypdb.hpp"
+#include "systemver.hpp"
 #include "ver.hpp"
 
 namespace wa {
@@ -276,42 +275,32 @@ class WDbgArk : public ExtExtension {
     unsigned __int32 GetDbgkLkmdCallbackArrayDistance() const { return 2 * m_PtrSize; }
     bool             FindDbgkLkmdCallbackArray();
     unsigned __int32 GetCrashdmpCallTableCount() const;
-    unsigned __int32 GetWindowsStrictMinorBuild(void) const;
 
     //////////////////////////////////////////////////////////////////////////
     // private inits
-    //////////////////////////////////////////////////////////////////////////
-    void CheckWindowsBuild(void);
     //////////////////////////////////////////////////////////////////////////
     void InitCallbackCommands(void);
     void InitCalloutNames(void);
     void InitGDTSelectors(void);
     void InitHalTables(void);
-    void InitKnownWindowsBuilds(void);
     //////////////////////////////////////////////////////////////////////////
     void RemoveSyntheticSymbols(void);
 
     //////////////////////////////////////////////////////////////////////////
     // variables
     //////////////////////////////////////////////////////////////////////////
-    bool             m_inited;
-    bool             m_is_cur_machine64;
-    unsigned __int32 m_platform_id;
-    unsigned __int32 m_major_build;
-    unsigned __int32 m_minor_build;
-    unsigned __int32 m_strict_minor_build;
-    unsigned __int32 m_service_pack_number;
-
+    bool                              m_inited;
+    bool                              m_is_cur_machine64;
     static const std::string          m_ms_public_symbols_server;
     callbacksInfo                     m_system_cb_commands;
     std::vector<std::string>          m_callout_names;
     std::vector<unsigned __int32>     m_gdt_selectors;
     haltblInfo                        m_hal_tbl_info;
-    std::set<unsigned __int32>        m_known_windows_builds;
     std::vector<DEBUG_MODULE_AND_ID>  m_synthetic_symbols;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
     std::unique_ptr<WDbgArkDummyPdb>  m_dummy_pdb;
+    std::unique_ptr<WDbgArkSystemVer> m_system_ver;
     ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface;
     //////////////////////////////////////////////////////////////////////////
     // output streams

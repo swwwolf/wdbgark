@@ -45,7 +45,7 @@ EXT_COMMAND(wa_objtypecb,
 
     out << wa::showplus << "Displaying callbacks registered with ObRegisterCallbacks with type " << type << endlout;
 
-    if ( m_strict_minor_build <= W2K3_VER ) {
+    if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
         out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }

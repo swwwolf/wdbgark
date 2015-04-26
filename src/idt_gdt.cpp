@@ -435,7 +435,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
     IdtSupport support_info = {0};
 
-    if ( !InitIdtSupport(m_strict_minor_build, &support_info) ) {
+    if ( !InitIdtSupport(m_system_ver->GetStrictVer(), &support_info) ) {
         err << wa::showminus << __FUNCTION__ << ": InitIdtSupport failed" << endlerr;
     }
 
@@ -672,7 +672,8 @@ bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* suppo
          GetFieldOffset("nt!_KPCR",
                         "PrcbData.VectorToInterruptObject",
                         reinterpret_cast<PULONG>(&support_info->vector_to_interrupt_object)) != 0 ) {
-        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__;
+        warn << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
     }
 
     if ( (g_Ext->IsCurMachine64() || strict_minor_build <= W8RTM_VER)

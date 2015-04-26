@@ -83,12 +83,14 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     try {
         for ( unsigned __int32 i = 0; i < limit; i++ ) {
             if ( m_is_cur_machine64 ) {
-                std::string routine_name = get_service_table_routine_name(m_strict_minor_build, KiServiceTable_x64, i);
+                std::string routine_name = get_service_table_routine_name(m_system_ver->GetStrictVer(),
+                                                                          KiServiceTable_x64,
+                                                                          i);
 
                 ExtRemoteData service_offset_full(offset + i * sizeof(int), sizeof(int));
                 int service_offset = service_offset_full.GetLong();
 
-                if ( m_strict_minor_build >= VISTA_RTM_VER )
+                if ( m_system_ver->GetStrictVer() >= VISTA_RTM_VER )
                     service_offset >>= 4;
                 else
                     service_offset &= ~MAX_FAST_REFS_X64;
@@ -96,7 +98,9 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
                 display->Analyze(offset + service_offset, routine_name, "");
                 display->PrintFooter();
             } else {
-                std::string routine_name = get_service_table_routine_name(m_strict_minor_build, KiServiceTable_x86, i);
+                std::string routine_name = get_service_table_routine_name(m_system_ver->GetStrictVer(),
+                                                                          KiServiceTable_x86,
+                                                                          i);
 
                 ExtRemoteData service_address(offset + i * m_PtrSize, m_PtrSize);
                 display->Analyze(service_address.GetPtr(), routine_name, "");
@@ -182,14 +186,14 @@ EXT_COMMAND(wa_w32psdt,
     try {
         for ( unsigned __int32 i = 0; i < limit; i++ ) {
             if ( m_is_cur_machine64 ) {
-                std::string routine_name = get_service_table_routine_name(m_strict_minor_build,
+                std::string routine_name = get_service_table_routine_name(m_system_ver->GetStrictVer(),
                                                                           W32pServiceTable_x64,
                                                                           i);
 
                 ExtRemoteData service_offset_full(offset + i * sizeof(int), sizeof(int));
                 int service_offset = service_offset_full.GetLong();
 
-                if ( m_strict_minor_build >= VISTA_RTM_VER )
+                if ( m_system_ver->GetStrictVer() >= VISTA_RTM_VER )
                     service_offset >>= 4;
                 else
                     service_offset &= ~MAX_FAST_REFS_X64;
@@ -197,7 +201,7 @@ EXT_COMMAND(wa_w32psdt,
                 display->Analyze(offset + service_offset, routine_name, "");
                 display->PrintFooter();
             } else {
-                std::string routine_name = get_service_table_routine_name(m_strict_minor_build,
+                std::string routine_name = get_service_table_routine_name(m_system_ver->GetStrictVer(),
                                                                           W32pServiceTable_x86,
                                                                           i);
 
