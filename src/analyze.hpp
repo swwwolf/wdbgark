@@ -56,8 +56,8 @@ HRESULT GetModuleNames(const unsigned __int64 address,
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeWhiteList {
  public:
-    typedef std::pair<unsigned __int64, unsigned __int64> Range;    // start, end
-    typedef std::set<Range> Ranges;
+    using Range = std::pair<unsigned __int64, unsigned __int64>;    // start, end
+    using Ranges = std::set<Range>;
 
     WDbgArkAnalyzeWhiteList() : m_ranges(), err() {}
 

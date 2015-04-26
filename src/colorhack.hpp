@@ -82,10 +82,10 @@ class WDbgArkColorHack : public WDbgArkBPProxy {
         COLORREF    new_int_color;
     } InternalUiColor;
     //////////////////////////////////////////////////////////////////////////
-    typedef std::vector<InternalUiColor> vecUiColor;
-    typedef std::pair<std::string, COLORREF> theme_elem;
-    typedef std::vector<theme_elem> theme_elems;
-    typedef std::unordered_map<std::string, theme_elems> themes;
+    using vecUiColor = std::vector<InternalUiColor>;
+    using theme_elem = std::pair<std::string, COLORREF>;
+    using theme_elems = std::vector<theme_elem>;
+    using themes = std::unordered_map<std::string, theme_elems>;
     //////////////////////////////////////////////////////////////////////////
     #define COLOR_HACK_BG_DEFAULT RGB(0xF6, 0xF6, 0xF6)
     #define COLOR_HACK_FG_DEFAULT RGB(0x00, 0x00, 0x00)

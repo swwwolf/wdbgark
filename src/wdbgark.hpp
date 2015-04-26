@@ -81,8 +81,8 @@ class WDbgArk : public ExtExtension {
         unsigned __int64 list_head_address;
     };
 
-    typedef std::pair<std::string, SystemCbCommand> callbackPair;
-    typedef std::map<std::string, SystemCbCommand> callbacksInfo;
+    using callbackPair = std::pair<std::string, SystemCbCommand>;
+    using callbacksInfo = std::map<std::string, SystemCbCommand>;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
         unsigned __int64 address;
@@ -93,7 +93,7 @@ class WDbgArk : public ExtExtension {
         std::string      info;
     } OutputWalkInfo;
 
-    typedef std::vector<OutputWalkInfo> walkresType;
+    using walkresType = std::vector<OutputWalkInfo>;
     //////////////////////////////////////////////////////////////////////////
     typedef struct WalkCallbackContextTag {
         std::string      type;
@@ -117,15 +117,15 @@ class WDbgArk : public ExtExtension {
         unsigned __int8 skip;           // Skip first N entries
     };
 
-    typedef std::map<unsigned __int32, HalDispatchTablesInfo> haltblInfo;
+    using haltblInfo = std::map<unsigned __int32, HalDispatchTablesInfo>;
     //////////////////////////////////////////////////////////////////////////
-    typedef std::function<HRESULT(WDbgArk* wdbg_ark_class,
-                                  const ExtRemoteTyped &object,
-                                  void* context)> RemoteTypedCallback;
+    using RemoteTypedCallback = std::function<HRESULT(WDbgArk* wdbg_ark_class,
+                                                      const ExtRemoteTyped &object,
+                                                      void* context)>;
 
-    typedef std::function<HRESULT(WDbgArk* wdbg_ark_class,
-                                  const ExtRemoteData &object,
-                                  void* context)> RemoteDataCallback;
+    using RemoteDataCallback = std::function<HRESULT(WDbgArk* wdbg_ark_class,
+                                                     const ExtRemoteData &object,
+                                                     void* context)>;
     //////////////////////////////////////////////////////////////////////////
     WDbgArk();
     ~WDbgArk();
