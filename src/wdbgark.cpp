@@ -32,8 +32,6 @@ EXT_DECLARE_GLOBALS();
 
 namespace wa {
 
-const std::string WDbgArk::m_ms_public_symbols_server = "http://msdl.microsoft.com/download/symbols";
-
 WDbgArk::WDbgArk() : m_inited(false),
                      m_is_cur_machine64(false),
                      m_system_cb_commands(),
@@ -87,7 +85,7 @@ bool WDbgArk::Init() {
 
     m_Symbols->Reload("");  // revise debuggee modules list
 
-    if ( !CheckSymbolsPath(m_ms_public_symbols_server, true) )
+    if ( !CheckSymbolsPath(true) )
         warn << wa::showqmark << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
     // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized
@@ -120,191 +118,42 @@ bool WDbgArk::Init() {
 }
 
 void WDbgArk::InitCallbackCommands(void) {
-    m_system_cb_commands.insert(callbacksInfo::value_type("image",
-                                                          SystemCbCommand("nt!PspLoadImageNotifyRoutineCount",
-                                                                          "nt!PspLoadImageNotifyRoutine",
-                                                                          0,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("process",
-                                                          SystemCbCommand("nt!PspCreateProcessNotifyRoutineCount",
-                                                                          "nt!PspCreateProcessNotifyRoutine",
-                                                                          0,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("thread",
-                                                          SystemCbCommand("nt!PspCreateThreadNotifyRoutineCount",
-                                                                          "nt!PspCreateThreadNotifyRoutine",
-                                                                          0,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("registry",
-                                                          SystemCbCommand("nt!CmpCallBackCount",
-                                                                          "nt!CmpCallBackVector",
-                                                                          GetCmCallbackItemFunctionOffset(),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("bugcheck",
-                                                          SystemCbCommand("",
-                                                                          "nt!KeBugCheckCallbackListHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("bugcheckreason",
-                                                          SystemCbCommand("",
-                                                                          "nt!KeBugCheckReasonCallbackListHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("bugcheckaddpages",
-                                                          SystemCbCommand("",
-                                                                          "nt!KeBugCheckAddPagesCallbackListHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("bugcheckaddremovepages",
-                                                          SystemCbCommand("",
-                                                                          "nt!KeBugCheckAddRemovePagesCallbackListHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("powersetting",
-                                                          SystemCbCommand("",
-                                                                          "nt!PopRegisteredPowerSettingCallbacks",
-                                                                          GetPowerCallbackItemFunctionOffset(),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("kdppower",
-                                                          SystemCbCommand("",
-                                                                          "nt!KdpPowerListHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("callbackdir", SystemCbCommand()));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("shutdown",
-                                                          SystemCbCommand("",
-                                                                          "nt!IopNotifyShutdownQueueHead",
-                                                                          0,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("shutdownlast",
-                                                          SystemCbCommand("",
-                                                                          "nt!IopNotifyLastChanceShutdownQueueHead",
-                                                                          0,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("drvreinit",
-                                                          SystemCbCommand("",
-                                                                          "nt!IopDriverReinitializeQueueHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("bootdrvreinit",
-                                                          SystemCbCommand("",
-                                                                          "nt!IopBootDriverReinitializeQueueHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("fschange",
-                                                          SystemCbCommand("",
-                                                                          "nt!IopFsNotifyChangeQueueHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY") + m_PtrSize,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("nmi",
-                                                          SystemCbCommand("",
-                                                                          "nt!KiNmiCallbackListHead",
-                                                                          m_PtrSize,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("logonsessionroutine",
-                                                          SystemCbCommand("",
-                                                                          "nt!SeFileSystemNotifyRoutinesHead",
-                                                                          m_PtrSize,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("prioritycallback",
-                                                          SystemCbCommand("nt!IopUpdatePriorityCallbackRoutineCount",
-                                                                          "nt!IopUpdatePriorityCallbackRoutine",
-                                                                          0,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("pnp", SystemCbCommand()));
-
-    // actually just a pointer
-    m_system_cb_commands.insert(callbacksInfo::value_type("lego",
-                                                          SystemCbCommand("",
-                                                                          "nt!PspLegoNotifyRoutine",
-                                                                          0,
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("debugprint",
-                                                          SystemCbCommand("",
-                                                                          "nt!RtlpDebugPrintCallbackList",
-                                                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("alpcplog",
-                                                          SystemCbCommand("",
-                                                                          "nt!AlpcpLogCallbackListHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("empcb",
-                                                          SystemCbCommand("",
-                                                                          "nt!EmpCallbackListHead",
-                                                                          GetTypeSize("nt!_GUID"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("ioperf",
-                                                          SystemCbCommand("",
-                                                                          "nt!IopPerfIoTrackingListHead",
-                                                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                                                          0ULL,
-                                                                          0ULL)));
-
-    m_system_cb_commands.insert(callbacksInfo::value_type("dbgklkmd",
-                                                          SystemCbCommand("",
-                                                                          "nt!DbgkLkmdCallbackArray",
-                                                                          0,
-                                                                          0ULL,
-                                                                          0ULL)));
-
     unsigned __int32 timer_routine_offset = 0;
 
-    if ( GetFieldOffset("nt!_IO_TIMER", "TimerRoutine", reinterpret_cast<PULONG>(&timer_routine_offset)) != 0 ) {
+    if ( GetFieldOffset("nt!_IO_TIMER", "TimerRoutine", reinterpret_cast<PULONG>(&timer_routine_offset)) != 0 )
         warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
-    } else {
-        m_system_cb_commands.insert(callbacksInfo::value_type("ioptimer",
-                                                              SystemCbCommand("",
-                                                                              "nt!IopTimerQueueHead",
-                                                                              timer_routine_offset,
-                                                                              0ULL,
-                                                                              0ULL)));
-    }
+
+    unsigned __int32 le_size = GetTypeSize("nt!_LIST_ENTRY");
+
+    m_system_cb_commands = { {
+        { "image", { "nt!PspLoadImageNotifyRoutineCount", "nt!PspLoadImageNotifyRoutine", 0, 0, 0 } },
+        { "process", { "nt!PspCreateProcessNotifyRoutineCount", "nt!PspCreateProcessNotifyRoutine", 0, 0, 0 } },
+        { "thread", { "nt!PspCreateThreadNotifyRoutineCount", "nt!PspCreateThreadNotifyRoutine", 0, 0, 0 } },
+        { "registry", { "nt!CmpCallBackCount", "nt!CmpCallBackVector", GetCmCallbackItemFunctionOffset(), 0, 0 } },
+        { "bugcheck", { "", "nt!KeBugCheckCallbackListHead", le_size, 0, 0 } },
+        { "bugcheckreason", { "", "nt!KeBugCheckReasonCallbackListHead", le_size, 0, 0 } },
+        { "bugcheckaddpages", { "", "nt!KeBugCheckAddPagesCallbackListHead", le_size, 0, 0 } },
+        { "bugcheckaddremovepages", { "", "nt!KeBugCheckAddRemovePagesCallbackListHead", le_size, 0, 0 } },
+        { "powersetting", { "", "nt!PopRegisteredPowerSettingCallbacks", GetPowerCallbackItemFunctionOffset(), 0, 0 } },
+        { "kdppower", { "", "nt!KdpPowerListHead", le_size, 0, 0 } },
+        { "callbackdir", {} },
+        { "shutdown", { "", "nt!IopNotifyShutdownQueueHead", 0, 0, 0 } },
+        { "shutdownlast", { "", "nt!IopNotifyLastChanceShutdownQueueHead", 0, 0, 0 } },
+        { "drvreinit", { "", "nt!IopDriverReinitializeQueueHead", le_size + m_PtrSize, 0, 0 } },
+        { "bootdrvreinit", { "", "nt!IopBootDriverReinitializeQueueHead", le_size + m_PtrSize, 0, 0 } },
+        { "fschange", { "", "nt!IopFsNotifyChangeQueueHead", le_size + m_PtrSize, 0, 0 } },
+        { "nmi", { "", "nt!KiNmiCallbackListHead", m_PtrSize, 0, 0 } },
+        { "logonsessionroutine", { "", "nt!SeFileSystemNotifyRoutinesHead", m_PtrSize, 0, 0 } },
+        { "prioritycallback", { "nt!IopUpdatePriorityCallbackRoutineCount", "nt!IopUpdatePriorityCallbackRoutine", 0,
+        0, 0 } },
+        { "pnp", {} },
+        { "lego", { "", "nt!PspLegoNotifyRoutine", 0, 0, 0 } },
+        { "debugprint", { "", "nt!RtlpDebugPrintCallbackList", le_size, 0, 0 } },
+        { "alpcplog", { "", "nt!AlpcpLogCallbackListHead", le_size, 0, 0 } },
+        { "empcb", { "", "nt!EmpCallbackListHead", GetTypeSize("nt!_GUID"), 0, 0 } },
+        { "ioperf", { "", "nt!IopPerfIoTrackingListHead", le_size, 0, 0 } },
+        { "dbgklkmd", { "", "nt!DbgkLkmdCallbackArray", 0, 0, 0 } },
+        { "ioptimer", { "", "nt!IopTimerQueueHead", timer_routine_offset, 0, 0 } } } };
 
     for ( auto cb_pair : m_system_cb_commands ) {
         unsigned __int64 offset_count = 0ULL;
@@ -324,66 +173,39 @@ void WDbgArk::InitCallbackCommands(void) {
 
 void WDbgArk::InitCalloutNames(void) {
     if ( m_system_ver->GetStrictVer() <= W7SP1_VER ) {
-        m_callout_names.push_back("nt!PspW32ProcessCallout");
-        m_callout_names.push_back("nt!PspW32ThreadCallout");
-        m_callout_names.push_back("nt!ExGlobalAtomTableCallout");
-        m_callout_names.push_back("nt!KeGdiFlushUserBatch");
-        m_callout_names.push_back("nt!PopEventCallout");
-        m_callout_names.push_back("nt!PopStateCallout");
-        m_callout_names.push_back("nt!PspW32JobCallout");
-        m_callout_names.push_back("nt!ExDesktopOpenProcedureCallout");
-        m_callout_names.push_back("nt!ExDesktopOkToCloseProcedureCallout");
-        m_callout_names.push_back("nt!ExDesktopCloseProcedureCallout");
-        m_callout_names.push_back("nt!ExDesktopDeleteProcedureCallout");
-        m_callout_names.push_back("nt!ExWindowStationOkToCloseProcedureCallout");
-        m_callout_names.push_back("nt!ExWindowStationCloseProcedureCallout");
-        m_callout_names.push_back("nt!ExWindowStationDeleteProcedureCallout");
-        m_callout_names.push_back("nt!ExWindowStationParseProcedureCallout");
-        m_callout_names.push_back("nt!ExWindowStationOpenProcedureCallout");
-        m_callout_names.push_back("nt!IopWin32DataCollectionProcedureCallout");
-        m_callout_names.push_back("nt!PopWin32InfoCallout");
+        m_callout_names = { "nt!PspW32ProcessCallout", "nt!PspW32ThreadCallout", "nt!ExGlobalAtomTableCallout",
+                            "nt!KeGdiFlushUserBatch", "nt!PopEventCallout", "nt!PopStateCallout",
+                            "nt!PspW32JobCallout", "nt!ExDesktopOpenProcedureCallout",
+                            "nt!ExDesktopOkToCloseProcedureCallout", "nt!ExDesktopCloseProcedureCallout",
+                            "nt!ExDesktopDeleteProcedureCallout", "nt!ExWindowStationOkToCloseProcedureCallout",
+                            "nt!ExWindowStationCloseProcedureCallout", "nt!ExWindowStationDeleteProcedureCallout",
+                            "nt!ExWindowStationParseProcedureCallout", "nt!ExWindowStationOpenProcedureCallout",
+                            "nt!IopWin32DataCollectionProcedureCallout", "nt!PopWin32InfoCallout" };
     }
 }
 
 void WDbgArk::InitGDTSelectors(void) {
     if ( m_is_cur_machine64 ) {
-        m_gdt_selectors.push_back(KGDT64_NULL);
-        m_gdt_selectors.push_back(KGDT64_R0_CODE);
-        m_gdt_selectors.push_back(KGDT64_R0_DATA);
-        m_gdt_selectors.push_back(KGDT64_R3_CMCODE);
-        m_gdt_selectors.push_back(KGDT64_R3_DATA);
-        m_gdt_selectors.push_back(KGDT64_R3_CODE);
-        m_gdt_selectors.push_back(KGDT64_SYS_TSS);
-        m_gdt_selectors.push_back(KGDT64_R3_CMTEB);
+        m_gdt_selectors = { KGDT64_NULL, KGDT64_R0_CODE, KGDT64_R0_DATA, KGDT64_R3_CMCODE, KGDT64_R3_DATA,
+                            KGDT64_R3_CODE, KGDT64_SYS_TSS, KGDT64_R3_CMTEB };
     } else {
-        m_gdt_selectors.push_back(KGDT_R0_CODE);
-        m_gdt_selectors.push_back(KGDT_R0_DATA);
-        m_gdt_selectors.push_back(KGDT_R3_CODE);
-        m_gdt_selectors.push_back(KGDT_R3_DATA);
-        m_gdt_selectors.push_back(KGDT_TSS);
-        m_gdt_selectors.push_back(KGDT_R0_PCR);
-        m_gdt_selectors.push_back(KGDT_R3_TEB);
-        m_gdt_selectors.push_back(KGDT_LDT);
-        m_gdt_selectors.push_back(KGDT_DF_TSS);
-        m_gdt_selectors.push_back(KGDT_NMI_TSS);
-        m_gdt_selectors.push_back(KGDT_GDT_ALIAS);
-        m_gdt_selectors.push_back(KGDT_CDA16);
-        m_gdt_selectors.push_back(KGDT_CODE16);
-        m_gdt_selectors.push_back(KGDT_STACK16);
+        m_gdt_selectors = { KGDT_R0_CODE, KGDT_R0_DATA, KGDT_R3_CODE, KGDT_R3_DATA, KGDT_TSS, KGDT_R0_PCR, KGDT_R3_TEB,
+                            KGDT_LDT, KGDT_DF_TSS, KGDT_NMI_TSS, KGDT_GDT_ALIAS, KGDT_CDA16, KGDT_CODE16,
+                            KGDT_STACK16 };
     }
 }
 
 void WDbgArk::InitHalTables(void) {
-    m_hal_tbl_info.insert(haltblInfo::value_type(WXP_VER, HalDispatchTablesInfo(0x15, 0x12, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(W2K3_VER, HalDispatchTablesInfo(0x15, 0x13, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_RTM_VER, HalDispatchTablesInfo(0x16, 0x1B, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP1_VER, HalDispatchTablesInfo(0x18, 0x22, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(VISTA_SP2_VER, HalDispatchTablesInfo(0x17, 0x23, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(W7RTM_VER, HalDispatchTablesInfo(0x16, 0x2D, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(W7SP1_VER, HalDispatchTablesInfo(0x16, 0x2D, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(W8RTM_VER, HalDispatchTablesInfo(0x16, 0x5A, 0x0, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(W81RTM_VER, HalDispatchTablesInfo(0x16, 0x69, 0x0B, 0x1)));
-    m_hal_tbl_info.insert(haltblInfo::value_type(W10RTM_VER, HalDispatchTablesInfo(0x16, 0x71, 0x10, 0x1)));
+    m_hal_tbl_info = { { { WXP_VER, { 0x15, 0x12, 0x0, 0x1 } },
+                         { W2K3_VER, { 0x15, 0x13, 0x0, 0x1 } },
+                         { VISTA_RTM_VER, { 0x16, 0x1B, 0x0, 0x1 } },
+                         { VISTA_SP1_VER, { 0x18, 0x22, 0x0, 0x1 } },
+                         { VISTA_SP2_VER, { 0x17, 0x23, 0x0, 0x1 } },
+                         { W7RTM_VER, { 0x16, 0x2D, 0x0, 0x1 } },
+                         { W7SP1_VER, { 0x16, 0x2D, 0x0, 0x1 } },
+                         { W8RTM_VER, { 0x16, 0x5A, 0x0, 0x1 } },
+                         { W81RTM_VER, { 0x16, 0x69, 0x0B, 0x1 } },
+                         { W10RTM_VER, { 0x16, 0x71, 0x10, 0x1 } } } };
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
@@ -394,8 +216,8 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
                                              const std::string &type,
                                              const std::string &ext_info,
                                              walkresType* output_list) {
-    unsigned __int64 offset               = offset_list_head;
     unsigned __int64 list_head_offset_out = 0;
+    unsigned __int64 offset               = offset_list_head;
 
     if ( !offset_to_routine ) {
         err << wa::showminus << __FUNCTION__ << ": invalid parameter" << endlerr;

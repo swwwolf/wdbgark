@@ -59,29 +59,14 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // class typedefs
     //////////////////////////////////////////////////////////////////////////
-    struct SystemCbCommand {
-        SystemCbCommand() : list_count_name(),
-                            list_head_name(),
-                            offset_to_routine(0),
-                            list_count_address(0ULL),
-                            list_head_address(0ULL) {}
-        SystemCbCommand(std::string lcn,
-                        std::string lhn,
-                        unsigned __int32 oftr,
-                        unsigned __int64 lca,
-                        unsigned __int64 lha) : list_count_name(lcn),
-                                                list_head_name(lhn),
-                                                offset_to_routine(oftr),
-                                                list_count_address(lca),
-                                                list_head_address(lha) {}
+    typedef struct SystemCbCommandTag {
         std::string      list_count_name;
         std::string      list_head_name;
         unsigned __int32 offset_to_routine;
         unsigned __int64 list_count_address;
         unsigned __int64 list_head_address;
-    };
+    } SystemCbCommand;
 
-    using callbackPair = std::pair<std::string, SystemCbCommand>;
     using callbacksInfo = std::map<std::string, SystemCbCommand>;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
@@ -102,22 +87,14 @@ class WDbgArk : public ExtExtension {
         unsigned __int64 list_head_address;
     } WalkCallbackContext;
     //////////////////////////////////////////////////////////////////////////
-    struct HalDispatchTablesInfo {
-        HalDispatchTablesInfo() : hdt_count(0), hpdt_count(0), hiommu_count(0), skip(0) {}
-        HalDispatchTablesInfo(unsigned __int8 hdt_c,
-                              unsigned __int8 hpdt_c,
-                              unsigned __int8 hio_c,
-                              unsigned __int8 skip) : hdt_count(hdt_c),
-                                                      hpdt_count(hpdt_c),
-                                                      hiommu_count(hio_c),
-                                                      skip(skip) {}
+    typedef struct HalDispatchTableInfoTag {
         unsigned __int8 hdt_count;      // HalDispatchTable table count
         unsigned __int8 hpdt_count;     // HalPrivateDispatchTable table count
         unsigned __int8 hiommu_count;   // HalIommuDispatch table count (W8.1+)
         unsigned __int8 skip;           // Skip first N entries
-    };
+    } HalDispatchTableInfo;
 
-    using haltblInfo = std::map<unsigned __int32, HalDispatchTablesInfo>;
+    using haltblInfo = std::map<unsigned __int32, HalDispatchTableInfo>;
     //////////////////////////////////////////////////////////////////////////
     using RemoteTypedCallback = std::function<HRESULT(WDbgArk* wdbg_ark_class,
                                                       const ExtRemoteTyped &object,
@@ -291,7 +268,6 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     bool                              m_inited;
     bool                              m_is_cur_machine64;
-    static const std::string          m_ms_public_symbols_server;
     callbacksInfo                     m_system_cb_commands;
     std::vector<std::string>          m_callout_names;
     std::vector<unsigned __int32>     m_gdt_selectors;

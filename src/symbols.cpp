@@ -31,7 +31,7 @@
 
 namespace wa {
 
-bool CheckSymbolsPath(const std::string& test_path, const bool display_error) {
+bool CheckSymbolsPath(const bool display_error, const std::string& test_path) {
     unsigned __int32  buffer_size = 0;
     bool              result      = false;
     std::stringstream err;

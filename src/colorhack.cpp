@@ -424,22 +424,11 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
 
 WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiColor* ui_color,
                                                                              const UiColorType ui_color_type) {
-    InternalUiColor internal_color;
-    std::memset(&internal_color, 0, sizeof(internal_color));
-
-    internal_color.ui_color = ui_color;
-    internal_color.is_changed = false;
-    internal_color.ui_color_type = ui_color_type;
-    internal_color.description = wstring_to_string(ui_color->description);
-
     std::string dml_name = wstring_to_string(ui_color->dml_name);
     std::transform(dml_name.begin(), dml_name.end(), dml_name.begin(), tolower);
-    internal_color.dml_name = dml_name;
 
-    internal_color.orig_color = ui_color->color;
-    internal_color.orig_int_color = ui_color->int_color;
-
-    return internal_color;
+    return { ui_color, false, ui_color_type, wstring_to_string(ui_color->description), dml_name, ui_color->color, 0,
+             ui_color->int_color, 0 };
 }
 
 void WDbgArkColorHack::RevertColors(void) {

@@ -40,7 +40,11 @@
 #include "analyze.hpp"
 
 namespace wa {
-
+//////////////////////////////////////////////////////////////////////////
+#define COLOR_HACK_BG_DEFAULT RGB(0xF6, 0xF6, 0xF6)
+#define COLOR_HACK_FG_DEFAULT RGB(0x00, 0x00, 0x00)
+#define COLOR_HACK_BG_ERROR   RGB(0xFF, 0xBF, 0xBF)
+#define COLOR_HACK_BG_WARNING RGB(0xFF, 0xFF, 0xBF)
 //////////////////////////////////////////////////////////////////////////
 // hack WinDbg colors
 //////////////////////////////////////////////////////////////////////////
@@ -86,11 +90,6 @@ class WDbgArkColorHack : public WDbgArkBPProxy {
     using theme_elem = std::pair<std::string, COLORREF>;
     using theme_elems = std::vector<theme_elem>;
     using themes = std::unordered_map<std::string, theme_elems>;
-    //////////////////////////////////////////////////////////////////////////
-    #define COLOR_HACK_BG_DEFAULT RGB(0xF6, 0xF6, 0xF6)
-    #define COLOR_HACK_FG_DEFAULT RGB(0x00, 0x00, 0x00)
-    #define COLOR_HACK_BG_ERROR   RGB(0xFF, 0xBF, 0xBF)
-    #define COLOR_HACK_BG_WARNING RGB(0xFF, 0xFF, 0xBF)
     //////////////////////////////////////////////////////////////////////////
     void            PrintMemoryInfo(void);
     void            InitThemes(void);
