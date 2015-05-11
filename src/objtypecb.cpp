@@ -57,7 +57,7 @@ EXT_COMMAND(wa_objtypecb,
         return;
     }
 
-    auto display = WDbgArkAnalyzeBase::Create();
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
     display->PrintHeader();
 
     try {

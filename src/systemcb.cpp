@@ -225,8 +225,59 @@ NTSTATUS __stdcall IoInitializeTimer(PDEVICE_OBJECT DeviceObject, PIO_TIMER_ROUT
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "systemver.hpp"
+#include "systemcb.hpp"
 
 namespace wa {
+//////////////////////////////////////////////////////////////////////////
+unsigned __int32 GetDbgkLkmdCallbackCount() { return 0x08; }
+unsigned __int32 GetDbgkLkmdCallbackArrayDistance() { return 2 * g_Ext->m_PtrSize; }
+//////////////////////////////////////////////////////////////////////////
+// http://redplait.blogspot.ru/2010/08/cmregistercallbackex-on-vista.html
+//////////////////////////////////////////////////////////////////////////
+unsigned __int32 GetCmCallbackItemFunctionOffset() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() )
+        return 0;
+
+    if ( !g_Ext->IsCurMachine64() )
+        return 0x1C;
+
+    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP2_VER) )
+        return 0x30;
+    else if ( system_ver.GetStrictVer() >= W7RTM_VER )
+        return 0x28;
+
+    return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// http://redplait.blogspot.ru/2012/10/poregisterpowersettingcallback-callbacks.html
+//////////////////////////////////////////////////////////////////////////
+unsigned __int32 GetPowerCallbackItemFunctionOffset() {
+    if ( !g_Ext->IsCurMachine64() )
+        return 0x28;
+
+    return 0x40;
+}
+//////////////////////////////////////////////////////////////////////////
+unsigned __int32 GetPnpCallbackItemFunctionOffset() {
+    if ( !g_Ext->IsCurMachine64() )
+        return 0x14;
+
+    return 0x20;
+}
+//////////////////////////////////////////////////////////////////////////
+// http://redplait.blogspot.ru/2012/09/emproviderregisterempproviderregister.html
+//////////////////////////////////////////////////////////////////////////
+unsigned __int32 GetEmpCallbackItemLinkOffset() {
+    if ( !g_Ext->IsCurMachine64() )
+        return 0x1C;
+
+    return 0x28;
+}
+//////////////////////////////////////////////////////////////////////////
 
 EXT_COMMAND(wa_systemcb,
             "Output kernel-mode registered callback(s)",
@@ -248,7 +299,7 @@ EXT_COMMAND(wa_systemcb,
 
     out << wa::showplus << "Displaying OS registered callback(s) with type " << type << endlout;
 
-    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeCallback);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeCallback);
 
     try {
         if ( type == "*" ) {
@@ -505,7 +556,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
     ExtRemoteData    routine_count;
 
     try {
-        if ( !rcount && !offset && !GetSymbolOffset(list_count_name.c_str(), true, &offset) ) {
+        if ( !rcount && !offset && !m_sym_cache->GetSymbolOffset(list_count_name, true, &offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get " << list_count_name << endlerr;
             return;
         }
@@ -515,7 +566,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
 
         offset = offset_list_head;
 
-        if ( !offset && !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
+        if ( !offset && !m_sym_cache->GetSymbolOffset(list_head_name, true, &offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
             return;
         }
@@ -555,48 +606,6 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
     catch ( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
-}
-
-//
-// http://redplait.blogspot.ru/2010/08/cmregistercallbackex-on-vista.html
-//
-unsigned __int32 WDbgArk::GetCmCallbackItemFunctionOffset() const {
-    if ( !m_is_cur_machine64 )
-        return 0x1C;
-
-    if ( m_system_ver->IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP2_VER) )
-        return 0x30;
-    else if ( m_system_ver->GetStrictVer() >= W7RTM_VER )
-        return 0x28;
-
-    return 0;
-}
-
-//
-// http://redplait.blogspot.ru/2012/10/poregisterpowersettingcallback-callbacks.html
-//
-unsigned __int32 WDbgArk::GetPowerCallbackItemFunctionOffset() const {
-    if ( !m_is_cur_machine64 )
-        return 0x28;
-
-    return 0x40;
-}
-
-unsigned __int32 WDbgArk::GetPnpCallbackItemFunctionOffset() const {
-    if ( !m_is_cur_machine64 )
-        return 0x14;
-
-    return 0x20;
-}
-
-//
-// http://redplait.blogspot.ru/2012/09/emproviderregisterempproviderregister.html
-//
-unsigned __int32 WDbgArk::GetEmpCallbackItemLinkOffset() const {
-    if ( !m_is_cur_machine64 )
-        return 0x1C;
-
-    return 0x28;
 }
 
 void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType* output_list) {
@@ -649,7 +658,7 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
     context.list_head_name = list_head_name;
     context.output_list_pointer = output_list;
 
-    if ( !GetSymbolOffset( list_head_name.c_str(), true, &context.list_head_address ) )
+    if ( !m_sym_cache->GetSymbolOffset(list_head_name, true, &context.list_head_address) )
         warn << wa::showqmark << __FUNCTION__ << ": GetSymbolOffset failed with " << list_head_name << endlwarn;
 
     WalkAnyListWithOffsetToObjectPointer(list_head_name,
@@ -725,7 +734,7 @@ void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
     else
         list_head_name = "nt!PnpDeviceClassNotifyList";
 
-    if ( !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
+    if ( !m_sym_cache->GetSymbolOffset(list_head_name, true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
     } else {
         for ( int i = 0; i < NOTIFY_DEVICE_CLASS_HASH_BUCKETS; i++ ) {
@@ -764,7 +773,7 @@ HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteType
                                                        target_dev_notify.m_Offset,
                                                        0,
                                                        true,
-                                                       wdbg_ark_class->GetPnpCallbackItemFunctionOffset(),
+                                                       GetPnpCallbackItemFunctionOffset(),
                                                        cb_context->type,
                                                        info.str(),
                                                        cb_context->output_list_pointer);

@@ -132,14 +132,14 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     unsigned __int32 size   = sizeof(unsigned __int32) + sizeof(unsigned __int32) + m_PtrSize;
     unsigned __int64 offset = 0;
 
-    if ( !GetSymbolOffset("nt!PlugPlayHandlerTable", true, &offset) ) {
+    if ( !m_sym_cache->GetSymbolOffset("nt!PlugPlayHandlerTable", true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!PlugPlayHandlerTable" << endlerr;
         return;
     }
 
     out << wa::showplus << "nt!PlugPlayHandlerTable: " << std::hex << std::showbase << offset << endlout;
 
-    auto display = WDbgArkAnalyzeBase::Create();
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;

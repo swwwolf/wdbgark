@@ -33,7 +33,7 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    auto display = WDbgArkAnalyzeBase::Create();
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;

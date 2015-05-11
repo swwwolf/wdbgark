@@ -57,7 +57,7 @@ EXT_COMMAND(wa_drvmajor,
         return;
     }
 
-    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeDriver);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeDriver);
 
     display->PrintHeader();
 

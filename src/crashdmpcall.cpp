@@ -32,6 +32,8 @@
 
 namespace wa {
 
+unsigned __int32 GetCrashdmpCallTableCount();
+
 EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     RequireKernelMode();
 
@@ -54,14 +56,14 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
     unsigned __int64 offset = 0;
 
-    if ( !GetSymbolOffset("nt!CrashdmpCallTable", true, &offset) ) {
+    if ( !m_sym_cache->GetSymbolOffset("nt!CrashdmpCallTable", true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!CrashdmpCallTable" << endlerr;
         return;
     }
 
     out << wa::showplus << "nt!CrashdmpCallTable: " << std::hex << std::showbase << offset << endlout;
 
-    auto display = WDbgArkAnalyzeBase::Create();
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     if ( !display->AddRangeWhiteList("crashdmp") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -87,12 +89,17 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     display->PrintFooter();
 }
 
-unsigned __int32 WDbgArk::GetCrashdmpCallTableCount() const {
-    if ( m_system_ver->IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP1_VER) )
+unsigned __int32 GetCrashdmpCallTableCount() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() )
+        return 0;
+
+    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP1_VER) )
         return 7;
-    else if ( m_system_ver->IsBuildInRangeStrict(VISTA_SP2_VER, W7SP1_VER) )
+    else if ( system_ver.IsBuildInRangeStrict(VISTA_SP2_VER, W7SP1_VER) )
         return 8;
-    else if ( m_system_ver->GetStrictVer() >= W8RTM_VER )
+    else if ( system_ver.GetStrictVer() >= W8RTM_VER )
         return 12;
 
     return 0;

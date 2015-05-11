@@ -41,7 +41,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     unsigned __int32 limit  = 0;
 
     try {
-        if ( !GetSymbolOffset("nt!KiServiceLimit", true, &offset) ) {
+        if ( !m_sym_cache->GetSymbolOffset("nt!KiServiceLimit", true, &offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find nt!KiServiceLimit" << endlerr;
             return;
         }
@@ -58,7 +58,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
 
         out << wa::showplus << "ServiceLimit:      " << std::hex << std::showbase << limit << endlout;
 
-        if ( !GetSymbolOffset("nt!KiServiceTable", true, &offset) ) {
+        if ( !m_sym_cache->GetSymbolOffset("nt!KiServiceTable", true, &offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find nt!KiServiceTable" << endlerr;
             return;
         }
@@ -73,7 +73,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
         throw;
     }
 
-    auto display = WDbgArkAnalyzeBase::Create();
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -144,7 +144,7 @@ EXT_COMMAND(wa_w32psdt,
     unsigned __int32 limit  = 0;
 
     try {
-        if ( !GetSymbolOffset("win32k!W32pServiceLimit", true, &offset) ) {
+        if ( !m_sym_cache->GetSymbolOffset("win32k!W32pServiceLimit", true, &offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find win32k!W32pServiceLimit" << endlerr;
             return;
         }
@@ -161,7 +161,7 @@ EXT_COMMAND(wa_w32psdt,
 
         out << wa::showplus << "ServiceLimit:            " << std::hex << std::showbase << limit << endlout;
 
-        if ( !GetSymbolOffset("win32k!W32pServiceTable", true, &offset) ) {
+        if ( !m_sym_cache->GetSymbolOffset("win32k!W32pServiceTable", true, &offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find win32k!W32pServiceTable" << endlerr;
             return;
         }
@@ -176,7 +176,7 @@ EXT_COMMAND(wa_w32psdt,
         throw;
     }
 
-    auto display = WDbgArkAnalyzeBase::Create();
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     if ( !display->AddRangeWhiteList("win32k") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;

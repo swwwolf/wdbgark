@@ -41,6 +41,8 @@
 #include <vector>
 
 #include "manipulators.hpp"
+#include "objhelper.hpp"
+#include "symcache.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -59,7 +61,12 @@ class WDbgArkAnalyzeWhiteList {
     using Range = std::pair<unsigned __int64, unsigned __int64>;    // start, end
     using Ranges = std::set<Range>;
 
-    WDbgArkAnalyzeWhiteList() : m_ranges(), err() {}
+    explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+        : m_ranges(),
+          m_sym_cache(sym_cache),
+          err() {}
+
+    WDbgArkAnalyzeWhiteList() = delete;
 
     void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int64 end) {
         m_ranges.insert(std::make_pair(start, end));
@@ -75,6 +82,7 @@ class WDbgArkAnalyzeWhiteList {
 
  private:
     Ranges m_ranges;
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
@@ -94,7 +102,6 @@ class WDbgArkBPProxy {
      virtual void FlushOut(void) { m_tp->flush_out(); }
      virtual void FlushWarn(void) { m_tp->flush_warn(); }
      virtual void FlushErr(void) { m_tp->flush_err(); }
-     virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
 
      template<typename T> WDbgArkBPProxy& operator<<(T input) {
          *m_tp << input;
@@ -119,14 +126,19 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
         AnalyzeTypeDriver
     };
 
-    WDbgArkAnalyzeBase() {}
+    explicit WDbgArkAnalyzeBase(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+        : WDbgArkAnalyzeWhiteList(sym_cache),
+          m_sym_cache(sym_cache),
+          m_obj_helper(new WDbgArkObjHelper(sym_cache)) {}
     virtual ~WDbgArkAnalyzeBase() {}
+
     template<typename T> WDbgArkAnalyzeBase& operator<<(T input) {
         *m_tp << input;
         return *this;
     }
 
-    static std::unique_ptr<WDbgArkAnalyzeBase> Create(const AnalyzeType type = AnalyzeType::AnalyzeTypeDefault);
+    static std::unique_ptr<WDbgArkAnalyzeBase> Create(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                                                      const AnalyzeType type = AnalyzeType::AnalyzeTypeDefault);
 
     //////////////////////////////////////////////////////////////////////////
     // analyze routines
@@ -145,16 +157,23 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
         std::stringstream err;
         err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
+    virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
 
     WDbgArkAnalyzeBase(WDbgArkAnalyzeBase const&) = delete;
     WDbgArkAnalyzeBase& operator=(WDbgArkAnalyzeBase const&) = delete;
+
+ protected:
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
+
+ private:
+     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
 };
 //////////////////////////////////////////////////////////////////////////
 // Default analyzer
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
  public:
-    WDbgArkAnalyzeDefault();
+    explicit WDbgArkAnalyzeDefault(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     virtual ~WDbgArkAnalyzeDefault() {}
 };
 //////////////////////////////////////////////////////////////////////////
@@ -162,7 +181,7 @@ class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeCallback: public WDbgArkAnalyzeBase {
  public:
-    WDbgArkAnalyzeCallback();
+    explicit WDbgArkAnalyzeCallback(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     virtual ~WDbgArkAnalyzeCallback() {}
 };
 //////////////////////////////////////////////////////////////////////////
@@ -170,7 +189,7 @@ class WDbgArkAnalyzeCallback: public WDbgArkAnalyzeBase {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
  public:
-    WDbgArkAnalyzeObjType();
+    explicit WDbgArkAnalyzeObjType(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     virtual ~WDbgArkAnalyzeObjType() {}
 
     virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object);
@@ -183,7 +202,7 @@ class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeIDT: public WDbgArkAnalyzeBase {
  public:
-    WDbgArkAnalyzeIDT();
+    explicit WDbgArkAnalyzeIDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     virtual ~WDbgArkAnalyzeIDT() {}
 };
 //////////////////////////////////////////////////////////////////////////
@@ -191,7 +210,7 @@ class WDbgArkAnalyzeIDT: public WDbgArkAnalyzeBase {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
  public:
-    WDbgArkAnalyzeGDT();
+    explicit WDbgArkAnalyzeGDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     virtual ~WDbgArkAnalyzeGDT() {}
 
     virtual void Analyze(const ExtRemoteTyped &gdt_entry,
@@ -210,6 +229,7 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
     bool IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry);
     unsigned __int32 GetGDTDpl(const ExtRemoteTyped &gdt_entry);
 
+ private:
     std::stringstream err;
 };
 
@@ -218,7 +238,7 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
  public:
-    WDbgArkAnalyzeDriver();
+    explicit WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     virtual ~WDbgArkAnalyzeDriver() {}
 
     virtual void Analyze(const ExtRemoteTyped &object);

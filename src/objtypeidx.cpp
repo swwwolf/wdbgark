@@ -42,14 +42,14 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
 
     unsigned __int64 offset = 0;
 
-    if ( !GetSymbolOffset("nt!ObTypeIndexTable", true, &offset) ) {
+    if ( !m_sym_cache->GetSymbolOffset("nt!ObTypeIndexTable", true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;
         return;
     }
 
     out << wa::showplus << "nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
 
-    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeObjType);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeObjType);
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;

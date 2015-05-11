@@ -27,7 +27,6 @@
 #include <utility>
 #include <memory>
 
-#include "objhelper.hpp"
 #include "strings.hpp"
 #include "./ddk.h"
 
@@ -185,7 +184,7 @@ bool WDbgArkAnalyzeWhiteList::AddRangeWhiteList(const std::string &module_name) 
 bool WDbgArkAnalyzeWhiteList::AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size) {
     unsigned __int64 symbol_offset = 0;
 
-    if ( !g_Ext->GetSymbolOffset(symbol_name.c_str(), true, &symbol_offset) )
+    if ( !m_sym_cache->GetSymbolOffset(symbol_name, true, &symbol_offset) )
         return false;
 
     AddRangeWhiteList(symbol_offset, symbol_offset + size);
@@ -206,55 +205,32 @@ bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const unsigned __int64 addres
     return false;
 }
 //////////////////////////////////////////////////////////////////////////
-void WDbgArkBPProxy::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
-    std::string object_name = "*UNKNOWN*";
-    std::unique_ptr<WDbgArkObjHelper> obj_helper(new WDbgArkObjHelper);
-
-    std::pair<HRESULT, std::string> result = obj_helper->GetObjectName(object);
-
-    if ( !SUCCEEDED(result.first) ) {
-        std::stringstream warn;
-        warn << wa::showqmark << __FUNCTION__ ": GetObjectName failed" << endlwarn;
-    } else {
-        object_name = result.second;
-    }
-
-    std::stringstream object_command;
-    std::stringstream object_name_ext;
-
-    object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
-    object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
-    object_name_ext << object_name;
-
-    *this << object_command.str() << object_name_ext.str();
-    m_tp->flush_out();
-}
-//////////////////////////////////////////////////////////////////////////
-std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const AnalyzeType type) {
+std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                                                               const AnalyzeType type) {
     switch ( type ) {
         case AnalyzeType::AnalyzeTypeCallback:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeCallback);
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeCallback(sym_cache));
         break;
 
         case AnalyzeType::AnalyzeTypeObjType:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeObjType);
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeObjType(sym_cache));
         break;
 
         case AnalyzeType::AnalyzeTypeIDT:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeIDT);
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeIDT(sym_cache));
         break;
 
         case AnalyzeType::AnalyzeTypeGDT:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeGDT);
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeGDT(sym_cache));
         break;
 
         case AnalyzeType::AnalyzeTypeDriver:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDriver);
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDriver(sym_cache));
         break;
 
         case AnalyzeType::AnalyzeTypeDefault:
         default:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDefault);
+            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDefault(sym_cache));
         break;
     }
 }
@@ -322,9 +298,32 @@ void WDbgArkAnalyzeBase::Analyze(const unsigned __int64 address,
     else
         m_tp->flush_out();
 }
-
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault() {
+void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
+    std::string object_name = "*UNKNOWN*";
+
+    std::pair<HRESULT, std::string> result = m_obj_helper->GetObjectName(object);
+
+    if ( !SUCCEEDED(result.first) ) {
+        std::stringstream warn;
+        warn << wa::showqmark << __FUNCTION__ ": GetObjectName failed" << endlwarn;
+    } else {
+        object_name = result.second;
+    }
+
+    std::stringstream object_command;
+    std::stringstream object_name_ext;
+
+    object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
+    object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
+    object_name_ext << object_name;
+
+    *this << object_command.str() << object_name_ext.str();
+    m_tp->flush_out();
+}
+//////////////////////////////////////////////////////////////////////////
+WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache) {
     // width = 180
     AddColumn("Address", 18);
     AddColumn("Name", 68);
@@ -333,7 +332,8 @@ WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault() {
     AddColumn("Suspicious", 10);
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback() {
+WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache) {
     // width = 180
     AddColumn("Address", 18);
     AddColumn("Type", 25);
@@ -343,7 +343,8 @@ WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback() {
     AddColumn("Info", 25);
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeObjType::WDbgArkAnalyzeObjType() : err() {
+WDbgArkAnalyzeObjType::WDbgArkAnalyzeObjType(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache) {
     // width = 180
     AddColumn("Address", 18);
     AddColumn("Name", 68);
@@ -359,7 +360,7 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
         PrintObjectDmlCmd(object);
         PrintFooter();
 
-        std::unique_ptr<WDbgArkAnalyzeBase> display = Create(AnalyzeType::AnalyzeTypeDefault);
+        std::unique_ptr<WDbgArkAnalyzeBase> display = Create(m_sym_cache, AnalyzeType::AnalyzeTypeDefault);
 
         display->Analyze(obj_type_info.Field("DumpProcedure").GetPtr(), "DumpProcedure", "");
         display->Analyze(obj_type_info.Field("OpenProcedure").GetPtr(), "OpenProcedure", "");
@@ -375,7 +376,8 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
     }
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT() {
+WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache) {
     // width = 160
     AddColumn("Address", 18);
     AddColumn("CPU / Idx", 11);
@@ -385,7 +387,9 @@ WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT() {
     AddColumn("Info", 25);
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeGDT::WDbgArkAnalyzeGDT() : err() {
+WDbgArkAnalyzeGDT::WDbgArkAnalyzeGDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache),
+      err() {
     // width = 133
     AddColumn("Base", 18);
     AddColumn("Limit", 10);
@@ -810,11 +814,13 @@ std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
     }
 }
 //////////////////////////////////////////////////////////////////////////
-WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver() : m_major_table_name(),
-                                               m_fast_io_table_name(),
-                                               out(),
-                                               warn(),
-                                               err() {
+WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache),
+      m_major_table_name(),
+      m_fast_io_table_name(),
+      out(),
+      warn(),
+      err() {
     // width = 180
     AddColumn("Address", 18);
     AddColumn("Name", 68);
@@ -887,7 +893,7 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
         PrintObjectDmlCmd(object);
         PrintFooter();
 
-        std::unique_ptr<WDbgArkAnalyzeBase> display = Create(AnalyzeType::AnalyzeTypeDefault);
+        std::unique_ptr<WDbgArkAnalyzeBase> display = Create(m_sym_cache, AnalyzeType::AnalyzeTypeDefault);
 
         if ( !display->AddSymbolWhiteList("nt!IopInvalidDeviceRequest", 0) )
             warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;

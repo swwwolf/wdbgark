@@ -48,6 +48,9 @@
 #include "colorhack.hpp"
 #include "dummypdb.hpp"
 #include "systemver.hpp"
+#include "typedefs.hpp"
+#include "symcache.hpp"
+
 #include "ver.hpp"
 
 namespace wa {
@@ -56,45 +59,6 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArk : public ExtExtension {
  public:
-    //////////////////////////////////////////////////////////////////////////
-    // class typedefs
-    //////////////////////////////////////////////////////////////////////////
-    typedef struct SystemCbCommandTag {
-        std::string      list_count_name;
-        std::string      list_head_name;
-        unsigned __int32 offset_to_routine;
-        unsigned __int64 list_count_address;
-        unsigned __int64 list_head_address;
-    } SystemCbCommand;
-
-    using callbacksInfo = std::map<std::string, SystemCbCommand>;
-    //////////////////////////////////////////////////////////////////////////
-    typedef struct OutputWalkInfoTag {
-        unsigned __int64 address;
-        unsigned __int64 object_address;
-        unsigned __int64 list_head_address;
-        std::string      list_head_name;
-        std::string      type;
-        std::string      info;
-    } OutputWalkInfo;
-
-    using walkresType = std::vector<OutputWalkInfo>;
-    //////////////////////////////////////////////////////////////////////////
-    typedef struct WalkCallbackContextTag {
-        std::string      type;
-        std::string      list_head_name;
-        walkresType*     output_list_pointer;
-        unsigned __int64 list_head_address;
-    } WalkCallbackContext;
-    //////////////////////////////////////////////////////////////////////////
-    typedef struct HalDispatchTableInfoTag {
-        unsigned __int8 hdt_count;      // HalDispatchTable table count
-        unsigned __int8 hpdt_count;     // HalPrivateDispatchTable table count
-        unsigned __int8 hiommu_count;   // HalIommuDispatch table count (W8.1+)
-        unsigned __int8 skip;           // Skip first N entries
-    } HalDispatchTableInfo;
-
-    using haltblInfo = std::map<unsigned __int32, HalDispatchTableInfo>;
     //////////////////////////////////////////////////////////////////////////
     using RemoteTypedCallback = std::function<HRESULT(WDbgArk* wdbg_ark_class,
                                                       const ExtRemoteTyped &object,
@@ -244,25 +208,16 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     void CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
                                           walkresType* output_list);
-    unsigned __int32 GetCmCallbackItemFunctionOffset() const;
-    unsigned __int32 GetPowerCallbackItemFunctionOffset() const;
-    unsigned __int32 GetPnpCallbackItemFunctionOffset() const;
-    unsigned __int32 GetEmpCallbackItemLinkOffset() const;
-    unsigned __int32 GetDbgkLkmdCallbackCount() const { return 0x08; }
-    unsigned __int32 GetDbgkLkmdCallbackArrayDistance() const { return 2 * m_PtrSize; }
-    bool             FindDbgkLkmdCallbackArray();
-    unsigned __int32 GetCrashdmpCallTableCount() const;
-
     //////////////////////////////////////////////////////////////////////////
     // private inits
     //////////////////////////////////////////////////////////////////////////
+    bool FindDbgkLkmdCallbackArray();
     void InitCallbackCommands(void);
     void InitCalloutNames(void);
     void InitGDTSelectors(void);
     void InitHalTables(void);
     //////////////////////////////////////////////////////////////////////////
     void RemoveSyntheticSymbols(void);
-
     //////////////////////////////////////////////////////////////////////////
     // variables
     //////////////////////////////////////////////////////////////////////////
@@ -277,6 +232,7 @@ class WDbgArk : public ExtExtension {
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
     std::unique_ptr<WDbgArkDummyPdb>  m_dummy_pdb;
     std::unique_ptr<WDbgArkSystemVer> m_system_ver;
+    std::shared_ptr<WDbgArkSymCache>  m_sym_cache;
     ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface;
     //////////////////////////////////////////////////////////////////////////
     // output streams

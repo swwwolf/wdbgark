@@ -32,13 +32,15 @@
 
 namespace wa {
 
-WDbgArkObjHelper::WDbgArkObjHelper() : m_inited(false),
-                                       m_object_header_old(true),
-                                       m_ObpInfoMaskToOffset(0),
-                                       m_ObTypeIndexTableOffset(0),
-                                       out(),
-                                       warn(),
-                                       err() {
+WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : m_inited(false),
+      m_object_header_old(true),
+      m_ObpInfoMaskToOffset(0),
+      m_ObTypeIndexTableOffset(0),
+      m_sym_cache(sym_cache),
+      out(),
+      warn(),
+      err() {
     // determine object header format
     unsigned __int32 type_index_offset = 0;
 
@@ -48,12 +50,12 @@ WDbgArkObjHelper::WDbgArkObjHelper() : m_inited(false),
     } else {
         m_object_header_old = false;  // new header format
 
-        if ( !g_Ext->GetSymbolOffset("nt!ObpInfoMaskToOffset", true, &m_ObpInfoMaskToOffset) ) {
+        if ( !m_sym_cache->GetSymbolOffset("nt!ObpInfoMaskToOffset", true, &m_ObpInfoMaskToOffset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObpInfoMaskToOffset";
             return;
         }
 
-        if ( !g_Ext->GetSymbolOffset("nt!ObTypeIndexTable", true, &m_ObTypeIndexTableOffset) ) {
+        if ( !m_sym_cache->GetSymbolOffset("nt!ObTypeIndexTable", true, &m_ObTypeIndexTableOffset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable";
             return;
         }
@@ -81,7 +83,7 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
 
     try {
         if ( !offset ) {
-            if ( !g_Ext->GetSymbolOffset("nt!ObpRootDirectoryObject", true, &offset) ) {
+            if ( !m_sym_cache->GetSymbolOffset("nt!ObpRootDirectoryObject", true, &offset) ) {
                 err << wa::showminus << __FUNCTION__ << ": failed to get nt!ObpRootDirectoryObject" << endlerr;
                 return 0ULL;
             } else {

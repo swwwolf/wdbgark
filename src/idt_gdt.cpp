@@ -439,7 +439,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
         err << wa::showminus << __FUNCTION__ << ": InitIdtSupport failed" << endlerr;
     }
 
-    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeIDT);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeIDT);
     display->PrintHeader();
 
     try {
@@ -792,7 +792,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
 
     out << wa::showplus << "Dumping GDTs" << endlout;
 
-    auto display = WDbgArkAnalyzeBase::Create(WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeGDT);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeGDT);
     display->PrintHeader();
 
     try {

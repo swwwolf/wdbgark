@@ -90,7 +90,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
 
     out << wa::showplus << "Displaying Win32k callouts" << endlout;
 
-    auto display = WDbgArkAnalyzeBase::Create();
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     if ( !display->AddRangeWhiteList("win32k") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -102,7 +102,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
             for ( const auto &callout_name : m_callout_names ) {
                 unsigned __int64 offset = 0;
 
-                if ( GetSymbolOffset(callout_name.c_str(), true, &offset) ) {
+                if ( m_sym_cache->GetSymbolOffset(callout_name, true, &offset) ) {
                     ExtRemoteData callout_routine(offset, m_PtrSize);
                     display->Analyze(callout_routine.GetPtr(), callout_name, "");
                     display->PrintFooter();
@@ -111,7 +111,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
         } else {
             unsigned __int64 offset = 0;
 
-            if ( GetSymbolOffset("nt!PsWin32CallBack", true, &offset) ) {
+            if ( m_sym_cache->GetSymbolOffset("nt!PsWin32CallBack", true, &offset) ) {
                 ExtRemoteData callout_block(offset, m_PtrSize);
 
                 unsigned __int64 ex_callback_fast_ref = callout_block.GetPtr();

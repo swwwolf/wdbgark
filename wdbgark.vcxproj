@@ -210,6 +210,7 @@
     <ClCompile Include="src\ssdt.cpp" />
     <ClCompile Include="src\strings.cpp" />
     <ClCompile Include="src\symbols.cpp" />
+    <ClCompile Include="src\symcache.cpp" />
     <ClCompile Include="src\systemcb.cpp" />
     <ClCompile Include="src\systemver.cpp" />
     <ClCompile Include="src\udis.cpp" />
@@ -238,7 +239,10 @@
     <ClInclude Include="src\sdt_w32p.hpp" />
     <ClInclude Include="src\strings.hpp" />
     <ClInclude Include="src\symbols.hpp" />
+    <ClInclude Include="src\symcache.hpp" />
+    <ClInclude Include="src\systemcb.hpp" />
     <ClInclude Include="src\systemver.hpp" />
+    <ClInclude Include="src\typedefs.hpp" />
     <ClInclude Include="src\udis.hpp" />
     <ClInclude Include="src\ver.hpp" />
     <ClInclude Include="src\wdbgark.hpp" />

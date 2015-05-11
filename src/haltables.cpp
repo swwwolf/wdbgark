@@ -56,21 +56,21 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
     unsigned __int64 offset_hpdt = 0;
     unsigned __int64 offset_hiommu = 0;
 
-    if ( !GetSymbolOffset("nt!HalDispatchTable", true, &offset_hdt) ) {
+    if ( !m_sym_cache->GetSymbolOffset("nt!HalDispatchTable", true, &offset_hdt) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalDispatchTable" << endlerr;
     }
 
-    if ( !GetSymbolOffset("nt!HalPrivateDispatchTable", true, &offset_hpdt) ) {
+    if ( !m_sym_cache->GetSymbolOffset("nt!HalPrivateDispatchTable", true, &offset_hpdt) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalPrivateDispatchTable" << endlerr;
     }
 
     if ( m_system_ver->GetStrictVer() >= W81RTM_VER
          &&
-         !GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
+         !m_sym_cache->GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
     }
 
-    auto display = WDbgArkAnalyzeBase::Create();
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     try {
         walkresType output_list_hdt;

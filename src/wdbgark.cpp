@@ -27,6 +27,7 @@
 #include "manipulators.hpp"
 #include "symbols.hpp"
 #include "udis.hpp"
+#include "systemcb.hpp"
 
 EXT_DECLARE_GLOBALS();
 
@@ -43,6 +44,7 @@ WDbgArk::WDbgArk() : m_inited(false),
                      m_color_hack(nullptr),
                      m_dummy_pdb(nullptr),
                      m_system_ver(nullptr),
+                     m_sym_cache(new WDbgArkSymCache),
                      m_symbols3_iface("The extension did not initialize properly."),
                      out(),
                      warn(),
@@ -64,14 +66,10 @@ bool WDbgArk::Init() {
     if ( IsInited() )
         return true;
 
-#define REQ_IF(_If, _member) \
-    if ( m_Client->QueryInterface(__uuidof(_If), reinterpret_cast<PVOID*>(&_member)) != S_OK ) { \
-        _member.Set(nullptr); \
-        err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr; \
+    if ( m_Client->QueryInterface(__uuidof(IDebugSymbols3), reinterpret_cast<void**>(&m_symbols3_iface)) != S_OK ) {
+        m_symbols3_iface.Set(nullptr);
+        err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
     }
-
-    REQ_IF(IDebugSymbols3, m_symbols3_iface);
-#undef REQ_IF
 
     m_is_cur_machine64 = IsCurMachine64();
 
@@ -89,7 +87,7 @@ bool WDbgArk::Init() {
         warn << wa::showqmark << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
     // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized
-    m_obj_helper.reset(new WDbgArkObjHelper);
+    m_obj_helper.reset(new WDbgArkObjHelper(m_sym_cache));
 
     if ( !m_obj_helper->IsInited() )
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkObjHelper init failed" << endlwarn;
@@ -160,12 +158,12 @@ void WDbgArk::InitCallbackCommands(void) {
         unsigned __int64 offset_head = 0ULL;
 
         if ( !cb_pair.second.list_count_name.empty() ) {
-            if ( GetSymbolOffset(cb_pair.second.list_count_name.c_str(), true, &offset_count) )
+            if ( m_sym_cache->GetSymbolOffset(cb_pair.second.list_count_name, true, &offset_count) )
                 cb_pair.second.list_count_address = offset_count;
         }
 
         if ( !cb_pair.second.list_head_name.empty() ) {
-            if ( GetSymbolOffset(cb_pair.second.list_head_name.c_str(), true, &offset_head) )
+            if ( m_sym_cache->GetSymbolOffset(cb_pair.second.list_head_name, true, &offset_head) )
                 cb_pair.second.list_head_address = offset_head;
         }
     }
@@ -225,7 +223,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
     }
 
     if ( !offset ) {
-        if ( !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
+        if ( !m_sym_cache->GetSymbolOffset(list_head_name, true, &offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
             return;
         } else {
@@ -274,7 +272,7 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_
         return;
     }
 
-    if ( !offset && !GetSymbolOffset(list_head_name.c_str(), true, &offset) ) {
+    if ( !offset && !m_sym_cache->GetSymbolOffset(list_head_name, true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;
         return;
     }
@@ -345,7 +343,7 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
 
     try {
         if ( !offset ) {
-            if ( !GetSymbolOffset("nt!IopRootDeviceNode", true, &offset) ) {
+            if ( !m_sym_cache->GetSymbolOffset("nt!IopRootDeviceNode", true, &offset) ) {
                 err << wa::showminus << __FUNCTION__ << ": failed to get nt!IopRootDeviceNode" << endlerr;
                 return;
             } else {
@@ -413,7 +411,7 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
     unsigned __int64 offset = 0;
 
     try {
-        if ( GetSymbolOffset(symbol_name.c_str(), true, &offset) ) {
+        if ( m_sym_cache->GetSymbolOffset(symbol_name, true, &offset) ) {
             unsigned __int64 symbol_offset = offset;
 
             ExtRemoteData routine_ptr(offset, m_PtrSize);
@@ -497,12 +495,12 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
 
     unsigned __int64 symbol_offset = 0;
 
-    if ( GetSymbolOffset("nt!DbgkLkmdCallbackArray", true, &symbol_offset) )
+    if ( m_sym_cache->GetSymbolOffset("nt!DbgkLkmdCallbackArray", true, &symbol_offset) )
         return true;
 
     unsigned __int64 offset = 0;
 
-    if ( !GetSymbolOffset("nt!DbgkLkmdUnregisterCallback", true, &offset) ) {
+    if ( !m_sym_cache->GetSymbolOffset("nt!DbgkLkmdUnregisterCallback", true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": can't find nt!DbgkLkmdUnregisterCallback" << endlerr;
         return false;
     }
@@ -567,6 +565,9 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
 }
 
 void WDbgArk::RemoveSyntheticSymbols(void) {
+    if ( !m_symbols3_iface.IsSet() )
+        return;
+
     for ( auto id : m_synthetic_symbols ) {
         m_symbols3_iface->RemoveSyntheticSymbol(&id);
     }

@@ -37,6 +37,7 @@
 #include <utility>
 
 #include "./ddk.h"
+#include "symcache.hpp"
 
 namespace wa {
 
@@ -45,7 +46,8 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkObjHelper {
  public:
-    WDbgArkObjHelper();
+    explicit WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
+    WDbgArkObjHelper() = delete;
 
     bool IsInited(void) const { return m_inited; }
 
@@ -65,11 +67,12 @@ class WDbgArkObjHelper {
  private:
     std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);
 
-    bool             m_inited;
-    bool             m_object_header_old;
-    unsigned __int64 m_ObpInfoMaskToOffset;
-    unsigned __int64 m_ObTypeIndexTableOffset;
-
+ private:
+    bool                             m_inited;
+    bool                             m_object_header_old;
+    unsigned __int64                 m_ObpInfoMaskToOffset;
+    unsigned __int64                 m_ObTypeIndexTableOffset;
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
