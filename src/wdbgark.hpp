@@ -69,7 +69,6 @@ class WDbgArk : public ExtExtension {
                                                      void* context)>;
     //////////////////////////////////////////////////////////////////////////
     WDbgArk();
-    ~WDbgArk();
 
     HRESULT __thiscall Initialize(void) {
         m_ExtMajorVersion = VER_MAJOR;
@@ -218,6 +217,8 @@ class WDbgArk : public ExtExtension {
     void InitHalTables(void);
     //////////////////////////////////////////////////////////////////////////
     void RemoveSyntheticSymbols(void);
+
+ private:
     //////////////////////////////////////////////////////////////////////////
     // variables
     //////////////////////////////////////////////////////////////////////////
@@ -228,11 +229,11 @@ class WDbgArk : public ExtExtension {
     std::vector<unsigned __int32>     m_gdt_selectors;
     haltblInfo                        m_hal_tbl_info;
     std::vector<DEBUG_MODULE_AND_ID>  m_synthetic_symbols;
+    std::shared_ptr<WDbgArkSymCache>  m_sym_cache;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
     std::unique_ptr<WDbgArkDummyPdb>  m_dummy_pdb;
     std::unique_ptr<WDbgArkSystemVer> m_system_ver;
-    std::shared_ptr<WDbgArkSymCache>  m_sym_cache;
     ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface;
     //////////////////////////////////////////////////////////////////////////
     // output streams

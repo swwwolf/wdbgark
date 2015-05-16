@@ -40,26 +40,21 @@ WDbgArk::WDbgArk() : m_inited(false),
                      m_gdt_selectors(),
                      m_hal_tbl_info(),
                      m_synthetic_symbols(),
+                     m_sym_cache(new WDbgArkSymCache),
                      m_obj_helper(nullptr),
                      m_color_hack(nullptr),
                      m_dummy_pdb(nullptr),
                      m_system_ver(nullptr),
-                     m_sym_cache(new WDbgArkSymCache),
                      m_symbols3_iface("The extension did not initialize properly."),
                      out(),
                      warn(),
                      err() {
-#if defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    int flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    flag |= _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF;
+    _CrtSetDbgFlag(flag);
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-    // _CrtSetBreakAlloc( 143 );
-#endif  // _DEBUG
-}
-
-WDbgArk::~WDbgArk() {
-#if defined(_DEBUG)
-    _CrtDumpMemoryLeaks();
-#endif  // _DEBUG
+    // _CrtSetBreakAlloc(3173761);
+    // (int*){,,msvcr120d.dll}_crtBreakAlloc in Watch window
 }
 
 bool WDbgArk::Init() {
