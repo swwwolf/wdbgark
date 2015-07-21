@@ -614,7 +614,7 @@ void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType* output
     context.type = type;
     context.output_list_pointer = output_list;
 
-    WalkDirectoryObject(m_obj_helper->FindObjectByName("Callback", 0ULL),
+    WalkDirectoryObject(m_obj_helper->FindObjectByName("Callback"),
                         reinterpret_cast<void*>(&context),
                         DirectoryObjectCallback);
 }

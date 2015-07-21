@@ -50,7 +50,7 @@ EXT_COMMAND(wa_objtypecb,
         return;
     }
 
-    unsigned __int64 object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes", 0);
+    unsigned __int64 object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes");
 
     if ( !object_types_directory_offset ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;

@@ -35,6 +35,7 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include <map>
 
 #include "./ddk.h"
 #include "symcache.hpp"
@@ -46,6 +47,15 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkObjHelper {
  public:
+    typedef struct ObjectInfoTag {
+        ExtRemoteTyped object;
+        std::string    name;
+        std::string    type;
+    } ObjectInfo;
+
+    using ObjectsInformation = std::map<unsigned __int64, ObjectInfo>;  // offset : object information
+
+ public:
     explicit WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     WDbgArkObjHelper() = delete;
 
@@ -55,7 +65,8 @@ class WDbgArkObjHelper {
     std::pair<HRESULT, std::string> GetObjectName(const ExtRemoteTyped &object);
     std::pair<HRESULT, ExtRemoteTyped> GetObjectType(const ExtRemoteTyped &object);
     std::pair<HRESULT, std::string> GetObjectTypeName(const ExtRemoteTyped &object);
-    unsigned __int64 FindObjectByName(const std::string &object_name, const unsigned __int64 directory_address);
+    std::pair<HRESULT, ObjectsInformation> GetObjectsInfo(const unsigned __int64 directory_address = 0ULL);
+    unsigned __int64 FindObjectByName(const std::string &object_name, const unsigned __int64 directory_address = 0ULL);
 
     unsigned __int64 ExFastRefGetObject(unsigned __int64 FastRef) const {
         if ( g_Ext->IsCurMachine32() )

@@ -43,14 +43,14 @@ EXT_COMMAND(wa_drvmajor,
 
     out << wa::showplus << __FUNCTION__ << ": displaying " << name << endlout;
 
-    auto driver_directory_offset = m_obj_helper->FindObjectByName("Driver", 0);
+    auto driver_directory_offset = m_obj_helper->FindObjectByName("Driver");
 
     if ( !driver_directory_offset ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get \"Driver\" directory" << endlerr;
         return;
     }
 
-    auto filesystem_directory_offset = m_obj_helper->FindObjectByName("FileSystem", 0);
+    auto filesystem_directory_offset = m_obj_helper->FindObjectByName("FileSystem");
 
     if ( !filesystem_directory_offset ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get \"FileSystem\" directory" << endlerr;

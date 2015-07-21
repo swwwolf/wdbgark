@@ -51,12 +51,12 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
         m_object_header_old = false;  // new header format
 
         if ( !m_sym_cache->GetSymbolOffset("nt!ObpInfoMaskToOffset", true, &m_ObpInfoMaskToOffset) ) {
-            err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObpInfoMaskToOffset";
+            err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObpInfoMaskToOffset" << endlerr;
             return;
         }
 
         if ( !m_sym_cache->GetSymbolOffset("nt!ObTypeIndexTable", true, &m_ObTypeIndexTableOffset) ) {
-            err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable";
+            err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;
             return;
         }
 
@@ -64,35 +64,29 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
     }
 }
 
-unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
-                                                    const unsigned __int64 directory_address) {
-    unsigned __int64 offset       = directory_address;
-    std::string      compare_with = object_name;
+// TODO(swwwolf): build full path with recursion
+std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetObjectsInfo(
+    const unsigned __int64 directory_address) {
+    unsigned __int64   offset = directory_address;
+    ObjectsInformation info;
 
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0ULL;
+        return std::make_pair(E_NOT_VALID_STATE, info);
     }
-
-    if ( object_name.empty() ) {
-        err << wa::showminus << __FUNCTION__ << ": invalid object name" << endlerr;
-        return 0ULL;
-    }
-
-    std::transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
 
     try {
         if ( !offset ) {
             if ( !m_sym_cache->GetSymbolOffset("nt!ObpRootDirectoryObject", true, &offset) ) {
                 err << wa::showminus << __FUNCTION__ << ": failed to get nt!ObpRootDirectoryObject" << endlerr;
-                return 0ULL;
+                return std::make_pair(E_UNEXPECTED, info);
             } else {
                 ExtRemoteData directory_object_ptr(offset, g_Ext->m_PtrSize);
                 offset = directory_object_ptr.GetPtr();
             }
         }
 
-        ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", offset, false, NULL, NULL);
+        ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", offset, false, nullptr, nullptr);
         ExtRemoteTyped buckets = directory_object.Field("HashBuckets");
 
         const unsigned __int32 num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
@@ -104,27 +98,66 @@ unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_na
             for ( ExtRemoteTyped directory_entry = *buckets[static_cast<ULONG>(i)];
                   directory_entry.m_Offset;
                   directory_entry = *directory_entry.Field("ChainLink") ) {
-                ExtRemoteTyped object = *directory_entry.Field("Object");
+                ObjectInfo object_information;
 
-                std::pair<HRESULT, std::string> result = GetObjectName(object);
+                object_information.object = *directory_entry.Field("Object");
 
-                if ( SUCCEEDED(result.first) ) {
-                    std::string check_object_name = result.second;
+                std::pair<HRESULT, std::string> result = GetObjectName(object_information.object);
 
-                    std::transform(check_object_name.begin(),
-                                   check_object_name.end(),
-                                   check_object_name.begin(),
-                                   tolower);
+                if ( FAILED(result.first) )
+                    continue;
 
-                    if ( check_object_name == compare_with ) {
-                        return object.m_Offset;
-                    }
-                }
+                object_information.name = result.second;
+
+                std::transform(object_information.name.begin(),
+                               object_information.name.end(),
+                               object_information.name.begin(),
+                               tolower);
+
+                result = GetObjectTypeName(object_information.object);
+
+                if ( FAILED(result.first) )
+                    continue;
+
+                object_information.type = result.second;
+                info[object_information.object.m_Offset] = object_information;
             }
         }
-    }
-    catch ( const ExtRemoteException &Ex ) {
+    } catch ( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        return std::make_pair(Ex.GetStatus(), info);
+    }
+
+    return std::make_pair(S_OK, info);
+}
+
+unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
+                                                    const unsigned __int64 directory_address) {
+    std::string compare_with = object_name;
+
+    if ( !IsInited() ) {
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return 0ULL;
+    }
+
+    if ( compare_with.empty() ) {
+        err << wa::showminus << __FUNCTION__ << ": invalid object name" << endlerr;
+        return 0ULL;
+    }
+
+    auto info = GetObjectsInfo(directory_address);
+
+    if ( FAILED(info.first) ) {
+        err << wa::showminus << __FUNCTION__ << ": GetObjectsInfo failed" << endlerr;
+        return 0ULL;
+    }
+
+    std::transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
+
+    for ( auto object_info : info.second ) {
+        if ( object_info.second.name == compare_with ) {
+            return object_info.second.object.m_Offset;
+        }
     }
 
     return 0ULL;
