@@ -194,6 +194,7 @@
     <ClCompile Include="src\colorhack.cpp" />
     <ClCompile Include="src\colorize.cpp" />
     <ClCompile Include="src\crashdmpcall.cpp" />
+    <ClCompile Include="src\device.cpp" />
     <ClCompile Include="src\drvmajor.cpp" />
     <ClCompile Include="src\dummypdb.cpp" />
     <ClCompile Include="src\haltables.cpp" />
@@ -231,6 +232,7 @@
     <ClInclude Include="src\analyze.hpp" />
     <ClInclude Include="src\colorhack.hpp" />
     <ClInclude Include="src\ddk.h" />
+    <ClInclude Include="src\device.hpp" />
     <ClInclude Include="src\dummypdb.hpp" />
     <ClInclude Include="src\manipulators.hpp" />
     <ClInclude Include="src\objhelper.hpp" />
