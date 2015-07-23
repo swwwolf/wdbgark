@@ -169,6 +169,13 @@ EXT_COMMAND(wa_scan,
     }
 
     try {
+        out << wa::showplus << "<b>!wa_secicb</b>" << endlout;
+        wa_secicb();
+    } catch ( const ExtStatusException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    try {
         out << wa::showplus << "<b>!wa_drvmajor</b>" << endlout;
         wa_drvmajor();
     }

@@ -208,6 +208,7 @@
     <ClCompile Include="src\resources.cpp" />
     <ClCompile Include="src\scan.cpp" />
     <ClCompile Include="src\sdt_w32p.cpp" />
+    <ClCompile Include="src\secicallbacks.cpp" />
     <ClCompile Include="src\ssdt.cpp" />
     <ClCompile Include="src\strings.cpp" />
     <ClCompile Include="src\symbols.cpp" />
