@@ -39,7 +39,7 @@ std::string get_service_table_prefix_name(const ServiceTableType type);
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-// Windows XP SP3
+// Windows XP SP3 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_XpSp3_x86[] = {
     "NtAcceptConnectPort",
@@ -329,7 +329,7 @@ static const char* KiServiceTable_XpSp3_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 2003 SP2
+// Windows 2003 SP2 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_W2k3Sp2_x86[] = {
     "NtAcceptConnectPort",
@@ -631,7 +631,7 @@ static const char* KiServiceTable_W2k3Sp2_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP0
+// Windows Vista SP0 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_VistaSp0_x86[] = {
     "NtAcceptConnectPort",
@@ -1035,7 +1035,7 @@ static const char* KiServiceTable_VistaSp0_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP1
+// Windows Vista SP1 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_VistaSp1_x86[] = {
     "NtAcceptConnectPort",
@@ -1432,7 +1432,7 @@ static const char* KiServiceTable_VistaSp1_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP2
+// Windows Vista SP2 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_VistaSp2_x86[] = {
     "NtAcceptConnectPort",
@@ -1829,7 +1829,7 @@ static const char* KiServiceTable_VistaSp2_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP0
+// Windows 7 SP0 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win7Sp0_x86[] = {
     "NtAcceptConnectPort",
@@ -2236,7 +2236,7 @@ static const char* KiServiceTable_Win7Sp0_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP1
+// Windows 7 SP1 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win7Sp1_x86[] = {
     "NtAcceptConnectPort",
@@ -2643,7 +2643,7 @@ static const char* KiServiceTable_Win7Sp1_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 8 SP0
+// Windows 8 SP0 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win8Sp0_x86[] = {
     "NtWorkerFactoryWorkerReady",
@@ -3078,7 +3078,7 @@ static const char* KiServiceTable_Win8Sp0_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 8 SP1
+// Windows 8 SP1 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win8Sp1_x86[] = {
     "NtWorkerFactoryWorkerReady",
@@ -3517,7 +3517,7 @@ static const char* KiServiceTable_Win8Sp1_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 10 SP0
+// Windows 10 SP0 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win10Sp0_x86[] = {
     "NtAccessCheck",
@@ -3968,7 +3968,7 @@ static const char* KiServiceTable_Win10Sp0_x86[] = {
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 2003 SP2
+// Windows 2003 SP2 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_W2k3Sp2_x64[] = {
     "NtMapUserPhysicalPagesScatter",
@@ -4270,7 +4270,7 @@ static const char* KiServiceTable_W2k3Sp2_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP0
+// Windows Vista SP0 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_VistaSp0_x64[] = {
     "NtMapUserPhysicalPagesScatter",
@@ -4674,7 +4674,7 @@ static const char* KiServiceTable_VistaSp0_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP1
+// Windows Vista SP1 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_VistaSp1_x64[] = {
     "NtMapUserPhysicalPagesScatter",
@@ -5071,7 +5071,7 @@ static const char* KiServiceTable_VistaSp1_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP2
+// Windows Vista SP2 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_VistaSp2_x64[] = {
     "NtMapUserPhysicalPagesScatter",
@@ -5468,7 +5468,7 @@ static const char* KiServiceTable_VistaSp2_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP0
+// Windows 7 SP0 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win7Sp0_x64[] = {
     "NtMapUserPhysicalPagesScatter",
@@ -5875,7 +5875,7 @@ static const char* KiServiceTable_Win7Sp0_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP1
+// Windows 7 SP1 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win7Sp1_x64[] = {
     "NtMapUserPhysicalPagesScatter",
@@ -6282,7 +6282,7 @@ static const char* KiServiceTable_Win7Sp1_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 8 SP0
+// Windows 8 SP0 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win8Sp0_x64[] = {
     "NtWorkerFactoryWorkerReady",
@@ -6717,7 +6717,7 @@ static const char* KiServiceTable_Win8Sp0_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 8 SP1
+// Windows 8 SP1 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win8Sp1_x64[] = {
     "NtWorkerFactoryWorkerReady",
@@ -7156,7 +7156,7 @@ static const char* KiServiceTable_Win8Sp1_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 10 SP0
+// Windows 10 SP0 _KiServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* KiServiceTable_Win10Sp0_x64[] = {
     "NtAccessCheck",
@@ -7607,7 +7607,7 @@ static const char* KiServiceTable_Win10Sp0_x64[] = {
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-// Windows XP SP3
+// Windows XP SP3 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_XpSp3_x86[] = {
     "NtGdiAbortDoc",
@@ -8280,7 +8280,7 @@ static const char* W32pServiceTable_XpSp3_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 2003 SP2
+// Windows 2003 SP2 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_W2k3Sp2_x86[] = {
     "NtGdiAbortDoc",
@@ -8951,7 +8951,7 @@ static const char* W32pServiceTable_W2k3Sp2_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP0
+// Windows Vista SP0 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_VistaSp0_x86[] = {
     "NtGdiAbortDoc",
@@ -9729,7 +9729,7 @@ static const char* W32pServiceTable_VistaSp0_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP1
+// Windows Vista SP1 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_VistaSp1_x86[] = {
     "NtGdiAbortDoc",
@@ -10507,7 +10507,7 @@ static const char* W32pServiceTable_VistaSp1_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP2
+// Windows Vista SP2 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_VistaSp2_x86[] = {
     "NtGdiAbortDoc",
@@ -11285,7 +11285,7 @@ static const char* W32pServiceTable_VistaSp2_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP0
+// Windows 7 SP0 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win7Sp0_x86[] = {
     "NtGdiAbortDoc",
@@ -12116,7 +12116,7 @@ static const char* W32pServiceTable_Win7Sp0_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP1
+// Windows 7 SP1 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win7Sp1_x86[] = {
     "NtGdiAbortDoc",
@@ -12947,7 +12947,7 @@ static const char* W32pServiceTable_Win7Sp1_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 8 SP0
+// Windows 8 SP0 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win8Sp0_x86[] = {
     "NtUserYieldTask",
@@ -13937,7 +13937,7 @@ static const char* W32pServiceTable_Win8Sp0_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 8 SP1
+// Windows 8 SP1 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win8Sp1_x86[] = {
     "NtUserYieldTask",
@@ -14979,7 +14979,7 @@ static const char* W32pServiceTable_Win8Sp1_x86[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 10 SP0
+// Windows 10 SP0 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtUserGetOwnerTransformedMonitorRect",
@@ -14992,10 +14992,6 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtGdiUnloadPrinterDriver",
     "NtGdiTransparentBlt",
     "NtGdiTransformPoints",
-    "NtGdiScaleRgn",
-    "NtGdiScaleValues",
-    "NtGdiGetDCDpiScaleValue",
-    "NtGdiGetBitmapDpiScaleValue",
     "NtGdiSwapBuffers",
     "NtGdiStrokePath",
     "NtGdiStrokeAndFillPath",
@@ -15569,6 +15565,7 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtUserSetProcessDpiAwareness",
     "NtUserEnableChildWindowDpiMessage",
     "NtUserIsChildWindowDpiMessageEnabled",
+    "NtUserIsWindowBroadcastingDpiToChildren",
     "NtUserSetTimer",
     "NtUserSetThreadState",
     "NtUserSetThreadLayoutHandles",
@@ -15910,6 +15907,7 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtGdiDdDDINetDispGetNextChunkInfo",
     "NtGdiDdDDINetDispQueryMiracastDisplayDeviceSupport",
     "NtGdiDdDDINetDispStartMiracastDisplayDevice",
+    "NtGdiDdDDINetDispStartMiracastDisplayDeviceEx",
     "NtGdiDdDDINetDispStopMiracastDisplayDevice",
     "NtGdiDdDDINetDispQueryMiracastDisplayDeviceStatus",
     "NtGdiDdDDINetDispStopSessions",
@@ -15927,6 +15925,10 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtGdiDdDDIReclaimAllocations2",
     "NtGdiDdDDISetStablePowerState",
     "NtGdiDdDDIQueryClockCalibration",
+    "NtGdiDdDDIQueryVidPnExclusiveOwnership",
+    "NtGdiDdDDIAdjustFullscreenGamma",
+    "NtGdiDdDDISetVidPnSourceHwProtection",
+    "NtGdiDdDDIMarkDeviceAsError",
     "NtGdiMakeObjectUnXferable",
     "NtGdiMakeObjectXferable",
     "NtGdiDestroyPhysicalMonitor",
@@ -15967,18 +15969,28 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtSetCompositionSurfaceBufferCompositionMode",
     "NtSetCompositionSurfaceIndependentFlipInfo",
     "NtDesktopCaptureBits",
+    "NtDCompositionEnableMMCSS",
+    "NtVisualCaptureBits",
+    "NtDCompositionEnableDDASupport",
     "NtCreateCompositionInputSink",
+    "NtCreateImplicitCompositionInputSink",
     "NtDuplicateCompositionInputSink",
     "NtQueryCompositionInputSink",
     "NtQueryCompositionInputSinkLuid",
+    "NtQueryCompositionInputSinkViewId",
     "NtUpdateInputSinkTransforms",
     "NtCompositionInputThread",
     "NtQueryCompositionInputQueueAndTransform",
+    "NtQueryCompositionInputIsImplicit",
     "NtTokenManagerOpenSectionAndEvents",
     "NtTokenManagerThread",
     "NtTokenManagerGetOutOfFrameDirectFlipSurfaceUpdates",
     "NtTokenManagerDeleteOutstandingDirectFlipTokens",
     "NtTokenManagerCreateCompositionTokenHandle",
+    "NtTokenManagerGetAnalogExclusiveTokenEvent",
+    "NtTokenManagerGetAnalogExclusiveSurfaceUpdates",
+    "NtTokenManagerConfirmOutstandingAnalogToken",
+    "NtSetCompositionSurfaceAnalogExclusive",
     "NtDCompositionBeginFrame",
     "NtDCompositionConfirmFrame",
     "NtDCompositionRetireFrame",
@@ -16024,7 +16036,6 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtDCompositionCreateDwmChannel",
     "NtDCompositionCreateChannel",
     "NtDCompositionSynchronize",
-    "NtDCompositionDwmSyncFlush",
     "NtDCompositionReferenceSharedResourceOnDwmChannel",
     "NtDCompositionSignalGpuFence",
     "NtDCompositionCreateAndBindSharedSection",
@@ -16035,7 +16046,6 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtDCompositionRegisterVirtualDesktopVisual",
     "NtDCompositionDuplicateHandleToProcess",
     "NtDCompositionSetVisualInputSink",
-    "NtDCompositionSetMessageKey",
     "NtDCompositionGetAnimationTime",
     "NtDCompositionUpdatePointerCapture",
     "NtDCompositionCapturePointer",
@@ -16063,6 +16073,7 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtUserGetProcessUIContextInformation",
     "NtUserSetProcessRestrictionExemption",
     "NtUserSetWindowArrangement",
+    "NtUserSetWindowShowState",
     "NtUserEnableMouseInPointer",
     "NtUserIsMouseInPointerEnabled",
     "NtUserPromoteMouseInPointer",
@@ -16091,17 +16102,18 @@ static const char* W32pServiceTable_Win10Sp0_x86[] = {
     "NtUserInjectKeyboardInput",
     "NtUserInjectPointerInput",
     "NtRIMAddInputObserver",
-    "NtRIMDisableInputObservers",
-    "NtRIMEnableInputObservers",
     "NtRIMRemoveInputObserver",
     "NtRIMUpdateInputObserverRegistration",
     "NtRIMObserveNextInput",
     "NtRIMGetDevicePreparsedDataLockfree",
-    "NtUserSetCoreWindow"
+    "NtUserSetCoreWindow",
+    "NtUserSetCoreWindowPartner",
+    "NtUserNavigateFocus",
+    "NtHWCursorUpdatePointer"
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 2003 SP2
+// Windows 2003 SP2 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_W2k3Sp2_x64[] = {
     "NtUserGetThreadState",
@@ -16774,7 +16786,7 @@ static const char* W32pServiceTable_W2k3Sp2_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP0
+// Windows Vista SP0 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_VistaSp0_x64[] = {
     "NtUserGetThreadState",
@@ -17554,7 +17566,7 @@ static const char* W32pServiceTable_VistaSp0_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows Vista SP1
+// Windows Vista SP1 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_VistaSp1_x64[] = {
     "NtUserGetThreadState",
@@ -18334,7 +18346,7 @@ static const char* W32pServiceTable_VistaSp1_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP0
+// Windows 7 SP0 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_VistaSp2_x64[] = {
     "NtUserGetThreadState",
@@ -19114,7 +19126,7 @@ static const char* W32pServiceTable_VistaSp2_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP1
+// Windows 7 SP1 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win7Sp0_x64[] = {
     "NtUserGetThreadState",
@@ -19947,7 +19959,7 @@ static const char* W32pServiceTable_Win7Sp0_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 7 SP1
+// Windows 7 SP1 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win7Sp1_x64[] = {
     "NtUserGetThreadState",
@@ -20780,7 +20792,7 @@ static const char* W32pServiceTable_Win7Sp1_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 8 SP0
+// Windows 8 SP0 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win8Sp0_x64[] = {
     "NtUserYieldTask",
@@ -21772,7 +21784,7 @@ static const char* W32pServiceTable_Win8Sp0_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 8 SP1
+// Windows 8 SP1 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win8Sp1_x64[] = {
     "NtUserYieldTask",
@@ -22816,7 +22828,7 @@ static const char* W32pServiceTable_Win8Sp1_x64[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Windows 10 SP0
+// Windows 10 SP0 _W32pServiceTable
 //////////////////////////////////////////////////////////////////////////
 static const char* W32pServiceTable_Win10Sp0_x64[] = {
     "NtUserGetOwnerTransformedMonitorRect",
