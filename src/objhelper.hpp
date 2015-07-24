@@ -83,6 +83,7 @@ class WDbgArkObjHelper {
     bool                             m_object_header_old;
     unsigned __int64                 m_ObpInfoMaskToOffset;
     unsigned __int64                 m_ObTypeIndexTableOffset;
+    unsigned __int8                  m_ObHeaderCookie;
     std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     //////////////////////////////////////////////////////////////////////////
     // output streams

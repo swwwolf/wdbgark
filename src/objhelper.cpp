@@ -37,6 +37,7 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
       m_object_header_old(true),
       m_ObpInfoMaskToOffset(0),
       m_ObTypeIndexTableOffset(0),
+      m_ObHeaderCookie(0),
       m_sym_cache(sym_cache),
       out(),
       warn(),
@@ -58,6 +59,12 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
         if ( !m_sym_cache->GetSymbolOffset("nt!ObTypeIndexTable", true, &m_ObTypeIndexTableOffset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;
             return;
+        }
+
+        // Windows 10+
+        unsigned __int64 header_cookie_offset = 0;
+        if ( m_sym_cache->GetSymbolOffset("nt!ObHeaderCookie", true, &header_cookie_offset) ) {
+            m_ObHeaderCookie = ExtRemoteData(header_cookie_offset, sizeof(m_ObHeaderCookie)).GetUchar();
         }
 
         m_inited = true;
@@ -294,7 +301,14 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemo
         if ( m_object_header_old ) {
             object_type = result_header.second.Field("Type");
         } else {
-            auto type_index = result_header.second.Field("TypeIndex").GetUchar();
+            auto type_index = 0;
+
+            if ( m_ObHeaderCookie ) {
+                type_index = (m_ObHeaderCookie ^ result_header.second.Field("TypeIndex").GetUchar()) ^ \
+                             static_cast<unsigned __int8>(result_header.second.m_Offset >> 8);
+            } else {
+                type_index = result_header.second.Field("TypeIndex").GetUchar();
+            }
             ExtRemoteData object_type_data(m_ObTypeIndexTableOffset + type_index * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
             object_type.Set("nt!_OBJECT_TYPE", object_type_data.GetPtr(), false, nullptr, nullptr);
         }
