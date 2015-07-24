@@ -20,11 +20,15 @@
 */
 
 /*
-    Windows 8.1+. Look for SepInitializeCodeIntegrity(). It's just a table with pure pointers.
+    >= Vista && < Windows 8.1 -> nt!g_CiCallbacks
+    >= Windows 8.1            -> nt!SeCiCallbacks
+
+    Look for SepInitializeCodeIntegrity(). It's just a table with pure pointers.
 */
 
 #include <sstream>
 #include <memory>
+#include <string>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
@@ -32,22 +36,30 @@
 
 namespace wa {
 
-unsigned __int32 GetSeCiCallbacksTableCount();
+unsigned __int32 GetCiCallbacksTableCount();
 
-EXT_COMMAND(wa_secicb, "Output kernel-mode nt!SeCiCallbacks", "") {
+EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks", "") {
     RequireKernelMode();
 
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 
-    out << wa::showplus << "Displaying nt!SeCiCallbacks" << endlout;
-
-    if ( m_system_ver->GetStrictVer() <= W8RTM_VER ) {
+    if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
         out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
         return;
     }
 
-    unsigned __int32 table_count = GetSeCiCallbacksTableCount();
+    std::string symbol_name;
+
+    if ( m_system_ver->GetStrictVer() <= W8RTM_VER ) {
+        out << wa::showplus << "Displaying nt!g_CiCallbacks" << endlout;
+        symbol_name = "nt!g_CiCallbacks";
+    } else {
+        out << wa::showplus << "Displaying nt!SeCiCallbacks" << endlout;
+        symbol_name = "nt!SeCiCallbacks";
+    }
+
+    unsigned __int32 table_count = GetCiCallbacksTableCount();
 
     if ( !table_count ) {
         err << wa::showminus << __FUNCTION__ << ": unknown table count" << endlerr;
@@ -56,12 +68,12 @@ EXT_COMMAND(wa_secicb, "Output kernel-mode nt!SeCiCallbacks", "") {
 
     unsigned __int64 offset = 0;
 
-    if ( !m_sym_cache->GetSymbolOffset("nt!SeCiCallbacks", true, &offset) ) {
-        err << wa::showminus << __FUNCTION__ << ": failed to find nt!SeCiCallbacks" << endlerr;
+    if ( !m_sym_cache->GetSymbolOffset(symbol_name, true, &offset) ) {
+        err << wa::showminus << __FUNCTION__ << ": failed to find " << symbol_name << endlerr;
         return;
     }
 
-    out << wa::showplus << "nt!SeCiCallbacks: " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << symbol_name << ": " << std::hex << std::showbase << offset << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
@@ -86,16 +98,20 @@ EXT_COMMAND(wa_secicb, "Output kernel-mode nt!SeCiCallbacks", "") {
     display->PrintFooter();
 }
 
-unsigned __int32 GetSeCiCallbacksTableCount() {
+unsigned __int32 GetCiCallbacksTableCount() {
     WDbgArkSystemVer system_ver;
 
     if ( !system_ver.IsInited() )
         return 0;
 
-    if ( system_ver.GetStrictVer() == W81RTM_VER )
+    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, W7SP1_VER) )
+        return 2;
+    else if ( system_ver.GetStrictVer() == W8RTM_VER )
+        return 7;
+    else if ( system_ver.GetStrictVer() == W81RTM_VER )
         return 12;
     else if ( system_ver.GetStrictVer() >= W10RTM_VER )
-        return 18;
+        return 17;
 
     return 0;
 }

@@ -107,7 +107,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_crashdmpcall);
     EXT_COMMAND_METHOD(wa_haltables);
     EXT_COMMAND_METHOD(wa_drvmajor);
-    EXT_COMMAND_METHOD(wa_secicb);
+    EXT_COMMAND_METHOD(wa_cicallbacks);
 
     //////////////////////////////////////////////////////////////////////////
     // init

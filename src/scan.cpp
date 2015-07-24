@@ -169,8 +169,8 @@ EXT_COMMAND(wa_scan,
     }
 
     try {
-        out << wa::showplus << "<b>!wa_secicb</b>" << endlout;
-        wa_secicb();
+        out << wa::showplus << "<b>!wa_cicallbacks</b>" << endlout;
+        wa_cicallbacks();
     } catch ( const ExtStatusException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
