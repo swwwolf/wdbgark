@@ -21,8 +21,9 @@
 
 /*
 
+//////////////////////////////////////////////////////////////////////////
 // IDT entry
-
+//////////////////////////////////////////////////////////////////////////
 struct _KIDTENTRY {
 
     unsigned short Offset;
@@ -31,7 +32,7 @@ struct _KIDTENTRY {
     unsigned short ExtendedOffset;
 };
 // <size 0x08>
-
+//////////////////////////////////////////////////////////////////////////
 union _KIDTENTRY64 {
 
     unsigned short OffsetLow;
@@ -47,11 +48,12 @@ union _KIDTENTRY64 {
     unsigned __int64 Alignment;
 };
 // <size 0x10>
-
+//////////////////////////////////////////////////////////////////////////
 // Interrupt entry
 // Just an example. Note Windows 8.1 x86 (!!!) nt!_KPRCB structure (VectorToInterruptObject offset)!
 //
 // Windows 7 x86
+//////////////////////////////////////////////////////////////////////////
 struct _KINTERRUPT {
 
     short Type;
@@ -81,8 +83,9 @@ struct _KINTERRUPT {
     unsigned long DispatchCode[135];
 };
 // <size 0x278>
-
-//Windows 7 x64
+//////////////////////////////////////////////////////////////////////////
+// Windows 7 x64
+//////////////////////////////////////////////////////////////////////////
 struct _KINTERRUPT {
 
     short Type;
@@ -114,10 +117,10 @@ struct _KINTERRUPT {
     unsigned long DispatchCode[4];
 };
 // <size 0xa0>
-
-Windows 8.1.x x86 only
+//////////////////////////////////////////////////////////////////////////
+// Windows 8.1.x x86 only
+//////////////////////////////////////////////////////////////////////////
 struct _KPRCB {
-
     unsigned short MinorVersion;
     unsigned short MajorVersion;
     struct _KTHREAD* CurrentThread;
@@ -359,9 +362,264 @@ struct _KPRCB {
     struct _KDPC AbDpc;
 };
 // <size 0x4508>
-
 //////////////////////////////////////////////////////////////////////////
-
+// Windows 10 x64
+//////////////////////////////////////////////////////////////////////////
+struct _KPRCB {
+    unsigned long MxCsr;
+    unsigned char LegacyNumber;
+    unsigned char ReservedMustBeZero;
+    unsigned char InterruptRequest;
+    unsigned char IdleHalt;
+    struct _KTHREAD* CurrentThread;
+    struct _KTHREAD* NextThread;
+    struct _KTHREAD* IdleThread;
+    unsigned char NestingLevel;
+    unsigned char ClockOwner;
+    unsigned char PendingTickFlags;
+    unsigned char PendingTick : 0 : 1;
+    unsigned char PendingBackupTick : 1 : 1;
+    unsigned char IdleState;
+    unsigned long Number;
+    unsigned __int64 RspBase;
+    unsigned __int64 PrcbLock;
+    char* PriorityState;
+    struct _KPROCESSOR_STATE ProcessorState;
+    char CpuType;
+    char CpuID;
+    unsigned short CpuStep;
+    unsigned char CpuStepping;
+    unsigned char CpuModel;
+    unsigned long MHz;
+    unsigned __int64 HalReserved[8];
+    unsigned short MinorVersion;
+    unsigned short MajorVersion;
+    unsigned char BuildType;
+    unsigned char CpuVendor;
+    unsigned char CoresPerPhysicalProcessor;
+    unsigned char LogicalProcessorsPerCore;
+    struct _KNODE* ParentNode;
+    unsigned __int64 GroupSetMember;
+    unsigned char Group;
+    unsigned char GroupIndex;
+    unsigned char PrcbPad05[2];
+    unsigned long InitialApicId;
+    unsigned long ScbOffset;
+    unsigned long ApicMask;
+    void* AcpiReserved;
+    unsigned long CFlushSize;
+    unsigned long PrcbPad10;
+    struct _KSPIN_LOCK_QUEUE LockQueue[17];
+    struct _PP_LOOKASIDE_LIST PPLookasideList[16];
+    struct _GENERAL_LOOKASIDE_POOL PPNxPagedLookasideList[32];
+    struct _GENERAL_LOOKASIDE_POOL PPNPagedLookasideList[32];
+    struct _GENERAL_LOOKASIDE_POOL PPPagedLookasideList[32];
+    unsigned __int64 PrcbPad20;
+    struct _SINGLE_LIST_ENTRY DeferredReadyListHead;
+    long MmPageFaultCount;
+    long MmCopyOnWriteCount;
+    long MmTransitionCount;
+    long MmDemandZeroCount;
+    long MmPageReadCount;
+    long MmPageReadIoCount;
+    long MmDirtyPagesWriteCount;
+    long MmDirtyWriteIoCount;
+    long MmMappedPagesWriteCount;
+    long MmMappedWriteIoCount;
+    unsigned long KeSystemCalls;
+    unsigned long KeContextSwitches;
+    unsigned short LdtSelector;
+    unsigned short PrcbPad40;
+    unsigned long CcFastReadNoWait;
+    unsigned long CcFastReadWait;
+    unsigned long CcFastReadNotPossible;
+    unsigned long CcCopyReadNoWait;
+    unsigned long CcCopyReadWait;
+    unsigned long CcCopyReadNoWaitMiss;
+    long IoReadOperationCount;
+    long IoWriteOperationCount;
+    long IoOtherOperationCount;
+    union _LARGE_INTEGER IoReadTransferCount;
+    union _LARGE_INTEGER IoWriteTransferCount;
+    union _LARGE_INTEGER IoOtherTransferCount;
+    long PacketBarrier;
+    long TargetCount;
+    unsigned long IpiFrozen;
+    void* IsrDpcStats;
+    unsigned long DeviceInterrupts;
+    long LookasideIrpFloat;
+    unsigned long InterruptLastCount;
+    unsigned long InterruptRate;
+    unsigned long PrcbPad41[22];
+    struct _KDPC_DATA DpcData[2];
+    void* DpcStack;
+    long MaximumDpcQueueDepth;
+    unsigned long DpcRequestRate;
+    unsigned long MinimumDpcRate;
+    unsigned long DpcLastCount;
+    unsigned char ThreadDpcEnable;
+    unsigned char QuantumEnd;
+    unsigned char DpcRoutineActive;
+    unsigned char IdleSchedule;
+    long DpcRequestSummary;
+    short DpcRequestSlot[2];
+    short NormalDpcState;
+    short ThreadDpcState;
+    unsigned long DpcNormalProcessingActive : 0 : 1;
+    unsigned long DpcNormalProcessingRequested : 1 : 1;
+    unsigned long DpcNormalThreadSignal : 2 : 1;
+    unsigned long DpcNormalTimerExpiration : 3 : 1;
+    unsigned long DpcNormalDpcPresent : 4 : 1;
+    unsigned long DpcNormalLocalInterrupt : 5 : 1;
+    unsigned long DpcNormalSpare : 6 : a;
+    unsigned long DpcThreadActive : 10 : 1;
+    unsigned long DpcThreadRequested : 11 : 1;
+    unsigned long DpcThreadSpare : 12 : e;
+    unsigned long LastTimerHand;
+    unsigned long LastTick;
+    unsigned long ClockInterrupts;
+    unsigned long ReadyScanTick;
+    void* InterruptObject[256];                                                 // <---------- !!!
+    struct _KTIMER_TABLE TimerTable;
+    struct _KGATE DpcGate;
+    void* PrcbPad52;
+    struct _KDPC CallDpc;
+    long ClockKeepAlive;
+    unsigned char PrcbPad60[2];
+    unsigned short NmiActive;
+    long DpcWatchdogPeriod;
+    long DpcWatchdogCount;
+    long KeSpinLockOrdering;
+    unsigned long PrcbPad70[1];
+    void* CachedPtes;
+    struct _LIST_ENTRY WaitListHead;
+    unsigned __int64 WaitLock;
+    unsigned long ReadySummary;
+    long AffinitizedSelectionMask;
+    unsigned long QueueIndex;
+    unsigned long PrcbPad75[3];
+    struct _KDPC TimerExpirationDpc;
+    struct _RTL_RB_TREE ScbQueue;
+    struct _LIST_ENTRY DispatcherReadyListHead[32];
+    unsigned long InterruptCount;
+    unsigned long KernelTime;
+    unsigned long UserTime;
+    unsigned long DpcTime;
+    unsigned long InterruptTime;
+    unsigned long AdjustDpcThreshold;
+    unsigned char DebuggerSavedIRQL;
+    unsigned char GroupSchedulingOverQuota;
+    unsigned char DeepSleep;
+    unsigned char PrcbPad80[5];
+    unsigned long DpcTimeCount;
+    unsigned long DpcTimeLimit;
+    unsigned long PeriodicCount;
+    unsigned long PeriodicBias;
+    unsigned long AvailableTime;
+    unsigned long KeExceptionDispatchCount;
+    unsigned __int64 StartCycles;
+    unsigned __int64 TaggedCyclesStart;
+    unsigned __int64 TaggedCycles[2];
+    unsigned __int64 GenerationTarget;
+    unsigned __int64 AffinitizedCycles;
+    unsigned long PrcbPad81[29];
+    long MmSpinLockOrdering;
+    unsigned long PageColor;
+    unsigned long NodeColor;
+    unsigned long NodeShiftedColor;
+    unsigned long SecondaryColorMask;
+    unsigned long PrcbPad83;
+    unsigned __int64 CycleTime;
+    unsigned __int64 Cycles[4][2];
+    unsigned long PrcbPad84[16];
+    unsigned long CcFastMdlReadNoWait;
+    unsigned long CcFastMdlReadWait;
+    unsigned long CcFastMdlReadNotPossible;
+    unsigned long CcMapDataNoWait;
+    unsigned long CcMapDataWait;
+    unsigned long CcPinMappedDataCount;
+    unsigned long CcPinReadNoWait;
+    unsigned long CcPinReadWait;
+    unsigned long CcMdlReadNoWait;
+    unsigned long CcMdlReadWait;
+    unsigned long CcLazyWriteHotSpots;
+    unsigned long CcLazyWriteIos;
+    unsigned long CcLazyWritePages;
+    unsigned long CcDataFlushes;
+    unsigned long CcDataPages;
+    unsigned long CcLostDelayedWrites;
+    unsigned long CcFastReadResourceMiss;
+    unsigned long CcCopyReadWaitMiss;
+    unsigned long CcFastMdlReadResourceMiss;
+    unsigned long CcMapDataNoWaitMiss;
+    unsigned long CcMapDataWaitMiss;
+    unsigned long CcPinReadNoWaitMiss;
+    unsigned long CcPinReadWaitMiss;
+    unsigned long CcMdlReadNoWaitMiss;
+    unsigned long CcMdlReadWaitMiss;
+    unsigned long CcReadAheadIos;
+    long MmCacheTransitionCount;
+    long MmCacheReadCount;
+    long MmCacheIoCount;
+    unsigned long PrcbPad91[3];
+    struct _PROCESSOR_POWER_STATE PowerState;
+    struct _LIST_ENTRY ScbList;
+    unsigned long PrcbPad92[7];
+    unsigned long KeAlignmentFixupCount;
+    struct _KDPC DpcWatchdogDpc;
+    struct _KTIMER DpcWatchdogTimer;
+    struct _CACHE_DESCRIPTOR Cache[5];
+    unsigned long CacheCount;
+    unsigned long CachedCommit;
+    unsigned long CachedResidentAvailable;
+    void* HyperPte;
+    void* WheaInfo;
+    void* EtwSupport;
+    union _SLIST_HEADER InterruptObjectPool;
+    union _SLIST_HEADER HypercallPageList;
+    void* HypercallCachedPages;
+    void* VirtualApicAssist;
+    unsigned __int64* StatisticsPage;
+    struct _KAFFINITY_EX PackageProcessorSet;
+    unsigned __int64 SharedReadyQueueMask;
+    struct _KSHARED_READY_QUEUE* SharedReadyQueue;
+    unsigned long SharedQueueScanOwner;
+    unsigned long ScanSiblingIndex;
+    unsigned __int64 CoreProcessorSet;
+    unsigned __int64 ScanSiblingMask;
+    unsigned __int64 LLCMask;
+    unsigned __int64 CacheProcessorMask[5];
+    struct _PROCESSOR_PROFILE_CONTROL_AREA* ProcessorProfileControlArea;
+    void* ProfileEventIndexAddress;
+    unsigned __int64 PrcbPad94[11];
+    struct _SYNCH_COUNTERS SynchCounters;
+    unsigned __int64 PteBitCache;
+    unsigned long PteBitOffset;
+    struct _FILESYSTEM_DISK_COUNTERS FsCounters;
+    unsigned char VendorString[13];
+    unsigned char PrcbPad100[3];
+    unsigned __int64 FeatureBits;
+    unsigned long PrcbPad110;
+    union _LARGE_INTEGER UpdateSignature;
+    struct _CONTEXT* Context;
+    unsigned long ContextFlagsInit;
+    struct _XSAVE_AREA* ExtendedState;
+    void* IsrStack;
+    struct _KENTROPY_TIMING_STATE EntropyTimingState;
+    struct _SINGLE_LIST_ENTRY AbSelfIoBoostsList;
+    struct _SINGLE_LIST_ENTRY AbPropagateBoostsList;
+    struct _KDPC AbDpc;
+    struct _IOP_IRP_STACK_PROFILER IoIrpStackProfilerCurrent;
+    struct _IOP_IRP_STACK_PROFILER IoIrpStackProfilerPrevious;
+    struct _KSHARED_READY_QUEUE LocalSharedReadyQueue;
+    struct _KTIMER_EXPIRATION_TRACE TimerExpirationTrace[16];
+    unsigned long TimerExpirationTraceCount;
+    void* ExSaPageArray;
+    struct _REQUEST_MAILBOX* Mailbox;
+    struct _REQUEST_MAILBOX RequestMailbox[1];
+};
+// <size 0x6900>
+//////////////////////////////////////////////////////////////////////////
 x86:
     | StartUnexpectedRange |                       | EndUnexpectedRange |
     nt!KiStartUnexpectedRange < unexpected entry < nt!KiEndUnexpectedRange
@@ -397,9 +655,7 @@ Algorithm:
 
         then walk _KINTERRUPT->InterruptListEntry;
     }
-
 //////////////////////////////////////////////////////////////////////////
-
 */
 
 #include <vector>
@@ -412,7 +668,7 @@ Algorithm:
 #include "manipulators.hpp"
 
 namespace wa {
-
+//////////////////////////////////////////////////////////////////////////
 typedef struct IdtSupportTag {
     unsigned __int64 start_unexpected_range;
     unsigned __int64 end_unexpected_range;
@@ -421,10 +677,12 @@ typedef struct IdtSupportTag {
     unsigned __int32 message_service_offset;
     unsigned __int32 service_routine_offset;
     unsigned __int32 interrupt_list_entry;
+    unsigned __int32 interrupt_object_offset;
 } IdtSupport;
 
 bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* support_info);
-
+//////////////////////////////////////////////////////////////////////////
+// TODO(swwwolf): REFACTORING!!!
 EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     RequireKernelMode();
 
@@ -466,7 +724,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 idt_entry_start = pcr.Field("IdtBase").GetPtr();    // _KIDTENTRY64*
                 idt_entry_size = GetTypeSize("nt!_KIDTENTRY64");
             } else {
-                idt_entry_start = pcr.Field("IDT").GetPtr();    // _KIDTENTRY*
+                idt_entry_start = pcr.Field("IDT").GetPtr();        // _KIDTENTRY*
                 idt_entry_size = GetTypeSize("nt!_KIDTENTRY");
             }
 
@@ -534,17 +792,31 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 ExtRemoteTyped interrupt;
                 bool           valid_interrupt = false;
 
-                if ( isr_address < support_info.start_unexpected_range
-                     ||
-                     isr_address > support_info.end_unexpected_range ) {
-                    if ( m_is_cur_machine64 || !support_info.vector_to_interrupt_object ) {
-                        ExtRemoteTyped loc_interrupt("nt!_KINTERRUPT",
-                                                     isr_address - support_info.dispatch_code_offset,
-                                                     false,
-                                                     NULL,
-                                                     NULL);
+                if ( isr_address < support_info.start_unexpected_range ||
+                     isr_address > support_info.end_unexpected_range ||
+                     support_info.interrupt_object_offset ) {
+                    if ( m_is_cur_machine64 ||
+                         !support_info.vector_to_interrupt_object ||
+                         support_info.interrupt_object_offset ) {
+                        ExtRemoteTyped loc_interrupt;
 
-                        if ( loc_interrupt.Field("Type").GetUshort() == KOBJECTS::InterruptObject ) {
+                        if ( support_info.interrupt_object_offset ) {
+                            loc_interrupt.Set("nt!_KINTERRUPT",
+                                              ExtRemoteData(pcr.Field("Prcb.InterruptObject").m_Offset + \
+                                              j * m_PtrSize, m_PtrSize).GetPtr(),
+                                              false,
+                                              NULL,
+                                              NULL);
+                        } else {
+                            loc_interrupt.Set("nt!_KINTERRUPT",
+                                              isr_address - support_info.dispatch_code_offset,
+                                              false,
+                                              NULL,
+                                              NULL);
+                        }
+
+                        if ( loc_interrupt.m_Offset &&
+                             loc_interrupt.Field("Type").GetUshort() == KOBJECTS::InterruptObject ) {
                             interrupt = loc_interrupt;
                             valid_interrupt = true;
                         }
@@ -585,7 +857,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                     walkresType    output_list;
                     ExtRemoteTyped list_entry = interrupt.Field("InterruptListEntry");
 
-                    if ( support_info.message_service_offset )                     {
+                    if ( support_info.message_service_offset ) {
                         WalkAnyListWithOffsetToRoutine("",
                                                        list_entry.m_Offset,
                                                        support_info.interrupt_list_entry,
@@ -676,12 +948,20 @@ bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* suppo
         warn << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
     }
 
-    if ( (g_Ext->IsCurMachine64() || strict_minor_build <= W8RTM_VER)
-         &&
-         GetFieldOffset("nt!_KINTERRUPT",
-                        "DispatchCode",
-                        reinterpret_cast<PULONG>(&support_info->dispatch_code_offset)) != 0 ) {
-        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
+    if ( strict_minor_build != W10RTM_VER ) {
+        if ( (g_Ext->IsCurMachine64() || strict_minor_build <= W8RTM_VER)
+              &&
+              GetFieldOffset("nt!_KINTERRUPT",
+                             "DispatchCode",
+                             reinterpret_cast<PULONG>(&support_info->dispatch_code_offset)) != 0 ) {
+            warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
+        }
+    } else if ( g_Ext->IsCurMachine64()
+                &&
+                GetFieldOffset("nt!_KPRCB",
+                               "InterruptObject",
+                               reinterpret_cast<PULONG>(&support_info->interrupt_object_offset)) != 0 ) {
+        warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with InterruptObject" << endlwarn;
     }
 
     if ( strict_minor_build >= VISTA_RTM_VER
