@@ -224,6 +224,10 @@
     <None Include="README.html" />
     <None Include="README.md" />
     <None Include="src\wdbgark.def" />
+    <None Include="test\find_err_wrn.cmd" />
+    <None Include="test\pytest\check_ssdt_names.py" />
+    <None Include="test\test_all_x64.cmd" />
+    <None Include="test\test_one_dump.cmd" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wdbgark.rc" />
@@ -249,6 +253,9 @@
     <ClInclude Include="src\udis.hpp" />
     <ClInclude Include="src\ver.hpp" />
     <ClInclude Include="src\wdbgark.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="test\wa_test_script.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -25,6 +25,12 @@
     <Filter Include="Source Files\Support">
       <UniqueIdentifier>{026aa900-18b6-45c7-a7bb-0fb372c1a9fe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test">
+      <UniqueIdentifier>{52fd52fa-b55f-415d-bf76-0bcc683e6b70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Test\pytest">
+      <UniqueIdentifier>{504c4e93-0a0e-4ad4-857a-99dba4236087}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\bprinter\src\table_printer.cpp">
@@ -134,6 +140,18 @@
     <None Include="README.html">
       <Filter>Information</Filter>
     </None>
+    <None Include="test\find_err_wrn.cmd">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_all_x64.cmd">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_one_dump.cmd">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\pytest\check_ssdt_names.py">
+      <Filter>Test\pytest</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wdbgark.rc">
@@ -201,5 +219,10 @@
     <ClInclude Include="src\device.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="test\wa_test_script.txt">
+      <Filter>Test</Filter>
+    </Text>
   </ItemGroup>
 </Project>
