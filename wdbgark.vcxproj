@@ -102,7 +102,7 @@
       <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x86\winext\$(TargetName)$(TargetExt)</Command>
+      <Command>copy /B /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(WDKDIR)\Debuggers\x86\winext\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -125,7 +125,7 @@
       <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$(TargetName)$(TargetExt)</Command>
+      <Command>copy /B /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(WDKDIR)\Debuggers\x64\winext\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
