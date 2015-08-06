@@ -156,6 +156,18 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         if ( !IsWinDbgWindow() )
             throw ExtStatusException(S_OK, "Can't find WinDBG window");
 
+        std::unique_ptr<char[]> module_file_name(new char[MAX_PATH]);
+        if ( !GetModuleFileName(GetModuleHandle(nullptr), module_file_name.get(), MAX_PATH) )
+            throw ExtStatusException(S_OK, "Can't get module file name");
+
+        unsigned __int16 windbg_major    = 0;
+        unsigned __int16 windbg_minor    = 0;
+        unsigned __int16 windbg_build    = 0;
+        unsigned __int16 windbg_revision = 0;
+
+        if ( !GetFileVersion(module_file_name.get(), &windbg_major, &windbg_minor, &windbg_build, &windbg_revision) )
+            throw ExtStatusException(S_OK, "Can't get module version");
+
         m_tp->AddColumn("DML name", 15);
         m_tp->AddColumn("Description", 70);
         m_tp->AddColumn("Original", 10);
@@ -163,7 +175,7 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
 
         InitThemes();
 
-        uintptr_t windbg_module_start = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL));
+        uintptr_t windbg_module_start = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
 
         if ( !windbg_module_start )
             throw ExtStatusException(S_OK, "GetModuleHandle failed");
@@ -179,48 +191,50 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         PIMAGE_SECTION_HEADER sech = reinterpret_cast<PIMAGE_SECTION_HEADER>(reinterpret_cast<char*>(nth) +\
             sizeof(*nth));
 
-        PIMAGE_SECTION_HEADER sech_text = nullptr;
-        PIMAGE_SECTION_HEADER sech_data = nullptr;
+        PIMAGE_SECTION_HEADER sech_check_in  = nullptr;
+        PIMAGE_SECTION_HEADER sech_search_in = nullptr;
 
         for ( __int16 i = 0; i < nth->FileHeader.NumberOfSections; i++ ) {
             std::string section_name = reinterpret_cast<char*>(&sech->Name[0]);
 
-            if ( sech_text && sech_data )
+            if ( sech_check_in && sech_search_in )
                 break;
-            else if ( section_name == ".text" )
-                sech_text = sech;
+            else if ( windbg_build < W10RTM_VER && section_name == ".text" )
+                sech_check_in = sech;
+            else if ( windbg_build >= W10RTM_VER && section_name == ".rdata" )
+                sech_check_in = sech;
             else if ( section_name == ".data" )
-                sech_data = sech;
+                sech_search_in = sech;
 
             sech++;
         }
 
-        if ( !sech_text || !sech_data )
+        if ( !sech_check_in || !sech_search_in )
             throw ExtStatusException(S_OK, "Can't get sections header");
 
-        uintptr_t start_data = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
-            static_cast<ptrdiff_t>(sech_data->VirtualAddress));
+        uintptr_t start_search_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
+            static_cast<ptrdiff_t>(sech_search_in->VirtualAddress));
 
-        uintptr_t end_data = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_data) +\
-            static_cast<ptrdiff_t>(sech_data->Misc.VirtualSize));
+        uintptr_t end_search_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_search_in) +\
+            static_cast<ptrdiff_t>(sech_search_in->Misc.VirtualSize));
 
-        uintptr_t start_text = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
-            static_cast<ptrdiff_t>(sech_text->VirtualAddress));
+        uintptr_t start_check_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
+            static_cast<ptrdiff_t>(sech_check_in->VirtualAddress));
 
-        uintptr_t end_text = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_text) +\
-            static_cast<ptrdiff_t>(sech_text->Misc.VirtualSize));
+        uintptr_t end_check_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_check_in) +\
+            static_cast<ptrdiff_t>(sech_check_in->Misc.VirtualSize));
 
-        if ( start_data >= windbg_module_end || end_data > windbg_module_end ||
-             start_text >= windbg_module_end || end_text > windbg_module_end ) {
+        if ( start_search_in >= windbg_module_end || end_search_in > windbg_module_end ||
+             start_check_in >= windbg_module_end || end_check_in > windbg_module_end ) {
                  throw ExtStatusException(S_OK, "Something is wrong");
         }
 
-        uintptr_t* mem_point = reinterpret_cast<uintptr_t*>(start_data);
-        uintptr_t* mem_point_end = reinterpret_cast<uintptr_t*>(end_data);
+        uintptr_t* mem_point = reinterpret_cast<uintptr_t*>(start_search_in);
+        uintptr_t* mem_point_end = reinterpret_cast<uintptr_t*>(end_search_in);
 
         while ( mem_point < mem_point_end ) {
             try {
-                if ( *mem_point >= start_text && *mem_point <= end_text ) {
+                if ( *mem_point >= start_check_in && *mem_point <= end_check_in ) {
                     std::wstring check_sig = reinterpret_cast<wchar_t*>(*mem_point);
                     if ( check_sig == L"Background" )
                         m_g_ui_colors = reinterpret_cast<UiColor*>(mem_point);
@@ -297,6 +311,38 @@ bool WDbgArkColorHack::IsWinDbgWindow(void) {
 
     if ( !EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&found)) && !found )
         return false;
+
+    return true;
+}
+
+bool WDbgArkColorHack::GetFileVersion(const std::string& file_path, unsigned __int16* major, unsigned __int16* minor,
+                                      unsigned __int16* build, unsigned __int16* revision) {
+    unsigned __int32 file_version_size = GetFileVersionInfoSize(file_path.c_str(), nullptr);
+
+    if ( !file_version_size ) {
+        err << wa::showminus << __FUNCTION__ << ": GetFileVersionInfoSize failed" << endlerr;
+        return false;
+    }
+
+    std::unique_ptr<char[]> version_data(new char[file_version_size]);
+
+    if ( !GetFileVersionInfo(file_path.c_str(), 0, file_version_size, version_data.get()) ) {
+        err << wa::showminus << __FUNCTION__ << ": GetFileVersionInfo failed" << endlerr;
+        return false;
+    }
+
+    VS_FIXEDFILEINFO* file_info = nullptr;
+    unsigned int      buf_len   = 0;
+
+    if ( !VerQueryValue(version_data.get(), "\\", reinterpret_cast<LPVOID*>(&file_info), &buf_len) ) {
+        err << wa::showminus << __FUNCTION__ << ": VerQueryValue failed" << endlerr;
+        return false;
+    }
+
+    *major = HIWORD(file_info->dwFileVersionMS);
+    *minor = LOWORD(file_info->dwFileVersionMS);
+    *build = HIWORD(file_info->dwFileVersionLS);
+    *revision = LOWORD(file_info->dwFileVersionLS);
 
     return true;
 }
@@ -433,7 +479,6 @@ WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiC
 
 void WDbgArkColorHack::RevertColors(void) {
     if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return;
     }
 

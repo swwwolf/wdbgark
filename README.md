@@ -5,7 +5,7 @@
 * [Supported commands](#supported-commands)
 * [Supported targets](#supported-targets)
 * [Sources and build](#sources-and-build)
-    * [Build using VS2013](#build-using-vs2013)
+    * [Build using VS2015](#build-using-vs2015)
     * [Build using BUILD](#build-using-build)
     * [Build using CMD](#build-using-cmd)
 * [Using](#using)
@@ -60,15 +60,11 @@ Second, i don't care if you don't have [symbols](http://msdn.microsoft.com/en-us
 
 ## Sources and build
 
-Sources are organized as a Visual Studio 2013 solution.
+Sources are organized as a Visual Studio 2015 solution.
 
-### Build using VS2013
+### Build using VS2015
 
 * Download and install latest [WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365)
-* Define system environment variables (e.g. WDK 8.1).
-    * DBGSDK_INC_PATH = ```C:\WinDDK\8.1\Debuggers\inc```
-    * DBGSDK_LIB_PATH = ```C:\WinDDK\8.1\Debuggers\lib```
-    * WDKDIR = ```C:\WinDDK\8.1```
 * Select **Build -> Batch Build** from the menu and build dummypdb module (x86 and x64).
 ![Batch Build](https://raw.githubusercontent.com/swwwolf/wdbgark/master/images/batch_build.png)
 * Choose solution configuration and platform for the main project.
@@ -77,7 +73,7 @@ Sources are organized as a Visual Studio 2013 solution.
 #### NOTE!
 
 Post-build event is enabled for debug build. It automatically copies linked extension into WinDBG's plugins folder (e.g. x64 target:  
-```"copy /B /Y $(OutDir)$(TargetName)$(TargetExt) $(WDKDIR)\Debuggers\x64\winext\$(TargetName)$(TargetExt)"```).
+```"copy /B /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(WindowsSdkDir)Debuggers\x64\winext\$(TargetName)$(TargetExt)"```).
 
 ### Build using BUILD
 
@@ -87,21 +83,20 @@ Depricated.
 
 Yeah, it's possible to build all the stuff using simple batch script.
 
-* Do first two steps in [Build using VS2013](#build-using-vs2013).
 * Make sure that you have already installed PowerShell at least version 3.0.
     * If not, then download and install [Windows Management Framework](http://www.microsoft.com/en-US/download/details.aspx?id=40855).
 * Execute the [release_build.cmd](release_build.cmd) with a single parameter - a version.
 * Voila! If there were no errors, the archive file will be created (e.g. wdbgark.X.Y.zip).
-    * If something is wrong, check the path to the Visual Studio 2013 in the script and/or output log file (release_build.log).
+    * If something is wrong, check the path to the Visual Studio 2015 in the script and/or output log file (release_build.log).
 
 ## Using
 
 * Download and install Debugging Tools from the [Microsoft WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365) downloads page.
 * [Build](#sources-and-build) or download the extention.
-* Make sure that [Visual C++ Redistributable for Visual Studio 2013](https://www.microsoft.com/en-US/download/details.aspx?id=40784) has already been installed.
-* Copy extension to the WDK debugger's directory (e.g. WDK 8.1):
-    * x64: ```C:\WinDDK\8.1\Debuggers\x64\winext\```
-    * x86: ```C:\WinDDK\8.1\Debuggers\x86\winext\```
+* Make sure that [Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-US/download/details.aspx?id=46881) has already been installed.
+* Copy extension to the WDK debugger's directory (e.g. WDK 10):
+    * x64: ```C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\```
+    * x86: ```C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\winext\```
 * Start WinDBG.
 * [Setup](http://support.microsoft.com/kb/311503/en-us) WinDBG to use Microsoft Symbol Server correctly or deal with them manually.
 * Load extension by **.load wdbgark** (you can see loaded extensions with a **.chain** command).
@@ -114,26 +109,28 @@ Yeah, it's possible to build all the stuff using simple batch script.
 Extension DLL search Path:
 <...>
 Extension DLL chain:
-    wdbgark: image 1.5.0.0, API 1.5.0, built Sat Feb 14 10:38:51 2015
-        [path: C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll]
-    dbghelp: image 6.3.9600.17029, API 6.3.6, built Thu Feb 20 12:02:36 2014
-        [path: C:\WinDDK\8.1\Debuggers\x64\dbghelp.dll]
-    ext: image 6.3.9600.17029, API 1.0.0, built Thu Feb 20 12:23:58 2014
-        [path: C:\WinDDK\8.1\Debuggers\x64\winext\ext.dll]
-    exts: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 14:32:48 2013
-        [path: C:\WinDDK\8.1\Debuggers\x64\WINXP\exts.dll]
-    kext: image 6.3.9600.16384, API 1.0.0, built Thu Aug 22 14:34:26 2013
-        [path: C:\WinDDK\8.1\Debuggers\x64\winext\kext.dll]
-    kdexts: image 6.3.9600.17029, API 1.0.0, built Thu Feb 20 12:16:37 2014
-        [path: C:\WinDDK\8.1\Debuggers\x64\WINXP\kdexts.dll]
+    wdbgark: image 1.5.0.0, API 1.5.0, built Wed Aug 05 00:15:28 2015
+        [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark.dll]
+    dbghelp: image 10.0.10240.16399, API 10.0.6, built Thu Jul 23 04:49:35 2015
+        [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\dbghelp.dll]
+    ext: image 10.0.10240.16399, API 1.0.0, built Thu Jul 23 04:50:27 2015
+        [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\ext.dll]
+    exts: image 10.0.10240.16399, API 1.0.0, built Thu Jul 23 04:49:59 2015
+        [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\WINXP\exts.dll]
+    kext: image 10.0.10240.16399, API 1.0.0, built Thu Jul 23 04:49:56 2015
+        [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\kext.dll]
+    kdexts: image 10.0.10240.16399, API 1.0.0, built Thu Jul 23 05:05:16 2015
+        [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\WINXP\kdexts.dll]
 0: kd> !wdbgark.help
-Commands for C:\WinDDK\8.1\Debuggers\x64\winext\wdbgark.dll:
+Commands for C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark.dll:
   !help            - Displays information on available extension commands
   !wa_callouts     - Output kernel-mode win32k callouts
   !wa_checkmsr     - Output system MSRs (live debug only!)
+  !wa_cicallbacks  - Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks
   !wa_colorize     - Adjust WinDBG colors dynamically (prints info with no
                      parameters)
   !wa_crashdmpcall - Output kernel-mode nt!CrashdmpCallTable
+  !wa_drvmajor     - Output driver(s) major table
   !wa_gdt          - Output processors GDT
   !wa_haltables    - Output kernel-mode HAL tables: nt!HalDispatchTable,
                      nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable

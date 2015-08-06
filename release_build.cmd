@@ -5,12 +5,12 @@
 :main
 setlocal enableextensions
 if [%1]==[] goto usage
-set vstudio="c:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE\devenv.exe"
+set vstudio="c:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe"
 set output="%temp%\wdbgark.%1\"
 set log="release_build.log"
 call :create %output%
 
-:: build using VS 2012 command line
+:: build using VS 2015 command line
 :build
 if exist %log% del /Q %log%
 echo Cleaning Release-Win32

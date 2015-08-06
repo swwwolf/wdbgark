@@ -9,6 +9,6 @@ endlocal
 goto :eof
 
 :process
-set log=%~nx2\%~nx1.txt
-call test_one_dump.cmd x64 %1 %log%
+set log=%~dp0%~nx2\%~nx1.txt
+powershell .\test_one_dump.ps1 -Dump %1 -Log %log%
 goto :eof

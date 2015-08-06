@@ -19,6 +19,14 @@
     * the COPYING file in the top-level directory.
 */
 
+// Workaround for engextcpp.lib
+// 1>engextcpp.lib(engextcpp.obj) : error LNK2019: unresolved external symbol _vsnprintf referenced in function
+// "public: void __cdecl ExtExtension::AppendStringVa(char const *,char *)"
+// (?AppendStringVa@ExtExtension@@QEAAXPEBDPEAD@Z)
+// TODO(swwwolf): remove after VS 2015 fix
+#define STRSAFE_LIB_IMPL
+#include <strsafe.h>
+
 #include <string>
 #include <algorithm>
 #include <memory>
