@@ -94,7 +94,6 @@
       <ShowIncludes>false</ShowIncludes>
       <TreatWarningAsError>false</TreatWarningAsError>
       <SDLCheck>true</SDLCheck>
-      <AdditionalOptions>/Wv:18 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -120,7 +119,6 @@
       <ShowIncludes>false</ShowIncludes>
       <TreatWarningAsError>false</TreatWarningAsError>
       <SDLCheck>true</SDLCheck>
-      <AdditionalOptions>/Wv:18 %(AdditionalOptions)</AdditionalOptions>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
     </ClCompile>
     <Link>
@@ -159,7 +157,6 @@
       <SDLCheck>true</SDLCheck>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <ControlFlowGuard>Guard</ControlFlowGuard>
-      <AdditionalOptions>/Wv:18 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -190,7 +187,6 @@
       <SDLCheck>true</SDLCheck>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <ControlFlowGuard>Guard</ControlFlowGuard>
-      <AdditionalOptions>/Wv:18 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

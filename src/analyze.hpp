@@ -146,16 +146,16 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
     virtual bool IsSuspiciousAddress(const unsigned __int64 address) const;
     virtual void Analyze(const unsigned __int64 address, const std::string &type, const std::string &additional_info);
     virtual void Analyze(const ExtRemoteTyped&, const ExtRemoteTyped&) {
-        std::stringstream err;
-        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+        std::stringstream locerr;
+        locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
     virtual void Analyze(const ExtRemoteTyped&, const std::string&, const unsigned __int32, const std::string&) {
-        std::stringstream err;
-        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+        std::stringstream locerr;
+        locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
     virtual void Analyze(const ExtRemoteTyped&) {
-        std::stringstream err;
-        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+        std::stringstream locerr;
+        locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
     virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
 
