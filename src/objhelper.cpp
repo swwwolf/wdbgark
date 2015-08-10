@@ -71,9 +71,10 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
     }
 }
 
-// TODO(swwwolf): build full path with recursion
 std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetObjectsInfo(
-    const unsigned __int64 directory_address) {
+    const unsigned __int64 directory_address,
+    const std::string &root_path,
+    const bool recursive) {
     unsigned __int64   offset = directory_address;
     ObjectsInformation info;
 
@@ -107,6 +108,7 @@ std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetOb
                   directory_entry = *directory_entry.Field("ChainLink") ) {
                 ObjectInfo object_information;
 
+                object_information.directory_object = directory_object;
                 object_information.object = *directory_entry.Field("Object");
 
                 std::pair<HRESULT, std::string> result = GetObjectName(object_information.object);
@@ -114,20 +116,27 @@ std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetOb
                 if ( FAILED(result.first) )
                     continue;
 
-                object_information.name = result.second;
-
-                std::transform(object_information.name.begin(),
-                               object_information.name.end(),
-                               object_information.name.begin(),
-                               tolower);
+                object_information.obj_name = result.second;
+                object_information.full_path = root_path + object_information.obj_name;
 
                 result = GetObjectTypeName(object_information.object);
 
                 if ( FAILED(result.first) )
                     continue;
 
-                object_information.type = result.second;
+                object_information.type_name = result.second;
                 info[object_information.object.m_Offset] = object_information;
+
+                if ( recursive && object_information.type_name == "Directory" ) {
+                    object_information.full_path += "\\";
+
+                    auto recursive_info = GetObjectsInfo(object_information.object.m_Offset,
+                                                         object_information.full_path,
+                                                         recursive);
+
+                    if ( SUCCEEDED(recursive_info.first) )
+                        info.insert(recursive_info.second.begin(), recursive_info.second.end());
+                }
             }
         }
     } catch ( const ExtRemoteException &Ex ) {
@@ -139,32 +148,39 @@ std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetOb
 }
 
 unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
-                                                    const unsigned __int64 directory_address) {
-    std::string compare_with = object_name;
-
+                                                    const unsigned __int64 directory_address,
+                                                    const std::string &root_path,
+                                                    const bool recursive) {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return 0ULL;
     }
 
-    if ( compare_with.empty() ) {
+    if ( object_name.empty() ) {
         err << wa::showminus << __FUNCTION__ << ": invalid object name" << endlerr;
         return 0ULL;
     }
 
-    auto info = GetObjectsInfo(directory_address);
+    auto info = GetObjectsInfo(directory_address, root_path, recursive);
 
     if ( FAILED(info.first) ) {
         err << wa::showminus << __FUNCTION__ << ": GetObjectsInfo failed" << endlerr;
         return 0ULL;
     }
 
-    std::transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
+    std::string compare_full_path = root_path + object_name;
+
+    if ( root_path == "\\" && object_name[0] == '\\' )
+        compare_full_path = object_name;
+
+    std::transform(compare_full_path.begin(), compare_full_path.end(), compare_full_path.begin(), tolower);
 
     for ( auto object_info : info.second ) {
-        if ( object_info.second.name == compare_with ) {
+        std::string full_path = object_info.second.full_path;
+        std::transform(full_path.begin(), full_path.end(), full_path.begin(), tolower);
+
+        if ( full_path == compare_full_path )
             return object_info.second.object.m_Offset;
-        }
     }
 
     return 0ULL;
@@ -174,8 +190,6 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
     ExtRemoteTyped object_header;
 
     try {
-        ExtRemoteTyped loc_object = object;
-
         if ( !IsInited() ) {
             err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
             return std::make_pair(E_NOT_VALID_STATE, object_header);

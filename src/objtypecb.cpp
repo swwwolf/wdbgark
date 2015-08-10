@@ -67,7 +67,10 @@ EXT_COMMAND(wa_objtypecb,
                                 DirectoryObjectTypeCallbackListCallback);
         } else {
             ExtRemoteTyped object_type("nt!_OBJECT_TYPE",
-                                       m_obj_helper->FindObjectByName(type, object_types_directory_offset),
+                                       m_obj_helper->FindObjectByName(type,
+                                                                      object_types_directory_offset,
+                                                                      "\\ObjectTypes\\",
+                                                                      false),
                                        false,
                                        NULL,
                                        NULL);

@@ -126,6 +126,9 @@
     <ClCompile Include="src\secicallbacks.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
+    <ClCompile Include="src\driver.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -217,6 +220,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\device.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\driver.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

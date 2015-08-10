@@ -27,8 +27,8 @@
 #pragma once
 #endif
 
-#ifndef DEVICE_HPP_
-#define DEVICE_HPP_
+#ifndef DRIVER_HPP_
+#define DRIVER_HPP_
 
 #include <engextcpp.hpp>
 
@@ -41,19 +41,19 @@
 
 namespace wa {
 
-class WDbgArkDevice {
+class WDbgArkDriver {
  public:
-    using DevicesInformation = std::map<unsigned __int64, ExtRemoteTyped>;  // offset : object
+    using DriversInformation = std::map<unsigned __int64, ExtRemoteTyped>;  // offset : object
  public:
-    explicit WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
-    WDbgArkDevice() = delete;
+    explicit WDbgArkDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
+    WDbgArkDriver() = delete;
 
     bool IsInited(void) const { return m_inited; }
-    DevicesInformation Get(void) const { return m_devices_list; }
+    DriversInformation Get(void) const { return m_drivers_list; }
 
  private:
     bool                              m_inited;
-    DevicesInformation                m_devices_list;
+    DriversInformation                m_drivers_list;
     std::shared_ptr<WDbgArkSymCache>  m_sym_cache;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     //////////////////////////////////////////////////////////////////////////
@@ -64,4 +64,4 @@ class WDbgArkDevice {
 
 }   // namespace wa
 
-#endif  // DEVICE_HPP_
+#endif  // DRIVER_HPP_

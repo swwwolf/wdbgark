@@ -25,12 +25,13 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "driver.hpp"
 
 namespace wa {
 
 EXT_COMMAND(wa_drvmajor,
             "Output driver(s) major table",
-            "{name;s;o;name,Driver object name}") {
+            "{name;s;o;name,Driver full path}") {
     std::string name = "*";
 
     RequireKernelMode();
@@ -43,47 +44,30 @@ EXT_COMMAND(wa_drvmajor,
 
     out << wa::showplus << __FUNCTION__ << ": displaying " << name << endlout;
 
-    auto driver_directory_offset = m_obj_helper->FindObjectByName("Driver");
+    std::unique_ptr<WDbgArkDriver> drivers(new WDbgArkDriver(m_sym_cache));
 
-    if ( !driver_directory_offset ) {
-        err << wa::showminus << __FUNCTION__ << ": failed to get \"Driver\" directory" << endlerr;
+    if ( !drivers->IsInited() ) {
+        err << wa::showminus << __FUNCTION__ << ": failed to initialize WDbgArkDriver" << endlerr;
         return;
     }
 
-    auto filesystem_directory_offset = m_obj_helper->FindObjectByName("FileSystem");
+    WDbgArkDriver::DriversInformation drivers_info = drivers->Get();
 
-    if ( !filesystem_directory_offset ) {
-        err << wa::showminus << __FUNCTION__ << ": failed to get \"FileSystem\" directory" << endlerr;
+    if ( drivers_info.empty() ) {
+        err << wa::showminus << __FUNCTION__ << ": empty drivers list" << endlerr;
         return;
     }
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeDriver);
-
     display->PrintHeader();
 
     try {
         if ( name == "*" ) {
-            WalkDirectoryObject(driver_directory_offset,
-                                reinterpret_cast<void*>(display.get()),
-                                DirectoryObjectDriverCallback);
-
-            display->PrintFooter();
-
-            WalkDirectoryObject(filesystem_directory_offset,
-                                reinterpret_cast<void*>(display.get()),
-                                DirectoryObjectDriverCallback);
+            for ( auto driver_info : drivers_info )
+                display->Analyze(driver_info.second);
         } else {
-            auto object_address = m_obj_helper->FindObjectByName(name, driver_directory_offset);
-
-            if ( !object_address )
-                object_address = m_obj_helper->FindObjectByName(name, filesystem_directory_offset);
-
-            ExtRemoteTyped driver_object("nt!_DRIVER_OBJECT", object_address, false, NULL, NULL);
-
-            if ( !SUCCEEDED(DirectoryObjectDriverCallback(this,
-                                                          driver_object,
-                                                          reinterpret_cast<void*>(display.get()))))
-                err << wa::showminus << __FUNCTION__ << ": DirectoryObjectDriverCallback failed" << endlerr;
+            auto object_address = m_obj_helper->FindObjectByName(name, 0ULL, "\\", true);
+            display->Analyze(ExtRemoteTyped("nt!_DRIVER_OBJECT", object_address, false, NULL, NULL));
         }
     }
     catch ( const ExtRemoteException &Ex ) {
@@ -92,26 +76,6 @@ EXT_COMMAND(wa_drvmajor,
     catch( const ExtInterruptException& ) {
         throw;
     }
-}
-
-HRESULT WDbgArk::DirectoryObjectDriverCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
-    WDbgArkAnalyzeBase* display = reinterpret_cast<WDbgArkAnalyzeBase*>(context);
-
-    try {
-        auto result_type_name = wdbg_ark_class->m_obj_helper->GetObjectTypeName(object);
-
-        if ( SUCCEEDED(result_type_name.first) && result_type_name.second == "Driver" ) {
-            ExtRemoteTyped driver_object("nt!_DRIVER_OBJECT", object.m_Offset, false, NULL, NULL);
-            display->Analyze(driver_object);
-        }
-    }
-    catch ( const ExtRemoteException &Ex ) {
-        std::stringstream tmperr;
-        tmperr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        return Ex.GetStatus();
-    }
-
-    return S_OK;
 }
 
 }   // namespace wa

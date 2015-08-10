@@ -198,11 +198,6 @@ class WDbgArk : public ExtExtension {
     static HRESULT DeviceNodeCallback(WDbgArk* wdbg_ark_class,
                                       const ExtRemoteTyped &device_node,
                                       void* context);
-
-    static HRESULT DirectoryObjectDriverCallback(WDbgArk* wdbg_ark_class,
-                                                 const ExtRemoteTyped &object,
-                                                 void* context);
-
     //////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////

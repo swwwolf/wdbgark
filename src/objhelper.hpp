@@ -49,8 +49,10 @@ class WDbgArkObjHelper {
  public:
     typedef struct ObjectInfoTag {
         ExtRemoteTyped object;
-        std::string    name;
-        std::string    type;
+        ExtRemoteTyped directory_object;
+        std::string    full_path;
+        std::string    obj_name;
+        std::string    type_name;
     } ObjectInfo;
 
     using ObjectsInformation = std::map<unsigned __int64, ObjectInfo>;  // offset : object information
@@ -65,8 +67,13 @@ class WDbgArkObjHelper {
     std::pair<HRESULT, std::string> GetObjectName(const ExtRemoteTyped &object);
     std::pair<HRESULT, ExtRemoteTyped> GetObjectType(const ExtRemoteTyped &object);
     std::pair<HRESULT, std::string> GetObjectTypeName(const ExtRemoteTyped &object);
-    std::pair<HRESULT, ObjectsInformation> GetObjectsInfo(const unsigned __int64 directory_address = 0ULL);
-    unsigned __int64 FindObjectByName(const std::string &object_name, const unsigned __int64 directory_address = 0ULL);
+    std::pair<HRESULT, ObjectsInformation> GetObjectsInfo(const unsigned __int64 directory_address = 0ULL,
+                                                          const std::string &root_path = "\\",
+                                                          const bool recursive = false);
+    unsigned __int64 FindObjectByName(const std::string &object_name,
+                                      const unsigned __int64 directory_address = 0ULL,
+                                      const std::string &root_path = "\\",
+                                      const bool recursive = false);
 
     unsigned __int64 ExFastRefGetObject(unsigned __int64 FastRef) const {
         if ( g_Ext->IsCurMachine32() )
