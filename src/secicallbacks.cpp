@@ -29,6 +29,7 @@
 #include <sstream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
@@ -36,7 +37,7 @@
 
 namespace wa {
 
-unsigned __int32 GetCiCallbacksTableCount();
+std::pair<unsigned __int32, unsigned __int32> GetCiCallbacksTableCount();
 
 EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks", "") {
     RequireKernelMode();
@@ -59,9 +60,9 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
         symbol_name = "nt!SeCiCallbacks";
     }
 
-    unsigned __int32 table_count = GetCiCallbacksTableCount();
+    std::pair<unsigned __int32, unsigned __int32> table_count_skip_offset = GetCiCallbacksTableCount();
 
-    if ( !table_count ) {
+    if ( !table_count_skip_offset.first ) {
         err << wa::showminus << __FUNCTION__ << ": unknown table count" << endlerr;
         return;
     }
@@ -84,7 +85,7 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
 
     try {
         walkresType output_list;
-        WalkAnyTable(offset, m_PtrSize, table_count, "", &output_list);
+        WalkAnyTable(offset, table_count_skip_offset.second, table_count_skip_offset.first, "", &output_list);
 
         for ( const auto &walk_info : output_list ) {
             display->Analyze(walk_info.address, walk_info.type, walk_info.info);
@@ -98,22 +99,22 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
     display->PrintFooter();
 }
 
-unsigned __int32 GetCiCallbacksTableCount() {
+std::pair<unsigned __int32, unsigned __int32> GetCiCallbacksTableCount() {
     WDbgArkSystemVer system_ver;
 
     if ( !system_ver.IsInited() )
-        return 0;
+        return std::make_pair(0, 0);
 
     if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, W7SP1_VER) )
-        return 2;
+        return std::make_pair(3, 0);
     else if ( system_ver.GetStrictVer() == W8RTM_VER )
-        return 7;
+        return std::make_pair(7, g_Ext->m_PtrSize);
     else if ( system_ver.GetStrictVer() == W81RTM_VER )
-        return 12;
+        return std::make_pair(12, g_Ext->m_PtrSize);
     else if ( system_ver.GetStrictVer() >= W10RTM_VER )
-        return 17;
+        return std::make_pair(18, g_Ext->m_PtrSize);
 
-    return 0;
+    return std::make_pair(0, 0);
 }
 
 }   // namespace wa
