@@ -125,7 +125,17 @@ std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetOb
                     continue;
 
                 object_information.type_name = result.second;
-                info[object_information.object.m_Offset] = object_information;
+
+                // workaround for an infinite loop (broken crash dump with broken object directory)
+                std::pair<ObjectsInformation::iterator, ObjectsInformation::iterator> iter_pair = \
+                    info.equal_range(object_information.object.m_Offset);
+
+                if ( iter_pair.first == iter_pair.second ) {    // not in map
+                    info.insert(iter_pair.first, std::make_pair(object_information.object.m_Offset,
+                                                                object_information));
+                } else {    // already in map and this is strange
+                    break;
+                }
 
                 if ( recursive && object_information.type_name == "Directory" ) {
                     object_information.full_path += "\\";
