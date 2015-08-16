@@ -54,6 +54,7 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
     if ( !display->AddRangeWhiteList("nt") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
+    display->SetWhiteListEntries(GetObjectTypesWhiteList());
     display->PrintHeader();
 
     try {

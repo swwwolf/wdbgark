@@ -39,6 +39,8 @@
 #include <utility>
 #include <set>
 #include <vector>
+#include <map>
+#include <algorithm>
 
 #include "manipulators.hpp"
 #include "objhelper.hpp"
@@ -58,32 +60,92 @@ HRESULT GetModuleNames(const unsigned __int64 address,
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeWhiteList {
  public:
-    using Range = std::pair<unsigned __int64, unsigned __int64>;    // start, end
+    using Range = std::pair<unsigned __int64, unsigned __int64>;        // start, end
     using Ranges = std::set<Range>;
+    using WhiteListEntry = std::vector<std::string>;
+    using WhiteListEntries = std::map<std::string, WhiteListEntry>;     // some name : vector of module names
 
-    explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
-        : m_ranges(),
-          m_sym_cache(sym_cache),
-          err() {}
+    explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_ranges(),
+                                                                                          m_temp_ranges(),
+                                                                                          m_wl_entries(),
+                                                                                          m_sym_cache(sym_cache),
+                                                                                          err() {}
 
     WDbgArkAnalyzeWhiteList() = delete;
 
+    //////////////////////////////////////////////////////////////////////////
+    // permanent list
+    //////////////////////////////////////////////////////////////////////////
     void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int64 end) {
-        m_ranges.insert(std::make_pair(start, end));
+        AddRangeWhiteListInternal(start, end, &m_ranges);
     }
+
     void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int32 size) {
         AddRangeWhiteList(start, start + size);
     }
-    void RemoveAll() { m_ranges.clear(); }
 
-    bool AddRangeWhiteList(const std::string &module_name);
-    bool AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size);
+    bool AddRangeWhiteList(const std::string &module_name) {
+        return AddRangeWhiteListInternal(module_name, &m_ranges);
+    }
+
+    bool AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size) {
+        return AddSymbolWhiteListInternal(symbol_name, size, &m_ranges);
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // temp list
+    //////////////////////////////////////////////////////////////////////////
+    void AddTempRangeWhiteList(const unsigned __int64 start, const unsigned __int64 end) {
+        AddRangeWhiteListInternal(start, end, &m_temp_ranges);
+    }
+
+    void AddTempRangeWhiteList(const unsigned __int64 start, const unsigned __int32 size) {
+        AddTempRangeWhiteList(start, start + size);
+    }
+
+    bool AddTempRangeWhiteList(const std::string &module_name) {
+        return AddRangeWhiteListInternal(module_name, &m_temp_ranges);
+    }
+
+    bool AddTempSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size) {
+        return AddSymbolWhiteListInternal(symbol_name, size, &m_temp_ranges);
+    }
+
+    void SetWhiteListEntries(const WhiteListEntries &entries) {
+        InvalidateWhiteListEntries();
+        m_wl_entries = entries;
+    }
+
+    WhiteListEntries GetWhiteListEntries(void) { return m_wl_entries; }
+
+    void AddTempWhiteList(const std::string &name);
+
+    //////////////////////////////////////////////////////////////////////////
+    // invalidate lists
+    //////////////////////////////////////////////////////////////////////////
+    void InvalidateRanges(void) { m_ranges.clear(); }
+    void InvalidateTempRanges(void) { m_temp_ranges.clear(); }
+    void InvalidateWhiteListEntries(void) { m_wl_entries.clear(); }
+
+    //////////////////////////////////////////////////////////////////////////
+    // check
+    //////////////////////////////////////////////////////////////////////////
     bool IsAddressInWhiteList(const unsigned __int64 address) const;
 
  private:
     Ranges m_ranges;
+    Ranges m_temp_ranges;
+    WhiteListEntries m_wl_entries;
     std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     std::stringstream err;
+
+ private:
+    void AddRangeWhiteListInternal(const unsigned __int64 start, const unsigned __int64 end, Ranges* ranges) {
+        ranges->insert(std::make_pair(start, end));
+    }
+
+    bool AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges);
+    bool AddSymbolWhiteListInternal(const std::string &symbol_name, const unsigned __int32 size, Ranges* ranges);
 };
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print
@@ -164,9 +226,7 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
 
  protected:
     std::shared_ptr<WDbgArkSymCache> m_sym_cache;
-
- private:
-     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
+    std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
 };
 //////////////////////////////////////////////////////////////////////////
 // Default analyzer

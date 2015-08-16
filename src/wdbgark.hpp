@@ -211,6 +211,8 @@ class WDbgArk : public ExtExtension {
     void InitCalloutNames(void);
     void InitGDTSelectors(void);
     void InitHalTables(void);
+    WDbgArkAnalyzeWhiteList::WhiteListEntries GetObjectTypesWhiteList(void);
+    WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList(void);
     //////////////////////////////////////////////////////////////////////////
     void RemoveSyntheticSymbols(void);
 

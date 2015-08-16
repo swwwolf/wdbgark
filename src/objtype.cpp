@@ -55,6 +55,7 @@ EXT_COMMAND(wa_objtype,
     if ( !display->AddRangeWhiteList("nt") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
+    display->SetWhiteListEntries(GetObjectTypesWhiteList());
     display->PrintHeader();
 
     try {

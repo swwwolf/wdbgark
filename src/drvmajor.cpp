@@ -59,6 +59,11 @@ EXT_COMMAND(wa_drvmajor,
     }
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeDriver);
+
+    if ( !display->AddSymbolWhiteList("nt!IopInvalidDeviceRequest", 0) )
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+
+    display->SetWhiteListEntries(GetDriversWhiteList());
     display->PrintHeader();
 
     try {

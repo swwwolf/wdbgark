@@ -156,7 +156,7 @@ std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address) 
     return std::make_pair(result, output_name);
 }
 //////////////////////////////////////////////////////////////////////////
-bool WDbgArkAnalyzeWhiteList::AddRangeWhiteList(const std::string &module_name) {
+bool WDbgArkAnalyzeWhiteList::AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges) {
     try {
         unsigned __int64 module_start = 0;
         HRESULT result = g_Ext->m_Symbols3->GetModuleByModuleName2(module_name.c_str(),
@@ -168,10 +168,8 @@ bool WDbgArkAnalyzeWhiteList::AddRangeWhiteList(const std::string &module_name) 
         if ( SUCCEEDED(result) ) {
             IMAGEHLP_MODULEW64 info;
             g_Ext->GetModuleImagehlpInfo(module_start, &info);
-            AddRangeWhiteList(module_start, static_cast<unsigned __int32>(info.ImageSize));
+            ranges->insert(std::make_pair(module_start, module_start + info.ImageSize));
             return true;
-        } else {
-            err << wa::showminus << __FUNCTION__ << ": Failed to find module by name " << module_name << endlerr;
         }
     }
     catch ( const ExtStatusException &Ex ) {
@@ -181,25 +179,50 @@ bool WDbgArkAnalyzeWhiteList::AddRangeWhiteList(const std::string &module_name) 
     return false;
 }
 
-bool WDbgArkAnalyzeWhiteList::AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size) {
+bool WDbgArkAnalyzeWhiteList::AddSymbolWhiteListInternal(const std::string &symbol_name,
+                                                         const unsigned __int32 size,
+                                                         Ranges* ranges) {
     unsigned __int64 symbol_offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset(symbol_name, true, &symbol_offset) )
         return false;
 
-    AddRangeWhiteList(symbol_offset, symbol_offset + size);
+    ranges->insert(std::make_pair(symbol_offset, symbol_offset + size));
     return true;
 }
 
+void WDbgArkAnalyzeWhiteList::AddTempWhiteList(const std::string &name) {
+    try {
+        if ( !m_wl_entries.empty() ) {
+            std::string search_name = name;
+            std::transform(search_name.begin(), search_name.end(), search_name.begin(), tolower);
+
+            auto entry_list = m_wl_entries.at(search_name);
+
+            for ( auto entry : entry_list )
+                AddTempRangeWhiteList(entry);
+        }
+    } catch ( const std::out_of_range& ) {}
+}
+
 bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const unsigned __int64 address) const {
-    if ( m_ranges.empty() )
+    if ( m_ranges.empty() && m_temp_ranges.empty() )
         return true;
 
     Ranges::iterator it = std::find_if(m_ranges.begin(),
                                        m_ranges.end(),
                                        [address](const Range &range) {
                                            return ((address >= range.first) && (address <= range.second)); });
+
     if ( it != m_ranges.end() )
+        return true;
+
+    Ranges::iterator temp_it = std::find_if(m_temp_ranges.begin(),
+                                            m_temp_ranges.end(),
+                                            [address](const Range &range) {
+                                                return ((address >= range.first) && (address <= range.second)); });
+
+    if ( temp_it != m_temp_ranges.end() )
         return true;
 
     return false;
@@ -360,7 +383,12 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
         PrintObjectDmlCmd(object);
         PrintFooter();
 
-        std::unique_ptr<WDbgArkAnalyzeBase> display = Create(m_sym_cache, AnalyzeType::AnalyzeTypeDefault);
+        auto result = m_obj_helper->GetObjectName(object);
+
+        if ( SUCCEEDED(result.first) )
+            AddTempWhiteList(result.second);
+
+        WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
         display->Analyze(obj_type_info.Field("DumpProcedure").GetPtr(), "DumpProcedure", "");
         display->Analyze(obj_type_info.Field("OpenProcedure").GetPtr(), "OpenProcedure", "");
@@ -374,6 +402,8 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
     catch(const ExtRemoteException &Ex) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
+
+    InvalidateTempRanges();
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
@@ -893,16 +923,18 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
         PrintObjectDmlCmd(object);
         PrintFooter();
 
-        std::unique_ptr<WDbgArkAnalyzeBase> display = Create(m_sym_cache, AnalyzeType::AnalyzeTypeDefault);
-
-        if ( !display->AddSymbolWhiteList("nt!IopInvalidDeviceRequest", 0) )
-            warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+        WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
         auto driver_start = loc_object.Field("DriverStart").GetPtr();
         unsigned __int32 driver_size = loc_object.Field("DriverSize").GetUlong();
 
         if ( driver_start && driver_size )
-            display->AddRangeWhiteList(driver_start, driver_size);
+            display->AddTempRangeWhiteList(driver_start, driver_size);
+
+        auto result = m_obj_helper->GetObjectName(object);
+
+        if ( SUCCEEDED(result.first) )
+            AddTempWhiteList(result.second);
 
         out << wa::showplus << "Driver routines: " << endlout;
         PrintFooter();
@@ -944,6 +976,7 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
     }
 
     PrintFooter();
+    InvalidateTempRanges();
 }
 
 //////////////////////////////////////////////////////////////////////////
