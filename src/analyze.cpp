@@ -299,7 +299,7 @@ void WDbgArkAnalyzeBase::Analyze(const unsigned __int64 address,
     std::stringstream addr_ext;
 
     if ( address )
-        addr_ext << "<exec cmd=\"u " << std::hex << std::showbase << address << " L5\">";
+        addr_ext << "<exec cmd=\"u " << std::hex << std::showbase << address << " L10\">";
 
     addr_ext << std::internal << std::setw(18) << std::setfill('0') << std::hex << std::showbase << address;
 

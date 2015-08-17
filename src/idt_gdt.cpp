@@ -737,9 +737,9 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 std::stringstream info;
 
                 if ( m_is_cur_machine64 )
-                    info << std::setw(42);
+                    info << std::setw(52);
                 else
-                    info << std::setw(40);
+                    info << std::setw(50);
 
                 if ( m_is_cur_machine64 ) {
                     KIDT_HANDLER_ADDRESS idt_handler;
@@ -756,8 +756,8 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                     isr_address = idt_handler.Address;
 
-                    info << "<exec cmd=\"dt nt!_KIDTENTRY64 " << std::hex << std::showbase << idt_entry.m_Offset;
-                    info << "\">dt" << "</exec>" << " ";
+                    info << "<exec cmd=\"dx -r1 *(nt!_KIDTENTRY64 *)" << std::hex << std::showbase;
+                    info << idt_entry.m_Offset << "\">dx" << "</exec>" << " ";
                 } else {
                     ExtRemoteTyped idt_entry("nt!_KIDTENTRY",
                                              idt_entry_start + j * idt_entry_size,
@@ -773,12 +773,14 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                     isr_address = g_Ext->EvalExprU64(expression.str().c_str());
 
-                    info << "<exec cmd=\"dt nt!_KIDTENTRY " << std::hex << std::showbase << idt_entry.m_Offset;
-                    info << "\">dt" << "</exec>" << " ";
+                    info << "<exec cmd=\"dx -r1 *(nt!_KIDTENTRY *)" << std::hex << std::showbase;
+                    info << idt_entry.m_Offset << "\">dx" << "</exec>" << " ";
                 }
 
-                info << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
-                info << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
+                info << "<exec cmd=\"dx -r1 *(nt!_KPCR *)" << std::hex << std::showbase << kpcr_offset;
+                info << "\">pcr" << "</exec>" << " ";
+                info << "<exec cmd=\"dx -r1 *(nt!_KPRCB *)" << std::hex << std::showbase << pcr.Field("Prcb").m_Offset;
+                info << "\">prcb" << "</exec>";
 
                 // display idt entry
                 display->Analyze(isr_address, processor_index.str(), info.str());
@@ -837,12 +839,14 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                 if ( valid_interrupt ) {
                     std::stringstream info_intr;
-                    info_intr << std::setw(41);
-                    info_intr << "<exec cmd=\"dt nt!_KINTERRUPT ";
+                    info_intr << std::setw(51);
+                    info_intr << "<exec cmd=\"dx -r1 *(nt!_KINTERRUPT *)";
                     info_intr << std::hex << std::showbase << interrupt.m_Offset;
-                    info_intr << "\">dt" << "</exec>" << " ";
-                    info_intr << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
-                    info_intr << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
+                    info_intr << "\">dx" << "</exec>" << " ";
+                    info_intr << "<exec cmd=\"dx -r1 *(nt!_KPCR *)" << std::hex << std::showbase << kpcr_offset;
+                    info_intr << "\">pcr" << "</exec>" << " ";
+                    info_intr << "<exec cmd=\"dx -r1 *(nt!_KPRCB *)" << std::hex << std::showbase;
+                    info_intr << pcr.Field("Prcb").m_Offset << "\">prcb" << "</exec>";
 
                     unsigned __int64 message_address = 0;
 
@@ -882,13 +886,15 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                             continue;
 
                         std::stringstream info_intr_list;
-                        info_intr_list << std::setw(41);
+                        info_intr_list << std::setw(51);
 
-                        info_intr_list << "<exec cmd=\"dt nt!_KINTERRUPT ";
+                        info_intr_list << "<exec cmd=\"dx -r1 *(nt!_KINTERRUPT *)";
                         info_intr_list << std::hex << std::showbase << walk_info.object_address;
-                        info_intr_list << "\">dt" << "</exec>" << " ";
-                        info_intr_list << "<exec cmd=\"!pcr " << i << "\">!pcr" << "</exec>" << " ";
-                        info_intr_list << "<exec cmd=\"!prcb " << i << "\">!prcb" << "</exec>";
+                        info_intr_list << "\">dx" << "</exec>" << " ";
+                        info_intr_list << "<exec cmd=\"dx -r1 *(nt!_KPCR *)" << std::hex << std::showbase;
+                        info_intr_list << kpcr_offset << "\">pcr" << "</exec>" << " ";
+                        info_intr_list << "<exec cmd=\"dx -r1 *(nt!_KPRCB *)" << std::hex << std::showbase;
+                        info_intr_list << pcr.Field("Prcb").m_Offset << "\">prcb" << "</exec>";
 
                         display->Analyze(walk_info.address, walk_info.type, info_intr_list.str());
                     }
@@ -1061,7 +1067,8 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
                         const unsigned __int64 entry_address,
                         const unsigned __int32 gdt_entry_size,
                         const unsigned __int32 gdt_selector,
-                        const unsigned int cpu_idx,
+                        const unsigned __int32 cpu_idx,
+                        const unsigned __int64 kpcr_offset,
                         std::unique_ptr<WDbgArkAnalyzeBase> const &display);
 
 EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
@@ -1119,6 +1126,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                                        gdt_entry_size,
                                        gdt_selector_x64,
                                        cpu_idx,
+                                       kpcr_offset,
                                        display);
 
                     gdt_selector = gdt_selector_x64 + gdt_entry_size;   // because last one is "normal"
@@ -1131,6 +1139,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                                    gdt_entry_size,
                                    gdt_selector,
                                    cpu_idx,
+                                   kpcr_offset,
                                    display);
             }
         }
@@ -1152,7 +1161,8 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
                         const unsigned __int64 entry_address,
                         const unsigned __int32 gdt_entry_size,
                         const unsigned __int32 gdt_selector,
-                        const unsigned int cpu_idx,
+                        const unsigned __int32 cpu_idx,
+                        const unsigned __int64 kpcr_offset,
                         std::unique_ptr<WDbgArkAnalyzeBase> const &display) {
     std::stringstream processor_index;
     std::stringstream info;
@@ -1164,16 +1174,17 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
                              NULL);
 
     if ( g_Ext->IsCurMachine64() ) {
-        info << std::setw(48);
-        info << "<exec cmd=\"dt nt!_KGDTENTRY64 " << std::hex << std::showbase << gdt_entry.m_Offset;
-        info << " -r1\">dt" << "</exec>" << " ";
-        info << "<exec cmd=\"!pcr " << cpu_idx << "\">!pcr" << "</exec>";
+        info << std::setw(56);
+        info << "<exec cmd=\"dx -r2 *(nt!_KGDTENTRY64 *)" << std::hex << std::showbase << gdt_entry.m_Offset;
+        info << "\">dx" << "</exec>" << " ";
     } else {
-        info << std::setw(46);
-        info << "<exec cmd=\"dt nt!_KGDTENTRY " << std::hex << std::showbase << gdt_entry.m_Offset;
-        info << " -r2\">dt" << "</exec>" << " ";
-        info << "<exec cmd=\"!pcr " << cpu_idx << "\">!pcr" << "</exec>";
+        info << std::setw(54);
+        info << "<exec cmd=\"dx -r3 *(nt!_KGDTENTRY *)" << std::hex << std::showbase << gdt_entry.m_Offset;
+        info << "\">dx" << "</exec>" << " ";
     }
+
+    info << "<exec cmd=\"dx -r1 *(nt!_KPCR *)" << std::hex << std::showbase << kpcr_offset;
+    info << "\">pcr" << "</exec>" << " ";
 
     processor_index << std::setw(2) << cpu_idx << " / " << std::setw(2);
     processor_index << std::hex << gdt_selector / gdt_entry_size;
