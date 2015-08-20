@@ -251,7 +251,26 @@ typedef union _KIDT_HANDLER_ADDRESS {
 #define SEG_SYS_RESERVED_13              0x0D                       // Reserved
 #define SEG_SYS_INT_GATE_64              0x0E                       // 64-bit Interrupt Gate
 #define SEG_SYS_TRAP_GATE_64             0x0F                       // 64-bit Trap Gate
+
 //////////////////////////////////////////////////////////////////////////
+// Code Integrity
+// https://msdn.microsoft.com/ru-ru/library/windows/desktop/ms724509(v=vs.85).aspx
+//////////////////////////////////////////////////////////////////////////
+#define CODEINTEGRITY_OPTION_ENABLED                      0x01
+#define CODEINTEGRITY_OPTION_TESTSIGN                     0x02
+#define CODEINTEGRITY_OPTION_UMCI_ENABLED                 0x04
+#define CODEINTEGRITY_OPTION_UMCI_AUDITMODE_ENABLED       0x08
+#define CODEINTEGRITY_OPTION_UMCI_EXCLUSIONPATHS_ENABLED  0x10
+#define CODEINTEGRITY_OPTION_TEST_BUILD                   0x20
+#define CODEINTEGRITY_OPTION_PREPRODUCTION_BUILD          0x40
+#define CODEINTEGRITY_OPTION_DEBUGMODE_ENABLED            0x80
+#define CODEINTEGRITY_OPTION_FLIGHT_BUILD                 0x100
+#define CODEINTEGRITY_OPTION_FLIGHTING_ENABLED            0x200
+#define CODEINTEGRITY_OPTION_HVCI_KMCI_ENABLED            0x400
+#define CODEINTEGRITY_OPTION_HVCI_KMCI_AUDITMODE_ENABLED  0x800
+#define CODEINTEGRITY_OPTION_HVCI_KMCI_STRICTMODE_ENABLED 0x1000
+#define CODEINTEGRITY_OPTION_HVCI_IUM_ENABLED             0x2000
+
 }   // namespace wa
 
 #endif  // SRC_DDK_H_

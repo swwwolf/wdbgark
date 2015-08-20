@@ -206,6 +206,7 @@
     <ClCompile Include="src\bprinter\src\table_printer.cpp" />
     <ClCompile Include="src\callouts.cpp" />
     <ClCompile Include="src\checkmsr.cpp" />
+    <ClCompile Include="src\ciinfo.cpp" />
     <ClCompile Include="src\colorhack.cpp" />
     <ClCompile Include="src\colorize.cpp" />
     <ClCompile Include="src\crashdmpcall.cpp" />

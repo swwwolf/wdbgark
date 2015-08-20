@@ -129,6 +129,9 @@
     <ClCompile Include="src\driver.cpp">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
+    <ClCompile Include="src\ciinfo.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">

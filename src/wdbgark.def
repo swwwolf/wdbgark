@@ -30,4 +30,5 @@ EXPORTS
 	wa_crashdmpcall
 	wa_haltables
 	wa_drvmajor
+    wa_ciinfo
     wa_cicallbacks

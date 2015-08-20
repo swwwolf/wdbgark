@@ -169,6 +169,13 @@ EXT_COMMAND(wa_scan,
     }
 
     try {
+        out << wa::showplus << "<b>!wa_ciinfo</b>" << endlout;
+        wa_ciinfo();
+    } catch ( const ExtStatusException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    try {
         out << wa::showplus << "<b>!wa_cicallbacks</b>" << endlout;
         wa_cicallbacks();
     } catch ( const ExtStatusException &Ex ) {
