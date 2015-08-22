@@ -41,6 +41,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <tuple>
 
 #include "manipulators.hpp"
 #include "objhelper.hpp"
@@ -227,6 +228,20 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
  protected:
     std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
+
+ private:
+    using ObjDmlCmd = std::tuple<std::string, std::string, std::string>;
+    std::map<std::string, ObjDmlCmd> m_object_dml_cmd = {
+        { "Type", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_OBJECT_TYPE *)", "\">", "</exec>") },
+        { "Directory", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_OBJECT_DIRECTORY *)", "\">", "</exec>") },
+        { "Process", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_EPROCESS *)", "\">", "</exec>") },
+        { "Thread", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_ETHREAD *)", "\">", "</exec>") },
+        { "Device", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_DEVICE_OBJECT *)", "\">", "</exec>") },
+        { "Driver", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_DRIVER_OBJECT *)", "\">", "</exec>") },
+        { "File", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_FILE_OBJECT *)", "\">", "</exec>") },
+        { "Section", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_SECTION *)", "\">", "</exec>") },
+        { "Key", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_CM_KEY_BODY *)", "\">", "</exec>") },
+    };
 };
 //////////////////////////////////////////////////////////////////////////
 // Default analyzer
@@ -306,6 +321,7 @@ class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
  private:
     std::vector<std::string> m_major_table_name;
     std::vector<std::string> m_fast_io_table_name;
+    std::vector<std::string> m_fs_filter_cb_table_name;
     std::stringstream        out;
     std::stringstream        warn;
     std::stringstream        err;

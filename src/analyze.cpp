@@ -325,7 +325,7 @@ void WDbgArkAnalyzeBase::Analyze(const unsigned __int64 address,
 void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     std::string object_name = "*UNKNOWN*";
 
-    std::pair<HRESULT, std::string> result = m_obj_helper->GetObjectName(object);
+    auto result = m_obj_helper->GetObjectName(object);
 
     if ( !SUCCEEDED(result.first) ) {
         std::stringstream warn;
@@ -334,11 +334,31 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
         object_name = result.second;
     }
 
+    std::string object_type_name = "*UNKNOWN*";
+    result = m_obj_helper->GetObjectTypeName(object);
+
+    if ( !SUCCEEDED(result.first) ) {
+        std::stringstream warn;
+        warn << wa::showqmark << __FUNCTION__ ": GetObjectTypeName failed" << endlwarn;
+    } else {
+        object_type_name = result.second;
+    }
+
     std::stringstream object_command;
     std::stringstream object_name_ext;
 
-    object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
-    object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
+    try {
+        auto obj_dml_cmd = m_object_dml_cmd.at(object_type_name);
+        object_command << std::get<0>(obj_dml_cmd) << std::hex << std::showbase << object.m_Offset;
+        object_command << std::get<1>(obj_dml_cmd);
+        object_command << std::hex << std::showbase << object.m_Offset << std::get<2>(obj_dml_cmd);
+    } catch ( const std::out_of_range& ) {}
+
+    if ( object_command.str().empty() ) {
+        object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
+        object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
+    }
+
     object_name_ext << object_name;
 
     *this << object_command.str() << object_name_ext.str();
@@ -848,6 +868,7 @@ WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache
     : WDbgArkAnalyzeBase(sym_cache),
       m_major_table_name(),
       m_fast_io_table_name(),
+      m_fs_filter_cb_table_name(),
       out(),
       warn(),
       err() {
@@ -914,6 +935,19 @@ WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache
     m_fast_io_table_name.push_back(make_string(ReleaseForModWrite));
     m_fast_io_table_name.push_back(make_string(AcquireForCcFlush));
     m_fast_io_table_name.push_back(make_string(ReleaseForCcFlush));
+
+    m_fs_filter_cb_table_name.push_back(make_string(PreAcquireForSectionSynchronization));
+    m_fs_filter_cb_table_name.push_back(make_string(PostAcquireForSectionSynchronization));
+    m_fs_filter_cb_table_name.push_back(make_string(PreReleaseForSectionSynchronization));
+    m_fs_filter_cb_table_name.push_back(make_string(PostReleaseForSectionSynchronization));
+    m_fs_filter_cb_table_name.push_back(make_string(PreAcquireForCcFlush));
+    m_fs_filter_cb_table_name.push_back(make_string(PostAcquireForCcFlush));
+    m_fs_filter_cb_table_name.push_back(make_string(PreReleaseForCcFlush));
+    m_fs_filter_cb_table_name.push_back(make_string(PostReleaseForCcFlush));
+    m_fs_filter_cb_table_name.push_back(make_string(PreAcquireForModifiedPageWriter));
+    m_fs_filter_cb_table_name.push_back(make_string(PostAcquireForModifiedPageWriter));
+    m_fs_filter_cb_table_name.push_back(make_string(PreReleaseForModifiedPageWriter));
+    m_fs_filter_cb_table_name.push_back(make_string(PostReleaseForModifiedPageWriter));
 }
 
 void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
@@ -942,8 +976,13 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
         display->Analyze(loc_object.Field("DriverInit").GetPtr(), "DriverInit", "");
         display->Analyze(loc_object.Field("DriverStartIo").GetPtr(), "DriverStartIo", "");
         display->Analyze(loc_object.Field("DriverUnload").GetPtr(), "DriverUnload", "");
+
+        if ( loc_object.Field("DriverExtension").GetPtr() )
+            display->Analyze(loc_object.Field("DriverExtension").Field("AddDevice").GetPtr(), "AddDevice", "");
+
         PrintFooter();
 
+        // display major table
         out << wa::showplus << "Major table routines: " << endlout;
         PrintFooter();
 
@@ -954,6 +993,7 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
 
         PrintFooter();
 
+        // display fast i/o table
         ExtRemoteTyped fast_io_dispatch = loc_object.Field("FastIoDispatch");
         auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
 
@@ -969,6 +1009,27 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
             }
 
             PrintFooter();
+        }
+
+        // display FsFilterCallbacks
+        if ( loc_object.Field("DriverExtension").GetPtr() ) {
+            ExtRemoteTyped fs_filter_callbacks = loc_object.Field("DriverExtension").Field("FsFilterCallbacks");
+            auto fs_filter_callbacks_ptr = fs_filter_callbacks.GetPtr();
+
+            if ( fs_filter_callbacks_ptr ) {
+                out << wa::showplus << "FsFilterCallbacks table routines: " << endlout;
+                PrintFooter();
+
+                fs_filter_callbacks_ptr += fs_filter_callbacks.GetFieldOffset("PreAcquireForSectionSynchronization");
+
+                for ( unsigned __int32 i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
+                    ExtRemoteData fs_filter_callbacks_data(fs_filter_callbacks_ptr + i * g_Ext->m_PtrSize,
+                                                           g_Ext->m_PtrSize);
+                    display->Analyze(fs_filter_callbacks_data.GetPtr(), m_fs_filter_cb_table_name.at(i), "");
+                }
+
+                PrintFooter();
+            }
         }
     }
     catch(const ExtRemoteException &Ex) {
