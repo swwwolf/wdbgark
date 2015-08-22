@@ -240,7 +240,7 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
         { "Driver", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_DRIVER_OBJECT *)", "\">", "</exec>") },
         { "File", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_FILE_OBJECT *)", "\">", "</exec>") },
         { "Section", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_SECTION *)", "\">", "</exec>") },
-        { "Key", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_CM_KEY_BODY *)", "\">", "</exec>") },
+        { "Key", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_CM_KEY_BODY *)", "\">", "</exec>") }
     };
 };
 //////////////////////////////////////////////////////////////////////////
