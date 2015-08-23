@@ -117,7 +117,7 @@ class WDbgArkAnalyzeWhiteList {
         m_wl_entries = entries;
     }
 
-    WhiteListEntries GetWhiteListEntries(void) { return m_wl_entries; }
+    WhiteListEntries GetWhiteListEntries(void) const { return m_wl_entries; }
 
     void AddTempWhiteList(const std::string &name);
 
