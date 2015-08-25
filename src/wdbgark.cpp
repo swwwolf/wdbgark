@@ -305,7 +305,8 @@ WDbgArkAnalyzeWhiteList::WhiteListEntries WDbgArk::GetDriversWhiteList(void) {
         { "cdfs", { "nt" } },
         { "iscsiprt", { "storport" } },
         { "tunmp", { "ndis" } },
-        { "verifier_ddi", { "nt" } }
+        { "verifier_ddi", { "nt" } },
+        { "iastorav", { "storport" } }
     };
 }
 
