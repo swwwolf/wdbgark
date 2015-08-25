@@ -64,7 +64,7 @@ Sources are organized as a Visual Studio 2015 solution.
 
 ### Build using VS2015
 
-* Download and install latest [WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365)
+* Download and install latest [WDK](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx)
 * Select **Build -> Batch Build** from the menu and build dummypdb module (x86 and x64).
 ![Batch Build](https://raw.githubusercontent.com/swwwolf/wdbgark/master/images/batch_build.png)
 * Choose solution configuration and platform for the main project.
@@ -91,7 +91,7 @@ Yeah, it's possible to build all the stuff using simple batch script.
 
 ## Using
 
-* Download and install Debugging Tools from the [Microsoft WDK](http://msdn.microsoft.com/en-us/windows/hardware/hh852365) downloads page.
+* Download and install Debugging Tools from the [Microsoft WDK](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) downloads page.
 * [Build](#sources-and-build) or download the extention.
 * Make sure that [Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-US/download/details.aspx?id=46881) has already been installed.
 * Copy extension to the WDK debugger's directory (e.g. WDK 10):
