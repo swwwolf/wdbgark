@@ -61,6 +61,9 @@ EXT_COMMAND(wa_drvmajor,
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeDriver);
 
     if ( !display->AddSymbolWhiteList("nt!IopInvalidDeviceRequest", 0) )
+        warn << wa::showqmark << __FUNCTION__ ": AddSymbolWhiteList failed" << endlwarn;
+
+    if ( m_system_ver->GetStrictVer() >= VISTA_SP2_VER && !display->AddRangeWhiteList("wdf01000") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
 
     display->SetWhiteListEntries(GetDriversWhiteList());
