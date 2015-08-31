@@ -319,6 +319,11 @@ class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
     virtual void Analyze(const ExtRemoteTyped &object);
 
  private:
+    void DisplayMajorTable(const ExtRemoteTyped &object);
+    void DisplayFastIo(const ExtRemoteTyped &object);
+    void DisplayFsFilterCallbacks(const ExtRemoteTyped &object);
+
+ private:
     std::vector<std::string> m_major_table_name;
     std::vector<std::string> m_fast_io_table_name;
     std::vector<std::string> m_fs_filter_cb_table_name;

@@ -983,54 +983,13 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
         PrintFooter();
 
         // display major table
-        out << wa::showplus << "Major table routines: " << endlout;
-        PrintFooter();
-
-        ExtRemoteTyped major_table = loc_object.Field("MajorFunction");
-
-        for ( unsigned long i = 0; i < m_major_table_name.size(); i++ )
-            display->Analyze(major_table[i].GetPtr(), m_major_table_name.at(i), "");
-
-        PrintFooter();
+        DisplayMajorTable(object);
 
         // display fast i/o table
-        ExtRemoteTyped fast_io_dispatch = loc_object.Field("FastIoDispatch");
-        auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
-
-        if ( fast_io_dispatch_ptr ) {
-            out << wa::showplus << "FastIO table routines: " << endlout;
-            PrintFooter();
-
-            fast_io_dispatch_ptr += fast_io_dispatch.GetFieldOffset("FastIoCheckIfPossible");
-
-            for ( unsigned __int32 i = 0; i < m_fast_io_table_name.size(); i++ ) {
-                ExtRemoteData fast_io_dispatch_data(fast_io_dispatch_ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
-                display->Analyze(fast_io_dispatch_data.GetPtr(), m_fast_io_table_name.at(i), "");
-            }
-
-            PrintFooter();
-        }
+        DisplayFastIo(object);
 
         // display FsFilterCallbacks
-        if ( loc_object.Field("DriverExtension").GetPtr() ) {
-            ExtRemoteTyped fs_filter_callbacks = loc_object.Field("DriverExtension").Field("FsFilterCallbacks");
-            auto fs_filter_callbacks_ptr = fs_filter_callbacks.GetPtr();
-
-            if ( fs_filter_callbacks_ptr ) {
-                out << wa::showplus << "FsFilterCallbacks table routines: " << endlout;
-                PrintFooter();
-
-                fs_filter_callbacks_ptr += fs_filter_callbacks.GetFieldOffset("PreAcquireForSectionSynchronization");
-
-                for ( unsigned __int32 i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
-                    ExtRemoteData fs_filter_callbacks_data(fs_filter_callbacks_ptr + i * g_Ext->m_PtrSize,
-                                                           g_Ext->m_PtrSize);
-                    display->Analyze(fs_filter_callbacks_data.GetPtr(), m_fs_filter_cb_table_name.at(i), "");
-                }
-
-                PrintFooter();
-            }
-        }
+        DisplayFsFilterCallbacks(object);
     }
     catch(const ExtRemoteException &Ex) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -1040,5 +999,67 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
     InvalidateTempRanges();
 }
 
+void WDbgArkAnalyzeDriver::DisplayMajorTable(const ExtRemoteTyped &object) {
+    ExtRemoteTyped loc_object = object;
+    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+
+    out << wa::showplus << "Major table routines: " << endlout;
+    PrintFooter();
+
+    ExtRemoteTyped major_table = loc_object.Field("MajorFunction");
+
+    for ( unsigned long i = 0; i < m_major_table_name.size(); i++ )
+        display->Analyze(major_table[i].GetPtr(), m_major_table_name.at(i), "");
+
+    PrintFooter();
+}
+
+void WDbgArkAnalyzeDriver::DisplayFastIo(const ExtRemoteTyped &object) {
+    ExtRemoteTyped loc_object = object;
+    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+
+    ExtRemoteTyped fast_io_dispatch = loc_object.Field("FastIoDispatch");
+    auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
+
+    if ( fast_io_dispatch_ptr ) {
+        out << wa::showplus << "FastIO table routines: " << endlout;
+        PrintFooter();
+
+        fast_io_dispatch_ptr += fast_io_dispatch.GetFieldOffset("FastIoCheckIfPossible");
+
+        for ( unsigned __int32 i = 0; i < m_fast_io_table_name.size(); i++ ) {
+            ExtRemoteData fast_io_dispatch_data(fast_io_dispatch_ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+            display->Analyze(fast_io_dispatch_data.GetPtr(), m_fast_io_table_name.at(i), "");
+        }
+
+        PrintFooter();
+    }
+}
+
+void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object) {
+    ExtRemoteTyped loc_object = object;
+    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+
+    if ( loc_object.Field("DriverExtension").GetPtr() ) {
+        ExtRemoteTyped fs_filter_callbacks = loc_object.Field("DriverExtension").Field("FsFilterCallbacks");
+        auto fs_filter_callbacks_ptr = fs_filter_callbacks.GetPtr();
+
+        if ( fs_filter_callbacks_ptr ) {
+            out << wa::showplus << "FsFilterCallbacks table routines: " << endlout;
+            PrintFooter();
+
+            fs_filter_callbacks_ptr += fs_filter_callbacks.GetFieldOffset("PreAcquireForSectionSynchronization");
+
+            for ( unsigned __int32 i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
+                ExtRemoteData fs_filter_callbacks_data(fs_filter_callbacks_ptr + i * g_Ext->m_PtrSize,
+                                                       g_Ext->m_PtrSize);
+                display->Analyze(fs_filter_callbacks_data.GetPtr(), m_fs_filter_cb_table_name.at(i), "");
+            }
+
+            PrintFooter();
+        }
+    }
+}
 //////////////////////////////////////////////////////////////////////////
+
 }   // namespace wa
