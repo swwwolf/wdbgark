@@ -72,7 +72,7 @@ WDbgArkSystemVer::WDbgArkSystemVer() : m_inited(false),
 
 void WDbgArkSystemVer::InitKnownWindowsBuilds(void) {
     m_known_windows_builds = { WXP_VER, W2K3_VER, VISTA_RTM_VER, VISTA_SP1_VER, VISTA_SP2_VER, W7RTM_VER, W7SP1_VER,
-                               W8RTM_VER, W81RTM_VER, W10RTM_VER };
+                               W8RTM_VER, W81RTM_VER, W10RTM_VER, W10TH2_VER };
 }
 
 void WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
@@ -96,6 +96,8 @@ void WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
         m_strict_minor_build = W81RTM_VER;
     else if ( m_minor_build > W81RTM_VER && m_minor_build <= W10RTM_VER )
         m_strict_minor_build = W10RTM_VER;
+    else if ( m_minor_build > W10RTM_VER && m_minor_build <= W10TH2_VER )
+        m_strict_minor_build = W10TH2_VER;
 }
 
 void WDbgArkSystemVer::CheckWindowsBuild(void) {

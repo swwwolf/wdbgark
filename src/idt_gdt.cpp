@@ -954,7 +954,7 @@ bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* suppo
         warn << ": GetFieldOffset failed with PrcbData.VectorToInterruptObject" << endlwarn;
     }
 
-    if ( strict_minor_build != W10RTM_VER ) {
+    if ( strict_minor_build < W10RTM_VER ) {
         if ( (g_Ext->IsCurMachine64() || strict_minor_build <= W8RTM_VER)
               &&
               GetFieldOffset("nt!_KINTERRUPT",

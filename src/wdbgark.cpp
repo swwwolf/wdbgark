@@ -206,7 +206,8 @@ void WDbgArk::InitHalTables(void) {
                          { W7SP1_VER, { 0x16, 0x2D, 0x0, 0x1 } },
                          { W8RTM_VER, { 0x16, 0x5A, 0x0, 0x1 } },
                          { W81RTM_VER, { 0x16, 0x69, 0x0B, 0x1 } },
-                         { W10RTM_VER, { 0x16, 0x71, 0x10, 0x1 } } } };
+                         { W10RTM_VER, { 0x16, 0x71, 0x10, 0x1 } },
+                         { W10TH2_VER, { 0x16, 0x71, 0x10, 0x1 } } } };
 }
 
 WDbgArkAnalyzeWhiteList::WhiteListEntries WDbgArk::GetObjectTypesWhiteList(void) {

@@ -49,6 +49,7 @@ namespace wa {
 #define W8RTM_VER       9200    // Windows 8 SP0
 #define W81RTM_VER      9600    // Windows 8.1 RTM
 #define W10RTM_VER      10240   // Windows 10 RTM
+#define W10TH2_VER      10586   // Windows 10 TH2
 
 //////////////////////////////////////////////////////////////////////////
 // drivers
