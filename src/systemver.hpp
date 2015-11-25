@@ -59,7 +59,7 @@ class WDbgArkSystemVer {
     std::stringstream warn;
     std::stringstream err;
 
-    void SetWindowsStrictMinorBuild(void);
+    bool SetWindowsStrictMinorBuild(void);
     void InitKnownWindowsBuilds(void);
     void CheckWindowsBuild(void);
 };

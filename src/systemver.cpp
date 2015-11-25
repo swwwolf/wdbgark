@@ -57,9 +57,7 @@ WDbgArkSystemVer::WDbgArkSystemVer() : m_inited(false),
         return;
     }
 
-    SetWindowsStrictMinorBuild();
-
-    if ( !m_strict_minor_build ) {
+    if ( !SetWindowsStrictMinorBuild() ) {
         err << wa::showminus << __FUNCTION__ ": SetWindowsStrictMinorBuild failed" << endlerr;
         return;
     }
@@ -75,7 +73,7 @@ void WDbgArkSystemVer::InitKnownWindowsBuilds(void) {
                                W8RTM_VER, W81RTM_VER, W10RTM_VER, W10TH2_VER };
 }
 
-void WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
+bool WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
     if ( m_minor_build <= WXP_VER )
         m_strict_minor_build = WXP_VER;
     else if ( m_minor_build > WXP_VER && m_minor_build <= W2K3_VER )
@@ -98,6 +96,8 @@ void WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
         m_strict_minor_build = W10RTM_VER;
     else if ( m_minor_build > W10RTM_VER && m_minor_build <= W10TH2_VER )
         m_strict_minor_build = W10TH2_VER;
+
+    return (m_strict_minor_build ? true : false);
 }
 
 void WDbgArkSystemVer::CheckWindowsBuild(void) {
