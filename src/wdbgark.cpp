@@ -86,7 +86,8 @@ bool WDbgArk::Init() {
 
     m_Symbols->Reload("");  // revise debuggee modules list
 
-    if ( !CheckSymbolsPath(true) )
+    WDbgArkSymbolsBase symbols_base;
+    if ( !symbols_base.CheckSymbolsPath(true) )
         warn << wa::showqmark << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
     // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized
