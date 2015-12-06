@@ -19,6 +19,10 @@
     * the COPYING file in the top-level directory.
 */
 
+//////////////////////////////////////////////////////////////////////////
+//  Include this after "#define EXT_CLASS WDbgArk" only
+//////////////////////////////////////////////////////////////////////////
+
 #if _MSC_VER > 1000
 #pragma once
 #endif
@@ -26,12 +30,43 @@
 #ifndef SYMBOLS_HPP_
 #define SYMBOLS_HPP_
 
+#include <engextcpp.hpp>
+
 #include <string>
+#include <sstream>
+#include <utility>
 
 namespace wa {
+//////////////////////////////////////////////////////////////////////////
+// helpers
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkSymbolsBase {
+ public:
+    WDbgArkSymbolsBase();
 
-bool CheckSymbolsPath(const bool display_error,
-                      const std::string& test_path = "http://msdl.microsoft.com/download/symbols");
+    std::pair<HRESULT, std::string> GetNameByOffset(const uint64_t address);
+    HRESULT GetModuleNames(const uint64_t address,
+                           std::string* image_name,
+                           std::string* module_name,
+                           std::string* loaded_image_name);
+    bool CheckSymbolsPath(const bool display_error,
+                          const std::string& test_path = "http://msdl.microsoft.com/download/symbols");
+    HRESULT AppendSymbolPath(const std::string& symbol_path);
+    HRESULT AppendImagePath(const std::string& image_path);
+    std::string GetSymbolPath(void) const { return m_symbol_path; }
+    std::string GetImagePath(void) const { return m_image_path; }
+
+    virtual ~WDbgArkSymbolsBase() {}
+
+ private:
+    bool InitSymbolPath();
+    bool InitImagePath();
+
+ private:
+    std::string       m_symbol_path;
+    std::string       m_image_path;
+    std::stringstream err;
+};
 
 }   // namespace wa
 
