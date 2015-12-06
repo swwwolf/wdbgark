@@ -40,7 +40,6 @@
 #include <set>
 #include <vector>
 #include <map>
-#include <algorithm>
 #include <tuple>
 
 #include "manipulators.hpp"
@@ -48,14 +47,6 @@
 #include "symcache.hpp"
 
 namespace wa {
-//////////////////////////////////////////////////////////////////////////
-// helpers
-//////////////////////////////////////////////////////////////////////////
-std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address);
-HRESULT GetModuleNames(const unsigned __int64 address,
-                       std::string* image_name,
-                       std::string* module_name,
-                       std::string* loaded_image_name);
 //////////////////////////////////////////////////////////////////////////
 // white list range
 //////////////////////////////////////////////////////////////////////////

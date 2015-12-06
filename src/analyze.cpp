@@ -28,133 +28,10 @@
 #include <memory>
 
 #include "strings.hpp"
+#include "symbols.hpp"
 #include "./ddk.h"
 
 namespace wa {
-//////////////////////////////////////////////////////////////////////////
-HRESULT GetModuleNames(const unsigned __int64 address,
-                       std::string* image_name,
-                       std::string* module_name,
-                       std::string* loaded_image_name) {
-    unsigned __int32  img_name_size           = 0;
-    unsigned __int32  module_name_size        = 0;
-    unsigned __int32  loaded_module_name_size = 0;
-    unsigned __int64  module_base             = 0;
-    unsigned __int32  module_index            = 0;
-    ExtCaptureOutputA ignore_output;
-
-    if ( !address )
-        return E_INVALIDARG;
-
-    std::unique_ptr<char[]> buf1;
-    std::unique_ptr<char[]> buf2;
-    std::unique_ptr<char[]> buf3;
-
-    ignore_output.Start();
-
-    HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address,
-                                                         0,
-                                                         reinterpret_cast<PULONG>(&module_index),
-                                                         &module_base);
-
-    if ( SUCCEEDED(result) ) {
-        result = g_Ext->m_Symbols->GetModuleNames(module_index,
-                                                  module_base,
-                                                  NULL,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&img_name_size),
-                                                  NULL,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&module_name_size),
-                                                  NULL,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&loaded_module_name_size));
-
-        if ( SUCCEEDED(result) ) {
-            size_t img_name_buf_length = static_cast<size_t>(img_name_size + 1);
-            buf1.reset(new char[img_name_buf_length]);
-            std::memset(buf1.get(), 0, img_name_buf_length);
-
-            size_t module_name_buf_length = static_cast<size_t>(module_name_size + 1);
-            buf2.reset(new char[module_name_buf_length]);
-            std::memset(buf2.get(), 0, module_name_buf_length);
-
-            size_t loaded_module_name_buf_length = static_cast<size_t>(loaded_module_name_size + 1);
-            buf3.reset(new char[loaded_module_name_buf_length]);
-            std::memset(buf3.get(), 0, loaded_module_name_buf_length);
-
-            result = g_Ext->m_Symbols->GetModuleNames(module_index,
-                                                      module_base,
-                                                      buf1.get(),
-                                                      static_cast<ULONG>(img_name_buf_length),
-                                                      NULL,
-                                                      buf2.get(),
-                                                      static_cast<ULONG>(module_name_buf_length),
-                                                      NULL,
-                                                      buf3.get(),
-                                                      static_cast<ULONG>(loaded_module_name_buf_length),
-                                                      NULL);
-
-            if ( SUCCEEDED(result) ) {
-                image_name->assign(buf1.get());
-                std::transform(image_name->begin(), image_name->end(), image_name->begin(), tolower);
-
-                module_name->assign(buf2.get());
-                std::transform(module_name->begin(), module_name->end(), module_name->begin(), tolower);
-
-                loaded_image_name->assign(buf3.get());
-                std::transform(loaded_image_name->begin(),
-                               loaded_image_name->end(),
-                               loaded_image_name->begin(),
-                               tolower);
-            }
-        }
-    }
-
-    ignore_output.Stop();
-    return result;
-}
-
-std::pair<HRESULT, std::string> GetNameByOffset(const unsigned __int64 address) {
-    std::string       output_name      = "*UNKNOWN*";
-    unsigned __int32  name_buffer_size = 0;
-    unsigned __int64  displacement     = 0;
-    ExtCaptureOutputA ignore_output;
-
-    if ( !address )
-        return std::make_pair(E_INVALIDARG, output_name);
-
-    ignore_output.Start();
-    HRESULT result = g_Ext->m_Symbols->GetNameByOffset(address,
-                                                       NULL,
-                                                       0,
-                                                       reinterpret_cast<PULONG>(&name_buffer_size),
-                                                       &displacement);
-    ignore_output.Stop();
-
-    if ( SUCCEEDED(result) && name_buffer_size ) {
-        size_t buf_size = static_cast<size_t>(name_buffer_size + 1);
-        std::unique_ptr<char[]> tmp_name(new char[buf_size]);
-        std::memset(tmp_name.get(), 0, buf_size);
-
-        ignore_output.Start();
-        result = g_Ext->m_Symbols->GetNameByOffset(address, tmp_name.get(), name_buffer_size, NULL, NULL);
-        ignore_output.Stop();
-
-        if ( SUCCEEDED(result) ) {
-            std::stringstream stream_name;
-
-            stream_name << tmp_name.get();
-
-            if ( displacement )
-                stream_name << "+" << std::hex << std::showbase << displacement;
-
-            output_name = normalize_special_chars(stream_name.str());
-        }
-    }
-
-    return std::make_pair(result, output_name);
-}
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkAnalyzeWhiteList::AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges) {
     try {
@@ -283,12 +160,13 @@ void WDbgArkAnalyzeBase::Analyze(const unsigned __int64 address,
         symbol_name = "*UNKNOWN*";
         module_name = "*UNKNOWN*";
 
-        if ( !SUCCEEDED(GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) )
+        WDbgArkSymbolsBase symbols_base;
+        if ( !SUCCEEDED(symbols_base.GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) )
             suspicious = true;
 
         module_command_buf << "<exec cmd=\"lmvm " << module_name << "\">" << std::setw(16) << module_name << "</exec>";
 
-        std::pair<HRESULT, std::string> result = GetNameByOffset(address);
+        std::pair<HRESULT, std::string> result = symbols_base.GetNameByOffset(address);
 
         if ( !SUCCEEDED(result.first) )
             suspicious = true;
