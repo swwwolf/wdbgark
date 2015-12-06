@@ -210,3 +210,4 @@ UpgradeLog*.htm
 FakesAssemblies/
 wdbgark.VC.opendb
 *.db
+*.opendb
