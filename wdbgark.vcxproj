@@ -235,6 +235,7 @@
     <ClCompile Include="src\udis.cpp" />
     <ClCompile Include="src\ver.cpp" />
     <ClCompile Include="src\wdbgark.cpp" />
+    <ClCompile Include="src\winapi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="COPYING" />
@@ -271,6 +272,7 @@
     <ClInclude Include="src\udis.hpp" />
     <ClInclude Include="src\ver.hpp" />
     <ClInclude Include="src\wdbgark.hpp" />
+    <ClInclude Include="src\winapi.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="test\wa_test_script.txt" />
