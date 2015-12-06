@@ -31,8 +31,10 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 // macroses
 //////////////////////////////////////////////////////////////////////////
-#define MAKEULONG(x, y) ( ((((unsigned __int32)(x)) << 16) & 0xFFFF0000) | ((unsigned __int32)(y) & 0xFFFF) )
-#define CHECK_BIT_SET(x, y) (x & (1 << y))
+#define MAKEULONG(x, y)          ( ((((uint32_t)(x)) << 16) & 0xFFFF0000) | ((uint32_t)(y) & 0xFFFF) )
+#define CHECK_BIT_SET(x, y)      (x & (1 << y))
+#define RtlOffsetToPointer(B, O) (reinterpret_cast<char*>(B) + static_cast<uint32_t>(O))
+#define RtlPointerToOffset(B, P) (static_cast<uint64_t>(reinterpret_cast<char*>(P) - reinterpret_cast<char*>(B)))
 
 #define PAGE_SIZE  0x1000
 #define PAGE_SHIFT 12L
