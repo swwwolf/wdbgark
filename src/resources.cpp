@@ -23,8 +23,10 @@
 #include <string>
 #include <memory>
 #include <fstream>
+
 #include "resources.hpp"
 #include "manipulators.hpp"
+#include "winapi.hpp"
 
 namespace wa {
 
@@ -67,28 +69,32 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
     HRSRC resource = FindResource(g_Ext->s_Module, resource_name, type.c_str());
 
     if ( !resource ) {
-        err << wa::showminus << __FUNCTION__ << ": FindResource failed with error " << GetLastError() << endlerr;
+        std::string lasterr = LastErrorToString(GetLastError());
+        err << wa::showminus << __FUNCTION__ << ": FindResource failed : " << lasterr << endlerr;
         return false;
     }
 
     unsigned __int32 resource_size = SizeofResource(g_Ext->s_Module, resource);
 
     if ( !resource_size ) {
-        err << wa::showminus << __FUNCTION__ << ": SizeofResource failed with error " << GetLastError() << endlerr;
+        std::string lasterr = LastErrorToString(GetLastError());
+        err << wa::showminus << __FUNCTION__ << ": SizeofResource failed : " << lasterr << endlerr;
         return false;
     }
 
     HGLOBAL resource_data = LoadResource(g_Ext->s_Module, resource);
 
     if ( !resource_data ) {
-        err << wa::showminus << __FUNCTION__ << ": LoadResource failed with error " << GetLastError() << endlerr;
+        std::string lasterr = LastErrorToString(GetLastError());
+        err << wa::showminus << __FUNCTION__ << ": LoadResource failed : " << lasterr << endlerr;
         return false;
     }
 
     void* data = LockResource(resource_data);
 
     if ( !data ) {
-        err << wa::showminus << __FUNCTION__ << ": LockResource failed" << endlerr;
+        std::string lasterr = LastErrorToString(GetLastError());
+        err << wa::showminus << __FUNCTION__ << ": LockResource failed : " << lasterr << endlerr;
         return false;
     }
 
