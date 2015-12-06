@@ -85,8 +85,9 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
 
     m_drop_path = res_helper->GetDropPath();
 
-    if ( !CheckSymbolsPath(false, m_drop_path) ) {
-        if ( !SUCCEEDED(g_Ext->m_Symbols->AppendSymbolPath(m_drop_path.c_str())) ) {
+    WDbgArkSymbolsBase symbols_base;
+    if ( !symbols_base.CheckSymbolsPath(false, m_drop_path) ) {
+        if ( !SUCCEEDED(symbols_base.AppendSymbolPath(m_drop_path)) ) {
             err << wa::showminus << __FUNCTION__ << ": AppendSymbolPath failed" << endlerr;
             return false;
         }
