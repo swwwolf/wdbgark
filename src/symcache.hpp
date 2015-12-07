@@ -39,14 +39,14 @@ class WDbgArkSymCache {
     WDbgArkSymCache() : m_cache(),
                         m_mutex() {}
 
-    bool GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, unsigned __int64* offset);
+    bool GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, uint64_t* offset);
     void Invalidate(void) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_cache.clear();
     }
 
  private:
-     using SymbolCache = std::map<std::string, unsigned __int64>;   // symbol name : address
+     using SymbolCache = std::map<std::string, uint64_t>;   // symbol name : address
 
      SymbolCache m_cache;
      std::mutex  m_mutex;

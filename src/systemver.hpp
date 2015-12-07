@@ -38,20 +38,20 @@ namespace wa {
 class WDbgArkSystemVer {
  public:
     WDbgArkSystemVer();
-    bool             IsInited(void) const { return m_inited; }
-    unsigned __int32 GetStrictVer(void) const { return m_strict_minor_build; }
-    bool             IsBuildInRangeStrict(const unsigned __int32 low, const unsigned __int32 high) const {
+    bool IsInited(void) const { return m_inited; }
+    uint32_t GetStrictVer(void) const { return m_strict_minor_build; }
+    bool IsBuildInRangeStrict(const uint32_t low, const uint32_t high) const {
         return ((m_strict_minor_build >= low) && (m_strict_minor_build <= high));
     }
 
  private:
-    bool                       m_inited;
-    unsigned __int32           m_platform_id;
-    unsigned __int32           m_major_build;
-    unsigned __int32           m_minor_build;
-    unsigned __int32           m_service_pack_number;
-    unsigned __int32           m_strict_minor_build;
-    std::set<unsigned __int32> m_known_windows_builds;
+    bool m_inited;
+    uint32_t m_platform_id;
+    uint32_t m_major_build;
+    uint32_t m_minor_build;
+    uint32_t m_service_pack_number;
+    uint32_t m_strict_minor_build;
+    std::set<uint32_t> m_known_windows_builds;
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////

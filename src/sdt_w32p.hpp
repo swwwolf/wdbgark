@@ -51,9 +51,9 @@ enum ServiceTableIndex {
     ServiceTableW10Th2
 };
 
-std::string get_service_table_routine_name(const unsigned __int32 minor_build,
+std::string get_service_table_routine_name(const uint32_t minor_build,
                                            const ServiceTableType type,
-                                           const unsigned __int32 index);
+                                           const uint32_t index);
 
 }   // namespace wa
 

@@ -43,7 +43,7 @@ namespace wa {
 
 class WDbgArkDriver {
  public:
-    using DriversInformation = std::map<unsigned __int64, ExtRemoteTyped>;  // offset : object
+    using DriversInformation = std::map<uint64_t, ExtRemoteTyped>;  // offset : object
  public:
     explicit WDbgArkDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     WDbgArkDriver() = delete;

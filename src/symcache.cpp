@@ -30,7 +30,7 @@
 
 namespace wa {
 
-bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, unsigned __int64* offset) {
+bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, uint64_t* offset) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     *offset = 0ULL;

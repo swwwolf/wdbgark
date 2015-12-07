@@ -45,7 +45,7 @@ union _KIDTENTRY64 {
     unsigned short OffsetMiddle;
     unsigned long OffsetHigh;
     unsigned long Reserved1;
-    unsigned __int64 Alignment;
+    uint64_t Alignment;
 };
 // <size 0x10>
 //////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ struct _KINTERRUPT {
     enum _KINTERRUPT_POLARITY Polarity;
     unsigned long ServiceCount;
     unsigned long DispatchCount;
-    unsigned __int64 Rsvd1;
+    uint64_t Rsvd1;
     unsigned long DispatchCode[135];
 };
 // <size 0x278>
@@ -95,9 +95,9 @@ struct _KINTERRUPT {
     unsigned char  (MessageServiceRoutine*)(struct _KINTERRUPT*, void*, unsigned long);
     unsigned long MessageIndex;
     void* ServiceContext;
-    unsigned __int64 SpinLock;
+    uint64_t SpinLock;
     unsigned long TickCount;
-    unsigned __int64* ActualLock;
+    uint64_t* ActualLock;
     void  (DispatchAddress*)();
     unsigned long Vector;
     unsigned char Irql;
@@ -111,7 +111,7 @@ struct _KINTERRUPT {
     enum _KINTERRUPT_POLARITY Polarity;
     unsigned long ServiceCount;
     unsigned long DispatchCount;
-    unsigned __int64 Rsvd1;
+    uint64_t Rsvd1;
     struct _KTRAP_FRAME* TrapFrame;
     void* Reserved;
     unsigned long DispatchCode[4];
@@ -284,10 +284,10 @@ struct _KPRCB {
     unsigned long WaitLock;
     struct _LIST_ENTRY WaitListHead;
     unsigned long ScbOffset;
-    unsigned __int64 StartCycles;
-    unsigned __int64 GenerationTarget;
-    unsigned __int64 CycleTime;
-    unsigned __int64 AffinitizedCycles;
+    uint64_t StartCycles;
+    uint64_t GenerationTarget;
+    uint64_t CycleTime;
+    uint64_t AffinitizedCycles;
     unsigned long HighCycleTime;
     unsigned long PrcbPad71;
     struct _LIST_ENTRY DispatcherReadyListHead[32];
@@ -318,7 +318,7 @@ struct _KPRCB {
     unsigned char PrcbPad9[5];
     unsigned long FeatureBits;
     union _LARGE_INTEGER UpdateSignature;
-    unsigned __int64 IsrTime;
+    uint64_t IsrTime;
     unsigned long PrcbPad90[2];
     struct _PROCESSOR_POWER_STATE PowerState;
     unsigned long PrcbPad91[13];
@@ -327,7 +327,7 @@ struct _KPRCB {
     union _SLIST_HEADER HypercallPageList;
     void* HypercallPageVirtual;
     void* VirtualApicAssist;
-    unsigned __int64* StatisticsPage;
+    uint64_t* StatisticsPage;
     struct _CACHE_DESCRIPTOR Cache[5];
     unsigned long CacheCount;
     struct _KAFFINITY_EX PackageProcessorSet;
@@ -381,8 +381,8 @@ struct _KPRCB {
     unsigned char PendingBackupTick : 1 : 1;
     unsigned char IdleState;
     unsigned long Number;
-    unsigned __int64 RspBase;
-    unsigned __int64 PrcbLock;
+    uint64_t RspBase;
+    uint64_t PrcbLock;
     char* PriorityState;
     struct _KPROCESSOR_STATE ProcessorState;
     char CpuType;
@@ -391,7 +391,7 @@ struct _KPRCB {
     unsigned char CpuStepping;
     unsigned char CpuModel;
     unsigned long MHz;
-    unsigned __int64 HalReserved[8];
+    uint64_t HalReserved[8];
     unsigned short MinorVersion;
     unsigned short MajorVersion;
     unsigned char BuildType;
@@ -399,7 +399,7 @@ struct _KPRCB {
     unsigned char CoresPerPhysicalProcessor;
     unsigned char LogicalProcessorsPerCore;
     struct _KNODE* ParentNode;
-    unsigned __int64 GroupSetMember;
+    uint64_t GroupSetMember;
     unsigned char Group;
     unsigned char GroupIndex;
     unsigned char PrcbPad05[2];
@@ -414,7 +414,7 @@ struct _KPRCB {
     struct _GENERAL_LOOKASIDE_POOL PPNxPagedLookasideList[32];
     struct _GENERAL_LOOKASIDE_POOL PPNPagedLookasideList[32];
     struct _GENERAL_LOOKASIDE_POOL PPPagedLookasideList[32];
-    unsigned __int64 PrcbPad20;
+    uint64_t PrcbPad20;
     struct _SINGLE_LIST_ENTRY DeferredReadyListHead;
     long MmPageFaultCount;
     long MmCopyOnWriteCount;
@@ -493,7 +493,7 @@ struct _KPRCB {
     unsigned long PrcbPad70[1];
     void* CachedPtes;
     struct _LIST_ENTRY WaitListHead;
-    unsigned __int64 WaitLock;
+    uint64_t WaitLock;
     unsigned long ReadySummary;
     long AffinitizedSelectionMask;
     unsigned long QueueIndex;
@@ -517,11 +517,11 @@ struct _KPRCB {
     unsigned long PeriodicBias;
     unsigned long AvailableTime;
     unsigned long KeExceptionDispatchCount;
-    unsigned __int64 StartCycles;
-    unsigned __int64 TaggedCyclesStart;
-    unsigned __int64 TaggedCycles[2];
-    unsigned __int64 GenerationTarget;
-    unsigned __int64 AffinitizedCycles;
+    uint64_t StartCycles;
+    uint64_t TaggedCyclesStart;
+    uint64_t TaggedCycles[2];
+    uint64_t GenerationTarget;
+    uint64_t AffinitizedCycles;
     unsigned long PrcbPad81[29];
     long MmSpinLockOrdering;
     unsigned long PageColor;
@@ -529,8 +529,8 @@ struct _KPRCB {
     unsigned long NodeShiftedColor;
     unsigned long SecondaryColorMask;
     unsigned long PrcbPad83;
-    unsigned __int64 CycleTime;
-    unsigned __int64 Cycles[4][2];
+    uint64_t CycleTime;
+    uint64_t Cycles[4][2];
     unsigned long PrcbPad84[16];
     unsigned long CcFastMdlReadNoWait;
     unsigned long CcFastMdlReadWait;
@@ -579,26 +579,26 @@ struct _KPRCB {
     union _SLIST_HEADER HypercallPageList;
     void* HypercallCachedPages;
     void* VirtualApicAssist;
-    unsigned __int64* StatisticsPage;
+    uint64_t* StatisticsPage;
     struct _KAFFINITY_EX PackageProcessorSet;
-    unsigned __int64 SharedReadyQueueMask;
+    uint64_t SharedReadyQueueMask;
     struct _KSHARED_READY_QUEUE* SharedReadyQueue;
     unsigned long SharedQueueScanOwner;
     unsigned long ScanSiblingIndex;
-    unsigned __int64 CoreProcessorSet;
-    unsigned __int64 ScanSiblingMask;
-    unsigned __int64 LLCMask;
-    unsigned __int64 CacheProcessorMask[5];
+    uint64_t CoreProcessorSet;
+    uint64_t ScanSiblingMask;
+    uint64_t LLCMask;
+    uint64_t CacheProcessorMask[5];
     struct _PROCESSOR_PROFILE_CONTROL_AREA* ProcessorProfileControlArea;
     void* ProfileEventIndexAddress;
-    unsigned __int64 PrcbPad94[11];
+    uint64_t PrcbPad94[11];
     struct _SYNCH_COUNTERS SynchCounters;
-    unsigned __int64 PteBitCache;
+    uint64_t PteBitCache;
     unsigned long PteBitOffset;
     struct _FILESYSTEM_DISK_COUNTERS FsCounters;
     unsigned char VendorString[13];
     unsigned char PrcbPad100[3];
-    unsigned __int64 FeatureBits;
+    uint64_t FeatureBits;
     unsigned long PrcbPad110;
     union _LARGE_INTEGER UpdateSignature;
     struct _CONTEXT* Context;
@@ -670,17 +670,17 @@ Algorithm:
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
 typedef struct IdtSupportTag {
-    unsigned __int64 start_unexpected_range;
-    unsigned __int64 end_unexpected_range;
-    unsigned __int32 vector_to_interrupt_object;
-    unsigned __int32 dispatch_code_offset;
-    unsigned __int32 message_service_offset;
-    unsigned __int32 service_routine_offset;
-    unsigned __int32 interrupt_list_entry;
-    unsigned __int32 interrupt_object_offset;
+    uint64_t start_unexpected_range;
+    uint64_t end_unexpected_range;
+    uint32_t vector_to_interrupt_object;
+    uint32_t dispatch_code_offset;
+    uint32_t message_service_offset;
+    uint32_t service_routine_offset;
+    uint32_t interrupt_list_entry;
+    uint32_t interrupt_object_offset;
 } IdtSupport;
 
-bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* support_info);
+bool InitIdtSupport(const uint32_t strict_minor_build, IdtSupport* support_info);
 //////////////////////////////////////////////////////////////////////////
 // TODO(swwwolf): REFACTORING!!!
 EXT_COMMAND(wa_idt, "Output processors IDT", "") {
@@ -701,15 +701,15 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     display->PrintHeader();
 
     try {
-        for ( unsigned int i = 0; i < g_Ext->m_NumProcessors; i++ ) {
-            unsigned __int64 kpcr_offset     = 0;
-            unsigned __int64 idt_entry_start = 0;
-            unsigned __int32 idt_entry_size  = 0;
+        for ( uint32_t i = 0; i < g_Ext->m_NumProcessors; i++ ) {
+            uint64_t kpcr_offset = 0;
+            uint64_t idt_entry_start = 0;
+            uint32_t idt_entry_size = 0;
 
             HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(i,
                                                                     DEBUG_DATA_KPCR_OFFSET,
                                                                     &kpcr_offset,
-                                                                    static_cast<unsigned __int32>(sizeof(kpcr_offset)),
+                                                                    static_cast<uint32_t>(sizeof(kpcr_offset)),
                                                                     NULL);
 
             if ( !SUCCEEDED(result) ) {
@@ -728,8 +728,8 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 idt_entry_size = GetTypeSize("nt!_KIDTENTRY");
             }
 
-            for ( unsigned __int32 j = 0; j <= MAXIMUM_IDTVECTOR; j++ ) {
-                unsigned __int64 isr_address = 0;
+            for ( int j = 0; j <= MAXIMUM_IDTVECTOR; j++ ) {
+                uint64_t isr_address = 0;
 
                 std::stringstream processor_index;
                 processor_index << std::setw(2) << i << " / " << std::setw(2) << std::hex << j;
@@ -765,8 +765,8 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                              NULL,
                                              NULL);
 
-                    isr_address = static_cast<unsigned __int64>(MAKEULONG(idt_entry.Field("ExtendedOffset").GetUshort(),
-                                                                          idt_entry.Field("Offset").GetUshort()));
+                    isr_address = static_cast<uint64_t>(MAKEULONG(idt_entry.Field("ExtendedOffset").GetUshort(),
+                                                                  idt_entry.Field("Offset").GetUshort()));
 
                     std::stringstream expression;
                     expression << std::hex << std::showbase <<  isr_address;
@@ -848,7 +848,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                     info_intr << "<exec cmd=\"dx -r1 *(nt!_KPRCB *)" << std::hex << std::showbase;
                     info_intr << pcr.Field("Prcb").m_Offset << "\">prcb" << "</exec>";
 
-                    unsigned __int64 message_address = 0;
+                    uint64_t message_address = 0;
 
                     if ( support_info.message_service_offset )
                         message_address = interrupt.Field("MessageServiceRoutine").GetPtr();
@@ -919,7 +919,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     display->PrintFooter();
 }
 
-bool InitIdtSupport(const unsigned __int32 strict_minor_build, IdtSupport* support_info) {
+bool InitIdtSupport(const uint32_t strict_minor_build, IdtSupport* support_info) {
     std::stringstream warn;
     std::stringstream err;
 
@@ -1064,11 +1064,11 @@ full_address = selector.BaseLow | selector.HighWord.Bytes.BaseMid << 16 | select
 */
 
 void DisplayOneGDTEntry(const std::string &gdt_entry_name,
-                        const unsigned __int64 entry_address,
-                        const unsigned __int32 gdt_entry_size,
-                        const unsigned __int32 gdt_selector,
-                        const unsigned __int32 cpu_idx,
-                        const unsigned __int64 kpcr_offset,
+                        const uint64_t entry_address,
+                        const uint32_t gdt_entry_size,
+                        const uint32_t gdt_selector,
+                        const uint32_t cpu_idx,
+                        const uint64_t kpcr_offset,
                         std::unique_ptr<WDbgArkAnalyzeBase> const &display);
 
 EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
@@ -1083,7 +1083,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
     display->PrintHeader();
 
     try {
-        unsigned __int32 gdt_entry_size = 0;
+        uint32_t gdt_entry_size = 0;
         std::string gdt_entry_name;
 
         if ( m_is_cur_machine64 ) {
@@ -1094,9 +1094,9 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
             gdt_entry_name = "nt!_KGDTENTRY";
         }
 
-        for ( unsigned int cpu_idx = 0; cpu_idx < g_Ext->m_NumProcessors; cpu_idx++ ) {
-            unsigned __int64 kpcr_offset     = 0;
-            unsigned __int64 gdt_entry_start = 0;
+        for ( uint32_t cpu_idx = 0; cpu_idx < g_Ext->m_NumProcessors; cpu_idx++ ) {
+            uint64_t kpcr_offset = 0;
+            uint64_t gdt_entry_start = 0;
 
             HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(cpu_idx,
                                                                     DEBUG_DATA_KPCR_OFFSET,
@@ -1117,7 +1117,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
             else
                 gdt_entry_start = pcr.Field("GDT").GetPtr();        // _KGDTENTRY*
 
-            unsigned __int32 gdt_selector = 0;
+            uint32_t gdt_selector = 0;
 
             if ( m_is_cur_machine64 ) {    // special case for x64
                 for ( const auto gdt_selector_x64 : m_gdt_selectors ) {
@@ -1158,11 +1158,11 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
 }
 
 void DisplayOneGDTEntry(const std::string &gdt_entry_name,
-                        const unsigned __int64 entry_address,
-                        const unsigned __int32 gdt_entry_size,
-                        const unsigned __int32 gdt_selector,
-                        const unsigned __int32 cpu_idx,
-                        const unsigned __int64 kpcr_offset,
+                        const uint64_t entry_address,
+                        const uint32_t gdt_entry_size,
+                        const uint32_t gdt_selector,
+                        const uint32_t cpu_idx,
+                        const uint64_t kpcr_offset,
                         std::unique_ptr<WDbgArkAnalyzeBase> const &display) {
     std::stringstream processor_index;
     std::stringstream info;

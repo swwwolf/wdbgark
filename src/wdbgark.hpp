@@ -127,31 +127,31 @@ class WDbgArk : public ExtExtension {
     // walk routines
     //////////////////////////////////////////////////////////////////////////
     void WalkExCallbackList(const std::string &list_count_name,
-                            const unsigned __int64 offset_list_count,
-                            const unsigned __int32 routine_count,
+                            const uint64_t offset_list_count,
+                            const uint32_t routine_count,
                             const std::string &list_head_name,
-                            const unsigned __int64 offset_list_head,
-                            const unsigned __int32 array_distance,
+                            const uint64_t offset_list_head,
+                            const uint32_t array_distance,
                             const std::string &type,
                             walkresType* output_list);
 
     void WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
-                                        const unsigned __int64 offset_list_head,
-                                        const unsigned __int32 link_offset,
+                                        const uint64_t offset_list_head,
+                                        const uint32_t link_offset,
                                         const bool is_double,
-                                        const unsigned __int32 offset_to_routine,
+                                        const uint32_t offset_to_routine,
                                         const std::string &type,
                                         const std::string &ext_info,
                                         walkresType* output_list);
 
     void WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_name,
-                                              const unsigned __int64 offset_list_head,
+                                              const uint64_t offset_list_head,
                                               const bool is_double,
-                                              const unsigned __int32 offset_to_object_pointer,
+                                              const uint32_t offset_to_object_pointer,
                                               void* context,
                                               RemoteDataCallback callback);
 
-    void WalkDeviceNode(const unsigned __int64 device_node_address,
+    void WalkDeviceNode(const uint64_t device_node_address,
                         void* context,
                         RemoteTypedCallback callback);
 
@@ -159,9 +159,9 @@ class WDbgArk : public ExtExtension {
     void WalkPnpLists(const std::string &type, walkresType* output_list);
     void WalkCallbackDirectory(const std::string &type, walkresType* output_list);
 
-    void WalkAnyTable(const unsigned __int64 table_start,
-                      const unsigned __int32 offset_table_skip_start,
-                      const unsigned __int32 table_count,
+    void WalkAnyTable(const uint64_t table_start,
+                      const uint32_t offset_table_skip_start,
+                      const uint32_t table_count,
                       const std::string &type,
                       walkresType* output_list,
                       bool break_on_null = false,
@@ -172,7 +172,7 @@ class WDbgArk : public ExtExtension {
                           const std::string &additional_info,
                           walkresType* output_list);
 
-    void WalkDirectoryObject(const unsigned __int64 directory_address,
+    void WalkDirectoryObject(const uint64_t directory_address,
                              void* context,
                              RemoteTypedCallback callback);
 
@@ -221,17 +221,17 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // variables
     //////////////////////////////////////////////////////////////////////////
-    bool                              m_inited;
-    bool                              m_is_cur_machine64;
-    callbacksInfo                     m_system_cb_commands;
-    std::vector<std::string>          m_callout_names;
-    std::vector<unsigned __int32>     m_gdt_selectors;
-    haltblInfo                        m_hal_tbl_info;
-    std::vector<DEBUG_MODULE_AND_ID>  m_synthetic_symbols;
-    std::shared_ptr<WDbgArkSymCache>  m_sym_cache;
+    bool m_inited;
+    bool m_is_cur_machine64;
+    callbacksInfo m_system_cb_commands;
+    std::vector<std::string> m_callout_names;
+    std::vector<uint32_t> m_gdt_selectors;
+    haltblInfo m_hal_tbl_info;
+    std::vector<DEBUG_MODULE_AND_ID> m_synthetic_symbols;
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
-    std::unique_ptr<WDbgArkDummyPdb>  m_dummy_pdb;
+    std::unique_ptr<WDbgArkDummyPdb> m_dummy_pdb;
     std::unique_ptr<WDbgArkSystemVer> m_system_ver;
     ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface;
     //////////////////////////////////////////////////////////////////////////

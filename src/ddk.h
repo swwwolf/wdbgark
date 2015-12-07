@@ -147,12 +147,12 @@ typedef enum _KOBJECTS {
 //////////////////////////////////////////////////////////////////////////
 typedef union _KIDT_HANDLER_ADDRESS {
     struct {
-        unsigned __int16 OffsetLow;
-        unsigned __int16 OffsetMiddle;
-        unsigned __int32 OffsetHigh;
+        uint16_t OffsetLow;
+        uint16_t OffsetMiddle;
+        uint32_t OffsetHigh;
     } off;
 
-    unsigned __int64   Address;
+    uint64_t Address;
 } KIDT_HANDLER_ADDRESS, *PKIDT_HANDLER_ADDRESS;
 
 #define PRIMARY_VECTOR_BASE              0x30

@@ -40,7 +40,7 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
         return;
     }
 
-    unsigned __int64 offset = 0;
+    uint64_t offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset("nt!ObTypeIndexTable", true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;

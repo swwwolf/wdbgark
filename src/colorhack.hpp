@@ -96,8 +96,8 @@ class WDbgArkColorHack : public WDbgArkBPProxy {
     bool            SetColor(const std::string &dml_name, const COLORREF color);
     InternalUiColor ConvertUiColorToInternal(UiColor* ui_color, const UiColorType ui_color_type);
     bool            IsWinDbgWindow(void);
-    bool            GetFileVersion(const std::string& file_path, unsigned __int16* major, unsigned __int16* minor,
-                                   unsigned __int16* build, unsigned __int16* revision);
+    bool            GetFileVersion(const std::string& file_path, uint16_t* major, uint16_t* minor,
+                                   uint16_t* build, uint16_t* revision);
 
     static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
     //////////////////////////////////////////////////////////////////////////

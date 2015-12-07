@@ -120,12 +120,12 @@ bool WDbgArk::Init() {
 }
 
 void WDbgArk::InitCallbackCommands(void) {
-    unsigned __int32 timer_routine_offset = 0;
+    uint32_t timer_routine_offset = 0;
 
     if ( GetFieldOffset("nt!_IO_TIMER", "TimerRoutine", reinterpret_cast<PULONG>(&timer_routine_offset)) != 0 )
         warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
 
-    unsigned __int32 le_size = GetTypeSize("nt!_LIST_ENTRY");
+    uint32_t le_size = GetTypeSize("nt!_LIST_ENTRY");
 
     m_system_cb_commands = { {
         { "image", { "nt!PspLoadImageNotifyRoutineCount", "nt!PspLoadImageNotifyRoutine", 0, 0, 0 } },
@@ -158,8 +158,8 @@ void WDbgArk::InitCallbackCommands(void) {
         { "ioptimer", { "", "nt!IopTimerQueueHead", timer_routine_offset, 0, 0 } } } };
 
     for ( auto cb_pair : m_system_cb_commands ) {
-        unsigned __int64 offset_count = 0ULL;
-        unsigned __int64 offset_head = 0ULL;
+        uint64_t offset_count = 0ULL;
+        uint64_t offset_head = 0ULL;
 
         if ( !cb_pair.second.list_count_name.empty() ) {
             if ( m_sym_cache->GetSymbolOffset(cb_pair.second.list_count_name, true, &offset_count) )
@@ -299,15 +299,15 @@ WDbgArkAnalyzeWhiteList::WhiteListEntries WDbgArk::GetDriversWhiteList(void) {
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
-                                             const unsigned __int64 offset_list_head,
-                                             const unsigned __int32 link_offset,
+                                             const uint64_t offset_list_head,
+                                             const uint32_t link_offset,
                                              const bool is_double,
-                                             const unsigned __int32 offset_to_routine,
+                                             const uint32_t offset_to_routine,
                                              const std::string &type,
                                              const std::string &ext_info,
                                              walkresType* output_list) {
-    unsigned __int64 list_head_offset_out = 0;
-    unsigned __int64 offset               = offset_list_head;
+    uint64_t list_head_offset_out = 0;
+    uint64_t offset = offset_list_head;
 
     if ( !offset_to_routine ) {
         err << wa::showminus << __FUNCTION__ << ": invalid parameter" << endlerr;
@@ -327,10 +327,10 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
         ExtRemoteList list_head(offset, link_offset, is_double);
 
         for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
-            unsigned __int64 node = list_head.GetNodeOffset();
+            uint64_t node = list_head.GetNodeOffset();
             ExtRemoteData structure_data(node + offset_to_routine, m_PtrSize);
 
-            unsigned __int64 routine = structure_data.GetPtr();
+            uint64_t routine = structure_data.GetPtr();
 
             if ( routine ) {
                 OutputWalkInfo info;
@@ -352,12 +352,12 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
 }
 
 void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_name,
-                                                   const unsigned __int64 offset_list_head,
+                                                   const uint64_t offset_list_head,
                                                    const bool is_double,
-                                                   const unsigned __int32 offset_to_object_pointer,
+                                                   const uint32_t offset_to_object_pointer,
                                                    void* context,
                                                    RemoteDataCallback callback) {
-    unsigned __int64 offset = offset_list_head;
+    uint64_t offset = offset_list_head;
 
     if ( !offset_to_object_pointer ) {
         err << wa::showminus << __FUNCTION__ << ": invalid parameter offset_to_object_pointer" << endlerr;
@@ -386,7 +386,7 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_
     }
 }
 
-void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
+void WDbgArk::WalkDirectoryObject(const uint64_t directory_address,
                                   void* context,
                                   RemoteTypedCallback callback) {
     if ( !directory_address ) {
@@ -403,9 +403,9 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
         ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", directory_address, false, NULL, NULL);
         ExtRemoteTyped buckets = directory_object.Field("HashBuckets");
 
-        const unsigned __int32 num_buckets = buckets.GetTypeSize() / m_PtrSize;
+        int64_t num_buckets = buckets.GetTypeSize() / m_PtrSize;
 
-        for ( __int64 i = 0; i < num_buckets; i++ ) {
+        for ( int64_t i = 0; i < num_buckets; i++ ) {
             for ( ExtRemoteTyped directory_entry = *buckets[i];
                   directory_entry.m_Offset;
                   directory_entry = *directory_entry.Field("ChainLink") ) {
@@ -423,10 +423,10 @@ void WDbgArk::WalkDirectoryObject(const unsigned __int64 directory_address,
     }
 }
 
-void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
+void WDbgArk::WalkDeviceNode(const uint64_t device_node_address,
                              void* context,
                              RemoteTypedCallback callback) {
-    unsigned __int64 offset = device_node_address;
+    uint64_t offset = device_node_address;
 
     if ( !callback ) {
         err << wa::showminus << __FUNCTION__ << ": invalid callback address" << endlerr;
@@ -462,17 +462,17 @@ void WDbgArk::WalkDeviceNode(const unsigned __int64 device_node_address,
     }
 }
 
-void WDbgArk::WalkAnyTable(const unsigned __int64 table_start,
-                           const unsigned __int32 offset_table_skip_start,
-                           const unsigned __int32 table_count,
+void WDbgArk::WalkAnyTable(const uint64_t table_start,
+                           const uint32_t offset_table_skip_start,
+                           const uint32_t table_count,
                            const std::string &type,
                            walkresType* output_list,
                            bool break_on_null,
                            bool collect_null) {
-    unsigned __int64 offset = table_start + offset_table_skip_start;
+    uint64_t offset = table_start + offset_table_skip_start;
 
     try {
-        for ( unsigned __int32 i = 0; i < table_count; i++ ) {
+        for ( uint32_t i = 0; i < table_count; i++ ) {
             ExtRemoteData data(offset + i * m_PtrSize, m_PtrSize);
 
             if ( data.GetPtr() || collect_null ) {
@@ -500,11 +500,11 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
                                const std::string &type,
                                const std::string &additional_info,
                                walkresType* output_list) {
-    unsigned __int64 offset = 0;
+    uint64_t offset = 0;
 
     try {
         if ( m_sym_cache->GetSymbolOffset(symbol_name, true, &offset) ) {
-            unsigned __int64 symbol_offset = offset;
+            uint64_t symbol_offset = offset;
 
             ExtRemoteData routine_ptr(offset, m_PtrSize);
             offset = routine_ptr.GetPtr();
@@ -585,12 +585,12 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
         return false;
     }
 
-    unsigned __int64 symbol_offset = 0;
+    uint64_t symbol_offset = 0;
 
     if ( m_sym_cache->GetSymbolOffset("nt!DbgkLkmdCallbackArray", true, &symbol_offset) )
         return true;
 
-    unsigned __int64 offset = 0;
+    uint64_t offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset("nt!DbgkLkmdUnregisterCallback", true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": can't find nt!DbgkLkmdUnregisterCallback" << endlerr;
@@ -604,13 +604,13 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
         return false;
     }
 
-    unsigned __int64 ret_address = 0;
+    uint64_t ret_address = 0;
 
     while ( udis->Disassemble() ) {
         if ( !m_is_cur_machine64 && udis->InstructionLength() == 5 && udis->InstructionMnemonic() == UD_Imov
              &&
              udis->InstructionOperand(0)->type == UD_OP_REG ) {
-                 ret_address = static_cast<unsigned __int64>(udis->InstructionOperand(1)->lval.udword);
+                 ret_address = static_cast<uint64_t>(udis->InstructionOperand(1)->lval.udword);
                  break;
         } else if ( m_is_cur_machine64 && udis->InstructionLength() == 7 && udis->InstructionMnemonic() == UD_Ilea
                     &&

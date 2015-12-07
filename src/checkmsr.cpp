@@ -42,15 +42,15 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
 
     try {
         if ( !m_is_cur_machine64 ) {
-            unsigned __int64  msr_address = 0;
+            uint64_t msr_address = 0;
             std::stringstream expression;
 
             ReadMsr(IA32_SYSENTER_EIP, &msr_address);
             expression << std::showbase << std::hex << msr_address;
             display->Analyze(g_Ext->EvalExprU64(expression.str().c_str()), "IA32_SYSENTER_EIP", "");
         } else {
-            unsigned __int64  msr_address_lstar = 0;
-            unsigned __int64  msr_address_cstar = 0;
+            uint64_t msr_address_lstar = 0;
+            uint64_t msr_address_cstar = 0;
             std::stringstream expression_lstar;
             std::stringstream expression_cstar;
 

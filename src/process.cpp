@@ -72,7 +72,7 @@ WDbgArkProcess::WDbgArkProcess() : m_inited(false),
     }
 }
 
-unsigned __int64 WDbgArkProcess::FindEProcessByImageFileName(const std::string &process_name) {
+uint64_t WDbgArkProcess::FindEProcessByImageFileName(const std::string &process_name) {
     ProcessInfo info;
 
     if ( !IsInited() ) {
@@ -86,7 +86,7 @@ unsigned __int64 WDbgArkProcess::FindEProcessByImageFileName(const std::string &
     return 0ULL;
 }
 
-unsigned __int64 WDbgArkProcess::FindEProcessAnyGUIProcess() {
+uint64_t WDbgArkProcess::FindEProcessAnyGUIProcess() {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return 0ULL;
@@ -109,7 +109,7 @@ unsigned __int64 WDbgArkProcess::FindEProcessAnyGUIProcess() {
     return 0ULL;
 }
 
-HRESULT WDbgArkProcess::SetImplicitProcess(const unsigned __int64 set_eprocess) {
+HRESULT WDbgArkProcess::SetImplicitProcess(const uint64_t set_eprocess) {
     HRESULT error;
 
     if ( !IsInited() ) {

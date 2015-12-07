@@ -35,7 +35,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkAnalyzeWhiteList::AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges) {
     try {
-        unsigned __int64 module_start = 0;
+        uint64_t module_start = 0;
         HRESULT result = g_Ext->m_Symbols3->GetModuleByModuleName2(module_name.c_str(),
                                                                    0UL,
                                                                    0UL,
@@ -57,9 +57,9 @@ bool WDbgArkAnalyzeWhiteList::AddRangeWhiteListInternal(const std::string &modul
 }
 
 bool WDbgArkAnalyzeWhiteList::AddSymbolWhiteListInternal(const std::string &symbol_name,
-                                                         const unsigned __int32 size,
+                                                         const uint32_t size,
                                                          Ranges* ranges) {
-    unsigned __int64 symbol_offset = 0;
+    uint64_t symbol_offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset(symbol_name, true, &symbol_offset) )
         return false;
@@ -82,22 +82,22 @@ void WDbgArkAnalyzeWhiteList::AddTempWhiteList(const std::string &name) {
     } catch ( const std::out_of_range& ) {}
 }
 
-bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const unsigned __int64 address) const {
+bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const uint64_t address) const {
     if ( m_ranges.empty() && m_temp_ranges.empty() )
         return true;
 
-    Ranges::iterator it = std::find_if(m_ranges.begin(),
-                                       m_ranges.end(),
-                                       [address](const Range &range) {
-                                           return ((address >= range.first) && (address <= range.second)); });
+    auto it = std::find_if(m_ranges.begin(),
+                           m_ranges.end(),
+                           [address](const Range &range) {
+        return ((address >= range.first) && (address <= range.second)); });
 
     if ( it != m_ranges.end() )
         return true;
 
-    Ranges::iterator temp_it = std::find_if(m_temp_ranges.begin(),
-                                            m_temp_ranges.end(),
-                                            [address](const Range &range) {
-                                                return ((address >= range.first) && (address <= range.second)); });
+    auto temp_it = std::find_if(m_temp_ranges.begin(),
+                                m_temp_ranges.end(),
+                                [address](const Range &range) {
+        return ((address >= range.first) && (address <= range.second)); });
 
     if ( temp_it != m_temp_ranges.end() )
         return true;
@@ -135,7 +135,7 @@ std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared
     }
 }
 
-bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const unsigned __int64 address) const {
+bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const uint64_t address) const {
     if ( !address )
         return false;
 
@@ -145,7 +145,7 @@ bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const unsigned __int64 address) con
     return true;
 }
 
-void WDbgArkAnalyzeBase::Analyze(const unsigned __int64 address,
+void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
                                  const std::string &type,
                                  const std::string &additional_info) {
     std::string       symbol_name;
@@ -333,11 +333,11 @@ WDbgArkAnalyzeGDT::WDbgArkAnalyzeGDT(const std::shared_ptr<WDbgArkSymCache> &sym
 
 void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
                                 const std::string &cpu_idx,
-                                const unsigned __int32 selector,
+                                const uint32_t selector,
                                 const std::string &additional_info) {
     try {
-        unsigned __int64 address = GetGDTBase(gdt_entry);
-        unsigned __int32 limit = GetGDTLimit(gdt_entry);
+        uint64_t address = GetGDTBase(gdt_entry);
+        uint32_t limit = GetGDTLimit(gdt_entry);
 
         std::stringstream expression;
         expression << std::hex << std::showbase <<  address;
@@ -431,7 +431,7 @@ bool WDbgArkAnalyzeGDT::IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry) {
     return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
 }
 
-unsigned __int32 WDbgArkAnalyzeGDT::GetGDTDpl(const ExtRemoteTyped &gdt_entry) {
+uint32_t WDbgArkAnalyzeGDT::GetGDTDpl(const ExtRemoteTyped &gdt_entry) {
     ExtRemoteTyped loc_gdt_entry = gdt_entry;
     std::string field_name;
 
@@ -443,7 +443,7 @@ unsigned __int32 WDbgArkAnalyzeGDT::GetGDTDpl(const ExtRemoteTyped &gdt_entry) {
     return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
 }
 
-unsigned __int32 WDbgArkAnalyzeGDT::GetGDTType(const ExtRemoteTyped &gdt_entry) {
+uint32_t WDbgArkAnalyzeGDT::GetGDTType(const ExtRemoteTyped &gdt_entry) {
     ExtRemoteTyped loc_gdt_entry = gdt_entry;
     std::string field_name;
 
@@ -459,9 +459,9 @@ bool WDbgArkAnalyzeGDT::IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry) {
     return (GetGDTType(gdt_entry) & SEG_DESCTYPE(1)) == 0;
 }
 
-unsigned __int32 WDbgArkAnalyzeGDT::GetGDTLimit(const ExtRemoteTyped &gdt_entry) {
-    ExtRemoteTyped   loc_gdt_entry = gdt_entry;
-    unsigned __int32 limit         = 0;
+uint32_t WDbgArkAnalyzeGDT::GetGDTLimit(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    uint32_t limit = 0;
 
     if ( g_Ext->IsCurMachine64() ) {
         limit = (loc_gdt_entry.Field("Bits.LimitHigh").GetUlong() << 16) |\
@@ -477,27 +477,27 @@ unsigned __int32 WDbgArkAnalyzeGDT::GetGDTLimit(const ExtRemoteTyped &gdt_entry)
     return limit;
 }
 
-unsigned __int64 WDbgArkAnalyzeGDT::GetGDTBase(const ExtRemoteTyped &gdt_entry) {
-    ExtRemoteTyped   loc_gdt_entry = gdt_entry;
-    unsigned __int64 base          = 0;
+uint64_t WDbgArkAnalyzeGDT::GetGDTBase(const ExtRemoteTyped &gdt_entry) {
+    ExtRemoteTyped loc_gdt_entry = gdt_entry;
+    uint64_t base = 0;
 
     if ( g_Ext->IsCurMachine64() ) {
         base =\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseMiddle").GetUchar()) << 16) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("Bytes.BaseHigh").GetUchar()) << 24) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseUpper").GetUlong()) << 32);
+            (static_cast<uint64_t>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
+            (static_cast<uint64_t>(loc_gdt_entry.Field("Bytes.BaseMiddle").GetUchar()) << 16) |\
+            (static_cast<uint64_t>(loc_gdt_entry.Field("Bytes.BaseHigh").GetUchar()) << 24) |\
+            (static_cast<uint64_t>(loc_gdt_entry.Field("BaseUpper").GetUlong()) << 32);
     } else {
         base =\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseMid").GetUchar()) << 16) |\
-            (static_cast<unsigned __int64>(loc_gdt_entry.Field("HighWord.Bytes.BaseHi").GetUchar()) << 24);
+            (static_cast<uint64_t>(loc_gdt_entry.Field("BaseLow").GetUshort())) |\
+            (static_cast<uint64_t>(loc_gdt_entry.Field("HighWord.Bytes.BaseMid").GetUchar()) << 16) |\
+            (static_cast<uint64_t>(loc_gdt_entry.Field("HighWord.Bytes.BaseHi").GetUchar()) << 24);
     }
 
     return base;
 }
 
-std::string WDbgArkAnalyzeGDT::GetGDTSelectorName(const unsigned __int32 selector) const {
+std::string WDbgArkAnalyzeGDT::GetGDTSelectorName(const uint32_t selector) const {
     if ( g_Ext->IsCurMachine64() ) {
         switch ( selector ) {
             case KGDT64_NULL:
@@ -579,7 +579,7 @@ std::string WDbgArkAnalyzeGDT::GetGDTSelectorName(const unsigned __int32 selecto
 
 // TODO(swwwolf): map
 std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
-    unsigned __int32 type = GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1);
+    uint32_t type = GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1);
 
     if ( IsGDTTypeSystem(gdt_entry) ) {
         if ( g_Ext->IsCurMachine64() ) {    // system, x64
@@ -838,7 +838,7 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
         WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
         auto driver_start = loc_object.Field("DriverStart").GetPtr();
-        unsigned __int32 driver_size = loc_object.Field("DriverSize").GetUlong();
+        uint32_t driver_size = loc_object.Field("DriverSize").GetUlong();
 
         if ( driver_start && driver_size )
             display->AddTempRangeWhiteList(driver_start, driver_size);
@@ -886,7 +886,7 @@ void WDbgArkAnalyzeDriver::DisplayMajorTable(const ExtRemoteTyped &object) {
 
     ExtRemoteTyped major_table = loc_object.Field("MajorFunction");
 
-    for ( unsigned long i = 0; i < m_major_table_name.size(); i++ )
+    for ( uint64_t i = 0; i < m_major_table_name.size(); i++ )
         display->Analyze(major_table[i].GetPtr(), m_major_table_name.at(i), "");
 
     PrintFooter();
@@ -905,7 +905,7 @@ void WDbgArkAnalyzeDriver::DisplayFastIo(const ExtRemoteTyped &object) {
 
         fast_io_dispatch_ptr += fast_io_dispatch.GetFieldOffset("FastIoCheckIfPossible");
 
-        for ( unsigned __int32 i = 0; i < m_fast_io_table_name.size(); i++ ) {
+        for ( uint32_t i = 0; i < m_fast_io_table_name.size(); i++ ) {
             ExtRemoteData fast_io_dispatch_data(fast_io_dispatch_ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
             display->Analyze(fast_io_dispatch_data.GetPtr(), m_fast_io_table_name.at(i), "");
         }
@@ -928,7 +928,7 @@ void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object
 
             fs_filter_callbacks_ptr += fs_filter_callbacks.GetFieldOffset("PreAcquireForSectionSynchronization");
 
-            for ( unsigned __int32 i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
+            for ( uint32_t i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
                 ExtRemoteData fs_filter_callbacks_data(fs_filter_callbacks_ptr + i * g_Ext->m_PtrSize,
                                                        g_Ext->m_PtrSize);
                 display->Analyze(fs_filter_callbacks_data.GetPtr(), m_fs_filter_cb_table_name.at(i), "");

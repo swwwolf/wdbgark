@@ -119,7 +119,7 @@ void __stdcall InitUiColors()
   while ( i < 396 );
   do
   {
-    (&g_CustomUiColors)[v0] = (unsigned __int32 *)GetSysColor(v0 + 1);
+    (&g_CustomUiColors)[v0] = (uint32_t *)GetSysColor(v0 + 1);
     ++v0;
   }
   while ( v0 < 0x10 );
@@ -160,10 +160,10 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         if ( !GetModuleFileName(GetModuleHandle(nullptr), module_file_name.get(), MAX_PATH) )
             throw ExtStatusException(S_OK, "Can't get module file name");
 
-        unsigned __int16 windbg_major    = 0;
-        unsigned __int16 windbg_minor    = 0;
-        unsigned __int16 windbg_build    = 0;
-        unsigned __int16 windbg_revision = 0;
+        uint16_t windbg_major    = 0;
+        uint16_t windbg_minor    = 0;
+        uint16_t windbg_build    = 0;
+        uint16_t windbg_revision = 0;
 
         if ( !GetFileVersion(module_file_name.get(), &windbg_major, &windbg_minor, &windbg_build, &windbg_revision) )
             throw ExtStatusException(S_OK, "Can't get module version");
@@ -194,7 +194,7 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         PIMAGE_SECTION_HEADER sech_check_in  = nullptr;
         PIMAGE_SECTION_HEADER sech_search_in = nullptr;
 
-        for ( __int16 i = 0; i < nth->FileHeader.NumberOfSections; i++ ) {
+        for ( int16_t i = 0; i < nth->FileHeader.NumberOfSections; i++ ) {
             std::string section_name = reinterpret_cast<char*>(&sech->Name[0]);
 
             if ( sech_check_in && sech_search_in )
@@ -277,8 +277,8 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
 }
 
 BOOL CALLBACK WDbgArkColorHack::EnumWindowsProc(HWND hwnd, LPARAM lParam) {
-    bool*            found = reinterpret_cast<bool*>(lParam);
-    unsigned __int32 pid   = 0;
+    bool* found = reinterpret_cast<bool*>(lParam);
+    uint32_t pid = 0;
 
     GetWindowThreadProcessId(hwnd, reinterpret_cast<LPDWORD>(&pid));
 
@@ -315,9 +315,9 @@ bool WDbgArkColorHack::IsWinDbgWindow(void) {
     return true;
 }
 
-bool WDbgArkColorHack::GetFileVersion(const std::string& file_path, unsigned __int16* major, unsigned __int16* minor,
-                                      unsigned __int16* build, unsigned __int16* revision) {
-    unsigned __int32 file_version_size = GetFileVersionInfoSize(file_path.c_str(), nullptr);
+bool WDbgArkColorHack::GetFileVersion(const std::string& file_path, uint16_t* major, uint16_t* minor,
+                                      uint16_t* build, uint16_t* revision) {
+    uint32_t file_version_size = GetFileVersionInfoSize(file_path.c_str(), nullptr);
 
     if ( !file_version_size ) {
         err << wa::showminus << __FUNCTION__ << ": GetFileVersionInfoSize failed" << endlerr;

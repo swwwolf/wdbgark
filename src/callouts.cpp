@@ -100,7 +100,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
     try {
         if ( m_system_ver->GetStrictVer() <= W7SP1_VER ) {
             for ( const auto &callout_name : m_callout_names ) {
-                unsigned __int64 offset = 0;
+                uint64_t offset = 0;
 
                 if ( m_sym_cache->GetSymbolOffset(callout_name, true, &offset) ) {
                     ExtRemoteData callout_routine(offset, m_PtrSize);
@@ -109,12 +109,12 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
                 }
             }
         } else {
-            unsigned __int64 offset = 0;
+            uint64_t offset = 0;
 
             if ( m_sym_cache->GetSymbolOffset("nt!PsWin32CallBack", true, &offset) ) {
                 ExtRemoteData callout_block(offset, m_PtrSize);
 
-                unsigned __int64 ex_callback_fast_ref = callout_block.GetPtr();
+                uint64_t ex_callback_fast_ref = callout_block.GetPtr();
 
                 if ( ex_callback_fast_ref ) {
                     ExtRemoteData routine_block(

@@ -20,13 +20,15 @@
 */
 
 #include "strings.hpp"
-#include "manipulators.hpp"
 
 #include <engextcpp.hpp>
 
 #include <sstream>
 #include <utility>
 #include <memory>
+#include <string>
+
+#include "manipulators.hpp"
 
 namespace wa {
 
@@ -42,30 +44,29 @@ std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped
     std::string output_string = "";
 
     try {
-        ExtRemoteTyped   loc_unicode_string = unicode_string;
-        ExtRemoteTyped   buffer = *loc_unicode_string.Field("Buffer");
-        unsigned __int16 len = loc_unicode_string.Field("Length").GetUshort();
-        unsigned __int16 maxlen = loc_unicode_string.Field("MaximumLength").GetUshort();
+        ExtRemoteTyped loc_unicode_string = unicode_string;
+        ExtRemoteTyped buffer = *loc_unicode_string.Field("Buffer");
+        uint16_t len = loc_unicode_string.Field("Length").GetUshort();
+        uint16_t maxlen = loc_unicode_string.Field("MaximumLength").GetUshort();
 
         if ( len == 0 && maxlen == 1 ) {
             return std::make_pair(S_OK, output_string);
         }
 
         if ( maxlen >= sizeof(wchar_t) && (maxlen % sizeof(wchar_t) == 0) ) {
-            unsigned __int16 max_len_wide = maxlen / sizeof(wchar_t) + 1;
+            uint16_t max_len_wide = maxlen / sizeof(wchar_t) + 1;
 
             std::unique_ptr<wchar_t[]> test_name(new wchar_t[max_len_wide]);
             std::memset(test_name.get(), 0, max_len_wide * sizeof(wchar_t));
 
-            unsigned __int32 read = buffer.ReadBuffer(test_name.get(), maxlen, true);
+            uint32_t read = buffer.ReadBuffer(test_name.get(), maxlen, true);
 
             if ( read == maxlen )
                 output_string = wstring_to_string(test_name.get());
 
             return std::make_pair(S_OK, output_string);
         }
-    }
-    catch ( const ExtRemoteException &Ex ) {
+    } catch ( const ExtRemoteException &Ex ) {
         std::stringstream locerr;
 
         locerr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << wa::endlerr;

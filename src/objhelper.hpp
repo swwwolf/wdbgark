@@ -50,12 +50,13 @@ class WDbgArkObjHelper {
     typedef struct ObjectInfoTag {
         ExtRemoteTyped object;
         ExtRemoteTyped directory_object;
-        std::string    full_path;
-        std::string    obj_name;
-        std::string    type_name;
+        std::string full_path;
+        std::string obj_name;
+        std::string type_name;
     } ObjectInfo;
 
-    using ObjectsInformation = std::map<unsigned __int64, ObjectInfo>;  // offset : object information
+    using ObjectsInformation = std::map<uint64_t, ObjectInfo>;  // offset : ObjectInfo
+    using ObjectsInfoResult = std::pair<HRESULT, ObjectsInformation>;   // result : ObjectsInformation
 
  public:
     explicit WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
@@ -67,15 +68,15 @@ class WDbgArkObjHelper {
     std::pair<HRESULT, std::string> GetObjectName(const ExtRemoteTyped &object);
     std::pair<HRESULT, ExtRemoteTyped> GetObjectType(const ExtRemoteTyped &object);
     std::pair<HRESULT, std::string> GetObjectTypeName(const ExtRemoteTyped &object);
-    std::pair<HRESULT, ObjectsInformation> GetObjectsInfo(const unsigned __int64 directory_address = 0ULL,
-                                                          const std::string &root_path = "\\",
-                                                          const bool recursive = false);
-    unsigned __int64 FindObjectByName(const std::string &object_name,
-                                      const unsigned __int64 directory_address = 0ULL,
-                                      const std::string &root_path = "\\",
-                                      const bool recursive = false);
+    ObjectsInfoResult GetObjectsInfo(const uint64_t directory_address = 0ULL,
+                                     const std::string &root_path = "\\",
+                                     const bool recursive = false);
+    uint64_t FindObjectByName(const std::string &object_name,
+                              const uint64_t directory_address = 0ULL,
+                              const std::string &root_path = "\\",
+                              const bool recursive = false);
 
-    unsigned __int64 ExFastRefGetObject(unsigned __int64 FastRef) const {
+    uint64_t ExFastRefGetObject(uint64_t FastRef) const {
         if ( g_Ext->IsCurMachine32() )
             return FastRef & ~MAX_FAST_REFS_X86;
         else
@@ -86,11 +87,11 @@ class WDbgArkObjHelper {
     std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);
 
  private:
-    bool                             m_inited;
-    bool                             m_object_header_old;
-    unsigned __int64                 m_ObpInfoMaskToOffset;
-    unsigned __int64                 m_ObTypeIndexTableOffset;
-    unsigned __int8                  m_ObHeaderCookie;
+    bool m_inited;
+    bool m_object_header_old;
+    uint64_t m_ObpInfoMaskToOffset;
+    uint64_t m_ObTypeIndexTableOffset;
+    uint8_t m_ObHeaderCookie;
     std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     //////////////////////////////////////////////////////////////////////////
     // output streams

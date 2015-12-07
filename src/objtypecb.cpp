@@ -50,7 +50,7 @@ EXT_COMMAND(wa_objtypecb,
         return;
     }
 
-    unsigned __int64 object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes");
+    uint64_t object_types_directory_offset = m_obj_helper->FindObjectByName("ObjectTypes");
 
     if ( !object_types_directory_offset ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get \"ObjectTypes\" directory" << endlerr;
@@ -99,7 +99,7 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
 
     try {
         ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
-        unsigned __int8 object_type_flags = object_type.Field("TypeInfo").Field("ObjectTypeFlags").GetUchar();
+        uint8_t object_type_flags = object_type.Field("TypeInfo").Field("ObjectTypeFlags").GetUchar();
 
         if ( !(object_type_flags & OBJTYPE_SUPPORTS_OBJECT_CALLBACKS) )
             return S_OK;

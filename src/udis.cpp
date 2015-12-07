@@ -30,7 +30,7 @@
 
 namespace wa {
 
-void WDbgArkUdis::Init(const unsigned __int8 mode) {
+void WDbgArkUdis::Init(const uint8_t mode) {
     std::memset(&m_udis_obj, 0, sizeof(m_udis_obj));
     ud_init(&m_udis_obj);
     ud_set_mode(&m_udis_obj, mode);
@@ -40,10 +40,10 @@ void WDbgArkUdis::Init(const unsigned __int8 mode) {
     HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(0,
                                                             DEBUG_DATA_PROCESSOR_IDENTIFICATION,
                                                             &processor_info,
-                                                            static_cast<unsigned __int32>(sizeof(processor_info)),
+                                                            static_cast<uint32_t>(sizeof(processor_info)),
                                                             nullptr);
 
-    unsigned __int32 vendor = UD_VENDOR_ANY;
+    uint32_t vendor = UD_VENDOR_ANY;
 
     if (SUCCEEDED(result) &&
         (g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_I386 || g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_AMD64) ) {
@@ -69,7 +69,7 @@ WDbgArkUdis::WDbgArkUdis() : m_inited(false),
                              out(),
                              warn(),
                              err() {
-    unsigned __int8 mode = 0;
+    uint8_t mode = 0;
 
     if ( g_Ext->IsCurMachine32() )
         mode = 32;
@@ -80,13 +80,13 @@ WDbgArkUdis::WDbgArkUdis() : m_inited(false),
     m_inited = true;
 }
 
-WDbgArkUdis::WDbgArkUdis(unsigned __int8 mode, unsigned __int64 address, size_t size) : m_inited(false),
-                                                                                        m_buffer(nullptr),
-                                                                                        m_size(0),
-                                                                                        out(),
-                                                                                        warn(),
-                                                                                        err() {
-    unsigned __int8 init_mode = mode;
+WDbgArkUdis::WDbgArkUdis(uint8_t mode, uint64_t address, size_t size) : m_inited(false),
+                                                                        m_buffer(nullptr),
+                                                                        m_size(0),
+                                                                        out(),
+                                                                        warn(),
+                                                                        err() {
+    uint8_t init_mode = mode;
 
     if ( !init_mode ) {
         if ( g_Ext->IsCurMachine32() )
@@ -99,13 +99,13 @@ WDbgArkUdis::WDbgArkUdis(unsigned __int8 mode, unsigned __int64 address, size_t 
     m_inited = SetInputBuffer(address, size);
 }
 
-bool WDbgArkUdis::SetInputBuffer(const unsigned char* buffer, const size_t size) {
+bool WDbgArkUdis::SetInputBuffer(const uint8_t* buffer, const size_t size) {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return false;
     }
 
-    m_buffer.reset(new unsigned char[size]);
+    m_buffer.reset(new uint8_t[size]);
     std::memcpy(m_buffer.get(), reinterpret_cast<const void*>(buffer), size);
     ud_set_input_buffer(&m_udis_obj, m_buffer.get(), size);
     SetInstructionPointer(0ULL);
@@ -114,11 +114,11 @@ bool WDbgArkUdis::SetInputBuffer(const unsigned char* buffer, const size_t size)
     return true;
 }
 
-bool WDbgArkUdis::SetInputBuffer(const unsigned __int64 address, const size_t size) {
+bool WDbgArkUdis::SetInputBuffer(const uint64_t address, const size_t size) {
     try {
-        ExtRemoteData data(address, static_cast<unsigned __int32>(size));
-        m_buffer.reset(new unsigned char[size]);
-        data.ReadBuffer(reinterpret_cast<void*>(m_buffer.get()), static_cast<unsigned __int32>(size), true);
+        ExtRemoteData data(address, static_cast<uint32_t>(size));
+        m_buffer.reset(new uint8_t[size]);
+        data.ReadBuffer(reinterpret_cast<void*>(m_buffer.get()), static_cast<uint32_t>(size), true);
         ud_set_input_buffer(&m_udis_obj, m_buffer.get(), size);
         SetInstructionPointer(address);
         m_size = size;

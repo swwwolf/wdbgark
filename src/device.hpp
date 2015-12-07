@@ -43,7 +43,7 @@ namespace wa {
 
 class WDbgArkDevice {
  public:
-    using DevicesInformation = std::map<unsigned __int64, ExtRemoteTyped>;  // offset : object
+    using DevicesInformation = std::map<uint64_t, ExtRemoteTyped>;  // offset : object
  public:
     explicit WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     WDbgArkDevice() = delete;

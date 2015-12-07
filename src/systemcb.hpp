@@ -27,8 +27,8 @@
 #define SYSTEMCB_HPP_
 
 namespace wa {
-    unsigned __int32 GetCmCallbackItemFunctionOffset();
-    unsigned __int32 GetPowerCallbackItemFunctionOffset();
+    uint32_t GetCmCallbackItemFunctionOffset();
+    uint32_t GetPowerCallbackItemFunctionOffset();
 }   // namespace wa
 
 #endif  // SYSTEMCB_HPP_

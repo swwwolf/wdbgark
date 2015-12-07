@@ -230,12 +230,12 @@ NTSTATUS __stdcall IoInitializeTimer(PDEVICE_OBJECT DeviceObject, PIO_TIMER_ROUT
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
-unsigned __int32 GetDbgkLkmdCallbackCount() { return 0x08; }
-unsigned __int32 GetDbgkLkmdCallbackArrayDistance() { return 2 * g_Ext->m_PtrSize; }
+uint32_t GetDbgkLkmdCallbackCount() { return 0x08; }
+uint32_t GetDbgkLkmdCallbackArrayDistance() { return 2 * g_Ext->m_PtrSize; }
 //////////////////////////////////////////////////////////////////////////
 // http://redplait.blogspot.ru/2010/08/cmregistercallbackex-on-vista.html
 //////////////////////////////////////////////////////////////////////////
-unsigned __int32 GetCmCallbackItemFunctionOffset() {
+uint32_t GetCmCallbackItemFunctionOffset() {
     WDbgArkSystemVer system_ver;
 
     if ( !system_ver.IsInited() )
@@ -255,14 +255,14 @@ unsigned __int32 GetCmCallbackItemFunctionOffset() {
 //////////////////////////////////////////////////////////////////////////
 // http://redplait.blogspot.ru/2012/10/poregisterpowersettingcallback-callbacks.html
 //////////////////////////////////////////////////////////////////////////
-unsigned __int32 GetPowerCallbackItemFunctionOffset() {
+uint32_t GetPowerCallbackItemFunctionOffset() {
     if ( !g_Ext->IsCurMachine64() )
         return 0x28;
 
     return 0x40;
 }
 //////////////////////////////////////////////////////////////////////////
-unsigned __int32 GetPnpCallbackItemFunctionOffset() {
+uint32_t GetPnpCallbackItemFunctionOffset() {
     if ( !g_Ext->IsCurMachine64() )
         return 0x14;
 
@@ -271,7 +271,7 @@ unsigned __int32 GetPnpCallbackItemFunctionOffset() {
 //////////////////////////////////////////////////////////////////////////
 // http://redplait.blogspot.ru/2012/09/emproviderregisterempproviderregister.html
 //////////////////////////////////////////////////////////////////////////
-unsigned __int32 GetEmpCallbackItemLinkOffset() {
+uint32_t GetEmpCallbackItemLinkOffset() {
     if ( !g_Ext->IsCurMachine64() )
         return 0x1C;
 
@@ -526,7 +526,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
                            "dbgklkmd",
                            output_list);
     } else if ( citer->first == "ioptimer" ) {
-        unsigned __int32 link_offset = 0;
+        uint32_t link_offset = 0;
 
         if ( GetFieldOffset("nt!_IO_TIMER", "TimerList", reinterpret_cast<PULONG>(&link_offset)) != 0 ) {
             warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerList" << endlwarn;
@@ -544,16 +544,16 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterat
 }
 
 void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
-                                 const unsigned __int64 offset_list_count,
-                                 const unsigned __int32 count,
+                                 const uint64_t offset_list_count,
+                                 const uint32_t count,
                                  const std::string &list_head_name,
-                                 const unsigned __int64 offset_list_head,
-                                 const unsigned __int32 array_distance,
+                                 const uint64_t offset_list_head,
+                                 const uint32_t array_distance,
                                  const std::string &type,
                                  walkresType* output_list) {
-    unsigned __int64 offset = offset_list_count;
-    unsigned __int32 rcount = count;
-    ExtRemoteData    routine_count;
+    uint64_t offset = offset_list_count;
+    uint32_t rcount = count;
+    ExtRemoteData routine_count;
 
     try {
         if ( !rcount && !offset && !m_sym_cache->GetSymbolOffset(list_count_name, true, &offset) ) {
@@ -562,7 +562,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
         }
 
         if ( !rcount )
-            routine_count.Set(offset, static_cast<unsigned __int32>(sizeof(unsigned __int32)));
+            routine_count.Set(offset, static_cast<uint32_t>(sizeof(uint32_t)));
 
         offset = offset_list_head;
 
@@ -571,22 +571,22 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
             return;
         }
 
-        const unsigned __int64 list_head_offset_out = offset;
+        const uint64_t list_head_offset_out = offset;
 
         if ( !rcount )
             rcount = routine_count.GetUlong();
 
-        for ( unsigned __int32 i = 0; i < rcount; i++ ) {
+        for ( uint32_t i = 0; i < rcount; i++ ) {
             ExtRemoteData notify_routine_list(offset + i * array_distance, m_PtrSize);
 
-            const unsigned __int64 ex_callback_fast_ref = notify_routine_list.GetPtr();
+            const uint64_t ex_callback_fast_ref = notify_routine_list.GetPtr();
 
             if ( ex_callback_fast_ref ) {
                 ExtRemoteData routine_block(
                     m_obj_helper->ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
                     m_PtrSize);
 
-                const unsigned __int64 notify_routine = routine_block.GetPtr();
+                const uint64_t notify_routine = routine_block.GetPtr();
 
                 if ( notify_routine ) {
                     OutputWalkInfo info;
@@ -634,10 +634,10 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemot
     }
 
     // Signature + Lock
-    const unsigned __int64 offset_list_head = object.m_Offset + g_Ext->m_PtrSize + g_Ext->m_PtrSize;
+    const uint64_t offset_list_head = object.m_Offset + g_Ext->m_PtrSize + g_Ext->m_PtrSize;
 
     // Link + CallbackObject
-    const unsigned __int32 offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + g_Ext->m_PtrSize;
+    const uint32_t offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + g_Ext->m_PtrSize;
 
     wdbg_ark_class->WalkAnyListWithOffsetToRoutine(list_head_name,
                                                    offset_list_head,
@@ -674,7 +674,7 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_poin
     std::string          type       = cb_context->type;
 
     try {
-        unsigned __int64 object_ptr = const_cast<ExtRemoteData &>(object_pointer).GetPtr();
+        uint64_t object_ptr = const_cast<ExtRemoteData &>(object_pointer).GetPtr();
 
         ExtRemoteTyped device_object("nt!_DEVICE_OBJECT", object_ptr, false, NULL, NULL);
         ExtRemoteTyped driver_object_ptr = device_object.Field("DriverObject");
@@ -692,7 +692,7 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_poin
         info << "<exec cmd=\"!drvobj " << std::hex << std::showbase << driver_object.m_Offset;
         info << " 7" << "\">!drvobj" << "</exec>";
 
-        const unsigned __int64 routine_address = major_functions[static_cast<ULONG>(IRP_MJ_SHUTDOWN)].GetPtr();
+        const uint64_t routine_address = major_functions[static_cast<ULONG>(IRP_MJ_SHUTDOWN)].GetPtr();
 
         OutputWalkInfo winfo;
 
@@ -718,9 +718,9 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_poin
 // IopProfileNotifyList and IopDeviceClassNotifyList were replaced
 // by PnpProfileNotifyList and PnpDeviceClassNotifyList in Vista+
 void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
-    std::string            list_head_name;
-    unsigned __int64       offset            = 0;
-    const unsigned __int32 offset_to_routine = GetPnpCallbackItemFunctionOffset();
+    std::string list_head_name;
+    uint64_t offset = 0;
+    const uint32_t offset_to_routine = GetPnpCallbackItemFunctionOffset();
 
     if ( m_system_ver->GetStrictVer() <= W2K3_VER )
         list_head_name = "nt!IopProfileNotifyList";

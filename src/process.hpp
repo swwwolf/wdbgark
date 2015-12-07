@@ -54,23 +54,23 @@ class WDbgArkProcess {
 
     bool IsInited(void) const { return m_inited; }
 
-    unsigned __int64 FindEProcessByImageFileName(const std::string &process_name);
-    unsigned __int64 FindEProcessAnyGUIProcess();
-    HRESULT          SetImplicitProcess(const unsigned __int64 set_eprocess);
+    uint64_t FindEProcessByImageFileName(const std::string &process_name);
+    uint64_t FindEProcessAnyGUIProcess();
+    HRESULT SetImplicitProcess(const uint64_t set_eprocess);
 
  private:
      typedef struct ProcessInfoTag {
-         ExtRemoteTyped   process;
-         unsigned __int64 eprocess;
-         std::string      image_file_name;
+         ExtRemoteTyped process;
+         uint64_t eprocess;
+         std::string image_file_name;
      } ProcessInfo;
 
     std::pair<bool, std::string> GetProcessImageFileName(const ExtRemoteTyped &process);
-    unsigned __int64             GetProcessDataOffset(const ExtRemoteTyped &process) { return process.m_Offset; }
-    bool                         FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info);
+    uint64_t GetProcessDataOffset(const ExtRemoteTyped &process) { return process.m_Offset; }
+    bool FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info);
 
-    bool                     m_inited;
-    unsigned __int64         m_current_process;
+    bool m_inited;
+    uint64_t m_current_process;
     std::vector<ProcessInfo> m_process_list;
 
     //////////////////////////////////////////////////////////////////////////

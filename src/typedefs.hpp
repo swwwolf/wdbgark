@@ -33,41 +33,41 @@
 namespace wa {
     //////////////////////////////////////////////////////////////////////////
     typedef struct SystemCbCommandTag {
-        std::string      list_count_name;
-        std::string      list_head_name;
-        unsigned __int32 offset_to_routine;
-        unsigned __int64 list_count_address;
-        unsigned __int64 list_head_address;
+        std::string list_count_name;
+        std::string list_head_name;
+        uint32_t offset_to_routine;
+        uint64_t list_count_address;
+        uint64_t list_head_address;
     } SystemCbCommand;
 
     using callbacksInfo = std::map <std::string, SystemCbCommand>;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
-        unsigned __int64 address;
-        unsigned __int64 object_address;
-        unsigned __int64 list_head_address;
-        std::string      list_head_name;
-        std::string      type;
-        std::string      info;
+        uint64_t address;
+        uint64_t object_address;
+        uint64_t list_head_address;
+        std::string list_head_name;
+        std::string type;
+        std::string info;
     } OutputWalkInfo;
 
     using walkresType = std::vector<OutputWalkInfo>;
     //////////////////////////////////////////////////////////////////////////
     typedef struct WalkCallbackContextTag {
-        std::string      type;
-        std::string      list_head_name;
-        walkresType*     output_list_pointer;
-        unsigned __int64 list_head_address;
+        std::string type;
+        std::string list_head_name;
+        walkresType* output_list_pointer;
+        uint64_t list_head_address;
     } WalkCallbackContext;
     //////////////////////////////////////////////////////////////////////////
     typedef struct HalDispatchTableInfoTag {
-        unsigned __int8 hdt_count;      // HalDispatchTable table count
-        unsigned __int8 hpdt_count;     // HalPrivateDispatchTable table count
-        unsigned __int8 hiommu_count;   // HalIommuDispatch table count (W8.1+)
-        unsigned __int8 skip;           // Skip first N entries
+        uint8_t hdt_count;      // HalDispatchTable table count
+        uint8_t hpdt_count;     // HalPrivateDispatchTable table count
+        uint8_t hiommu_count;   // HalIommuDispatch table count (W8.1+)
+        uint8_t skip;           // Skip first N entries
     } HalDispatchTableInfo;
 
-    using haltblInfo = std::map <unsigned __int32, HalDispatchTableInfo>;
+    using haltblInfo = std::map <uint32_t, HalDispatchTableInfo>;
     //////////////////////////////////////////////////////////////////////////
 }   // namespace wa
 

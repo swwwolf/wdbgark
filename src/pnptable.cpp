@@ -129,8 +129,8 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     out << wa::showplus << "Displaying nt!PlugPlayHandlerTable" << endlout;
 
     // PnpControlClass + Length + Routine
-    unsigned __int32 size   = sizeof(unsigned __int32) + sizeof(unsigned __int32) + m_PtrSize;
-    unsigned __int64 offset = 0;
+    uint32_t size = sizeof(uint32_t) + sizeof(uint32_t) + m_PtrSize;
+    uint64_t offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset("nt!PlugPlayHandlerTable", true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!PlugPlayHandlerTable" << endlerr;
@@ -147,13 +147,13 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     display->PrintHeader();
 
     try {
-        for ( unsigned long i = 0; i < 0x100; i++ ) {
-            ExtRemoteData pnp_table_entry_class(offset + i * size, static_cast<ULONG>(sizeof(unsigned __int32)));
+        for ( uint32_t i = 0; i < 0x100; i++ ) {
+            ExtRemoteData pnp_table_entry_class(offset + i * size, static_cast<ULONG>(sizeof(uint32_t)));
 
             if ( pnp_table_entry_class.GetUlong() != i )    // check PnpControlClass
                 break;
 
-            unsigned __int64 init_offset = offset + i * size + sizeof(unsigned __int32) + sizeof(unsigned __int32);
+            uint64_t init_offset = offset + i * size + sizeof(uint32_t) + sizeof(uint32_t);
 
             ExtRemoteData pnp_table_entry_routine(init_offset, m_PtrSize);
             display->Analyze(pnp_table_entry_routine.GetPtr(), "", "");

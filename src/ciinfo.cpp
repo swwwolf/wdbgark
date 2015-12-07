@@ -114,8 +114,8 @@ NTSTATUS __fastcall CiQueryInformation(SYSTEM_CODEINTEGRITY_INFORMATION *pBuffer
 
 namespace wa {
 
-std::string CiQueryInformation(const unsigned __int32 ci_options,
-                               const unsigned __int32 ci_dev_mode,
+std::string CiQueryInformation(const uint32_t ci_options,
+                               const uint32_t ci_dev_mode,
                                const bool seil_sign_flag,
                                const bool dbg_enabled,
                                const bool dbg_not_present);
@@ -137,55 +137,55 @@ EXT_COMMAND(wa_ciinfo, "Output Code Integrity information", "") {
 
     try {
         std::string g_ci_options = "ci!g_CiOptions";
-        unsigned __int64 g_ci_options_offset = 0;
+        uint64_t g_ci_options_offset = 0;
 
         if ( !m_sym_cache->GetSymbolOffset(g_ci_options, true, &g_ci_options_offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find " << g_ci_options << endlerr;
             return;
         }
 
-        ExtRemoteData g_ci_options_data(g_ci_options_offset, sizeof(unsigned __int32));
+        ExtRemoteData g_ci_options_data(g_ci_options_offset, sizeof(uint32_t));
 
         std::string kddebuggerenabled = "nt!KdDebuggerEnabled";
-        unsigned __int64 kddebuggerenabled_offset = 0;
+        uint64_t kddebuggerenabled_offset = 0;
 
         if ( !m_sym_cache->GetSymbolOffset(kddebuggerenabled, true, &kddebuggerenabled_offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find " << kddebuggerenabled << endlerr;
             return;
         }
 
-        ExtRemoteData kddebuggerenabled_data(kddebuggerenabled_offset, sizeof(unsigned __int8));
+        ExtRemoteData kddebuggerenabled_data(kddebuggerenabled_offset, sizeof(uint8_t));
 
         std::string kddebuggernotpresent = "nt!KdDebuggerNotPresent";
-        unsigned __int64 kddebuggernotpresent_offset = 0;
+        uint64_t kddebuggernotpresent_offset = 0;
 
         if ( !m_sym_cache->GetSymbolOffset(kddebuggernotpresent, true, &kddebuggernotpresent_offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to find " << kddebuggernotpresent << endlerr;
             return;
         }
 
-        ExtRemoteData kddebuggernotpresent_data(kddebuggernotpresent_offset, sizeof(unsigned __int8));
+        ExtRemoteData kddebuggernotpresent_data(kddebuggernotpresent_offset, sizeof(uint8_t));
 
         out << wa::showplus << g_ci_options << "      : " << std::hex << std::showbase << g_ci_options_data.GetUlong();
         out << endlout;
 
         std::string g_cidevelopermode = "ci!g_CiDeveloperMode";
-        unsigned __int64 g_cidevelopermode_offset = 0;
+        uint64_t g_cidevelopermode_offset = 0;
         ExtRemoteData g_cidevelopermode_data;
 
         if ( m_sym_cache->GetSymbolOffset(g_cidevelopermode, true, &g_cidevelopermode_offset) ) {
-            g_cidevelopermode_data.Set(g_cidevelopermode_offset, sizeof(unsigned __int32));
+            g_cidevelopermode_data.Set(g_cidevelopermode_offset, sizeof(uint32_t));
 
             out << wa::showplus << g_cidevelopermode << ": " << std::hex << std::showbase;
             out << g_cidevelopermode_data.GetUlong() << endlout;
         }
 
         std::string seilsigningpolicy = "nt!SeILSigningPolicy";
-        unsigned __int64 seilsigningpolicy_offset = 0;
+        uint64_t seilsigningpolicy_offset = 0;
         ExtRemoteData seilsigningpolicy_data;
 
         if ( m_sym_cache->GetSymbolOffset(seilsigningpolicy, true, &seilsigningpolicy_offset) ) {
-            seilsigningpolicy_data.Set(seilsigningpolicy_offset, sizeof(unsigned __int8));
+            seilsigningpolicy_data.Set(seilsigningpolicy_offset, sizeof(uint8_t));
 
             out << wa::showplus << seilsigningpolicy << ": ";
             out << std::internal << std::setw(2) << std::setfill('0') << std::hex << std::showbase;
@@ -209,8 +209,8 @@ EXT_COMMAND(wa_ciinfo, "Output Code Integrity information", "") {
     display->PrintFooter();
 }
 
-std::string CiQueryInformation(const unsigned __int32 ci_options,
-                               const unsigned __int32 ci_dev_mode,
+std::string CiQueryInformation(const uint32_t ci_options,
+                               const uint32_t ci_dev_mode,
                                const bool seil_sign_flag,
                                const bool dbg_enabled,
                                const bool dbg_not_present) {

@@ -74,7 +74,7 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
         return false;
     }
 
-    unsigned __int32 resource_size = SizeofResource(g_Ext->s_Module, resource);
+    uint32_t resource_size = SizeofResource(g_Ext->s_Module, resource);
 
     if ( !resource_size ) {
         std::string lasterr = LastErrorToString(GetLastError());

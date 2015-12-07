@@ -52,9 +52,9 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         return;
     }
 
-    unsigned __int64 offset_hdt = 0;
-    unsigned __int64 offset_hpdt = 0;
-    unsigned __int64 offset_hiommu = 0;
+    uint64_t offset_hdt = 0;
+    uint64_t offset_hpdt = 0;
+    uint64_t offset_hiommu = 0;
 
     if ( !m_sym_cache->GetSymbolOffset("nt!HalDispatchTable", true, &offset_hdt) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalDispatchTable" << endlerr;

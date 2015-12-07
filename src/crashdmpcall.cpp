@@ -32,7 +32,7 @@
 
 namespace wa {
 
-unsigned __int32 GetCrashdmpCallTableCount();
+uint32_t GetCrashdmpCallTableCount();
 
 EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     RequireKernelMode();
@@ -47,14 +47,14 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
         return;
     }
 
-    unsigned __int32 table_count = GetCrashdmpCallTableCount();
+    uint32_t table_count = GetCrashdmpCallTableCount();
 
     if ( !table_count ) {
         err << wa::showminus << __FUNCTION__ << ": unknown table count" << endlerr;
         return;
     }
 
-    unsigned __int64 offset = 0;
+    uint64_t offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset("nt!CrashdmpCallTable", true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!CrashdmpCallTable" << endlerr;
@@ -74,7 +74,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
         walkresType output_list;
 
         // skip first two entries, they're system reserved signatures
-        unsigned __int32 skip_offset = 2 * sizeof(unsigned __int32);
+        uint32_t skip_offset = 2 * sizeof(uint32_t);
         WalkAnyTable(offset, skip_offset, table_count, "", &output_list);
 
         for ( const auto &walk_info : output_list ) {
@@ -89,7 +89,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     display->PrintFooter();
 }
 
-unsigned __int32 GetCrashdmpCallTableCount() {
+uint32_t GetCrashdmpCallTableCount() {
     WDbgArkSystemVer system_ver;
 
     if ( !system_ver.IsInited() )

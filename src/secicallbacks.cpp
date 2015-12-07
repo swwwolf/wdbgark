@@ -37,7 +37,7 @@
 
 namespace wa {
 
-std::pair<unsigned __int32, unsigned __int32> GetCiCallbacksTableCount();
+std::pair<uint32_t, uint32_t> GetCiCallbacksTableCount();
 
 EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks", "") {
     RequireKernelMode();
@@ -60,14 +60,14 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
         symbol_name = "nt!SeCiCallbacks";
     }
 
-    std::pair<unsigned __int32, unsigned __int32> table_count_skip_offset = GetCiCallbacksTableCount();
+    std::pair<uint32_t, uint32_t> table_count_skip_offset = GetCiCallbacksTableCount();
 
     if ( !table_count_skip_offset.first ) {
         err << wa::showminus << __FUNCTION__ << ": unknown table count" << endlerr;
         return;
     }
 
-    unsigned __int64 offset = 0;
+    uint64_t offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset(symbol_name, true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find " << symbol_name << endlerr;
@@ -99,7 +99,7 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
     display->PrintFooter();
 }
 
-std::pair<unsigned __int32, unsigned __int32> GetCiCallbacksTableCount() {
+std::pair<uint32_t, uint32_t> GetCiCallbacksTableCount() {
     WDbgArkSystemVer system_ver;
 
     if ( !system_ver.IsInited() )

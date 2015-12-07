@@ -43,7 +43,7 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
       warn(),
       err() {
     // determine object header format
-    unsigned __int32 type_index_offset = 0;
+    uint32_t type_index_offset = 0;
 
     // old header format
     if ( GetFieldOffset("nt!_OBJECT_HEADER", "TypeIndex", reinterpret_cast<PULONG>(&type_index_offset)) != 0 ) {
@@ -62,7 +62,7 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
         }
 
         // Windows 10+
-        unsigned __int64 header_cookie_offset = 0;
+        uint64_t header_cookie_offset = 0;
         if ( m_sym_cache->GetSymbolOffset("nt!ObHeaderCookie", true, &header_cookie_offset) ) {
             m_ObHeaderCookie = ExtRemoteData(header_cookie_offset, sizeof(m_ObHeaderCookie)).GetUchar();
         }
@@ -71,11 +71,10 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
     }
 }
 
-std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetObjectsInfo(
-    const unsigned __int64 directory_address,
-    const std::string &root_path,
-    const bool recursive) {
-    unsigned __int64   offset = directory_address;
+WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint64_t directory_address,
+                                                                     const std::string &root_path,
+                                                                     const bool recursive) {
+    uint64_t offset = directory_address;
     ObjectsInformation info;
 
     if ( !IsInited() ) {
@@ -97,9 +96,9 @@ std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetOb
         ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", offset, false, nullptr, nullptr);
         ExtRemoteTyped buckets = directory_object.Field("HashBuckets");
 
-        const unsigned __int32 num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
+        int num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
 
-        for ( unsigned __int32 i = 0; i < num_buckets; i++ ) {
+        for ( int i = 0; i < num_buckets; i++ ) {
             if ( !buckets.m_Offset )
                 continue;
 
@@ -157,10 +156,10 @@ std::pair<HRESULT, WDbgArkObjHelper::ObjectsInformation> WDbgArkObjHelper::GetOb
     return std::make_pair(S_OK, info);
 }
 
-unsigned __int64 WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
-                                                    const unsigned __int64 directory_address,
-                                                    const std::string &root_path,
-                                                    const bool recursive) {
+uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
+                                            const uint64_t directory_address,
+                                            const std::string &root_path,
+                                            const bool recursive) {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
         return 0ULL;
@@ -205,7 +204,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
             return std::make_pair(E_NOT_VALID_STATE, object_header);
         }
 
-        unsigned __int32 offset = 0;
+        uint32_t offset = 0;
 
         if ( GetFieldOffset("nt!_OBJECT_HEADER", "Body", reinterpret_cast<PULONG>(&offset)) != 0 ) {
             err << wa::showminus << __FUNCTION__ << ": GetFieldOffset failed" << endlerr;
@@ -258,7 +257,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
                     ExtRemoteData name_info_mask_to_offset(
                         m_ObpInfoMaskToOffset +\
                         (info_mask.GetUchar() & (HeaderNameInfoFlag | (HeaderNameInfoFlag - 1))),
-                        sizeof(unsigned char) );
+                        sizeof(uint8_t) );
 
                     object_header_name_info.Set("nt!_OBJECT_HEADER_NAME_INFO",
                                                 loc_object_header.m_Offset - name_info_mask_to_offset.GetUchar(),
@@ -329,7 +328,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemo
 
             if ( m_ObHeaderCookie ) {
                 type_index = (m_ObHeaderCookie ^ result_header.second.Field("TypeIndex").GetUchar()) ^ \
-                             static_cast<unsigned __int8>(result_header.second.m_Offset >> 8);
+                             static_cast<uint8_t>(result_header.second.m_Offset >> 8);
             } else {
                 type_index = result_header.second.Field("TypeIndex").GetUchar();
             }

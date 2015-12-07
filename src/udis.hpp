@@ -41,32 +41,32 @@ namespace wa {
 class WDbgArkUdis {
  public:
     WDbgArkUdis();
-    WDbgArkUdis(unsigned __int8 mode, unsigned __int64 address, size_t size);   // mode = 32/64, 0 - default
+    WDbgArkUdis(uint8_t mode, uint64_t address, size_t size);   // mode = 32/64, 0 - default
     ~WDbgArkUdis() {}
 
     bool IsInited(void) const { return m_inited; }
     const ud_t Get(void) const { return m_udis_obj; }
-    void SwitchMode(const unsigned __int8 mode) { return ud_set_mode(&m_udis_obj, mode); }
-    void SetInstructionPointer(const unsigned __int64 ip) { return ud_set_pc(&m_udis_obj, ip); }
-    unsigned __int32 Disassemble(void) { return ud_disassemble(&m_udis_obj); }
-    unsigned __int32 InstructionLength(void) { return ud_insn_len(&m_udis_obj); }
-    unsigned __int64 InstructionOffset(void) { return ud_insn_off(&m_udis_obj); }
+    void SwitchMode(const uint8_t mode) { return ud_set_mode(&m_udis_obj, mode); }
+    void SetInstructionPointer(const uint64_t ip) { return ud_set_pc(&m_udis_obj, ip); }
+    uint32_t Disassemble(void) { return ud_disassemble(&m_udis_obj); }
+    uint32_t InstructionLength(void) { return ud_insn_len(&m_udis_obj); }
+    uint64_t InstructionOffset(void) { return ud_insn_off(&m_udis_obj); }
     const char* InstructionHex(void) { return ud_insn_hex(&m_udis_obj); }
-    const unsigned __int8* InstructionPointer(void) { return ud_insn_ptr(&m_udis_obj); }
+    const uint8_t* InstructionPointer(void) { return ud_insn_ptr(&m_udis_obj); }
     const char* InstructionAsm(void) { return ud_insn_asm(&m_udis_obj); }
-    const ud_operand_t* InstructionOperand(const unsigned __int32 n) { return ud_insn_opr(&m_udis_obj, n); }
+    const ud_operand_t* InstructionOperand(const uint32_t n) { return ud_insn_opr(&m_udis_obj, n); }
     enum ud_mnemonic_code InstructionMnemonic(void) { return ud_insn_mnemonic(&m_udis_obj); }
 
-    bool SetInputBuffer(const unsigned char* buffer, const size_t size);
-    bool SetInputBuffer(const unsigned __int64 address, const size_t size);
+    bool SetInputBuffer(const uint8_t* buffer, const size_t size);
+    bool SetInputBuffer(const uint64_t address, const size_t size);
 
  private:
-    void Init(const unsigned __int8 mode);
+    void Init(const uint8_t mode);
 
-    bool                             m_inited;
-    std::unique_ptr<unsigned char[]> m_buffer;
-    size_t                           m_size;
-    ud_t                             m_udis_obj;
+    bool m_inited;
+    std::unique_ptr<uint8_t[]> m_buffer;
+    size_t m_size;
+    ud_t m_udis_obj;
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////

@@ -37,8 +37,8 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
 
     out << wa::showplus << "Displaying nt!KiServiceTable" << endlout;
 
-    unsigned __int64 offset = 0;
-    unsigned __int32 limit  = 0;
+    uint64_t offset = 0;
+    uint32_t limit  = 0;
 
     try {
         if ( !m_sym_cache->GetSymbolOffset("nt!KiServiceLimit", true, &offset) ) {
@@ -81,7 +81,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     display->PrintHeader();
 
     try {
-        for ( unsigned __int32 i = 0; i < limit; i++ ) {
+        for ( uint32_t i = 0; i < limit; i++ ) {
             if ( m_is_cur_machine64 ) {
                 std::string routine_name = get_service_table_routine_name(m_system_ver->GetStrictVer(),
                                                                           KiServiceTable_x64,
@@ -130,7 +130,7 @@ EXT_COMMAND(wa_w32psdt,
 
     std::unique_ptr<WDbgArkProcess> process_helper(new WDbgArkProcess);
 
-    unsigned __int64 set_eprocess = 0;
+    uint64_t set_eprocess = 0;
 
     if ( HasArg( "process" ) )
         set_eprocess = GetArgU64("process");
@@ -140,8 +140,8 @@ EXT_COMMAND(wa_w32psdt,
     if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) )
         throw ExtStatusException(S_OK, "failed to set process");
 
-    unsigned __int64 offset = 0;
-    unsigned __int32 limit  = 0;
+    uint64_t offset = 0;
+    uint32_t limit  = 0;
 
     try {
         if ( !m_sym_cache->GetSymbolOffset("win32k!W32pServiceLimit", true, &offset) ) {
@@ -184,7 +184,7 @@ EXT_COMMAND(wa_w32psdt,
     display->PrintHeader();
 
     try {
-        for ( unsigned __int32 i = 0; i < limit; i++ ) {
+        for ( uint32_t i = 0; i < limit; i++ ) {
             if ( m_is_cur_machine64 ) {
                 std::string routine_name = get_service_table_routine_name(m_system_ver->GetStrictVer(),
                                                                           W32pServiceTable_x64,

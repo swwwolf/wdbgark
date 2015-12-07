@@ -52,7 +52,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeWhiteList {
  public:
-    using Range = std::pair<unsigned __int64, unsigned __int64>;        // start, end
+    using Range = std::pair<uint64_t, uint64_t>;        // start, end
     using Ranges = std::set<Range>;
     using WhiteListEntry = std::vector<std::string>;
     using WhiteListEntries = std::map<std::string, WhiteListEntry>;     // some name : vector of module names
@@ -68,11 +68,11 @@ class WDbgArkAnalyzeWhiteList {
     //////////////////////////////////////////////////////////////////////////
     // permanent list
     //////////////////////////////////////////////////////////////////////////
-    void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int64 end) {
+    void AddRangeWhiteList(const uint64_t start, const uint64_t end) {
         AddRangeWhiteListInternal(start, end, &m_ranges);
     }
 
-    void AddRangeWhiteList(const unsigned __int64 start, const unsigned __int32 size) {
+    void AddRangeWhiteList(const uint64_t start, const uint32_t size) {
         AddRangeWhiteList(start, start + size);
     }
 
@@ -80,18 +80,18 @@ class WDbgArkAnalyzeWhiteList {
         return AddRangeWhiteListInternal(module_name, &m_ranges);
     }
 
-    bool AddSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size) {
+    bool AddSymbolWhiteList(const std::string &symbol_name, const uint32_t size) {
         return AddSymbolWhiteListInternal(symbol_name, size, &m_ranges);
     }
 
     //////////////////////////////////////////////////////////////////////////
     // temp list
     //////////////////////////////////////////////////////////////////////////
-    void AddTempRangeWhiteList(const unsigned __int64 start, const unsigned __int64 end) {
+    void AddTempRangeWhiteList(const uint64_t start, const uint64_t end) {
         AddRangeWhiteListInternal(start, end, &m_temp_ranges);
     }
 
-    void AddTempRangeWhiteList(const unsigned __int64 start, const unsigned __int32 size) {
+    void AddTempRangeWhiteList(const uint64_t start, const uint32_t size) {
         AddTempRangeWhiteList(start, start + size);
     }
 
@@ -99,7 +99,7 @@ class WDbgArkAnalyzeWhiteList {
         return AddRangeWhiteListInternal(module_name, &m_temp_ranges);
     }
 
-    bool AddTempSymbolWhiteList(const std::string &symbol_name, const unsigned __int32 size) {
+    bool AddTempSymbolWhiteList(const std::string &symbol_name, const uint32_t size) {
         return AddSymbolWhiteListInternal(symbol_name, size, &m_temp_ranges);
     }
 
@@ -122,7 +122,7 @@ class WDbgArkAnalyzeWhiteList {
     //////////////////////////////////////////////////////////////////////////
     // check
     //////////////////////////////////////////////////////////////////////////
-    bool IsAddressInWhiteList(const unsigned __int64 address) const;
+    bool IsAddressInWhiteList(const uint64_t address) const;
 
  private:
     Ranges m_ranges;
@@ -132,12 +132,12 @@ class WDbgArkAnalyzeWhiteList {
     std::stringstream err;
 
  private:
-    void AddRangeWhiteListInternal(const unsigned __int64 start, const unsigned __int64 end, Ranges* ranges) {
+    void AddRangeWhiteListInternal(const uint64_t start, const uint64_t end, Ranges* ranges) {
         ranges->insert(std::make_pair(start, end));
     }
 
     bool AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges);
-    bool AddSymbolWhiteListInternal(const std::string &symbol_name, const unsigned __int32 size, Ranges* ranges);
+    bool AddSymbolWhiteListInternal(const std::string &symbol_name, const uint32_t size, Ranges* ranges);
 };
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print
@@ -197,13 +197,13 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
     //////////////////////////////////////////////////////////////////////////
     // analyze routines
     //////////////////////////////////////////////////////////////////////////
-    virtual bool IsSuspiciousAddress(const unsigned __int64 address) const;
-    virtual void Analyze(const unsigned __int64 address, const std::string &type, const std::string &additional_info);
+    virtual bool IsSuspiciousAddress(const uint64_t address) const;
+    virtual void Analyze(const uint64_t address, const std::string &type, const std::string &additional_info);
     virtual void Analyze(const ExtRemoteTyped&, const ExtRemoteTyped&) {
         std::stringstream locerr;
         locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
-    virtual void Analyze(const ExtRemoteTyped&, const std::string&, const unsigned __int32, const std::string&) {
+    virtual void Analyze(const ExtRemoteTyped&, const std::string&, const uint32_t, const std::string&) {
         std::stringstream locerr;
         locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
@@ -281,19 +281,19 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
 
     virtual void Analyze(const ExtRemoteTyped &gdt_entry,
                          const std::string &cpu_idx,
-                         const unsigned __int32 selector,
+                         const uint32_t selector,
                          const std::string &additional_info);
 
  private:
-    std::string GetGDTSelectorName(const unsigned __int32 selector) const;
-    unsigned __int32 GetGDTType(const ExtRemoteTyped &gdt_entry);
+    std::string GetGDTSelectorName(const uint32_t selector) const;
+    uint32_t GetGDTType(const ExtRemoteTyped &gdt_entry);
     std::string GetGDTTypeName(const ExtRemoteTyped &gdt_entry);
-    unsigned __int32 GetGDTLimit(const ExtRemoteTyped &gdt_entry);
-    unsigned __int64 GetGDTBase(const ExtRemoteTyped &gdt_entry);
+    uint32_t GetGDTLimit(const ExtRemoteTyped &gdt_entry);
+    uint64_t GetGDTBase(const ExtRemoteTyped &gdt_entry);
     bool IsGDTPageGranularity(const ExtRemoteTyped &gdt_entry);
     bool IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry);
     bool IsGDTTypeSystem(const ExtRemoteTyped &gdt_entry);
-    unsigned __int32 GetGDTDpl(const ExtRemoteTyped &gdt_entry);
+    uint32_t GetGDTDpl(const ExtRemoteTyped &gdt_entry);
 
  private:
     std::stringstream err;
@@ -318,9 +318,9 @@ class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
     std::vector<std::string> m_major_table_name;
     std::vector<std::string> m_fast_io_table_name;
     std::vector<std::string> m_fs_filter_cb_table_name;
-    std::stringstream        out;
-    std::stringstream        warn;
-    std::stringstream        err;
+    std::stringstream out;
+    std::stringstream warn;
+    std::stringstream err;
 };
 //////////////////////////////////////////////////////////////////////////
 }   // namespace wa
