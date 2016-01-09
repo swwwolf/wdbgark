@@ -157,7 +157,7 @@ void WDbgArk::InitCallbackCommands(void) {
         { "dbgklkmd", { "", "nt!DbgkLkmdCallbackArray", 0, 0, 0 } },
         { "ioptimer", { "", "nt!IopTimerQueueHead", timer_routine_offset, 0, 0 } } } };
 
-    for ( auto cb_pair : m_system_cb_commands ) {
+    for ( auto &cb_pair : m_system_cb_commands ) {
         uint64_t offset_count = 0ULL;
         uint64_t offset_head = 0ULL;
 
@@ -660,7 +660,7 @@ void WDbgArk::RemoveSyntheticSymbols(void) {
     if ( !m_symbols3_iface.IsSet() )
         return;
 
-    for ( auto id : m_synthetic_symbols ) {
+    for ( auto &id : m_synthetic_symbols ) {
         m_symbols3_iface->RemoveSyntheticSymbol(&id);
     }
 }

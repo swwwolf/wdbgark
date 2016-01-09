@@ -45,6 +45,11 @@ class WDbgArkSystemVer {
     }
 
  private:
+     bool SetWindowsStrictMinorBuild(void);
+     void InitKnownWindowsBuilds(void);
+     void CheckWindowsBuild(void);
+
+ private:
     bool m_inited;
     uint32_t m_platform_id;
     uint32_t m_major_build;
@@ -58,10 +63,6 @@ class WDbgArkSystemVer {
     std::stringstream out;
     std::stringstream warn;
     std::stringstream err;
-
-    bool SetWindowsStrictMinorBuild(void);
-    void InitKnownWindowsBuilds(void);
-    void CheckWindowsBuild(void);
 };
 
 }   // namespace wa

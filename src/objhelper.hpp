@@ -36,14 +36,16 @@
 #include <sstream>
 #include <utility>
 #include <map>
+#include <vector>
 
 #include "./ddk.h"
 #include "symcache.hpp"
+#include "strings.hpp"
 
 namespace wa {
 
 //////////////////////////////////////////////////////////////////////////
-// object manager routines
+// base object manager helper class
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkObjHelper {
  public:
@@ -55,12 +57,13 @@ class WDbgArkObjHelper {
         std::string type_name;
     } ObjectInfo;
 
-    using ObjectsInformation = std::map<uint64_t, ObjectInfo>;  // offset : ObjectInfo
+    using ObjectsInformation = std::map<uint64_t, ObjectInfo>;          // offset : ObjectInfo
     using ObjectsInfoResult = std::pair<HRESULT, ObjectsInformation>;   // result : ObjectsInformation
 
  public:
     explicit WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     WDbgArkObjHelper() = delete;
+    virtual ~WDbgArkObjHelper() {}
 
     bool IsInited(void) const { return m_inited; }
 
@@ -99,6 +102,98 @@ class WDbgArkObjHelper {
     std::stringstream out;
     std::stringstream warn;
     std::stringstream err;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// driver object helper class
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkDrvObjHelper : public WDbgArkObjHelper {
+ public:
+    using TableEntry = std::pair<uint64_t, std::string>;   // offset : routine name
+    using Table = std::vector<TableEntry>;
+
+    WDbgArkDrvObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const ExtRemoteTyped &driver);
+    WDbgArkDrvObjHelper() = delete;
+
+    Table GetMajorTable();
+    Table GetFastIoTable();
+    Table GetFsFilterCbTable();
+
+ private:
+    ExtRemoteTyped m_driver;
+    std::vector<std::string> m_major_table_name = {
+        make_string(IRP_MJ_CREATE),
+        make_string(IRP_MJ_CREATE_NAMED_PIPE),
+        make_string(IRP_MJ_CLOSE),
+        make_string(IRP_MJ_READ),
+        make_string(IRP_MJ_WRITE),
+        make_string(IRP_MJ_QUERY_INFORMATION),
+        make_string(IRP_MJ_SET_INFORMATION),
+        make_string(IRP_MJ_QUERY_EA),
+        make_string(IRP_MJ_SET_EA),
+        make_string(IRP_MJ_FLUSH_BUFFERS),
+        make_string(IRP_MJ_QUERY_VOLUME_INFORMATION),
+        make_string(IRP_MJ_SET_VOLUME_INFORMATION),
+        make_string(IRP_MJ_DIRECTORY_CONTROL),
+        make_string(IRP_MJ_FILE_SYSTEM_CONTROL),
+        make_string(IRP_MJ_DEVICE_CONTROL),
+        make_string(IRP_MJ_INTERNAL_DEVICE_CONTROL),
+        make_string(IRP_MJ_SHUTDOWN),
+        make_string(IRP_MJ_LOCK_CONTROL),
+        make_string(IRP_MJ_CLEANUP),
+        make_string(IRP_MJ_CREATE_MAILSLOT),
+        make_string(IRP_MJ_QUERY_SECURITY),
+        make_string(IRP_MJ_SET_SECURITY),
+        make_string(IRP_MJ_POWER),
+        make_string(IRP_MJ_SYSTEM_CONTROL),
+        make_string(IRP_MJ_DEVICE_CHANGE),
+        make_string(IRP_MJ_QUERY_QUOTA),
+        make_string(IRP_MJ_SET_QUOTA),
+        make_string(IRP_MJ_PNP)
+    };
+    std::vector<std::string> m_fast_io_table_name = {
+        make_string(FastIoCheckIfPossible),
+        make_string(FastIoRead),
+        make_string(FastIoWrite),
+        make_string(FastIoQueryBasicInfo),
+        make_string(FastIoQueryStandardInfo),
+        make_string(FastIoLock),
+        make_string(FastIoUnlockSingle),
+        make_string(FastIoUnlockAll),
+        make_string(FastIoUnlockAllByKey),
+        make_string(FastIoDeviceControl),
+        make_string(AcquireFileForNtCreateSection),
+        make_string(ReleaseFileForNtCreateSection),
+        make_string(FastIoDetachDevice),
+        make_string(FastIoQueryNetworkOpenInfo),
+        make_string(AcquireForModWrite),
+        make_string(MdlRead),
+        make_string(MdlReadComplete),
+        make_string(PrepareMdlWrite),
+        make_string(MdlWriteComplete),
+        make_string(FastIoReadCompressed),
+        make_string(FastIoWriteCompressed),
+        make_string(MdlReadCompleteCompressed),
+        make_string(MdlWriteCompleteCompressed),
+        make_string(FastIoQueryOpen),
+        make_string(ReleaseForModWrite),
+        make_string(AcquireForCcFlush),
+        make_string(ReleaseForCcFlush)
+    };
+    std::vector<std::string> m_fs_filter_cb_table_name = {
+        make_string(PreAcquireForSectionSynchronization),
+        make_string(PostAcquireForSectionSynchronization),
+        make_string(PreReleaseForSectionSynchronization),
+        make_string(PostReleaseForSectionSynchronization),
+        make_string(PreAcquireForCcFlush),
+        make_string(PostAcquireForCcFlush),
+        make_string(PreReleaseForCcFlush),
+        make_string(PostReleaseForCcFlush),
+        make_string(PreAcquireForModifiedPageWriter),
+        make_string(PostAcquireForModifiedPageWriter),
+        make_string(PreReleaseForModifiedPageWriter),
+        make_string(PostReleaseForModifiedPageWriter)
+    };
 };
 
 }   // namespace wa

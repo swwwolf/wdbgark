@@ -49,12 +49,12 @@ class WDbgArkDriver {
     WDbgArkDriver() = delete;
 
     bool IsInited(void) const { return m_inited; }
-    DriversInformation Get(void) const { return m_drivers_list; }
+    const DriversInformation& Get(void) const { return m_drivers_list; }
 
  private:
-    bool                              m_inited;
-    DriversInformation                m_drivers_list;
-    std::shared_ptr<WDbgArkSymCache>  m_sym_cache;
+    bool m_inited;
+    DriversInformation m_drivers_list;
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     //////////////////////////////////////////////////////////////////////////
     // output streams

@@ -43,6 +43,7 @@ namespace wa {
 class WDbgArkSymbolsBase {
  public:
     WDbgArkSymbolsBase();
+    virtual ~WDbgArkSymbolsBase() {}
 
     std::pair<HRESULT, std::string> GetNameByOffset(const uint64_t address);
     HRESULT GetModuleNames(const uint64_t address,
@@ -56,15 +57,13 @@ class WDbgArkSymbolsBase {
     std::string GetSymbolPath(void) const { return m_symbol_path; }
     std::string GetImagePath(void) const { return m_image_path; }
 
-    virtual ~WDbgArkSymbolsBase() {}
-
  private:
     bool InitSymbolPath();
     bool InitImagePath();
 
  private:
-    std::string       m_symbol_path;
-    std::string       m_image_path;
+    std::string m_symbol_path;
+    std::string m_image_path;
     std::stringstream err;
 };
 

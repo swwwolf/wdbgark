@@ -52,7 +52,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeWhiteList {
  public:
-    using Range = std::pair<uint64_t, uint64_t>;        // start, end
+    using Range = std::pair<uint64_t, uint64_t>;                        // start, end
     using Ranges = std::set<Range>;
     using WhiteListEntry = std::vector<std::string>;
     using WhiteListEntries = std::map<std::string, WhiteListEntry>;     // some name : vector of module names
@@ -64,6 +64,7 @@ class WDbgArkAnalyzeWhiteList {
                                                                                           err() {}
 
     WDbgArkAnalyzeWhiteList() = delete;
+    virtual ~WDbgArkAnalyzeWhiteList() {}
 
     //////////////////////////////////////////////////////////////////////////
     // permanent list
@@ -108,7 +109,7 @@ class WDbgArkAnalyzeWhiteList {
         m_wl_entries = entries;
     }
 
-    WhiteListEntries GetWhiteListEntries(void) const { return m_wl_entries; }
+    const WhiteListEntries& GetWhiteListEntries(void) const { return m_wl_entries; }
 
     void AddTempWhiteList(const std::string &name);
 
@@ -133,7 +134,7 @@ class WDbgArkAnalyzeWhiteList {
 
  private:
     void AddRangeWhiteListInternal(const uint64_t start, const uint64_t end, Ranges* ranges) {
-        ranges->insert(std::make_pair(start, end));
+        ranges->insert({ start, end });
     }
 
     bool AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges);
@@ -163,10 +164,8 @@ class WDbgArkBPProxy {
      }
 
  protected:
-     std::unique_ptr<bprinter::TablePrinter> m_tp;
-
- private:
     std::stringstream m_bprinter_out;
+    std::unique_ptr<bprinter::TablePrinter> m_tp;
 };
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList {
@@ -315,9 +314,6 @@ class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
     void DisplayFsFilterCallbacks(const ExtRemoteTyped &object);
 
  private:
-    std::vector<std::string> m_major_table_name;
-    std::vector<std::string> m_fast_io_table_name;
-    std::vector<std::string> m_fs_filter_cb_table_name;
     std::stringstream out;
     std::stringstream warn;
     std::stringstream err;

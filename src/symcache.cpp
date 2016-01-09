@@ -31,8 +31,6 @@
 namespace wa {
 
 bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, uint64_t* offset) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-
     *offset = 0ULL;
 
     try {
@@ -45,7 +43,7 @@ bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool
     bool result = g_Ext->GetSymbolOffset(symbol_name.c_str(), ret_zero, offset);    // may throw
 
     if ( result )
-        m_cache.emplace(symbol_name, *offset);
+        m_cache.insert({ symbol_name, *offset });
 
     return result;
 }

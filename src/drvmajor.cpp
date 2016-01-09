@@ -71,11 +71,11 @@ EXT_COMMAND(wa_drvmajor,
 
     try {
         if ( name == "*" ) {
-            for ( auto driver_info : drivers_info )
+            for ( auto &driver_info : drivers_info )
                 display->Analyze(driver_info.second);
         } else {
             auto object_address = m_obj_helper->FindObjectByName(name, 0ULL, "\\", true);
-            display->Analyze(ExtRemoteTyped("nt!_DRIVER_OBJECT", object_address, false, NULL, NULL));
+            display->Analyze(ExtRemoteTyped("nt!_DRIVER_OBJECT", object_address, false, nullptr, nullptr));
         }
     }
     catch ( const ExtRemoteException &Ex ) {

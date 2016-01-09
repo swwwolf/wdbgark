@@ -63,6 +63,7 @@ class WDbgArkUdis {
  private:
     void Init(const uint8_t mode);
 
+ private:
     bool m_inited;
     std::unique_ptr<uint8_t[]> m_buffer;
     size_t m_size;

@@ -49,12 +49,11 @@ class WDbgArkDevice {
     WDbgArkDevice() = delete;
 
     bool IsInited(void) const { return m_inited; }
-    DevicesInformation Get(void) const { return m_devices_list; }
+    const DevicesInformation& Get(void) const { return m_devices_list; }
 
  private:
-    bool                              m_inited;
-    DevicesInformation                m_devices_list;
-    std::shared_ptr<WDbgArkSymCache>  m_sym_cache;
+    bool m_inited;
+    DevicesInformation m_devices_list;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     //////////////////////////////////////////////////////////////////////////
     // output streams

@@ -42,15 +42,13 @@ WDbgArkSymbolsBase::WDbgArkSymbolsBase() : m_symbol_path(), m_image_path(), err(
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkSymbolsBase::InitSymbolPath() {
-    uint32_t sym_buf_size = 0;
-    HRESULT result = g_Ext->m_Symbols->GetSymbolPath(nullptr, 0, reinterpret_cast<PULONG>(&sym_buf_size));
+    ULONG sym_buf_size = 0;
+    HRESULT result = g_Ext->m_Symbols->GetSymbolPath(nullptr, 0, &sym_buf_size);
 
     if ( SUCCEEDED(result) ) {
-        std::unique_ptr<char[]> sym_path_buf(new char[sym_buf_size]);
+        std::unique_ptr<char[]> sym_path_buf(new char[static_cast<size_t>(sym_buf_size)]);
 
-        result = g_Ext->m_Symbols->GetSymbolPath(sym_path_buf.get(),
-                                                 sym_buf_size,
-                                                 reinterpret_cast<PULONG>(&sym_buf_size));
+        result = g_Ext->m_Symbols->GetSymbolPath(sym_path_buf.get(), sym_buf_size, &sym_buf_size);
 
         if ( !SUCCEEDED(result) ) {
             err << wa::showminus << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
@@ -67,15 +65,13 @@ bool WDbgArkSymbolsBase::InitSymbolPath() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkSymbolsBase::InitImagePath() {
-    uint32_t img_buf_size = 0;
-    HRESULT result = g_Ext->m_Symbols->GetImagePath(nullptr, 0, reinterpret_cast<PULONG>(&img_buf_size));
+    ULONG img_buf_size = 0;
+    HRESULT result = g_Ext->m_Symbols->GetImagePath(nullptr, 0, &img_buf_size);
 
     if ( SUCCEEDED(result) ) {
-        std::unique_ptr<char[]> img_path_buf(new char[img_buf_size]);
+        std::unique_ptr<char[]> img_path_buf(new char[static_cast<size_t>(img_buf_size)]);
 
-        result = g_Ext->m_Symbols->GetSymbolPath(img_path_buf.get(),
-                                                 img_buf_size,
-                                                 reinterpret_cast<PULONG>(&img_buf_size));
+        result = g_Ext->m_Symbols->GetSymbolPath(img_path_buf.get(), img_buf_size, &img_buf_size);
 
         if ( !SUCCEEDED(result) ) {
             err << wa::showminus << __FUNCTION__ ": GetImagePath failed" << endlerr;

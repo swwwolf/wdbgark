@@ -349,194 +349,197 @@ EXT_COMMAND(wa_systemcb,
 
 void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
                                                walkresType* output_list) {
-    if ( citer->first == "registry" ) {
+    auto &type = citer->first;
+    auto &command = citer->second;
+
+    if ( type == "registry" ) {
         if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
-            WalkExCallbackList(citer->second.list_count_name,
-                               citer->second.list_count_address,
+            WalkExCallbackList(command.list_count_name,
+                               command.list_count_address,
                                0,
-                               citer->second.list_head_name,
-                               citer->second.list_head_address,
+                               command.list_head_name,
+                               command.list_head_address,
                                m_PtrSize,
-                               citer->first,
+                               type,
                                output_list);
         } else {
             WalkAnyListWithOffsetToRoutine("nt!CallbackListHead",
-                                           citer->second.list_head_address,
+                                           command.list_head_address,
                                            0,
                                            true,
-                                           citer->second.offset_to_routine,
-                                           citer->first,
+                                           command.offset_to_routine,
+                                           type,
                                            "",
                                            output_list);
         }
-    } else if ( citer->first == "image" || citer->first == "process" || citer->first == "thread" ) {
-        WalkExCallbackList(citer->second.list_count_name,
-                           citer->second.list_count_address,
+    } else if ( type == "image" || type == "process" || type == "thread" ) {
+        WalkExCallbackList(command.list_count_name,
+                           command.list_count_address,
                            0,
-                           citer->second.list_head_name,
-                           citer->second.list_head_address,
+                           command.list_head_name,
+                           command.list_head_address,
                            m_PtrSize,
-                           citer->first,
+                           type,
                            output_list);
-    } else if ( citer->first == "bugcheck" || citer->first == "bugcheckreason" ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "bugcheck" || type == "bugcheckreason" ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "bugcheckaddpages" && m_system_ver->IsBuildInRangeStrict(VISTA_SP1_VER, W81RTM_VER) ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "bugcheckaddpages" && m_system_ver->IsBuildInRangeStrict(VISTA_SP1_VER, W81RTM_VER) ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "bugcheckaddremovepages" && m_system_ver->GetStrictVer() >= W10RTM_VER ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "bugcheckaddremovepages" && m_system_ver->GetStrictVer() >= W10RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "powersetting" && m_system_ver->GetStrictVer() >= VISTA_RTM_VER ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "powersetting" && m_system_ver->GetStrictVer() >= VISTA_RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "kdppower" && m_system_ver->GetStrictVer() >= W81RTM_VER ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "kdppower" && m_system_ver->GetStrictVer() >= W81RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "callbackdir" ) {
-        WalkCallbackDirectory(citer->first, output_list);
-    } else if ( citer->first == "shutdown" || citer->first == "shutdownlast" ) {
-        WalkShutdownList(citer->second.list_head_name, citer->first, output_list);
-    } else if ( citer->first == "drvreinit" || citer->first == "bootdrvreinit" ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "callbackdir" ) {
+        WalkCallbackDirectory(type, output_list);
+    } else if ( type == "shutdown" || type == "shutdownlast" ) {
+        WalkShutdownList(command.list_head_name, type, output_list);
+    } else if ( type == "drvreinit" || type == "bootdrvreinit" ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "fschange" ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "fschange" ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "nmi" && m_system_ver->GetStrictVer() >= W2K3_VER ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "nmi" && m_system_ver->GetStrictVer() >= W2K3_VER ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        false,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "logonsessionroutine" ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "logonsessionroutine" ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        false,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "prioritycallback" && m_system_ver->GetStrictVer() >= W7RTM_VER ) {
-        WalkExCallbackList(citer->second.list_count_name,
-                           citer->second.list_count_address,
+    } else if ( type == "prioritycallback" && m_system_ver->GetStrictVer() >= W7RTM_VER ) {
+        WalkExCallbackList(command.list_count_name,
+                           command.list_count_address,
                            0,
-                           citer->second.list_head_name,
-                           citer->second.list_head_address,
+                           command.list_head_name,
+                           command.list_head_address,
                            m_PtrSize,
-                           citer->first,
+                           type,
                            output_list);
-    } else if ( citer->first == "pnp" ) {
-        WalkPnpLists(citer->first, output_list);
-    } else if ( citer->first == "lego" ) {
-        AddSymbolPointer(citer->second.list_head_name, citer->first, "", output_list);
-    } else if ( citer->first == "debugprint" && m_system_ver->GetStrictVer() >= VISTA_RTM_VER ) {
+    } else if ( type == "pnp" ) {
+        WalkPnpLists(type, output_list);
+    } else if ( type == "lego" ) {
+        AddSymbolPointer(command.list_head_name, type, "", output_list);
+    } else if ( type == "debugprint" && m_system_ver->GetStrictVer() >= VISTA_RTM_VER ) {
         if ( m_system_ver->GetStrictVer() == VISTA_RTM_VER ) {
-            AddSymbolPointer("nt!RtlpDebugPrintCallback", citer->first, "", output_list);
+            AddSymbolPointer("nt!RtlpDebugPrintCallback", type, "", output_list);
         } else {
-            WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                           citer->second.list_head_address,
+            WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                           command.list_head_address,
                                            0,
                                            true,
-                                           citer->second.offset_to_routine,
-                                           citer->first,
+                                           command.offset_to_routine,
+                                           type,
                                            "",
                                            output_list);
         }
-    } else if ( citer->first == "alpcplog" && m_system_ver->GetStrictVer() >= VISTA_RTM_VER ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "alpcplog" && m_system_ver->GetStrictVer() >= VISTA_RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "empcb" && m_system_ver->GetStrictVer() >= VISTA_RTM_VER ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "empcb" && m_system_ver->GetStrictVer() >= VISTA_RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        GetEmpCallbackItemLinkOffset(),
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "ioperf" && m_system_ver->GetStrictVer() >= W8RTM_VER ) {
-        WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                       citer->second.list_head_address,
+    } else if ( type == "ioperf" && m_system_ver->GetStrictVer() >= W8RTM_VER ) {
+        WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                       command.list_head_address,
                                        0,
                                        true,
-                                       citer->second.offset_to_routine,
-                                       citer->first,
+                                       command.offset_to_routine,
+                                       type,
                                        "",
                                        output_list);
-    } else if ( citer->first == "dbgklkmd" && m_system_ver->GetStrictVer() >= W7RTM_VER ) {
+    } else if ( type == "dbgklkmd" && m_system_ver->GetStrictVer() >= W7RTM_VER ) {
         WalkExCallbackList("",
-                           citer->second.list_count_address,
+                           command.list_count_address,
                            GetDbgkLkmdCallbackCount(),
-                           citer->second.list_head_name,
-                           citer->second.list_head_address,
+                           command.list_head_name,
+                           command.list_head_address,
                            GetDbgkLkmdCallbackArrayDistance(),
                            "dbgklkmd",
                            output_list);
-    } else if ( citer->first == "ioptimer" ) {
+    } else if ( type == "ioptimer" ) {
         uint32_t link_offset = 0;
 
         if ( GetFieldOffset("nt!_IO_TIMER", "TimerList", reinterpret_cast<PULONG>(&link_offset)) != 0 ) {
             warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerList" << endlwarn;
         } else {
-            WalkAnyListWithOffsetToRoutine(citer->second.list_head_name,
-                                           citer->second.list_head_address,
+            WalkAnyListWithOffsetToRoutine(command.list_head_name,
+                                           command.list_head_address,
                                            link_offset,
                                            true,
-                                           citer->second.offset_to_routine,
-                                           citer->first,
+                                           command.offset_to_routine,
+                                           type,
                                            "",
                                            output_list);
         }
@@ -671,7 +674,7 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
 
 HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_pointer, void* context) {
     WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
-    std::string          type       = cb_context->type;
+    std::string type = cb_context->type;
 
     try {
         uint64_t object_ptr = const_cast<ExtRemoteData &>(object_pointer).GetPtr();

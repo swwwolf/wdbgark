@@ -1120,7 +1120,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
             uint32_t gdt_selector = 0;
 
             if ( m_is_cur_machine64 ) {    // special case for x64
-                for ( const auto gdt_selector_x64 : m_gdt_selectors ) {
+                for ( const auto& gdt_selector_x64 : m_gdt_selectors ) {
                     DisplayOneGDTEntry(gdt_entry_name,
                                        gdt_entry_start + gdt_selector_x64,
                                        gdt_entry_size,

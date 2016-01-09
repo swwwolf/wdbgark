@@ -40,7 +40,7 @@ namespace wa {
         uint64_t list_head_address;
     } SystemCbCommand;
 
-    using callbacksInfo = std::map <std::string, SystemCbCommand>;
+    using callbacksInfo = std::map<std::string, SystemCbCommand>;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
         uint64_t address;
@@ -67,7 +67,7 @@ namespace wa {
         uint8_t skip;           // Skip first N entries
     } HalDispatchTableInfo;
 
-    using haltblInfo = std::map <uint32_t, HalDispatchTableInfo>;
+    using haltblInfo = std::map<uint32_t, HalDispatchTableInfo>;
     //////////////////////////////////////////////////////////////////////////
 }   // namespace wa
 

@@ -76,7 +76,7 @@ void WDbgArkAnalyzeWhiteList::AddTempWhiteList(const std::string &name) {
 
             auto entry_list = m_wl_entries.at(search_name);
 
-            for ( auto entry : entry_list )
+            for ( auto &entry : entry_list )
                 AddTempRangeWhiteList(entry);
         }
     } catch ( const std::out_of_range& ) {}
@@ -148,10 +148,10 @@ bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const uint64_t address) const {
 void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
                                  const std::string &type,
                                  const std::string &additional_info) {
-    std::string       symbol_name;
-    std::string       module_name;
-    std::string       image_name;
-    std::string       loaded_image_name;
+    std::string symbol_name;
+    std::string module_name;
+    std::string image_name;
+    std::string loaded_image_name;
     std::stringstream module_command_buf;
 
     bool suspicious = IsSuspiciousAddress(address);
@@ -744,9 +744,6 @@ std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache),
-      m_major_table_name(),
-      m_fast_io_table_name(),
-      m_fs_filter_cb_table_name(),
       out(),
       warn(),
       err() {
@@ -756,80 +753,10 @@ WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache
     AddColumn("Symbol", 68);
     AddColumn("Module", 16);
     AddColumn("Suspicious", 10);
-
-    m_major_table_name.push_back(make_string(IRP_MJ_CREATE));
-    m_major_table_name.push_back(make_string(IRP_MJ_CREATE_NAMED_PIPE));
-    m_major_table_name.push_back(make_string(IRP_MJ_CLOSE));
-    m_major_table_name.push_back(make_string(IRP_MJ_READ));
-    m_major_table_name.push_back(make_string(IRP_MJ_WRITE));
-    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_INFORMATION));
-    m_major_table_name.push_back(make_string(IRP_MJ_SET_INFORMATION));
-    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_EA));
-    m_major_table_name.push_back(make_string(IRP_MJ_SET_EA));
-    m_major_table_name.push_back(make_string(IRP_MJ_FLUSH_BUFFERS));
-    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_VOLUME_INFORMATION));
-    m_major_table_name.push_back(make_string(IRP_MJ_SET_VOLUME_INFORMATION));
-    m_major_table_name.push_back(make_string(IRP_MJ_DIRECTORY_CONTROL));
-    m_major_table_name.push_back(make_string(IRP_MJ_FILE_SYSTEM_CONTROL));
-    m_major_table_name.push_back(make_string(IRP_MJ_DEVICE_CONTROL));
-    m_major_table_name.push_back(make_string(IRP_MJ_INTERNAL_DEVICE_CONTROL));
-    m_major_table_name.push_back(make_string(IRP_MJ_SHUTDOWN));
-    m_major_table_name.push_back(make_string(IRP_MJ_LOCK_CONTROL));
-    m_major_table_name.push_back(make_string(IRP_MJ_CLEANUP));
-    m_major_table_name.push_back(make_string(IRP_MJ_CREATE_MAILSLOT));
-    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_SECURITY));
-    m_major_table_name.push_back(make_string(IRP_MJ_SET_SECURITY));
-    m_major_table_name.push_back(make_string(IRP_MJ_POWER));
-    m_major_table_name.push_back(make_string(IRP_MJ_SYSTEM_CONTROL));
-    m_major_table_name.push_back(make_string(IRP_MJ_DEVICE_CHANGE));
-    m_major_table_name.push_back(make_string(IRP_MJ_QUERY_QUOTA));
-    m_major_table_name.push_back(make_string(IRP_MJ_SET_QUOTA));
-    m_major_table_name.push_back(make_string(IRP_MJ_PNP));
-
-    m_fast_io_table_name.push_back(make_string(FastIoCheckIfPossible));
-    m_fast_io_table_name.push_back(make_string(FastIoRead));
-    m_fast_io_table_name.push_back(make_string(FastIoWrite));
-    m_fast_io_table_name.push_back(make_string(FastIoQueryBasicInfo));
-    m_fast_io_table_name.push_back(make_string(FastIoQueryStandardInfo));
-    m_fast_io_table_name.push_back(make_string(FastIoLock));
-    m_fast_io_table_name.push_back(make_string(FastIoUnlockSingle));
-    m_fast_io_table_name.push_back(make_string(FastIoUnlockAll));
-    m_fast_io_table_name.push_back(make_string(FastIoUnlockAllByKey));
-    m_fast_io_table_name.push_back(make_string(FastIoDeviceControl));
-    m_fast_io_table_name.push_back(make_string(AcquireFileForNtCreateSection));
-    m_fast_io_table_name.push_back(make_string(ReleaseFileForNtCreateSection));
-    m_fast_io_table_name.push_back(make_string(FastIoDetachDevice));
-    m_fast_io_table_name.push_back(make_string(FastIoQueryNetworkOpenInfo));
-    m_fast_io_table_name.push_back(make_string(AcquireForModWrite));
-    m_fast_io_table_name.push_back(make_string(MdlRead));
-    m_fast_io_table_name.push_back(make_string(MdlReadComplete));
-    m_fast_io_table_name.push_back(make_string(PrepareMdlWrite));
-    m_fast_io_table_name.push_back(make_string(MdlWriteComplete));
-    m_fast_io_table_name.push_back(make_string(FastIoReadCompressed));
-    m_fast_io_table_name.push_back(make_string(FastIoWriteCompressed));
-    m_fast_io_table_name.push_back(make_string(MdlReadCompleteCompressed));
-    m_fast_io_table_name.push_back(make_string(MdlWriteCompleteCompressed));
-    m_fast_io_table_name.push_back(make_string(FastIoQueryOpen));
-    m_fast_io_table_name.push_back(make_string(ReleaseForModWrite));
-    m_fast_io_table_name.push_back(make_string(AcquireForCcFlush));
-    m_fast_io_table_name.push_back(make_string(ReleaseForCcFlush));
-
-    m_fs_filter_cb_table_name.push_back(make_string(PreAcquireForSectionSynchronization));
-    m_fs_filter_cb_table_name.push_back(make_string(PostAcquireForSectionSynchronization));
-    m_fs_filter_cb_table_name.push_back(make_string(PreReleaseForSectionSynchronization));
-    m_fs_filter_cb_table_name.push_back(make_string(PostReleaseForSectionSynchronization));
-    m_fs_filter_cb_table_name.push_back(make_string(PreAcquireForCcFlush));
-    m_fs_filter_cb_table_name.push_back(make_string(PostAcquireForCcFlush));
-    m_fs_filter_cb_table_name.push_back(make_string(PreReleaseForCcFlush));
-    m_fs_filter_cb_table_name.push_back(make_string(PostReleaseForCcFlush));
-    m_fs_filter_cb_table_name.push_back(make_string(PreAcquireForModifiedPageWriter));
-    m_fs_filter_cb_table_name.push_back(make_string(PostAcquireForModifiedPageWriter));
-    m_fs_filter_cb_table_name.push_back(make_string(PreReleaseForModifiedPageWriter));
-    m_fs_filter_cb_table_name.push_back(make_string(PostReleaseForModifiedPageWriter));
 }
 
 void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
-    ExtRemoteTyped loc_object = object;
+    ExtRemoteTyped& loc_object = const_cast<ExtRemoteTyped&>(object);
 
     try {
         PrintObjectDmlCmd(object);
@@ -878,64 +805,48 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
 }
 
 void WDbgArkAnalyzeDriver::DisplayMajorTable(const ExtRemoteTyped &object) {
-    ExtRemoteTyped loc_object = object;
     WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
     out << wa::showplus << "Major table routines: " << endlout;
     PrintFooter();
 
-    ExtRemoteTyped major_table = loc_object.Field("MajorFunction");
+    auto major_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetMajorTable();
 
-    for ( uint64_t i = 0; i < m_major_table_name.size(); i++ )
-        display->Analyze(major_table[i].GetPtr(), m_major_table_name.at(i), "");
+    for ( auto &entry : major_table )
+        display->Analyze(entry.first, entry.second, "");
 
     PrintFooter();
 }
 
 void WDbgArkAnalyzeDriver::DisplayFastIo(const ExtRemoteTyped &object) {
-    ExtRemoteTyped loc_object = object;
     WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
-    ExtRemoteTyped fast_io_dispatch = loc_object.Field("FastIoDispatch");
-    auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
+    auto fast_io_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetFastIoTable();
 
-    if ( fast_io_dispatch_ptr ) {
+    if ( !fast_io_table.empty() ) {
         out << wa::showplus << "FastIO table routines: " << endlout;
         PrintFooter();
 
-        fast_io_dispatch_ptr += fast_io_dispatch.GetFieldOffset("FastIoCheckIfPossible");
-
-        for ( uint32_t i = 0; i < m_fast_io_table_name.size(); i++ ) {
-            ExtRemoteData fast_io_dispatch_data(fast_io_dispatch_ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
-            display->Analyze(fast_io_dispatch_data.GetPtr(), m_fast_io_table_name.at(i), "");
-        }
+        for ( auto &entry : fast_io_table )
+            display->Analyze(entry.first, entry.second, "");
 
         PrintFooter();
     }
 }
 
 void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object) {
-    ExtRemoteTyped loc_object = object;
     WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
-    if ( loc_object.Field("DriverExtension").GetPtr() ) {
-        ExtRemoteTyped fs_filter_callbacks = loc_object.Field("DriverExtension").Field("FsFilterCallbacks");
-        auto fs_filter_callbacks_ptr = fs_filter_callbacks.GetPtr();
+    auto fs_cb_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetFsFilterCbTable();
 
-        if ( fs_filter_callbacks_ptr ) {
-            out << wa::showplus << "FsFilterCallbacks table routines: " << endlout;
-            PrintFooter();
+    if ( !fs_cb_table.empty() ) {
+        out << wa::showplus << "FsFilterCallbacks table routines: " << endlout;
+        PrintFooter();
 
-            fs_filter_callbacks_ptr += fs_filter_callbacks.GetFieldOffset("PreAcquireForSectionSynchronization");
+        for ( auto &entry : fs_cb_table )
+            display->Analyze(entry.first, entry.second, "");
 
-            for ( uint32_t i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
-                ExtRemoteData fs_filter_callbacks_data(fs_filter_callbacks_ptr + i * g_Ext->m_PtrSize,
-                                                       g_Ext->m_PtrSize);
-                display->Analyze(fs_filter_callbacks_data.GetPtr(), m_fs_filter_cb_table_name.at(i), "");
-            }
-
-            PrintFooter();
-        }
+        PrintFooter();
     }
 }
 //////////////////////////////////////////////////////////////////////////

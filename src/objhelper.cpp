@@ -31,7 +31,9 @@
 #include "strings.hpp"
 
 namespace wa {
-
+//////////////////////////////////////////////////////////////////////////
+// base object manager helper class
+//////////////////////////////////////////////////////////////////////////
 WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : m_inited(false),
       m_object_header_old(true),
@@ -76,11 +78,6 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
                                                                      const bool recursive) {
     uint64_t offset = directory_address;
     ObjectsInformation info;
-
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return std::make_pair(E_NOT_VALID_STATE, info);
-    }
 
     try {
         if ( !offset ) {
@@ -160,11 +157,6 @@ uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
                                             const uint64_t directory_address,
                                             const std::string &root_path,
                                             const bool recursive) {
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0ULL;
-    }
-
     if ( object_name.empty() ) {
         err << wa::showminus << __FUNCTION__ << ": invalid object name" << endlerr;
         return 0ULL;
@@ -184,7 +176,7 @@ uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
 
     std::transform(compare_full_path.begin(), compare_full_path.end(), compare_full_path.begin(), tolower);
 
-    for ( auto object_info : info.second ) {
+    for ( auto &object_info : info.second ) {
         std::string full_path = object_info.second.full_path;
         std::transform(full_path.begin(), full_path.end(), full_path.begin(), tolower);
 
@@ -199,11 +191,6 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
     ExtRemoteTyped object_header;
 
     try {
-        if ( !IsInited() ) {
-            err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-            return std::make_pair(E_NOT_VALID_STATE, object_header);
-        }
-
         uint32_t offset = 0;
 
         if ( GetFieldOffset("nt!_OBJECT_HEADER", "Body", reinterpret_cast<PULONG>(&offset)) != 0 ) {
@@ -230,12 +217,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
     ExtRemoteTyped object_header_name_info;
 
     try {
-        ExtRemoteTyped loc_object_header = object_header;
-
-        if ( !IsInited() ) {
-            err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-            return std::make_pair(E_NOT_VALID_STATE, object_header_name_info);
-        }
+        ExtRemoteTyped& loc_object_header = const_cast<ExtRemoteTyped&>(object_header);
 
         if ( m_object_header_old ) {
             ExtRemoteTyped name_info_offset = loc_object_header.Field("NameInfoOffset");
@@ -281,21 +263,16 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
 std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteTyped &object) {
     std::string output_string = "*UNKNOWN*";
 
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return std::make_pair(E_NOT_VALID_STATE, output_string);
-    }
-
     std::pair<HRESULT, ExtRemoteTyped> result = GetObjectHeader(object);
 
-    if ( !SUCCEEDED(result.first) ) {
+    if ( FAILED(result.first) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get object header" << endlerr;
         return std::make_pair(result.first, output_string);
     }
 
     result = GetObjectHeaderNameInfo(result.second);
 
-    if ( !SUCCEEDED(result.first) ) {
+    if ( FAILED(result.first) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get object header name info" << endlerr;
         return std::make_pair(result.first, output_string);
     }
@@ -308,15 +285,10 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteT
 std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemoteTyped &object) {
     ExtRemoteTyped object_type;
 
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return std::make_pair(E_NOT_VALID_STATE, object_type);
-    }
-
     try {
         auto result_header = GetObjectHeader(object);
 
-        if ( !SUCCEEDED(result_header.first) ) {
+        if ( FAILED(result_header.first) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get object header" << endlerr;
             return std::make_pair(result_header.first, object_type);
         }
@@ -348,21 +320,71 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemo
 std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectTypeName(const ExtRemoteTyped &object) {
     std::string output_string = "*UNKNOWN*";
 
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return std::make_pair(E_NOT_VALID_STATE, output_string);
-    }
-
     auto result_type = GetObjectType(object);
 
-    if ( !SUCCEEDED(result_type.first) ) {
+    if ( FAILED(result_type.first) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get object type" << endlerr;
         return std::make_pair(result_type.first, output_string);
     }
 
-    ExtRemoteTyped unicode_string = result_type.second.Field("Name");
+    return UnicodeStringStructToString(result_type.second.Field("Name"));
+}
 
-    return UnicodeStringStructToString(unicode_string);
+//////////////////////////////////////////////////////////////////////////
+// driver object helper class
+//////////////////////////////////////////////////////////////////////////
+WDbgArkDrvObjHelper::WDbgArkDrvObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                                         const ExtRemoteTyped &driver) : WDbgArkObjHelper(sym_cache),
+                                                                         m_driver(driver) {}
+
+WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetMajorTable() {
+    ExtRemoteTyped major_table = m_driver.Field("MajorFunction");
+
+    Table table;
+
+    for ( size_t i = 0; i < m_major_table_name.size(); i++ )
+        table.push_back({ major_table[i].GetPtr(), m_major_table_name[i] });
+
+    return table;
+}
+
+WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetFastIoTable() {
+    ExtRemoteTyped fast_io_dispatch = m_driver.Field("FastIoDispatch");
+    auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
+
+    Table table;
+
+    if ( fast_io_dispatch_ptr ) {
+        fast_io_dispatch_ptr += fast_io_dispatch.GetFieldOffset("FastIoCheckIfPossible");
+
+        for ( size_t i = 0; i < m_fast_io_table_name.size(); i++ ) {
+            ExtRemoteData fast_io_dispatch_data(fast_io_dispatch_ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+            table.push_back({ fast_io_dispatch_data.GetPtr(), m_fast_io_table_name[i] });
+        }
+    }
+
+    return table;
+}
+
+WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetFsFilterCbTable() {
+    Table table;
+
+    if ( m_driver.Field("DriverExtension").GetPtr() ) {
+        ExtRemoteTyped fs_filter_callbacks = m_driver.Field("DriverExtension").Field("FsFilterCallbacks");
+        auto fs_filter_callbacks_ptr = fs_filter_callbacks.GetPtr();
+
+        if ( fs_filter_callbacks_ptr ) {
+            fs_filter_callbacks_ptr += fs_filter_callbacks.GetFieldOffset("PreAcquireForSectionSynchronization");
+
+            for ( size_t i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
+                ExtRemoteData fs_filter_callbacks_data(fs_filter_callbacks_ptr + i * g_Ext->m_PtrSize,
+                                                       g_Ext->m_PtrSize);
+                table.push_back({ fs_filter_callbacks_data.GetPtr(), m_fs_filter_cb_table_name[i] });
+            }
+        }
+    }
+
+    return table;
 }
 
 }   // namespace wa

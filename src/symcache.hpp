@@ -36,20 +36,15 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkSymCache {
  public:
-    WDbgArkSymCache() : m_cache(),
-                        m_mutex() {}
+    WDbgArkSymCache() : m_cache() {}
 
     bool GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, uint64_t* offset);
-    void Invalidate(void) {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_cache.clear();
-    }
+    void Invalidate(void) { m_cache.clear(); }
 
  private:
      using SymbolCache = std::map<std::string, uint64_t>;   // symbol name : address
 
      SymbolCache m_cache;
-     std::mutex  m_mutex;
 };
 
 }   // namespace wa
