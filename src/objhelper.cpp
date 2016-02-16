@@ -343,7 +343,7 @@ WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetMajorTable() {
     Table table;
 
     for ( size_t i = 0; i < m_major_table_name.size(); i++ )
-        table.push_back({ major_table[i].GetPtr(), m_major_table_name[i] });
+        table.push_back({ major_table[static_cast<int64_t>(i)].GetPtr(), m_major_table_name[i] });
 
     return table;
 }

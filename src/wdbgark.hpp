@@ -50,7 +50,6 @@
 #include "systemver.hpp"
 #include "typedefs.hpp"
 #include "symcache.hpp"
-
 #include "ver.hpp"
 
 namespace wa {
@@ -218,9 +217,6 @@ class WDbgArk : public ExtExtension {
     void RemoveSyntheticSymbols(void);
 
  private:
-    //////////////////////////////////////////////////////////////////////////
-    // variables
-    //////////////////////////////////////////////////////////////////////////
     bool m_inited;
     bool m_is_cur_machine64;
     callbacksInfo m_system_cb_commands;

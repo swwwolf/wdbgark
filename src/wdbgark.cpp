@@ -24,8 +24,10 @@
 // "public: void __cdecl ExtExtension::AppendStringVa(char const *,char *)"
 // (?AppendStringVa@ExtExtension@@QEAAXPEBDPEAD@Z)
 // TODO(swwwolf): remove after VS 2015 fix
-#define STRSAFE_LIB_IMPL
-#include <strsafe.h>
+// #define STRSAFE_LIB_IMPL
+// #include <strsafe.h>
+// https://connect.microsoft.com/VisualStudio/feedback/details/2078387/engextcpp-lib-unresolved-external-symbol-vsnprintf-referenced-in-function
+// fixed by linking with legacy_stdio_definitions.lib (OMFG, MS)
 
 #include <string>
 #include <algorithm>

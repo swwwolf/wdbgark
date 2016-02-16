@@ -192,7 +192,7 @@ EXT_COMMAND(wa_ciinfo, "Output Code Integrity information", "") {
             out << static_cast<int>(seilsigningpolicy_data.GetUchar()) << endlout;
         }
 
-        out << wa::showplus << "Mapped options      : " << CiQueryInformation(
+        out << wa::showplus << "Mapped options      : \n" << CiQueryInformation(
             g_ci_options_data.GetUlong(),
             g_cidevelopermode_offset ? g_cidevelopermode_data.GetUlong() : 0ULL,
             seilsigningpolicy_offset ? (seilsigningpolicy_data.GetUchar() != 0) : false,
@@ -217,53 +217,64 @@ std::string CiQueryInformation(const uint32_t ci_options,
     std::stringstream mapped_options;
 
     if ( (ci_options & 2) && (!dbg_enabled || dbg_not_present || ci_options & 0x10) ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_ENABLED) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_ENABLED) << " |\n";
     }
 
     if ( ci_options & 8 ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_TESTSIGN) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_TESTSIGN) << " |\n";
     }
 
     if ( dbg_enabled && dbg_not_present != true ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_DEBUGMODE_ENABLED) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_DEBUGMODE_ENABLED) << " |\n";
     }
 
     if ( seil_sign_flag ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_UMCI_ENABLED) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_UMCI_ENABLED) << " |\n";
 
         if ( ci_dev_mode & 1 ) {
-            mapped_options << make_string(CODEINTEGRITY_OPTION_UMCI_AUDITMODE_ENABLED) << " | ";
+            mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+            mapped_options << make_string(CODEINTEGRITY_OPTION_UMCI_AUDITMODE_ENABLED) << " |\n";
         }
 
         if ( ci_dev_mode & 2 ) {
-            mapped_options << make_string(CODEINTEGRITY_OPTION_UMCI_EXCLUSIONPATHS_ENABLED) << " | ";
+            mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+            mapped_options << make_string(CODEINTEGRITY_OPTION_UMCI_EXCLUSIONPATHS_ENABLED) << " |\n";
         }
     }
 
     if ( ci_dev_mode & 0x100 ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_FLIGHTING_ENABLED) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_FLIGHTING_ENABLED) << " |\n";
     }
 
     if ( _bittest(reinterpret_cast<const long*>(&ci_options), 0xEu) ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_HVCI_IUM_ENABLED) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_HVCI_IUM_ENABLED) << " |\n";
     }
 
     if ( _bittest(reinterpret_cast<const long*>(&ci_options), 0xFu) ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_HVCI_KMCI_ENABLED) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_HVCI_KMCI_ENABLED) << " |\n";
     }
 
     if ( _bittest(reinterpret_cast<const long*>(&ci_options), 0x10u) ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_HVCI_KMCI_STRICTMODE_ENABLED) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_HVCI_KMCI_STRICTMODE_ENABLED) << " |\n";
     }
 
     if ( ci_dev_mode & 0x200 ) {
-        mapped_options << make_string(CODEINTEGRITY_OPTION_HVCI_KMCI_AUDITMODE_ENABLED) << " | ";
+        mapped_options << std::right << std::setfill(' ') << std::setw(26) << " ";
+        mapped_options << make_string(CODEINTEGRITY_OPTION_HVCI_KMCI_AUDITMODE_ENABLED) << " |\n";
     }
 
     std::string options = mapped_options.str();
 
     if ( !options.empty() ) {
-        if ( options.substr(options.length() - 3, 3) == " | " )
+        if ( options.substr(options.length() - 3, 3) == " |\n" )
             options.erase(options.length() - 3);
     }
 
