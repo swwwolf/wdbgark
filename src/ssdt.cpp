@@ -132,7 +132,7 @@ EXT_COMMAND(wa_w32psdt,
 
     uint64_t set_eprocess = 0;
 
-    if ( HasArg( "process" ) )
+    if ( HasArg("process") )
         set_eprocess = GetArgU64("process");
     else
         set_eprocess = process_helper->FindEProcessAnyGUIProcess();

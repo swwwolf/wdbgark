@@ -113,6 +113,13 @@ EXT_COMMAND(wa_scan,
     }
 
     try {
+        out << wa::showplus << "<b>!wa_chknirvana</b>" << endlout;
+        wa_chknirvana();
+    } catch ( const ExtStatusException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    try {
         out << wa::showplus << "<b>!wa_objtype</b>" << endlout;
         wa_objtype();
     }

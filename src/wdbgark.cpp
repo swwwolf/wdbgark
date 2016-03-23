@@ -116,9 +116,7 @@ bool WDbgArk::Init() {
     if ( m_system_ver->GetStrictVer() >= W7RTM_VER && !FindDbgkLkmdCallbackArray() )
         warn << wa::showqmark << __FUNCTION__ ": FindDbgkLkmdCallbackArray failed" << endlwarn;
 
-    m_inited = true;
-
-    return m_inited;
+    return (m_inited = true);
 }
 
 void WDbgArk::InitCallbackCommands(void) {

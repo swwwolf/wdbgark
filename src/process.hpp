@@ -36,49 +36,62 @@
 #include <sstream>
 #include <vector>
 #include <utility>
+#include <memory>
 
-#include "manipulators.hpp"
+#include "dummypdb.hpp"
 
 namespace wa {
 
 class WDbgArkProcess {
  public:
-    WDbgArkProcess();
+    typedef struct ProcessInfoTag {
+        ExtRemoteTyped process;
+        uint64_t eprocess;
+        std::string image_file_name;
+        bool is_wow64;
+    } ProcessInfo;
 
-    ~WDbgArkProcess() {
-        if ( m_current_process ) {
-            if ( !SUCCEEDED(g_Ext->m_System2->SetImplicitProcessDataOffset(m_current_process)) )
-                err << wa::showminus << __FUNCTION__ << ": failed to revert" << endlerr;
-        }
-    }
+    using ProcessList = std::vector<ProcessInfo>;
+
+    WDbgArkProcess();
+    // provide dummy pdb shared pointer here if you wanna to get instrumentation callback info
+    explicit WDbgArkProcess(const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb);
+    ~WDbgArkProcess();
 
     bool IsInited(void) const { return m_inited; }
+    const ProcessList& GetProcessList() const { return m_process_list; }
 
     uint64_t FindEProcessByImageFileName(const std::string &process_name);
     uint64_t FindEProcessAnyGUIProcess();
     HRESULT SetImplicitProcess(const uint64_t set_eprocess);
+    HRESULT RevertImplicitProcess();
+    uint64_t GetInstrumentationCallback(const ProcessInfo &info);
 
  private:
-     typedef struct ProcessInfoTag {
-         ExtRemoteTyped process;
-         uint64_t eprocess;
-         std::string image_file_name;
-     } ProcessInfo;
-
     std::pair<bool, std::string> GetProcessImageFileName(const ExtRemoteTyped &process);
     uint64_t GetProcessDataOffset(const ExtRemoteTyped &process) { return process.m_Offset; }
     bool FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info);
+    bool IsWow64Process(const ExtRemoteTyped &process);
+    uint64_t GetWow64ProcessPeb32(const ProcessInfo &info);
+    uint64_t GetWow64ProcessPeb32(const ExtRemoteTyped &process);
+    uint64_t GetWow64InfoPtr(const ProcessInfo &info);
+    uint64_t GetWow64InfoPtr(const ExtRemoteTyped &process);
+    uint64_t GetWow64InstrumentationCallback(const ProcessInfo &info);
 
-    bool m_inited;
-    uint64_t m_current_process;
-    std::vector<ProcessInfo> m_process_list;
+ private:
+    bool m_inited = false;
+    bool m_new_wow64 = false;
+    std::string m_wow64_proc_field_name{};
+    uint64_t m_old_process = 0ULL;
+    ProcessList m_process_list{};
+    std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
 
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
+    std::stringstream out{};
+    std::stringstream warn{};
+    std::stringstream err{};
 };
 
 }   // namespace wa

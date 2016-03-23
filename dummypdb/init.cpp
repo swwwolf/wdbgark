@@ -46,6 +46,21 @@ struct _OBJECT_CALLBACK_ENTRY_COMMON {
     static_assert(FIELD_OFFSET(_OBJECT_CALLBACK_ENTRY_COMMON, PostOperation) == 0x30, "Invalid PostOperation offset");
 #endif  // _X86_
 
+#ifndef _X86_
+//////////////////////////////////////////////////////////////////////////
+// _WOW64_INFO
+//////////////////////////////////////////////////////////////////////////
+struct _WOW64_INFO {
+    ULONG32 PageSize;
+    ULONG32 Wow64ExecuteFlags;
+    ULONG32 Unknown;
+    ULONG32 InstrumentationCallback;
+} WOW64_INFO, *PWOW64_INFO;
+
+static_assert(FIELD_OFFSET(_WOW64_INFO, InstrumentationCallback) == 0x0C, "Invalid InstrumentationCallback offset");
+
+#endif  // !_X86_
+
 //////////////////////////////////////////////////////////////////////////
 // DriverEntry
 //////////////////////////////////////////////////////////////////////////

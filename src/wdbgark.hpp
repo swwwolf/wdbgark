@@ -108,6 +108,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_drvmajor);
     EXT_COMMAND_METHOD(wa_ciinfo);
     EXT_COMMAND_METHOD(wa_cicallbacks);
+    EXT_COMMAND_METHOD(wa_chknirvana);
 
     //////////////////////////////////////////////////////////////////////////
     // init
@@ -227,7 +228,7 @@ class WDbgArk : public ExtExtension {
     std::shared_ptr<WDbgArkSymCache> m_sym_cache;
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
     std::unique_ptr<WDbgArkColorHack> m_color_hack;
-    std::unique_ptr<WDbgArkDummyPdb> m_dummy_pdb;
+    std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb;
     std::unique_ptr<WDbgArkSystemVer> m_system_ver;
     ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface;
     //////////////////////////////////////////////////////////////////////////
