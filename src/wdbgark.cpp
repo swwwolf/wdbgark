@@ -84,6 +84,8 @@ bool WDbgArk::Init() {
     if ( !m_system_ver->IsInited() ) {
         err << wa::showminus << __FUNCTION__ ": WDbgArkSystemVer init failed" << endlerr;
         return false;
+    } else {
+        m_system_ver->CheckWindowsBuild();
     }
 
     m_Symbols->Reload("");  // revise debuggee modules list

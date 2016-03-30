@@ -27,20 +27,10 @@
 
 #include "systemver.hpp"
 #include "manipulators.hpp"
-#include "./ddk.h"
 
 namespace wa {
 
-WDbgArkSystemVer::WDbgArkSystemVer() : m_inited(false),
-                                       m_platform_id(0),
-                                       m_major_build(0),
-                                       m_minor_build(0),
-                                       m_service_pack_number(0),
-                                       m_strict_minor_build(0),
-                                       m_known_windows_builds(),
-                                       out(),
-                                       warn(),
-                                       err() {
+WDbgArkSystemVer::WDbgArkSystemVer() {
     HRESULT result = g_Ext->m_Control->GetSystemVersion(reinterpret_cast<PULONG>(&m_platform_id),
                                                         reinterpret_cast<PULONG>(&m_major_build),
                                                         reinterpret_cast<PULONG>(&m_minor_build),
@@ -62,15 +52,13 @@ WDbgArkSystemVer::WDbgArkSystemVer() : m_inited(false),
         return;
     }
 
-    InitKnownWindowsBuilds();
-    CheckWindowsBuild();
-
     m_inited = true;
 }
 
-void WDbgArkSystemVer::InitKnownWindowsBuilds(void) {
-    m_known_windows_builds = { WXP_VER, W2K3_VER, VISTA_RTM_VER, VISTA_SP1_VER, VISTA_SP2_VER, W7RTM_VER, W7SP1_VER,
-                               W8RTM_VER, W81RTM_VER, W10RTM_VER, W10TH2_VER };
+void WDbgArkSystemVer::CheckWindowsBuild(void) {
+    if ( m_known_windows_builds.find(m_minor_build) == m_known_windows_builds.end() ) {
+        warn << wa::showqmark << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
+    }
 }
 
 bool WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
@@ -96,14 +84,10 @@ bool WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
         m_strict_minor_build = W10RTM_VER;
     else if ( m_minor_build > W10RTM_VER && m_minor_build <= W10TH2_VER )
         m_strict_minor_build = W10TH2_VER;
+    else if ( m_minor_build > W10TH2_VER )  // TODO: change all the time
+        m_strict_minor_build = W10TH2_VER;
 
     return (m_strict_minor_build ? true : false);
-}
-
-void WDbgArkSystemVer::CheckWindowsBuild(void) {
-    if ( m_known_windows_builds.find(m_minor_build) == m_known_windows_builds.end() ) {
-        warn << wa::showqmark << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
-    }
 }
 
 }   // namespace wa

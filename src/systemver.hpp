@@ -33,6 +33,8 @@
 #include <sstream>
 #include <set>
 
+#include "./ddk.h"
+
 namespace wa {
 
 class WDbgArkSystemVer {
@@ -43,26 +45,28 @@ class WDbgArkSystemVer {
     bool IsBuildInRangeStrict(const uint32_t low, const uint32_t high) const {
         return ((m_strict_minor_build >= low) && (m_strict_minor_build <= high));
     }
+    void CheckWindowsBuild(void);
 
  private:
      bool SetWindowsStrictMinorBuild(void);
      void InitKnownWindowsBuilds(void);
-     void CheckWindowsBuild(void);
 
  private:
-    bool m_inited;
-    uint32_t m_platform_id;
-    uint32_t m_major_build;
-    uint32_t m_minor_build;
-    uint32_t m_service_pack_number;
-    uint32_t m_strict_minor_build;
-    std::set<uint32_t> m_known_windows_builds;
+    bool m_inited = false;
+    uint32_t m_platform_id = 0;
+    uint32_t m_major_build = 0;
+    uint32_t m_minor_build = 0;
+    uint32_t m_service_pack_number = 0;
+    uint32_t m_strict_minor_build = 0;
+    std::set<uint32_t> m_known_windows_builds = {
+        WXP_VER, W2K3_VER, VISTA_RTM_VER, VISTA_SP1_VER, VISTA_SP2_VER, W7RTM_VER, W7SP1_VER, W8RTM_VER, W81RTM_VER,
+        W10RTM_VER, W10TH2_VER };
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
+    std::stringstream out{};
+    std::stringstream warn{};
+    std::stringstream err{};
 };
 
 }   // namespace wa
