@@ -46,4 +46,60 @@ std::string LastErrorToString(const DWORD message_error) {
     return message;
 }
 //////////////////////////////////////////////////////////////////////////
+bool MapImage(const std::string &path, HANDLE* file_handle, HANDLE* map_handle, void** map_address) {
+    if ( !file_handle || !map_handle || !map_address )
+        return false;
+
+    *file_handle = INVALID_HANDLE_VALUE;
+    *map_handle = nullptr;
+    *map_address = nullptr;
+
+    HANDLE hfile = CreateFile(path.c_str(),
+                              FILE_READ_DATA,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE,
+                              nullptr,
+                              OPEN_EXISTING,
+                              FILE_ATTRIBUTE_NORMAL | FILE_SUPPORTS_SPARSE_VDL,
+                              nullptr);
+
+    if ( hfile == INVALID_HANDLE_VALUE )
+        return false;
+
+    HANDLE hmap = CreateFileMapping(hfile, nullptr, PAGE_WRITECOPY, 0, 0, nullptr);
+
+    if ( !hmap ) {
+        UnmapImage(&hfile, nullptr, nullptr);
+        return false;
+    }
+
+    void* address = MapViewOfFile(hmap, FILE_MAP_COPY, 0, 0, 0);
+
+    if ( !address ) {
+        UnmapImage(&hfile, &hmap, nullptr);
+        return false;
+    }
+
+    *file_handle = hfile;
+    *map_handle = hmap;
+    *map_address = address;
+    return true;
+}
+//////////////////////////////////////////////////////////////////////////
+void UnmapImage(HANDLE* file_handle, HANDLE* map_handle, void** map_address) {
+    if ( map_address ) {
+        UnmapViewOfFile(*map_address);
+        *map_address = nullptr;
+    }
+
+    if ( map_handle ) {
+        CloseHandle(*map_handle);
+        *map_handle = nullptr;
+    }
+
+    if ( file_handle && *file_handle != INVALID_HANDLE_VALUE ) {
+        CloseHandle(*file_handle);
+        *file_handle = INVALID_HANDLE_VALUE;
+    }
+}
+//////////////////////////////////////////////////////////////////////////
 }   // namespace wa

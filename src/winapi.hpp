@@ -32,6 +32,8 @@
 namespace wa {
 
 std::string LastErrorToString(const DWORD message_error);
+bool MapImage(const std::string &path, HANDLE* file_handle, HANDLE* map_handle, void** map_address);
+void UnmapImage(HANDLE* file_handle, HANDLE* map_handle, void** map_address);
 
 }   // namespace wa
 

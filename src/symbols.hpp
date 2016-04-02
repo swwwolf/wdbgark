@@ -35,36 +35,60 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include <map>
+#include <vector>
 
 namespace wa {
-//////////////////////////////////////////////////////////////////////////
-// helpers
-//////////////////////////////////////////////////////////////////////////
+
 class WDbgArkSymbolsBase {
  public:
+    using ResultString = std::pair<HRESULT, std::string>;
+
     WDbgArkSymbolsBase();
     virtual ~WDbgArkSymbolsBase() {}
 
-    std::pair<HRESULT, std::string> GetNameByOffset(const uint64_t address);
+    std::string GetSymbolPath(void) const { return m_symbol_path; }
+    std::string GetImagePath(void) const { return m_image_path; }
+
+    ResultString GetNameByOffset(const uint64_t address);
+    ResultString GetModuleImagePath(const uint64_t address, const bool skip_unloaded);
+    ResultString GetModuleImagePath(const std::string &module_name, const bool skip_unloaded);
+    ResultString GetModuleNameString(const uint32_t type, const uint32_t index, const uint64_t base);
+    ResultString FindModuleImage(const uint64_t base, const uint32_t index);
     HRESULT GetModuleNames(const uint64_t address,
                            std::string* image_name,
                            std::string* module_name,
                            std::string* loaded_image_name);
     bool CheckSymbolsPath(const bool display_error,
-                          const std::string& test_path = "http://msdl.microsoft.com/download/symbols");
-    HRESULT AppendSymbolPath(const std::string& symbol_path);
-    HRESULT AppendImagePath(const std::string& image_path);
-    std::string GetSymbolPath(void) const { return m_symbol_path; }
-    std::string GetImagePath(void) const { return m_image_path; }
+                          const std::string &test_path = "http://msdl.microsoft.com/download/symbols");
+    HRESULT AppendSymbolPath(const std::string &symbol_path);
+    HRESULT AppendImagePath(const std::string &image_path);
 
  private:
+    using ImageNames = std::vector<std::string>;
+    using ModuleAliases = std::map<std::string, ImageNames>;
+
     bool InitSymbolPath();
     bool InitImagePath();
+    ResultString FindExecutableImage(const std::string &search_path,
+                                     const std::string &image_name,
+                                     const DEBUG_MODULE_PARAMETERS &parameters);
+    ResultString FindExecutableImageInternal(const std::string &image_name, const DEBUG_MODULE_PARAMETERS &parameters);
+    ResultString SymFindExecutableImage(const std::string &search_path,
+                                        const std::string &image_name,
+                                        const DEBUG_MODULE_PARAMETERS &parameters);
+    ResultString FindImageNameByAlias(const std::string &image_name);
+    static BOOL CALLBACK FindExecutableImageProc(HANDLE file_handle, const char* file_name, void* data);
+    static BOOL CALLBACK SymFindFileInPathProc(const char* file_name, void* data);
 
  private:
-    std::string m_symbol_path;
-    std::string m_image_path;
-    std::stringstream err;
+    const std::string m_unknown_name = "*UNKNOWN*";
+    const ModuleAliases m_aliases = {
+        { "ntoskrnl.exe", { "ntkrnlup.exe", "ntkrnlpa.exe", "ntkrnlmp.exe", "ntkrpamp.exe", "xboxkrnlc.exe" } }
+    };
+    std::string m_symbol_path{};
+    std::string m_image_path{};
+    std::stringstream err{};
 };
 
 }   // namespace wa
