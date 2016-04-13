@@ -43,22 +43,7 @@ EXT_DECLARE_GLOBALS();
 
 namespace wa {
 
-WDbgArk::WDbgArk() : m_inited(false),
-                     m_is_cur_machine64(false),
-                     m_system_cb_commands(),
-                     m_callout_names(),
-                     m_gdt_selectors(),
-                     m_hal_tbl_info(),
-                     m_synthetic_symbols(),
-                     m_sym_cache(new WDbgArkSymCache),
-                     m_obj_helper(nullptr),
-                     m_color_hack(nullptr),
-                     m_dummy_pdb(nullptr),
-                     m_system_ver(nullptr),
-                     m_symbols3_iface("The extension did not initialize properly."),
-                     out(),
-                     warn(),
-                     err() {
+WDbgArk::WDbgArk() {
     int flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
     flag |= _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF;
     _CrtSetDbgFlag(flag);
@@ -90,8 +75,9 @@ bool WDbgArk::Init() {
 
     m_Symbols->Reload("");  // revise debuggee modules list
 
-    WDbgArkSymbolsBase symbols_base;
-    if ( !symbols_base.CheckSymbolsPath(true) )
+    m_symbols_base.reset(new WDbgArkSymbolsBase);
+
+    if ( !m_symbols_base->CheckSymbolsPath(true) )
         warn << wa::showqmark << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
 
     // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized

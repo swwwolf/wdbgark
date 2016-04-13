@@ -50,6 +50,7 @@
 #include "systemver.hpp"
 #include "typedefs.hpp"
 #include "symcache.hpp"
+#include "symbols.hpp"
 #include "ver.hpp"
 
 namespace wa {
@@ -218,25 +219,26 @@ class WDbgArk : public ExtExtension {
     void RemoveSyntheticSymbols(void);
 
  private:
-    bool m_inited;
-    bool m_is_cur_machine64;
-    callbacksInfo m_system_cb_commands;
-    std::vector<std::string> m_callout_names;
-    std::vector<uint32_t> m_gdt_selectors;
-    haltblInfo m_hal_tbl_info;
-    std::vector<DEBUG_MODULE_AND_ID> m_synthetic_symbols;
-    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
-    std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
-    std::unique_ptr<WDbgArkColorHack> m_color_hack;
-    std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb;
-    std::unique_ptr<WDbgArkSystemVer> m_system_ver;
-    ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface;
+    bool m_inited = false;
+    bool m_is_cur_machine64 = false;
+    callbacksInfo m_system_cb_commands{};
+    std::vector<std::string> m_callout_names{};
+    std::vector<uint32_t> m_gdt_selectors{};
+    haltblInfo m_hal_tbl_info{};
+    std::vector<DEBUG_MODULE_AND_ID> m_synthetic_symbols{};
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ new WDbgArkSymCache };
+    std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};
+    std::unique_ptr<WDbgArkColorHack> m_color_hack{};
+    std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{};
+    std::unique_ptr<WDbgArkSystemVer> m_system_ver{};
+    std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{};
+    ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface{ "The extension did not initialize properly." };
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
+    std::stringstream out{};
+    std::stringstream warn{};
+    std::stringstream err{};
 };
 
 }   // namespace wa
