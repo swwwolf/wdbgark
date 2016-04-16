@@ -42,12 +42,11 @@ class WDbgArkUdis {
  public:
     WDbgArkUdis();
     WDbgArkUdis(uint8_t mode, uint64_t address, size_t size);   // mode = 32/64, 0 - default
-    ~WDbgArkUdis() {}
 
     bool IsInited(void) const { return m_inited; }
     const ud_t Get(void) const { return m_udis_obj; }
-    void SwitchMode(const uint8_t mode) { return ud_set_mode(&m_udis_obj, mode); }
-    void SetInstructionPointer(const uint64_t ip) { return ud_set_pc(&m_udis_obj, ip); }
+    void SwitchMode(const uint8_t mode) { ud_set_mode(&m_udis_obj, mode); }
+    void SetInstructionPointer(const uint64_t ip) { ud_set_pc(&m_udis_obj, ip); }
     uint32_t Disassemble(void) { return ud_disassemble(&m_udis_obj); }
     uint32_t InstructionLength(void) { return ud_insn_len(&m_udis_obj); }
     uint64_t InstructionOffset(void) { return ud_insn_off(&m_udis_obj); }
@@ -64,16 +63,16 @@ class WDbgArkUdis {
     void Init(const uint8_t mode);
 
  private:
-    bool m_inited;
-    std::unique_ptr<uint8_t[]> m_buffer;
-    size_t m_size;
-    ud_t m_udis_obj;
+    bool m_inited = false;
+    std::unique_ptr<uint8_t[]> m_buffer{ nullptr };
+    size_t m_size = 0;
+    ud_t m_udis_obj = { 0 };
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
+    std::stringstream out{};
+    std::stringstream warn{};
+    std::stringstream err{};
 };
 
 }   // namespace wa

@@ -70,7 +70,7 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     WDbgArk();
 
-    HRESULT __thiscall Initialize(void) {
+    HRESULT __thiscall Initialize() {
         m_ExtMajorVersion = VER_MAJOR;
         m_ExtMinorVersion = VER_MINOR;
 
@@ -79,7 +79,7 @@ class WDbgArk : public ExtExtension {
 
     // this one is called _before_ main class destructor, but ExtExtension class is already dead
     // so, don't output any errors in these routines, don't call g_Ext->m_Something and so on
-    void __thiscall Uninitialize(void) {
+    void __thiscall Uninitialize() {
         if ( m_symbols3_iface.IsSet() ) {
             m_dummy_pdb->RemoveDummyPdbModule(m_symbols3_iface);    // unload dummypdb fake module
             RemoveSyntheticSymbols();                               // remove our symbols
@@ -114,13 +114,13 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // init
     //////////////////////////////////////////////////////////////////////////
-    bool Init(void);
-    bool IsInited(void) const { return m_inited; }
-    bool IsLiveKernel(void) const {
+    bool Init();
+    bool IsInited() const { return m_inited; }
+    bool IsLiveKernel() const {
         return ((m_DebuggeeClass == DEBUG_CLASS_KERNEL) && (m_DebuggeeQual == DEBUG_KERNEL_CONNECTION));
     }
 
-    void RequireLiveKernelMode(void) const throw(...) {
+    void RequireLiveKernelMode() const throw(...) {
         if ( !IsLiveKernel() ) { throw ExtStatusException(S_OK, "live kernel-mode only"); }
     }
 
@@ -208,15 +208,19 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // private inits
     //////////////////////////////////////////////////////////////////////////
-    bool FindDbgkLkmdCallbackArray();
-    void InitCallbackCommands(void);
-    void InitCalloutNames(void);
-    void InitGDTSelectors(void);
-    void InitHalTables(void);
-    WDbgArkAnalyzeWhiteList::WhiteListEntries GetObjectTypesWhiteList(void);
-    WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList(void);
+    void InitCallbackCommands();
+    void InitCalloutNames();
+    void InitGDTSelectors();
+    void InitHalTables();
+    WDbgArkAnalyzeWhiteList::WhiteListEntries GetObjectTypesWhiteList();
+    WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList();
     //////////////////////////////////////////////////////////////////////////
-    void RemoveSyntheticSymbols(void);
+    // synthetic symbols
+    //////////////////////////////////////////////////////////////////////////
+    void RemoveSyntheticSymbols();
+    bool AddSyntheticSymbolAddressPtr(const uint64_t address, const std::string &name);
+    bool FindDbgkLkmdCallbackArray();
+    bool FindMiApiSetSchema();
 
  private:
     bool m_inited = false;

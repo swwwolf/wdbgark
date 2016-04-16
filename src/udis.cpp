@@ -63,12 +63,7 @@ void WDbgArkUdis::Init(const uint8_t mode) {
     ud_set_vendor(&m_udis_obj, vendor);
 }
 
-WDbgArkUdis::WDbgArkUdis() : m_inited(false),
-                             m_buffer(nullptr),
-                             m_size(0),
-                             out(),
-                             warn(),
-                             err() {
+WDbgArkUdis::WDbgArkUdis() {
     uint8_t mode = 0;
 
     if ( g_Ext->IsCurMachine32() )
@@ -80,12 +75,7 @@ WDbgArkUdis::WDbgArkUdis() : m_inited(false),
     m_inited = true;
 }
 
-WDbgArkUdis::WDbgArkUdis(uint8_t mode, uint64_t address, size_t size) : m_inited(false),
-                                                                        m_buffer(nullptr),
-                                                                        m_size(0),
-                                                                        out(),
-                                                                        warn(),
-                                                                        err() {
+WDbgArkUdis::WDbgArkUdis(uint8_t mode, uint64_t address, size_t size)  {
     uint8_t init_mode = mode;
 
     if ( !init_mode ) {
