@@ -221,6 +221,7 @@
     <ClCompile Include="src\objtype.cpp" />
     <ClCompile Include="src\objtypecb.cpp" />
     <ClCompile Include="src\objtypeidx.cpp" />
+    <ClCompile Include="src\pe.cpp" />
     <ClCompile Include="src\pnptable.cpp" />
     <ClCompile Include="src\process.cpp" />
     <ClCompile Include="src\resources.cpp" />
@@ -263,6 +264,7 @@
     <ClInclude Include="src\dummypdb.hpp" />
     <ClInclude Include="src\manipulators.hpp" />
     <ClInclude Include="src\objhelper.hpp" />
+    <ClInclude Include="src\pe.hpp" />
     <ClInclude Include="src\process.hpp" />
     <ClInclude Include="src\resources.hpp" />
     <ClInclude Include="src\sdt_w32p.hpp" />
