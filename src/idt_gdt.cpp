@@ -666,6 +666,7 @@ Algorithm:
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "util.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -768,10 +769,8 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                     isr_address = static_cast<uint64_t>(MAKEULONG(idt_entry.Field("ExtendedOffset").GetUshort(),
                                                                   idt_entry.Field("Offset").GetUshort()));
 
-                    std::stringstream expression;
-                    expression << std::hex << std::showbase <<  isr_address;
-
-                    isr_address = g_Ext->EvalExprU64(expression.str().c_str());
+                    if ( !NormalizeAddress(isr_address, &isr_address) )
+                        err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
 
                     info << "<exec cmd=\"dx -r1 *(nt!_KIDTENTRY *)" << std::hex << std::showbase;
                     info << idt_entry.m_Offset << "\">dx" << "</exec>" << " ";

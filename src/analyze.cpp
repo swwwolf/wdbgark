@@ -27,9 +27,11 @@
 #include <utility>
 #include <memory>
 
+#include "./ddk.h"
+
 #include "strings.hpp"
 #include "symbols.hpp"
-#include "./ddk.h"
+#include "util.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -336,12 +338,11 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
                                 const uint32_t selector,
                                 const std::string &additional_info) {
     try {
-        uint64_t address = GetGDTBase(gdt_entry);
         uint32_t limit = GetGDTLimit(gdt_entry);
+        uint64_t address = 0ULL;
 
-        std::stringstream expression;
-        expression << std::hex << std::showbase <<  address;
-        address = g_Ext->EvalExprU64(expression.str().c_str());
+        if ( !NormalizeAddress(GetGDTBase(gdt_entry), &address) )
+            err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
 
         std::stringstream addr_ext;
 

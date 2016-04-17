@@ -24,6 +24,7 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "util.hpp"
 
 namespace wa {
 
@@ -43,24 +44,28 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     try {
         if ( !m_is_cur_machine64 ) {
             uint64_t msr_address = 0;
-            std::stringstream expression;
-
             ReadMsr(IA32_SYSENTER_EIP, &msr_address);
-            expression << std::showbase << std::hex << msr_address;
-            display->Analyze(g_Ext->EvalExprU64(expression.str().c_str()), "IA32_SYSENTER_EIP", "");
+
+            if ( !NormalizeAddress(msr_address, &msr_address) )
+                err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
+
+            display->Analyze(msr_address, "IA32_SYSENTER_EIP", "");
         } else {
             uint64_t msr_address_lstar = 0;
-            uint64_t msr_address_cstar = 0;
-            std::stringstream expression_lstar;
-            std::stringstream expression_cstar;
-
             ReadMsr(MSR_LSTAR, &msr_address_lstar);
-            expression_lstar << std::showbase << std::hex << msr_address_lstar;
-            display->Analyze(g_Ext->EvalExprU64(expression_lstar.str().c_str()), "MSR_LSTAR", "");
+            
+            if ( !NormalizeAddress(msr_address_lstar, &msr_address_lstar) )
+                err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
 
+            display->Analyze(msr_address_lstar, "MSR_LSTAR", "");
+
+            uint64_t msr_address_cstar = 0;
             ReadMsr(MSR_CSTAR, &msr_address_cstar);
-            expression_cstar << std::showbase << std::hex << msr_address_cstar;
-            display->Analyze(g_Ext->EvalExprU64(expression_cstar.str().c_str()), "MSR_CSTAR", "");
+            
+            if ( !NormalizeAddress(msr_address_cstar, &msr_address_cstar) )
+                err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
+
+            display->Analyze(msr_address_cstar, "MSR_CSTAR", "");
         }
     }
     catch ( const ExtStatusException &Ex ) {
