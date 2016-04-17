@@ -499,248 +499,36 @@ uint64_t WDbgArkAnalyzeGDT::GetGDTBase(const ExtRemoteTyped &gdt_entry) {
 }
 
 std::string WDbgArkAnalyzeGDT::GetGDTSelectorName(const uint32_t selector) const {
-    if ( g_Ext->IsCurMachine64() ) {
-        switch ( selector ) {
-            case KGDT64_NULL:
-                return make_string( KGDT64_NULL );
+    std::string selector_name = "*RESERVED*";
 
-            case KGDT64_R0_CODE:
-                return make_string( KGDT64_R0_CODE );
-
-            case KGDT64_R0_DATA:
-                return make_string( KGDT64_R0_DATA );
-
-            case KGDT64_R3_CMCODE:
-                return make_string( KGDT64_R3_CMCODE );
-
-            case KGDT64_R3_DATA:
-                return make_string( KGDT64_R3_DATA );
-
-            case KGDT64_R3_CODE:
-                return make_string( KGDT64_R3_CODE );
-
-            case KGDT64_SYS_TSS:
-                return make_string( KGDT64_SYS_TSS );
-
-            case KGDT64_R3_CMTEB:
-                return make_string( KGDT64_R3_CMTEB );
-
-            default:
-                return "*RESERVED*";
+    try {
+        if ( g_Ext->IsCurMachine64() ) {
+            selector_name = m_gdt_selector_x64.at(selector);
+        } else {
+            selector_name = m_gdt_selector_x86.at(selector);
         }
-    } else {
-        switch ( selector ) {
-            case KGDT_R0_CODE:
-                return make_string( KGDT_R0_CODE );
+    } catch ( const std::out_of_range& ) {}
 
-            case KGDT_R0_DATA:
-                return make_string( KGDT_R0_DATA );
-
-            case KGDT_R3_CODE:
-                return make_string( KGDT_R3_CODE );
-
-            case KGDT_R3_DATA:
-                return make_string( KGDT_R3_DATA );
-
-            case KGDT_TSS:
-                return make_string( KGDT_TSS );
-
-            case KGDT_R0_PCR:
-                return make_string( KGDT_R0_PCR );
-
-            case KGDT_R3_TEB:
-                return make_string( KGDT_R3_TEB );
-
-            case KGDT_LDT:
-                return make_string( KGDT_LDT );
-
-            case KGDT_DF_TSS:
-                return make_string( KGDT_DF_TSS );
-
-            case KGDT_NMI_TSS:
-                return make_string( KGDT_NMI_TSS );
-
-            case KGDT_GDT_ALIAS:
-                return make_string( KGDT_GDT_ALIAS );
-
-            case KGDT_CDA16:
-                return make_string( KGDT_CDA16 );
-
-            case KGDT_CODE16:
-                return make_string( KGDT_CODE16 );
-
-            case KGDT_STACK16:
-                return make_string( KGDT_STACK16 );
-
-            default:
-                return "*RESERVED*";
-        }
-    }
+    return selector_name;
 }
 
-// TODO(swwwolf): map
 std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
+    std::string type_name = "*UNKNOWN*";
     uint32_t type = GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1);
 
-    if ( IsGDTTypeSystem(gdt_entry) ) {
-        if ( g_Ext->IsCurMachine64() ) {    // system, x64
-            switch ( type ) {
-                case SEG_SYS_UPPER_8_BYTE:
-                    return make_string(SEG_SYS_UPPER_8_BYTE);
-
-                case SEG_SYS_RESERVED_1:
-                    return make_string(SEG_SYS_RESERVED_1);
-
-                case SEG_SYS_LDT:
-                    return make_string(SEG_SYS_LDT);
-
-                case SEG_SYS_RESERVED_3:
-                    return make_string(SEG_SYS_RESERVED_3);
-
-                case SEG_SYS_RESERVED_4:
-                    return make_string(SEG_SYS_RESERVED_4);
-
-                case SEG_SYS_RESERVED_5:
-                    return make_string(SEG_SYS_RESERVED_5);
-
-                case SEG_SYS_RESERVED_6:
-                    return make_string(SEG_SYS_RESERVED_6);
-
-                case SEG_SYS_RESERVED_7:
-                    return make_string(SEG_SYS_RESERVED_7);
-
-                case SEG_SYS_RESERVED_8:
-                    return make_string(SEG_SYS_RESERVED_8);
-
-                case SEG_SYS_TSS64_AVL:
-                    return make_string(SEG_SYS_TSS64_AVL);
-
-                case SEG_SYS_RESERVED_10:
-                    return make_string(SEG_SYS_RESERVED_10);
-
-                case SEG_SYS_TSS64_BUSY:
-                    return make_string(SEG_SYS_TSS64_BUSY);
-
-                case SEG_SYS_CALLGATE_64:
-                    return make_string(SEG_SYS_CALLGATE_64);
-
-                case SEG_SYS_RESERVED_13:
-                    return make_string(SEG_SYS_RESERVED_13);
-
-                case SEG_SYS_INT_GATE_64:
-                    return make_string(SEG_SYS_INT_GATE_64);
-
-                case SEG_SYS_TRAP_GATE_64:
-                    return make_string(SEG_SYS_TRAP_GATE_64);
-                default:
-                    return "*UNKNOWN*";
+    try {
+        if ( IsGDTTypeSystem(gdt_entry) ) {
+            if ( g_Ext->IsCurMachine64() ) {
+                type_name = m_gdt_sys_x64.at(type);     // system, x64
+            } else {
+                type_name = m_gdt_sys_x86.at(type);     // system, x86
             }
-        } else {    // system, x86
-            switch ( type ) {
-                case SEG_SYS_RESERVED_0:
-                    return make_string(SEG_SYS_RESERVED_0);
-
-                case SEG_SYS_TSS16_AVL:
-                    return make_string(SEG_SYS_TSS16_AVL);
-
-                case SEG_SYS_LDT:
-                    return make_string(SEG_SYS_LDT);
-
-                case SEG_SYS_TSS16_BUSY:
-                    return make_string(SEG_SYS_TSS16_BUSY);
-
-                case SEG_SYS_CALLGATE_16:
-                    return make_string(SEG_SYS_CALLGATE_16);
-
-                case SEG_SYS_TASKGATE:
-                    return make_string(SEG_SYS_TASKGATE);
-
-                case SEG_SYS_INT_GATE_16:
-                    return make_string(SEG_SYS_INT_GATE_16);
-
-                case SEG_SYS_TRAP_GATE_16:
-                    return make_string(SEG_SYS_TRAP_GATE_16);
-
-                case SEG_SYS_RESERVED_8:
-                    return make_string(SEG_SYS_RESERVED_8);
-
-                case SEG_SYS_TSS32_AVL:
-                    return make_string(SEG_SYS_TSS32_AVL);
-
-                case SEG_SYS_RESERVED_10:
-                    return make_string(SEG_SYS_RESERVED_10);
-
-                case SEG_SYS_TSS32_BUSY:
-                    return make_string(SEG_SYS_TSS32_BUSY);
-
-                case SEG_SYS_CALLGATE_32:
-                    return make_string(SEG_SYS_CALLGATE_32);
-
-                case SEG_SYS_RESERVED_13:
-                    return make_string(SEG_SYS_RESERVED_13);
-
-                case SEG_SYS_INT_GATE_32:
-                    return make_string(SEG_SYS_INT_GATE_32);
-
-                case SEG_SYS_TRAP_GATE_32:
-                    return make_string(SEG_SYS_TRAP_GATE_32);
-                default:
-                    return "*UNKNOWN*";
-            }
+        } else {
+            type_name = m_gdt_code_data.at(type);       // code/data x86/x64
         }
-    } else {    // Code/Data x86/x64
-        switch ( type ) {
-            case SEG_DATA_RD:
-                return make_string(SEG_DATA_RD);
+    } catch ( const std::out_of_range& ) {}
 
-            case SEG_DATA_RDA:
-                return make_string(SEG_DATA_RDA);
-
-            case SEG_DATA_RDWR:
-                return make_string(SEG_DATA_RDWR);
-
-            case SEG_DATA_RDWRA:
-                return make_string(SEG_DATA_RDWRA);
-
-            case SEG_DATA_RDEXPD:
-                return make_string(SEG_DATA_RDEXPD);
-
-            case SEG_DATA_RDEXPDA:
-                return make_string(SEG_DATA_RDEXPDA);
-
-            case SEG_DATA_RDWREXPD:
-                return make_string(SEG_DATA_RDWREXPD);
-
-            case SEG_DATA_RDWREXPDA:
-                return make_string(SEG_DATA_RDWREXPDA);
-
-            case SEG_CODE_EX:
-                return make_string(SEG_CODE_EX);
-
-            case SEG_CODE_EXA:
-                return make_string(SEG_CODE_EXA);
-
-            case SEG_CODE_EXRD:
-                return make_string(SEG_CODE_EXRD);
-
-            case SEG_CODE_EXRDA:
-                return make_string(SEG_CODE_EXRDA);
-
-            case SEG_CODE_EXC:
-                return make_string(SEG_CODE_EXC);
-
-            case SEG_CODE_EXCA:
-                return make_string(SEG_CODE_EXCA);
-
-            case SEG_CODE_EXRDC:
-                return make_string(SEG_CODE_EXRDC);
-
-            case SEG_CODE_EXRDCA:
-                return make_string(SEG_CODE_EXRDCA);
-            default:
-                return "*UNKNOWN*";
-        }
-    }
+    return type_name;
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache)

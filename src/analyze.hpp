@@ -295,6 +295,86 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
     uint32_t GetGDTDpl(const ExtRemoteTyped &gdt_entry);
 
  private:
+    std::vector<std::string> m_gdt_sys_x64 = {
+        make_string(SEG_SYS_UPPER_8_BYTE),
+        make_string(SEG_SYS_RESERVED_1),
+        make_string(SEG_SYS_LDT),
+        make_string(SEG_SYS_RESERVED_3),
+        make_string(SEG_SYS_RESERVED_4),
+        make_string(SEG_SYS_RESERVED_5),
+        make_string(SEG_SYS_RESERVED_6),
+        make_string(SEG_SYS_RESERVED_7),
+        make_string(SEG_SYS_RESERVED_8),
+        make_string(SEG_SYS_TSS64_AVL),
+        make_string(SEG_SYS_RESERVED_10),
+        make_string(SEG_SYS_TSS64_BUSY),
+        make_string(SEG_SYS_CALLGATE_64),
+        make_string(SEG_SYS_RESERVED_13),
+        make_string(SEG_SYS_INT_GATE_64),
+        make_string(SEG_SYS_TRAP_GATE_64)
+    };
+    std::vector<std::string> m_gdt_sys_x86 = {
+        make_string(SEG_SYS_RESERVED_0),
+        make_string(SEG_SYS_TSS16_AVL),
+        make_string(SEG_SYS_LDT),
+        make_string(SEG_SYS_TSS16_BUSY),
+        make_string(SEG_SYS_CALLGATE_16),
+        make_string(SEG_SYS_TASKGATE),
+        make_string(SEG_SYS_INT_GATE_16),
+        make_string(SEG_SYS_TRAP_GATE_16),
+        make_string(SEG_SYS_RESERVED_8),
+        make_string(SEG_SYS_TSS32_AVL),
+        make_string(SEG_SYS_RESERVED_10),
+        make_string(SEG_SYS_TSS32_BUSY),
+        make_string(SEG_SYS_CALLGATE_32),
+        make_string(SEG_SYS_RESERVED_13),
+        make_string(SEG_SYS_INT_GATE_32),
+        make_string(SEG_SYS_TRAP_GATE_32)
+    };
+    std::vector<std::string> m_gdt_code_data = {
+        make_string(SEG_DATA_RD),
+        make_string(SEG_DATA_RDA),
+        make_string(SEG_DATA_RDWR),
+        make_string(SEG_DATA_RDWRA),
+        make_string(SEG_DATA_RDEXPD),
+        make_string(SEG_DATA_RDEXPDA),
+        make_string(SEG_DATA_RDWREXPD),
+        make_string(SEG_DATA_RDWREXPDA),
+        make_string(SEG_CODE_EX),
+        make_string(SEG_CODE_EXA),
+        make_string(SEG_CODE_EXRD),
+        make_string(SEG_CODE_EXRDA),
+        make_string(SEG_CODE_EXC),
+        make_string(SEG_CODE_EXCA),
+        make_string(SEG_CODE_EXRDC),
+        make_string(SEG_CODE_EXRDCA)
+    };
+    std::map<uint32_t, std::string> m_gdt_selector_x64 = {
+        { KGDT64_NULL, make_string(KGDT64_NULL) },
+        { KGDT64_R0_CODE, make_string(KGDT64_R0_CODE) },
+        { KGDT64_R0_DATA, make_string(KGDT64_R0_DATA) },
+        { KGDT64_R3_CMCODE, make_string(KGDT64_R3_CMCODE) },
+        { KGDT64_R3_DATA, make_string(KGDT64_R3_DATA) },
+        { KGDT64_R3_CODE, make_string(KGDT64_R3_CODE) },
+        { KGDT64_SYS_TSS, make_string(KGDT64_SYS_TSS) },
+        { KGDT64_R3_CMTEB, make_string(KGDT64_R3_CMTEB) }
+    };
+    std::map<uint32_t, std::string> m_gdt_selector_x86 = {
+        { KGDT_R0_CODE, make_string(KGDT_R0_CODE) },
+        { KGDT_R0_DATA, make_string(KGDT_R0_DATA) },
+        { KGDT_R3_CODE, make_string(KGDT_R3_CODE) },
+        { KGDT_R3_DATA, make_string(KGDT_R3_DATA) },
+        { KGDT_TSS, make_string(KGDT_TSS) },
+        { KGDT_R0_PCR, make_string(KGDT_R0_PCR) },
+        { KGDT_R3_TEB, make_string(KGDT_R3_TEB) },
+        { KGDT_LDT, make_string(KGDT_LDT) },
+        { KGDT_DF_TSS, make_string(KGDT_DF_TSS) },
+        { KGDT_NMI_TSS, make_string(KGDT_NMI_TSS) },
+        { KGDT_GDT_ALIAS, make_string(KGDT_GDT_ALIAS) },
+        { KGDT_CDA16, make_string(KGDT_CDA16) },
+        { KGDT_CODE16, make_string(KGDT_CODE16) },
+        { KGDT_STACK16, make_string(KGDT_STACK16) }
+    };
     std::stringstream err;
 };
 
