@@ -150,6 +150,9 @@
     <ClCompile Include="src\whitelist.cpp">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
+    <ClCompile Include="src\psppico.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">

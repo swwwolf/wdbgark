@@ -224,6 +224,7 @@
     <ClCompile Include="src\pe.cpp" />
     <ClCompile Include="src\pnptable.cpp" />
     <ClCompile Include="src\process.cpp" />
+    <ClCompile Include="src\psppico.cpp" />
     <ClCompile Include="src\resources.cpp" />
     <ClCompile Include="src\scan.cpp" />
     <ClCompile Include="src\sdt_w32p.cpp" />
