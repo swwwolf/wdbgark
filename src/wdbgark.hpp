@@ -63,10 +63,12 @@ class WDbgArk : public ExtExtension {
     using RemoteTypedCallback = std::function<HRESULT(WDbgArk* wdbg_ark_class,
                                                       const ExtRemoteTyped &object,
                                                       void* context)>;
-
     using RemoteDataCallback = std::function<HRESULT(WDbgArk* wdbg_ark_class,
                                                      const ExtRemoteData &object,
                                                      void* context)>;
+    using ScanRoutine = std::function<void(void)>;
+    using ScanCommand = std::pair<std::string, ScanRoutine>;
+    using ScanCommands = std::vector<ScanCommand>;
     //////////////////////////////////////////////////////////////////////////
     WDbgArk();
 
@@ -210,6 +212,7 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // private inits
     //////////////////////////////////////////////////////////////////////////
+    void InitScanCommands();
     void InitCallbackCommands();
     //////////////////////////////////////////////////////////////////////////
     // synthetic symbols
@@ -222,6 +225,7 @@ class WDbgArk : public ExtExtension {
  private:
     bool m_inited = false;
     bool m_is_cur_machine64 = false;
+    ScanCommands m_scan_commands{};
     callbacksInfo m_system_cb_commands{};
     std::vector<DEBUG_MODULE_AND_ID> m_synthetic_symbols{};
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{ new WDbgArkSymCache };

@@ -95,6 +95,7 @@ bool WDbgArk::Init() {
     if ( !m_dummy_pdb->IsInited() )
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;
 
+    InitScanCommands();
     InitCallbackCommands();
 
     if ( m_system_ver->GetStrictVer() >= W7RTM_VER && !FindDbgkLkmdCallbackArray() )
@@ -104,6 +105,30 @@ bool WDbgArk::Init() {
         warn << wa::showqmark << __FUNCTION__ ": FindMiApiSetSchema failed" << endlwarn;
 
     return (m_inited = true);
+}
+
+void WDbgArk::InitScanCommands() {
+    m_scan_commands = {
+        { "!wa_ssdt", std::bind(&WDbgArk::wa_ssdt, this) },
+        { "!wa_w32psdt", std::bind(&WDbgArk::wa_w32psdt, this) },
+        { "!wa_w32psdtflt", std::bind(&WDbgArk::wa_w32psdtflt, this) },
+        { "!wa_idt", std::bind(&WDbgArk::wa_idt, this) },
+        { "!wa_gdt", std::bind(&WDbgArk::wa_gdt, this) },
+        { "!wa_checkmsr", std::bind(&WDbgArk::wa_checkmsr, this) },
+        { "!wa_systemcb", std::bind(&WDbgArk::wa_systemcb, this) },
+        { "!wa_chknirvana", std::bind(&WDbgArk::wa_chknirvana, this) },
+        { "!wa_objtype", std::bind(&WDbgArk::wa_objtype, this) },
+        { "!wa_objtypeidx", std::bind(&WDbgArk::wa_objtypeidx, this) },
+        { "!wa_objtypecb", std::bind(&WDbgArk::wa_objtypecb, this) },
+        { "!wa_callouts", std::bind(&WDbgArk::wa_callouts, this) },
+        { "!wa_pnptable", std::bind(&WDbgArk::wa_pnptable, this) },
+        { "!wa_crashdmpcall", std::bind(&WDbgArk::wa_crashdmpcall, this) },
+        { "!wa_haltables", std::bind(&WDbgArk::wa_haltables, this) },
+        { "!wa_psppico", std::bind(&WDbgArk::wa_psppico, this) },
+        { "!wa_ciinfo", std::bind(&WDbgArk::wa_ciinfo, this) },
+        { "!wa_cicallbacks", std::bind(&WDbgArk::wa_cicallbacks, this) },
+        { "!wa_drvmajor", std::bind(&WDbgArk::wa_drvmajor, this) }
+    };
 }
 
 void WDbgArk::InitCallbackCommands() {
