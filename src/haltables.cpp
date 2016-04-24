@@ -24,13 +24,25 @@
 */
 
 #include <sstream>
+#include <map>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
 
 namespace wa {
+//////////////////////////////////////////////////////////////////////////
+typedef struct HalDispatchTableInfoTag {
+    uint8_t hdt_count;      // HalDispatchTable table count
+    uint8_t hpdt_count;     // HalPrivateDispatchTable table count
+    uint8_t hiommu_count;   // HalIommuDispatch table count (W8.1+)
+    uint8_t skip;           // Skip first N entries
+} HalDispatchTableInfo;
 
+using HalTableInfo = std::map<uint32_t, HalDispatchTableInfo>;
+//////////////////////////////////////////////////////////////////////////
+HalTableInfo GetHalTableInfo();
+//////////////////////////////////////////////////////////////////////////
 EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             "nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable", "") {
     RequireKernelMode();
@@ -45,9 +57,10 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         return;
     }
 
-    haltblInfo::const_iterator citer = m_hal_tbl_info.find(m_system_ver->GetStrictVer());
+    auto hal_tbl_info = GetHalTableInfo();
+    auto citer = hal_tbl_info.find(m_system_ver->GetStrictVer());
 
-    if ( citer == m_hal_tbl_info.end() ) {
+    if ( citer == hal_tbl_info.end() ) {
         err << wa::showminus << __FUNCTION__ << ": unable to correlate internal info with the minor build" << endlerr;
         return;
     }
@@ -139,6 +152,23 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
     }
 
     display->PrintFooter();
+}
+
+HalTableInfo GetHalTableInfo() {
+    return { {
+        { WXP_VER, { 0x15, 0x12, 0x0, 0x1 } },
+        { W2K3_VER, { 0x15, 0x13, 0x0, 0x1 } },
+        { VISTA_RTM_VER, { 0x16, 0x1B, 0x0, 0x1 } },
+        { VISTA_SP1_VER, { 0x18, 0x22, 0x0, 0x1 } },
+        { VISTA_SP2_VER, { 0x17, 0x23, 0x0, 0x1 } },
+        { W7RTM_VER, { 0x16, 0x2D, 0x0, 0x1 } },
+        { W7SP1_VER, { 0x16, 0x2D, 0x0, 0x1 } },
+        { W8RTM_VER, { 0x16, 0x5A, 0x0, 0x1 } },
+        { W81RTM_VER, { 0x16, 0x69, 0x0B, 0x1 } },
+        { W10RTM_VER, { 0x16, 0x71, 0x10, 0x1 } },
+        { W10TH2_VER, { 0x16, 0x71, 0x10, 0x1 } },
+        { W10RS1_VER, { 0x16, 0x78, 0x11, 0x1 } }
+        } };
 }
 
 }   // namespace wa

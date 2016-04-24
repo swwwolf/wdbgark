@@ -60,15 +60,6 @@ namespace wa {
         uint64_t list_head_address;
     } WalkCallbackContext;
     //////////////////////////////////////////////////////////////////////////
-    typedef struct HalDispatchTableInfoTag {
-        uint8_t hdt_count;      // HalDispatchTable table count
-        uint8_t hpdt_count;     // HalPrivateDispatchTable table count
-        uint8_t hiommu_count;   // HalIommuDispatch table count (W8.1+)
-        uint8_t skip;           // Skip first N entries
-    } HalDispatchTableInfo;
-
-    using haltblInfo = std::map<uint32_t, HalDispatchTableInfo>;
-    //////////////////////////////////////////////////////////////////////////
 }   // namespace wa
 
 #endif  // TYPEDEFS_HPP_

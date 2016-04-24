@@ -100,6 +100,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_pnptable);
     EXT_COMMAND_METHOD(wa_ssdt);
     EXT_COMMAND_METHOD(wa_w32psdt);
+    EXT_COMMAND_METHOD(wa_w32psdtflt);
     EXT_COMMAND_METHOD(wa_checkmsr);
     EXT_COMMAND_METHOD(wa_idt);
     EXT_COMMAND_METHOD(wa_gdt);
@@ -209,11 +210,6 @@ class WDbgArk : public ExtExtension {
     // private inits
     //////////////////////////////////////////////////////////////////////////
     void InitCallbackCommands();
-    void InitCalloutNames();
-    void InitGDTSelectors();
-    void InitHalTables();
-    WDbgArkAnalyzeWhiteList::WhiteListEntries GetObjectTypesWhiteList();
-    WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList();
     //////////////////////////////////////////////////////////////////////////
     // synthetic symbols
     //////////////////////////////////////////////////////////////////////////
@@ -226,9 +222,6 @@ class WDbgArk : public ExtExtension {
     bool m_inited = false;
     bool m_is_cur_machine64 = false;
     callbacksInfo m_system_cb_commands{};
-    std::vector<std::string> m_callout_names{};
-    std::vector<uint32_t> m_gdt_selectors{};
-    haltblInfo m_hal_tbl_info{};
     std::vector<DEBUG_MODULE_AND_ID> m_synthetic_symbols{};
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{ new WDbgArkSymCache };
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};

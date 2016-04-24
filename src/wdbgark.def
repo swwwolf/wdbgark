@@ -23,6 +23,7 @@ EXPORTS
 	wa_pnptable
 	wa_ssdt
 	wa_w32psdt
+    wa_w32psdtflt
 	wa_checkmsr
 	wa_idt
 	wa_gdt

@@ -239,6 +239,7 @@
     <ClCompile Include="src\util.cpp" />
     <ClCompile Include="src\ver.cpp" />
     <ClCompile Include="src\wdbgark.cpp" />
+    <ClCompile Include="src\whitelist.cpp" />
     <ClCompile Include="src\winapi.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -278,6 +279,7 @@
     <ClInclude Include="src\util.hpp" />
     <ClInclude Include="src\ver.hpp" />
     <ClInclude Include="src\wdbgark.hpp" />
+    <ClInclude Include="src\whitelist.hpp" />
     <ClInclude Include="src\winapi.hpp" />
   </ItemGroup>
   <ItemGroup>

@@ -194,6 +194,14 @@ PAGE:007115C9 8B F0                                         mov     esi, eax
 PAGE:007115CB 85 F6                                         test    esi, esi
 ...
 
+Windows 10 RS1 x86:
+.text:0045CFE8                               ; __stdcall MmQueryApiSetSchema(x, x)
+.text:0045CFE8                               _MmQueryApiSetSchema@8 proc near
+.text:0045CFE8 C7 01 F0 12 61 00                             mov     dword ptr [ecx], offset dword_6112F0   <-- !!!
+.text:0045CFEE C7 02 F4 12 61 00                             mov     dword ptr [edx], offset dword_6112F4
+.text:0045CFF4 C3                                            retn
+.text:0045CFF4                               _MmQueryApiSetSchema@8 endp
+
 x64:
 
 PAGE:000000014042BAC8                               MiResolveImageReferences proc near
@@ -229,6 +237,15 @@ PAGE:000000014042BC17 8B F8                                         mov     edi,
 PAGE:000000014042BC19 33 C0                                         xor     eax, eax
 PAGE:000000014042BC1B 85 FF                                         test    edi, edi
 ...
+
+Windows 10 RS1 x64:
+.text:0000000140113A00                               MmQueryApiSetSchema proc near
+.text:0000000140113A00 48 8D 05 A1 E8 1E 00                          lea     rax, qword_1403022A8       <-- !!!
+.text:0000000140113A07 48 89 01                                      mov     [rcx], rax
+.text:0000000140113A0A 48 8D 05 9F E8 1E 00                          lea     rax, qword_1403022B0
+.text:0000000140113A11 48 89 02                                      mov     [rdx], rax
+.text:0000000140113A14 C3                                            retn
+.text:0000000140113A14                               MmQueryApiSetSchema endp
 */
 bool WDbgArk::FindMiApiSetSchema() {
     if ( m_system_ver->GetStrictVer() <= W81RTM_VER ) {
@@ -242,13 +259,23 @@ bool WDbgArk::FindMiApiSetSchema() {
         return true;
 
     uint64_t offset = 0;
+    size_t disasm_len = m_PageSize;
 
-    if ( !m_sym_cache->GetSymbolOffset("nt!MiResolveImageReferences", true, &offset) ) {
-        err << wa::showminus << __FUNCTION__ << ": can't find nt!MiResolveImageReferences" << endlerr;
-        return false;
+    if ( m_system_ver->GetStrictVer() <= W10TH2_VER ) {
+        if ( !m_sym_cache->GetSymbolOffset("nt!MiResolveImageReferences", true, &offset) ) {
+            err << wa::showminus << __FUNCTION__ << ": can't find nt!MiResolveImageReferences" << endlerr;
+            return false;
+        }
+    } else {
+        if ( !m_sym_cache->GetSymbolOffset("nt!MmQueryApiSetSchema", true, &offset) ) {
+            err << wa::showminus << __FUNCTION__ << ": can't find nt!MmQueryApiSetSchema" << endlerr;
+            return false;
+        }
+
+        disasm_len = 4 * MAX_INSN_LENGTH;
     }
 
-    WDbgArkUdis udis(0, offset, m_PageSize);
+    WDbgArkUdis udis(0, offset, disasm_len);
 
     if ( !udis.IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": can't init UDIS class" << endlerr;
@@ -258,45 +285,61 @@ bool WDbgArk::FindMiApiSetSchema() {
     uint64_t address = 0;
 
     while ( udis.Disassemble() ) {
-        uint64_t check_address = 0;
+        if ( m_system_ver->GetStrictVer() <= W10TH2_VER ) {
+            uint64_t check_address = 0;
 
-        if ( !m_is_cur_machine64 &&
-             udis.InstructionLength() == 6 && udis.InstructionMnemonic() == UD_Imov &&
-             udis.InstructionOperand(0)->type == UD_OP_REG && udis.InstructionOperand(1)->type == UD_OP_MEM ) {
-            check_address = udis.InstructionOffset() + udis.InstructionLength();
-        } else if ( m_is_cur_machine64 &&
-                    udis.InstructionLength() == 7 && udis.InstructionMnemonic() == UD_Imov &&
-                    udis.InstructionOperand(0)->type == UD_OP_REG && udis.InstructionOperand(1)->type == UD_OP_MEM ) {
-            check_address = udis.InstructionOffset() + udis.InstructionLength();
-        }
-
-        if ( check_address ) {
-            WDbgArkUdis udis_local(0, check_address, 10 * MAX_INSN_LENGTH);
-
-            if ( !udis_local.IsInited() )
-                continue;
-
-            while ( udis_local.Disassemble() ) {
-                if ( udis_local.InstructionLength() == 5 && udis_local.InstructionMnemonic() == UD_Icall ) {
-                    uint64_t call_address = udis_local.InstructionOffset() + \
-                        udis_local.InstructionOperand(0)->lval.sdword + udis_local.InstructionLength();
-
-                    auto result = m_symbols_base->GetNameByOffset(call_address);
-
-                    if ( SUCCEEDED(result.first) && result.second == "nt!ApiSetResolveToHost" ) {
-                        if ( !m_is_cur_machine64 ) {
-                            address = static_cast<uint64_t>(udis.InstructionOperand(1)->lval.udword);
-                        } else {
-                            address = udis.InstructionOffset() + udis.InstructionOperand(1)->lval.sdword +\
-                                udis.InstructionLength();
-                        }
-                        break;  // break from inner loop
-                    }
-                }
+            if ( !m_is_cur_machine64 &&
+                 udis.InstructionLength() == 6 && udis.InstructionMnemonic() == UD_Imov &&
+                 udis.InstructionOperand(0)->type == UD_OP_REG && udis.InstructionOperand(1)->type == UD_OP_MEM ) {
+                check_address = udis.InstructionOffset() + udis.InstructionLength();
+            } else if ( m_is_cur_machine64 &&
+                        udis.InstructionLength() == 7 && udis.InstructionMnemonic() == UD_Imov &&
+                        udis.InstructionOperand(0)->type == UD_OP_REG &&
+                        udis.InstructionOperand(1)->type == UD_OP_MEM ) {
+                check_address = udis.InstructionOffset() + udis.InstructionLength();
             }
 
-            if ( address )  // global break
+            if ( check_address ) {
+                WDbgArkUdis udis_local(0, check_address, 10 * MAX_INSN_LENGTH);
+
+                if ( !udis_local.IsInited() )
+                    continue;
+
+                while ( udis_local.Disassemble() ) {
+                    if ( udis_local.InstructionLength() == 5 && udis_local.InstructionMnemonic() == UD_Icall ) {
+                        uint64_t call_address = udis_local.InstructionOffset() + \
+                            udis_local.InstructionOperand(0)->lval.sdword + udis_local.InstructionLength();
+
+                        auto result = m_symbols_base->GetNameByOffset(call_address);
+
+                        if ( SUCCEEDED(result.first) && result.second == "nt!ApiSetResolveToHost" ) {
+                            if ( !m_is_cur_machine64 ) {
+                                address = static_cast<uint64_t>(udis.InstructionOperand(1)->lval.udword);
+                            } else {
+                                address = udis.InstructionOffset() + udis.InstructionOperand(1)->lval.sdword + \
+                                    udis.InstructionLength();
+                            }
+                            break;  // break from inner loop
+                        }
+                    }
+                }
+
+                if ( address )  // global break
+                    break;
+            }
+        } else {
+            if ( !m_is_cur_machine64 &&
+                 udis.InstructionLength() == 6 && udis.InstructionMnemonic() == UD_Imov &&
+                 udis.InstructionOperand(0)->type == UD_OP_MEM && udis.InstructionOperand(1)->type == UD_OP_IMM ) {
+                address = static_cast<uint64_t>(udis.InstructionOperand(1)->lval.udword);
                 break;
+            } else if ( m_is_cur_machine64 &&
+                        udis.InstructionLength() == 7 && udis.InstructionMnemonic() == UD_Ilea &&
+                        udis.InstructionOperand(0)->type == UD_OP_REG &&
+                        udis.InstructionOperand(1)->type == UD_OP_MEM ) {
+                address = udis.InstructionOffset() + udis.InstructionOperand(1)->lval.sdword + udis.InstructionLength();
+                break;
+            }
         }
     }
 

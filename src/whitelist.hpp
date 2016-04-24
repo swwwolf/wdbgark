@@ -23,41 +23,16 @@
 #pragma once
 #endif
 
-#ifndef SDT_W32P_HPP_
-#define SDT_W32P_HPP_
+#ifndef WHITELIST_HPP_
+#define WHITELIST_HPP_
 
-#include <string>
+#include "analyze.hpp"
 
 namespace wa {
 
-enum ServiceTableType {
-    KiServiceTable_x86 = 0,
-    KiServiceTable_x64,
-    W32pServiceTable_x86,
-    W32pServiceTable_x64,
-    W32pServiceTableFilter_x86,
-    W32pServiceTableFilter_x64
-};
-
-enum ServiceTableIndex {
-    ServiceTableXpSp3 = 0,
-    ServiceTableW2k3Sp2,
-    ServiceTableVistaSp0,
-    ServiceTableVistaSp1,
-    ServiceTableVistaSp2,
-    ServiceTableW7Sp0,
-    ServiceTableW7Sp1,
-    ServiceTableW8Sp0,
-    ServiceTableW8Sp1,
-    ServiceTableW10Th1,
-    ServiceTableW10Th2,
-    ServiceTableW10Rs1,
-};
-
-std::string get_service_table_routine_name(const uint32_t minor_build,
-                                           const ServiceTableType type,
-                                           const uint32_t index);
+WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList();
+WDbgArkAnalyzeWhiteList::WhiteListEntries GetObjectTypesWhiteList();
 
 }   // namespace wa
 
-#endif  // SDT_W32P_HPP_
+#endif  // WHITELIST_HPP_

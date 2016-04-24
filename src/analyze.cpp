@@ -318,8 +318,7 @@ WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT(const std::shared_ptr<WDbgArkSymCache> &sym
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeGDT::WDbgArkAnalyzeGDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
-    : WDbgArkAnalyzeBase(sym_cache),
-      err() {
+    : WDbgArkAnalyzeBase(sym_cache) {
     // width = 133
     AddColumn("Base", 18);
     AddColumn("Limit", 10);
@@ -532,10 +531,7 @@ std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
-    : WDbgArkAnalyzeBase(sym_cache),
-      out(),
-      warn(),
-      err() {
+    : WDbgArkAnalyzeBase(sym_cache) {
     // width = 180
     AddColumn("Address", 18);
     AddColumn("Name", 68);

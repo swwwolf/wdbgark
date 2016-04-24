@@ -57,13 +57,8 @@ class WDbgArkAnalyzeWhiteList {
     using WhiteListEntry = std::vector<std::string>;
     using WhiteListEntries = std::map<std::string, WhiteListEntry>;     // some name : vector of module names
 
-    explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_ranges(),
-                                                                                          m_temp_ranges(),
-                                                                                          m_wl_entries(),
-                                                                                          m_sym_cache(sym_cache),
-                                                                                          err() {}
-
     WDbgArkAnalyzeWhiteList() = delete;
+    explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_sym_cache(sym_cache) {}  
     virtual ~WDbgArkAnalyzeWhiteList() {}
 
     //////////////////////////////////////////////////////////////////////////
@@ -126,11 +121,11 @@ class WDbgArkAnalyzeWhiteList {
     bool IsAddressInWhiteList(const uint64_t address) const;
 
  private:
-    Ranges m_ranges;
-    Ranges m_temp_ranges;
-    WhiteListEntries m_wl_entries;
-    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
-    std::stringstream err;
+    Ranges m_ranges{};
+    Ranges m_temp_ranges{};
+    WhiteListEntries m_wl_entries{};
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
+    std::stringstream err{};
 
  private:
     void AddRangeWhiteListInternal(const uint64_t start, const uint64_t end, Ranges* ranges) {
@@ -145,8 +140,6 @@ class WDbgArkAnalyzeWhiteList {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkBPProxy {
  public:
-     WDbgArkBPProxy() : m_bprinter_out(),
-                        m_tp(new bprinter::TablePrinter(&m_bprinter_out)) {}
      virtual ~WDbgArkBPProxy() {}
 
      virtual void PrintHeader(void) { m_tp->PrintHeader(); }
@@ -164,8 +157,8 @@ class WDbgArkBPProxy {
      }
 
  protected:
-    std::stringstream m_bprinter_out;
-    std::unique_ptr<bprinter::TablePrinter> m_tp;
+    std::stringstream m_bprinter_out{};
+    std::unique_ptr<bprinter::TablePrinter> m_tp{ new bprinter::TablePrinter(&m_bprinter_out) };
 };
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList {
@@ -260,7 +253,7 @@ class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
     virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object);
 
  private:
-    std::stringstream err;
+     std::stringstream err{};
 };
 //////////////////////////////////////////////////////////////////////////
 // IDT analyzer
@@ -375,7 +368,7 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
         { KGDT_CODE16, make_string(KGDT_CODE16) },
         { KGDT_STACK16, make_string(KGDT_STACK16) }
     };
-    std::stringstream err;
+    std::stringstream err{};
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -394,9 +387,9 @@ class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
     void DisplayFsFilterCallbacks(const ExtRemoteTyped &object);
 
  private:
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
+    std::stringstream out{};
+    std::stringstream warn{};
+    std::stringstream err{};
 };
 //////////////////////////////////////////////////////////////////////////
 }   // namespace wa

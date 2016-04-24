@@ -1070,6 +1070,17 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
                         const uint64_t kpcr_offset,
                         std::unique_ptr<WDbgArkAnalyzeBase> const &display);
 
+std::vector<uint32_t> GetGDTSelectors() {
+    if ( g_Ext->IsCurMachine64() ) {
+        return { KGDT64_NULL, KGDT64_R0_CODE, KGDT64_R0_DATA, KGDT64_R3_CMCODE, KGDT64_R3_DATA, KGDT64_R3_CODE,
+                 KGDT64_SYS_TSS, KGDT64_R3_CMTEB };
+    } else {
+        return { KGDT_R0_CODE, KGDT_R0_DATA, KGDT_R3_CODE, KGDT_R3_DATA, KGDT_TSS, KGDT_R0_PCR, KGDT_R3_TEB,
+                 KGDT_LDT, KGDT_DF_TSS, KGDT_NMI_TSS, KGDT_GDT_ALIAS, KGDT_CDA16, KGDT_CODE16,
+                 KGDT_STACK16 };
+    }
+}
+
 EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
     RequireKernelMode();
 
@@ -1119,7 +1130,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
             uint32_t gdt_selector = 0;
 
             if ( m_is_cur_machine64 ) {    // special case for x64
-                for ( const auto& gdt_selector_x64 : m_gdt_selectors ) {
+                for ( const auto& gdt_selector_x64 : GetGDTSelectors() ) {
                     DisplayOneGDTEntry(gdt_entry_name,
                                        gdt_entry_start + gdt_selector_x64,
                                        gdt_entry_size,

@@ -111,8 +111,10 @@ std::pair<uint32_t, uint32_t> GetCiCallbacksTableCount() {
         return std::make_pair(7, g_Ext->m_PtrSize);
     else if ( system_ver.GetStrictVer() == W81RTM_VER )
         return std::make_pair(12, g_Ext->m_PtrSize);
-    else if ( system_ver.GetStrictVer() >= W10RTM_VER )
+    else if ( system_ver.IsBuildInRangeStrict(W10RTM_VER, W10TH2_VER) )
         return std::make_pair(18, g_Ext->m_PtrSize);
+    else if ( system_ver.GetStrictVer() >= W10RS1_VER )
+        return std::make_pair(19, g_Ext->m_PtrSize);
 
     return std::make_pair(0, 0);
 }

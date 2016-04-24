@@ -82,6 +82,19 @@ void __stdcall PsEstablishWin32Callouts(int a1)
 
 namespace wa {
 
+std::vector<std::string> GetCalloutNames() {
+    return {
+        "nt!PspW32ProcessCallout", "nt!PspW32ThreadCallout", "nt!ExGlobalAtomTableCallout",
+        "nt!KeGdiFlushUserBatch", "nt!PopEventCallout", "nt!PopStateCallout",
+        "nt!PspW32JobCallout", "nt!ExDesktopOpenProcedureCallout",
+        "nt!ExDesktopOkToCloseProcedureCallout", "nt!ExDesktopCloseProcedureCallout",
+        "nt!ExDesktopDeleteProcedureCallout", "nt!ExWindowStationOkToCloseProcedureCallout",
+        "nt!ExWindowStationCloseProcedureCallout", "nt!ExWindowStationDeleteProcedureCallout",
+        "nt!ExWindowStationParseProcedureCallout", "nt!ExWindowStationOpenProcedureCallout",
+        "nt!IopWin32DataCollectionProcedureCallout", "nt!PopWin32InfoCallout"
+    };
+}
+
 EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
     RequireKernelMode();
 
@@ -99,7 +112,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
 
     try {
         if ( m_system_ver->GetStrictVer() <= W7SP1_VER ) {
-            for ( const auto &callout_name : m_callout_names ) {
+            for ( const auto &callout_name : GetCalloutNames() ) {
                 uint64_t offset = 0;
 
                 if ( m_sym_cache->GetSymbolOffset(callout_name, true, &offset) ) {

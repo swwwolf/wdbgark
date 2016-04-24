@@ -24,6 +24,7 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "whitelist.hpp"
 
 namespace wa {
 

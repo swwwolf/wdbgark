@@ -37,6 +37,7 @@
 #include <utility>
 #include <map>
 #include <vector>
+#include <array>
 
 namespace wa {
 
@@ -59,8 +60,9 @@ class WDbgArkSymbolsBase {
                            std::string* image_name,
                            std::string* module_name,
                            std::string* loaded_image_name);
+    bool CheckMsSymbolsPath();
     bool CheckSymbolsPath(const bool display_error,
-                          const std::string &test_path = "http://msdl.microsoft.com/download/symbols");
+                          const std::string &test_path = "https://msdl.microsoft.com/download/symbols");
     HRESULT AppendSymbolPath(const std::string &symbol_path);
     HRESULT AppendImagePath(const std::string &image_path);
 
@@ -85,6 +87,10 @@ class WDbgArkSymbolsBase {
     const std::string m_unknown_name = "*UNKNOWN*";
     const ModuleAliases m_aliases = {
         { "ntoskrnl.exe", { "ntkrnlup.exe", "ntkrnlpa.exe", "ntkrnlmp.exe", "ntkrpamp.exe", "xboxkrnlc.exe" } }
+    };
+    const std::array<std::string, 2> m_ms_symbol_servers = {
+        "http://msdl.microsoft.com/download/symbols",
+        "https://msdl.microsoft.com/download/symbols"
     };
     std::string m_symbol_path{};
     std::string m_image_path{};

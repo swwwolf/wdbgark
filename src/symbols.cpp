@@ -283,6 +283,38 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
     return result;
 }
 //////////////////////////////////////////////////////////////////////////
+bool WDbgArkSymbolsBase::CheckMsSymbolsPath() {
+    bool result = false;
+
+    for ( const auto& path : m_ms_symbol_servers ) {
+        if ( CheckSymbolsPath(false, path) )
+            result = true;
+    }
+
+    return result;
+}
+//////////////////////////////////////////////////////////////////////////
+bool WDbgArkSymbolsBase::CheckSymbolsPath(const bool display_error, const std::string &test_path) {
+    std::string check_path = GetSymbolPath();
+
+    if ( check_path.empty() || check_path == " " ) {
+        if ( display_error ) {
+            err << wa::showminus << __FUNCTION__ << ": seems that your symbol path is empty. Fix it!" << endlerr;
+        }
+    } else if ( check_path.find(test_path) == std::string::npos ) {
+        if ( display_error ) {
+            std::stringstream warn;
+
+            warn << wa::showqmark << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
+            warn << "Include symbol path (" << test_path << ")" << endlwarn;
+        }
+    } else {
+        return true;
+    }
+
+    return false;
+}
+//////////////////////////////////////////////////////////////////////////
 WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetNameByOffset(const uint64_t address) {
     std::string output_name = m_unknown_name;
 
@@ -426,27 +458,6 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindModuleImage(const uint6
         image_name = image_name.substr(pos + 1);
 
     return FindExecutableImageInternal(image_name, parameters);
-}
-//////////////////////////////////////////////////////////////////////////
-bool WDbgArkSymbolsBase::CheckSymbolsPath(const bool display_error, const std::string &test_path) {
-    std::string check_path = GetSymbolPath();
-
-    if ( check_path.empty() || check_path == " " ) {
-        if ( display_error ) {
-            err << wa::showminus << __FUNCTION__ << ": seems that your symbol path is empty. Fix it!" << endlerr;
-        }
-    } else if ( check_path.find(test_path) == std::string::npos ) {
-        if ( display_error ) {
-            std::stringstream warn;
-
-            warn << wa::showqmark << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
-            warn << "Include symbol path (" << test_path << ")" << endlwarn;
-        }
-    } else {
-        return true;
-    }
-
-    return false;
 }
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkSymbolsBase::AppendSymbolPath(const std::string &symbol_path) {

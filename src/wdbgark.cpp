@@ -76,8 +76,8 @@ bool WDbgArk::Init() {
 
     m_symbols_base.reset(new WDbgArkSymbolsBase);
 
-    if ( !m_symbols_base->CheckSymbolsPath(true) )
-        warn << wa::showqmark << __FUNCTION__ ": CheckSymbolsPath failed" << endlwarn;
+    if ( !m_symbols_base->CheckMsSymbolsPath() )
+        warn << wa::showqmark << __FUNCTION__ ": CheckMsSymbolsPath failed" << endlwarn;
 
     // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized
     m_obj_helper.reset(new WDbgArkObjHelper(m_sym_cache));
@@ -96,9 +96,6 @@ bool WDbgArk::Init() {
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;
 
     InitCallbackCommands();
-    InitCalloutNames();
-    InitGDTSelectors();
-    InitHalTables();
 
     if ( m_system_ver->GetStrictVer() >= W7RTM_VER && !FindDbgkLkmdCallbackArray() )
         warn << wa::showqmark << __FUNCTION__ ": FindDbgkLkmdCallbackArray failed" << endlwarn;
@@ -137,7 +134,7 @@ void WDbgArk::InitCallbackCommands() {
         { "nmi", { "", "nt!KiNmiCallbackListHead", m_PtrSize, 0, 0 } },
         { "logonsessionroutine", { "", "nt!SeFileSystemNotifyRoutinesHead", m_PtrSize, 0, 0 } },
         { "prioritycallback", { "nt!IopUpdatePriorityCallbackRoutineCount", "nt!IopUpdatePriorityCallbackRoutine", 0,
-        0, 0 } },
+          0, 0 } },
         { "pnp", {} },
         { "lego", { "", "nt!PspLegoNotifyRoutine", 0, 0, 0 } },
         { "debugprint", { "", "nt!RtlpDebugPrintCallbackList", le_size, 0, 0 } },
@@ -161,131 +158,6 @@ void WDbgArk::InitCallbackCommands() {
                 cb_pair.second.list_head_address = offset_head;
         }
     }
-}
-
-void WDbgArk::InitCalloutNames() {
-    if ( m_system_ver->GetStrictVer() <= W7SP1_VER ) {
-        m_callout_names = { "nt!PspW32ProcessCallout", "nt!PspW32ThreadCallout", "nt!ExGlobalAtomTableCallout",
-                            "nt!KeGdiFlushUserBatch", "nt!PopEventCallout", "nt!PopStateCallout",
-                            "nt!PspW32JobCallout", "nt!ExDesktopOpenProcedureCallout",
-                            "nt!ExDesktopOkToCloseProcedureCallout", "nt!ExDesktopCloseProcedureCallout",
-                            "nt!ExDesktopDeleteProcedureCallout", "nt!ExWindowStationOkToCloseProcedureCallout",
-                            "nt!ExWindowStationCloseProcedureCallout", "nt!ExWindowStationDeleteProcedureCallout",
-                            "nt!ExWindowStationParseProcedureCallout", "nt!ExWindowStationOpenProcedureCallout",
-                            "nt!IopWin32DataCollectionProcedureCallout", "nt!PopWin32InfoCallout" };
-    }
-}
-
-void WDbgArk::InitGDTSelectors() {
-    if ( m_is_cur_machine64 ) {
-        m_gdt_selectors = { KGDT64_NULL, KGDT64_R0_CODE, KGDT64_R0_DATA, KGDT64_R3_CMCODE, KGDT64_R3_DATA,
-                            KGDT64_R3_CODE, KGDT64_SYS_TSS, KGDT64_R3_CMTEB };
-    } else {
-        m_gdt_selectors = { KGDT_R0_CODE, KGDT_R0_DATA, KGDT_R3_CODE, KGDT_R3_DATA, KGDT_TSS, KGDT_R0_PCR, KGDT_R3_TEB,
-                            KGDT_LDT, KGDT_DF_TSS, KGDT_NMI_TSS, KGDT_GDT_ALIAS, KGDT_CDA16, KGDT_CODE16,
-                            KGDT_STACK16 };
-    }
-}
-
-void WDbgArk::InitHalTables() {
-    m_hal_tbl_info = { { { WXP_VER, { 0x15, 0x12, 0x0, 0x1 } },
-                         { W2K3_VER, { 0x15, 0x13, 0x0, 0x1 } },
-                         { VISTA_RTM_VER, { 0x16, 0x1B, 0x0, 0x1 } },
-                         { VISTA_SP1_VER, { 0x18, 0x22, 0x0, 0x1 } },
-                         { VISTA_SP2_VER, { 0x17, 0x23, 0x0, 0x1 } },
-                         { W7RTM_VER, { 0x16, 0x2D, 0x0, 0x1 } },
-                         { W7SP1_VER, { 0x16, 0x2D, 0x0, 0x1 } },
-                         { W8RTM_VER, { 0x16, 0x5A, 0x0, 0x1 } },
-                         { W81RTM_VER, { 0x16, 0x69, 0x0B, 0x1 } },
-                         { W10RTM_VER, { 0x16, 0x71, 0x10, 0x1 } },
-                         { W10TH2_VER, { 0x16, 0x71, 0x10, 0x1 } } } };
-}
-
-WDbgArkAnalyzeWhiteList::WhiteListEntries WDbgArk::GetObjectTypesWhiteList() {
-    return {
-        { "tmtm", { "tm" } },
-        { "tmtx", { "tm" } },
-        { "tmen", { "tm" } },
-        { "tmrm", { "tm" } },
-        { "dmadomain", { "hal" } },
-        { "dmaadapter", { "hal" } },
-        { "dxgksharedresource", { "dxgkrnl" } },
-        { "dxgksharedsyncobject", { "dxgkrnl" } },
-        { "dxgksharedswapchainobject", { "dxgkrnl" } },
-        { "networknamespace", { "ndis" } },
-        { "pcwobject", { "pcw" } },
-        { "filterconnectionport", { "fltmgr" } },
-        { "filtercommunicationport", { "fltmgr" } }
-    };
-}
-
-WDbgArkAnalyzeWhiteList::WhiteListEntries WDbgArk::GetDriversWhiteList() {
-    return {
-        { "intelide", { "pciidex" } },
-        { "pciide", { "pciidex" } },
-        { "atapi", { "ataport" } },
-        { "pnpmanager", { "nt" } },
-        { "wmixwdm", { "nt" } },
-        { "acpi_hal", { "hal" } },
-        { "cdrom", { "wdf01000", "classpnp" } },
-        { "basicdisplay", { "dxgkrnl" } },
-        { "basicrender", { "dxgkrnl" } },
-        { "raw", { "nt" } },
-        { "ntfs", { "nt" } },
-        { "lsi_sas", { "storport" } },
-        { "lsi_scsi", { "storport" } },
-        { "fileinfo", { "fltmgr" } },
-        { "storahci", { "storport" } },
-        { "disk", { "classpnp" } },
-        { "vwififlt", { "ndis" } },
-        { "psched", { "ndis" } },
-        { "vm3dmp", { "dxgkrnl" } },
-        { "fastfat", { "nt" } },
-        { "e1iexpress", { "ndis" } },
-        { "usbehci", { "usbport" } },
-        { "usbuhci", { "usbport" } },
-        { "hdaudaddservice", { "ks", "portcls" } },
-        { "hidusb", { "hidclass" } },
-        { "tunnel", { "ndis" } },
-        { "softwaredevice", { "nt" } },
-        { "deviceapi", { "nt" } },
-        { "raspppoe", { "ndis" } },
-        { "rassstp", { "ndis" } },
-        { "rasagilevpn", { "ndis" } },
-        { "rasl2tp", { "ndis" } },
-        { "ndiswan", { "ndis" } },
-        { "e1g60", { "ndis" } },
-        { "pptpminiport", { "ndis" } },
-        { "rdprefmp", { "videoprt" } },
-        { "rdpencdd", { "videoprt" } },
-        { "vgasave", { "videoprt" } },
-        { "rdpcdd", { "videoprt" } },
-        { "cng", { "storport" } },
-        { "rdpdr", { "rdbss" } },
-        { "netvsc", { "ndis" } },
-        { "synthvid", { "videoprt" } },
-        { "vmbushid", { "hidclass" } },
-        { "verifier_filter", { "nt" } },
-        { "sfilter", { "ndis" } },
-        { "storvsc", { "storport" } },
-        { "asyncmac", { "ndis" } },
-        { "raspti", { "ndis" } },
-        { "mrxsmb", { "rdbss" } },
-        { "mnmdd", { "videoprt" } },
-        { "mshidkmdf", { "hidclass" } },
-        { "cdfs", { "nt" } },
-        { "iscsiprt", { "storport" } },
-        { "tunmp", { "ndis" } },
-        { "verifier_ddi", { "nt" } },
-        { "iastorav", { "storport" } },
-        { "bthpan", { "ndis" } },
-        { "bthusb", { "bthport" } },
-        { "usbvideo", { "ks" } },
-        { "bcm43xx", { "ndis" } },
-        { "b57nd60a", { "ndis" } },
-        { "nativewifip", { "ndis" } },
-        { "vmsp", { "ndis" } }
-    };
 }
 
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,

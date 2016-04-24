@@ -26,6 +26,7 @@
 #include "analyze.hpp"
 #include "manipulators.hpp"
 #include "driver.hpp"
+#include "whitelist.hpp"
 
 namespace wa {
 

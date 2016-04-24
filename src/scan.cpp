@@ -81,6 +81,13 @@ EXT_COMMAND(wa_scan,
     }
 
     try {
+        out << wa::showplus << "<b>!wa_w32psdtflt</b>" << endlout;
+        wa_w32psdtflt();
+    } catch ( const ExtStatusException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    try {
         out << wa::showplus << "<b>!wa_idt</b>" << endlout;
         wa_idt();
     }
