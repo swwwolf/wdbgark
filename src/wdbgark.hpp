@@ -171,6 +171,7 @@ class WDbgArk : public ExtExtension {
                       walkresType* output_list,
                       bool break_on_null = false,
                       bool collect_null = false);
+    void WalkPicoTable(const std::string &table_name);
 
     void AddSymbolPointer(const std::string &symbol_name,
                           const std::string &type,

@@ -21,6 +21,7 @@
 
 #include <sstream>
 #include <memory>
+#include <string>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
@@ -28,13 +29,8 @@
 
 namespace wa {
 
-EXT_COMMAND(wa_psppico, "Output kernel-mode nt!PspPicoProviderRoutines", "") {
-    RequireKernelMode();
-
-    if ( !Init() )
-        throw ExtStatusException(S_OK, "global init failed");
-
-    out << wa::showplus << "Displaying nt!PspPicoProviderRoutines" << endlout;
+void WDbgArk::WalkPicoTable(const std::string &table_name) {
+    out << wa::showplus << "Displaying " << table_name << endlout;
 
     if ( m_system_ver->GetStrictVer() <= W81RTM_VER ) {
         out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
@@ -43,12 +39,12 @@ EXT_COMMAND(wa_psppico, "Output kernel-mode nt!PspPicoProviderRoutines", "") {
 
     uint64_t offset = 0;
 
-    if ( !m_sym_cache->GetSymbolOffset("nt!PspPicoProviderRoutines", true, &offset) ) {
-        err << wa::showminus << __FUNCTION__ << ": failed to find nt!PspPicoProviderRoutines" << endlerr;
+    if ( !m_sym_cache->GetSymbolOffset(table_name, true, &offset) ) {
+        err << wa::showminus << __FUNCTION__ << ": failed to find " << table_name << endlerr;
         return;
     }
 
-    out << wa::showplus << "nt!PspPicoProviderRoutines: " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << table_name << ": " << std::hex << std::showbase << offset << endlout;
 
     uint32_t count = static_cast<uint32_t>(ExtRemoteData(offset, m_PtrSize).GetPtr() / m_PtrSize);
 
@@ -70,12 +66,21 @@ EXT_COMMAND(wa_psppico, "Output kernel-mode nt!PspPicoProviderRoutines", "") {
             display->Analyze(walk_info.address, walk_info.type, walk_info.info);
             display->PrintFooter();
         }
-    }
-    catch( const ExtInterruptException& ) {
+    } catch ( const ExtInterruptException& ) {
         throw;
     }
 
     display->PrintFooter();
+}
+
+EXT_COMMAND(wa_psppico, "Output kernel-mode Pico tables", "") {
+    RequireKernelMode();
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
+
+    WalkPicoTable("nt!PspPicoProviderRoutines");
+    WalkPicoTable("lxcore!LxpRoutines");
 }
 
 }   // namespace wa
