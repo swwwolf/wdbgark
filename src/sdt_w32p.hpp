@@ -36,7 +36,8 @@ enum ServiceTableType {
     W32pServiceTable_x86,
     W32pServiceTable_x64,
     W32pServiceTableFilter_x86,
-    W32pServiceTableFilter_x64
+    W32pServiceTableFilter_x64,
+    LxpSyscalls_x64
 };
 
 enum ServiceTableIndex {

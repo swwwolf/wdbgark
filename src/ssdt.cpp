@@ -252,4 +252,88 @@ EXT_COMMAND(wa_w32psdtflt,
     display->PrintFooter();
 }
 
+uint32_t GetLxpSyscallsLimit() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() )
+        return 0;
+
+    if ( system_ver.GetStrictVer() >= W10RS1_VER )
+        return 0x138;
+
+    return 0;
+}
+
+uint32_t GetLxpSyscallsRoutineDelta() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() )
+        return 0;
+
+    if ( system_ver.GetStrictVer() >= W10RS1_VER )
+        return 0x38;
+
+    return 0;
+}
+
+EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "") {
+    RequireKernelMode();
+
+    if ( !Init() )
+        throw ExtStatusException(S_OK, "global init failed");
+
+    out << wa::showplus << "Displaying lxcore!LxpSyscalls" << endlout;
+
+    if ( m_system_ver->GetStrictVer() <= W10TH2_VER || !m_is_cur_machine64 ) {
+        out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
+        return;
+    }
+
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
+
+    if ( !display->AddRangeWhiteList("lxcore") )
+        warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+
+    try {
+        uint32_t limit = GetLxpSyscallsLimit();
+
+        if ( !limit ) {
+            err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
+            return;
+        }
+
+        out << wa::showplus << "ServiceLimit:       " << std::hex << std::showbase << limit << endlout;
+
+        uint64_t offset = 0;
+
+        if ( !m_sym_cache->GetSymbolOffset("lxcore!LxpSyscalls", true, &offset) ) {
+            err << wa::showminus << __FUNCTION__ << ": failed to find lxcore!LxpSyscalls" << endlerr;
+            return;
+        }
+
+        out << wa::showplus << "lxcore!LxpSyscalls: " << std::hex << std::showbase << offset << endlout;
+
+        display->PrintHeader();
+
+        walkresType output_list;
+        WalkAnyTable(offset, 0, limit, GetLxpSyscallsRoutineDelta(), "", &output_list, false, true);
+
+        uint32_t i = 0;
+
+        for ( const auto &walk_info : output_list ) {
+            display->Analyze(walk_info.address,
+                             get_service_table_routine_name(m_system_ver->GetStrictVer(), LxpSyscalls_x64, i),
+                             walk_info.info);
+            display->PrintFooter();
+            i++;
+        }
+    } catch ( const ExtRemoteException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    } catch ( const ExtInterruptException& ) {
+        throw;
+    }
+
+    display->PrintFooter();
+}
+
 }   // namespace wa

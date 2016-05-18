@@ -103,6 +103,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_ssdt);
     EXT_COMMAND_METHOD(wa_w32psdt);
     EXT_COMMAND_METHOD(wa_w32psdtflt);
+    EXT_COMMAND_METHOD(wa_lxsdt);
     EXT_COMMAND_METHOD(wa_checkmsr);
     EXT_COMMAND_METHOD(wa_idt);
     EXT_COMMAND_METHOD(wa_gdt);

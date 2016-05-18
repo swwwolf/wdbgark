@@ -112,6 +112,7 @@ void WDbgArk::InitScanCommands() {
         { "!wa_ssdt", std::bind(&WDbgArk::wa_ssdt, this) },
         { "!wa_w32psdt", std::bind(&WDbgArk::wa_w32psdt, this) },
         { "!wa_w32psdtflt", std::bind(&WDbgArk::wa_w32psdtflt, this) },
+        { "!wa_lxsdt", std::bind(&WDbgArk::wa_lxsdt, this) },
         { "!wa_idt", std::bind(&WDbgArk::wa_idt, this) },
         { "!wa_gdt", std::bind(&WDbgArk::wa_gdt, this) },
         { "!wa_checkmsr", std::bind(&WDbgArk::wa_checkmsr, this) },
@@ -361,7 +362,6 @@ void WDbgArk::WalkAnyTable(const uint64_t table_start,
 
     try {
         for ( uint32_t i = 0; i < table_count; i++ ) {
-            ExtRemoteData data(offset + i * m_PtrSize, m_PtrSize);
             ExtRemoteData data(offset + i * routine_delta, m_PtrSize);
 
             if ( data.GetPtr() || collect_null ) {

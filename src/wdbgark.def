@@ -24,6 +24,7 @@ EXPORTS
 	wa_ssdt
 	wa_w32psdt
     wa_w32psdtflt
+    wa_lxsdt
 	wa_checkmsr
 	wa_idt
 	wa_gdt
