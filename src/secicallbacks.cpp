@@ -37,7 +37,25 @@
 
 namespace wa {
 
-std::pair<uint32_t, uint32_t> GetCiCallbacksTableCount();
+std::pair<uint32_t, uint32_t> GetCiCallbacksTableCount() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() )
+        return std::make_pair(0, 0);
+
+    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, W7SP1_VER) )
+        return std::make_pair(3, 0);
+    else if ( system_ver.GetStrictVer() == W8RTM_VER )
+        return std::make_pair(7, g_Ext->m_PtrSize);
+    else if ( system_ver.GetStrictVer() == W81RTM_VER )
+        return std::make_pair(12, g_Ext->m_PtrSize);
+    else if ( system_ver.IsBuildInRangeStrict(W10RTM_VER, W10TH2_VER) )
+        return std::make_pair(18, g_Ext->m_PtrSize);
+    else if ( system_ver.GetStrictVer() >= W10RS1_VER )
+        return std::make_pair(19, g_Ext->m_PtrSize);
+
+    return std::make_pair(0, 0);
+}
 
 EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks", "") {
     RequireKernelMode();
@@ -85,7 +103,12 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
 
     try {
         walkresType output_list;
-        WalkAnyTable(offset, table_count_skip_offset.second, table_count_skip_offset.first, "", &output_list);
+        WalkAnyTable(offset,
+                     table_count_skip_offset.second,
+                     table_count_skip_offset.first,
+                     m_PtrSize,
+                     "",
+                     &output_list);
 
         for ( const auto &walk_info : output_list ) {
             display->Analyze(walk_info.address, walk_info.type, walk_info.info);
@@ -97,26 +120,6 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
     }
 
     display->PrintFooter();
-}
-
-std::pair<uint32_t, uint32_t> GetCiCallbacksTableCount() {
-    WDbgArkSystemVer system_ver;
-
-    if ( !system_ver.IsInited() )
-        return std::make_pair(0, 0);
-
-    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, W7SP1_VER) )
-        return std::make_pair(3, 0);
-    else if ( system_ver.GetStrictVer() == W8RTM_VER )
-        return std::make_pair(7, g_Ext->m_PtrSize);
-    else if ( system_ver.GetStrictVer() == W81RTM_VER )
-        return std::make_pair(12, g_Ext->m_PtrSize);
-    else if ( system_ver.IsBuildInRangeStrict(W10RTM_VER, W10TH2_VER) )
-        return std::make_pair(18, g_Ext->m_PtrSize);
-    else if ( system_ver.GetStrictVer() >= W10RS1_VER )
-        return std::make_pair(19, g_Ext->m_PtrSize);
-
-    return std::make_pair(0, 0);
 }
 
 }   // namespace wa

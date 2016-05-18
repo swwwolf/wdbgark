@@ -60,7 +60,7 @@ void WDbgArk::WalkPicoTable(const std::string &table_name) {
 
     try {
         walkresType output_list;
-        WalkAnyTable(offset, m_PtrSize, count, "", &output_list);
+        WalkAnyTable(offset, m_PtrSize, count, m_PtrSize, "", &output_list);
 
         for ( const auto &walk_info : output_list ) {
             display->Analyze(walk_info.address, walk_info.type, walk_info.info);

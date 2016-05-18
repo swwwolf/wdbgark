@@ -75,7 +75,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
         // skip first two entries, they're system reserved signatures
         uint32_t skip_offset = 2 * sizeof(uint32_t);
-        WalkAnyTable(offset, skip_offset, table_count, "", &output_list);
+        WalkAnyTable(offset, skip_offset, table_count, m_PtrSize, "", &output_list);
 
         for ( const auto &walk_info : output_list ) {
             display->Analyze(walk_info.address, walk_info.type, walk_info.info);

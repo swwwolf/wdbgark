@@ -167,6 +167,7 @@ class WDbgArk : public ExtExtension {
     void WalkAnyTable(const uint64_t table_start,
                       const uint32_t offset_table_skip_start,
                       const uint32_t table_count,
+                      uint32_t routine_delta,
                       const std::string &type,
                       walkresType* output_list,
                       bool break_on_null = false,

@@ -352,6 +352,7 @@ void WDbgArk::WalkDeviceNode(const uint64_t device_node_address,
 void WDbgArk::WalkAnyTable(const uint64_t table_start,
                            const uint32_t offset_table_skip_start,
                            const uint32_t table_count,
+                           uint32_t routine_delta,
                            const std::string &type,
                            walkresType* output_list,
                            bool break_on_null,
@@ -361,6 +362,7 @@ void WDbgArk::WalkAnyTable(const uint64_t table_start,
     try {
         for ( uint32_t i = 0; i < table_count; i++ ) {
             ExtRemoteData data(offset + i * m_PtrSize, m_PtrSize);
+            ExtRemoteData data(offset + i * routine_delta, m_PtrSize);
 
             if ( data.GetPtr() || collect_null ) {
                 OutputWalkInfo info;
