@@ -80,7 +80,9 @@ EXT_COMMAND(wa_psppico, "Output kernel-mode Pico tables", "") {
         throw ExtStatusException(S_OK, "global init failed");
 
     WalkPicoTable("nt!PspPicoProviderRoutines");
-    WalkPicoTable("lxcore!LxpRoutines");
+
+    if ( SUCCEEDED(m_Symbols3->GetModuleByModuleName2("lxcore", 0UL, 0UL, nullptr, nullptr)) )
+        WalkPicoTable("lxcore!LxpRoutines");
 }
 
 }   // namespace wa
