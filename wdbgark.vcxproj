@@ -259,6 +259,7 @@
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\analyze.hpp" />
+    <ClInclude Include="src\bproxy.hpp" />
     <ClInclude Include="src\colorhack.hpp" />
     <ClInclude Include="src\ddk.h" />
     <ClInclude Include="src\device.hpp" />

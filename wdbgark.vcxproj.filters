@@ -31,6 +31,12 @@
     <Filter Include="Test\pytest">
       <UniqueIdentifier>{504c4e93-0a0e-4ad4-857a-99dba4236087}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Support\Analyze">
+      <UniqueIdentifier>{68960097-3621-4e3c-b29b-450d19b93653}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Analyze">
+      <UniqueIdentifier>{18ae3e2e-ee9d-49a9-b9a5-4933ca428d01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\bprinter\src\table_printer.cpp">
@@ -74,9 +80,6 @@
     </ClCompile>
     <ClCompile Include="src\ver.cpp">
       <Filter>Source Files\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="src\analyze.cpp">
-      <Filter>Source Files\Support</Filter>
     </ClCompile>
     <ClCompile Include="src\colorhack.cpp">
       <Filter>Source Files\Support</Filter>
@@ -147,11 +150,14 @@
     <ClCompile Include="src\util.cpp">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
-    <ClCompile Include="src\whitelist.cpp">
-      <Filter>Source Files\Support</Filter>
-    </ClCompile>
     <ClCompile Include="src\psppico.cpp">
       <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="src\analyze.cpp">
+      <Filter>Source Files\Support\Analyze</Filter>
+    </ClCompile>
+    <ClCompile Include="src\whitelist.cpp">
+      <Filter>Source Files\Support\Analyze</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -186,9 +192,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\analyze.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\colorhack.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -258,8 +261,14 @@
     <ClInclude Include="src\util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\analyze.hpp">
+      <Filter>Header Files\Analyze</Filter>
+    </ClInclude>
     <ClInclude Include="src\whitelist.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Analyze</Filter>
+    </ClInclude>
+    <ClInclude Include="src\bproxy.hpp">
+      <Filter>Header Files\Analyze</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

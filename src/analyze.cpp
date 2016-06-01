@@ -20,7 +20,6 @@
 */
 
 #include "analyze.hpp"
-#include <dbghelp.h>
 
 #include <string>
 #include <algorithm>
@@ -34,78 +33,6 @@
 #include "util.hpp"
 
 namespace wa {
-//////////////////////////////////////////////////////////////////////////
-bool WDbgArkAnalyzeWhiteList::AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges) {
-    try {
-        uint64_t module_start = 0;
-        HRESULT result = g_Ext->m_Symbols3->GetModuleByModuleName2(module_name.c_str(),
-                                                                   0UL,
-                                                                   0UL,
-                                                                   nullptr,
-                                                                   &module_start);
-
-        if ( SUCCEEDED(result) ) {
-            IMAGEHLP_MODULEW64 info;
-            g_Ext->GetModuleImagehlpInfo(module_start, &info);
-            ranges->insert(std::make_pair(module_start, module_start + info.ImageSize));
-            return true;
-        }
-    }
-    catch ( const ExtStatusException &Ex ) {
-        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-    }
-
-    return false;
-}
-
-bool WDbgArkAnalyzeWhiteList::AddSymbolWhiteListInternal(const std::string &symbol_name,
-                                                         const uint32_t size,
-                                                         Ranges* ranges) {
-    uint64_t symbol_offset = 0;
-
-    if ( !m_sym_cache->GetSymbolOffset(symbol_name, true, &symbol_offset) )
-        return false;
-
-    ranges->insert(std::make_pair(symbol_offset, symbol_offset + size));
-    return true;
-}
-
-void WDbgArkAnalyzeWhiteList::AddTempWhiteList(const std::string &name) {
-    try {
-        if ( !m_wl_entries.empty() ) {
-            std::string search_name = name;
-            std::transform(search_name.begin(), search_name.end(), search_name.begin(), tolower);
-
-            auto entry_list = m_wl_entries.at(search_name);
-
-            for ( auto &entry : entry_list )
-                AddTempRangeWhiteList(entry);
-        }
-    } catch ( const std::out_of_range& ) {}
-}
-
-bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const uint64_t address) const {
-    if ( m_ranges.empty() && m_temp_ranges.empty() )
-        return true;
-
-    auto it = std::find_if(m_ranges.begin(),
-                           m_ranges.end(),
-                           [address](const Range &range) {
-        return ((address >= range.first) && (address <= range.second)); });
-
-    if ( it != m_ranges.end() )
-        return true;
-
-    auto temp_it = std::find_if(m_temp_ranges.begin(),
-                                m_temp_ranges.end(),
-                                [address](const Range &range) {
-        return ((address >= range.first) && (address <= range.second)); });
-
-    if ( temp_it != m_temp_ranges.end() )
-        return true;
-
-    return false;
-}
 //////////////////////////////////////////////////////////////////////////
 std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
                                                                const AnalyzeType type) {

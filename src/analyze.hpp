@@ -31,7 +31,6 @@
 #define ANALYZE_HPP_
 
 #include <engextcpp.hpp>
-#include <bprinter/table_printer.h>
 
 #include <string>
 #include <sstream>
@@ -45,121 +44,12 @@
 #include "manipulators.hpp"
 #include "objhelper.hpp"
 #include "symcache.hpp"
+#include "whitelist.hpp"
+#include "bproxy.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
-// white list range
-//////////////////////////////////////////////////////////////////////////
-class WDbgArkAnalyzeWhiteList {
- public:
-    using Range = std::pair<uint64_t, uint64_t>;                        // start, end
-    using Ranges = std::set<Range>;
-    using WhiteListEntry = std::vector<std::string>;
-    using WhiteListEntries = std::map<std::string, WhiteListEntry>;     // some name : vector of module names
-
-    WDbgArkAnalyzeWhiteList() = delete;
-    explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_sym_cache(sym_cache) {}
-    virtual ~WDbgArkAnalyzeWhiteList() {}
-
-    //////////////////////////////////////////////////////////////////////////
-    // permanent list
-    //////////////////////////////////////////////////////////////////////////
-    void AddRangeWhiteList(const uint64_t start, const uint64_t end) {
-        AddRangeWhiteListInternal(start, end, &m_ranges);
-    }
-
-    void AddRangeWhiteList(const uint64_t start, const uint32_t size) {
-        AddRangeWhiteList(start, start + size);
-    }
-
-    bool AddRangeWhiteList(const std::string &module_name) {
-        return AddRangeWhiteListInternal(module_name, &m_ranges);
-    }
-
-    bool AddSymbolWhiteList(const std::string &symbol_name, const uint32_t size) {
-        return AddSymbolWhiteListInternal(symbol_name, size, &m_ranges);
-    }
-
-    //////////////////////////////////////////////////////////////////////////
-    // temp list
-    //////////////////////////////////////////////////////////////////////////
-    void AddTempRangeWhiteList(const uint64_t start, const uint64_t end) {
-        AddRangeWhiteListInternal(start, end, &m_temp_ranges);
-    }
-
-    void AddTempRangeWhiteList(const uint64_t start, const uint32_t size) {
-        AddTempRangeWhiteList(start, start + size);
-    }
-
-    bool AddTempRangeWhiteList(const std::string &module_name) {
-        return AddRangeWhiteListInternal(module_name, &m_temp_ranges);
-    }
-
-    bool AddTempSymbolWhiteList(const std::string &symbol_name, const uint32_t size) {
-        return AddSymbolWhiteListInternal(symbol_name, size, &m_temp_ranges);
-    }
-
-    void SetWhiteListEntries(const WhiteListEntries &entries) {
-        InvalidateWhiteListEntries();
-        m_wl_entries = entries;
-    }
-
-    const WhiteListEntries& GetWhiteListEntries(void) const { return m_wl_entries; }
-
-    void AddTempWhiteList(const std::string &name);
-
-    //////////////////////////////////////////////////////////////////////////
-    // invalidate lists
-    //////////////////////////////////////////////////////////////////////////
-    void InvalidateRanges(void) { m_ranges.clear(); }
-    void InvalidateTempRanges(void) { m_temp_ranges.clear(); }
-    void InvalidateWhiteListEntries(void) { m_wl_entries.clear(); }
-
-    //////////////////////////////////////////////////////////////////////////
-    // check
-    //////////////////////////////////////////////////////////////////////////
-    bool IsAddressInWhiteList(const uint64_t address) const;
-
- private:
-    Ranges m_ranges{};
-    Ranges m_temp_ranges{};
-    WhiteListEntries m_wl_entries{};
-    std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
-    std::stringstream err{};
-
- private:
-    void AddRangeWhiteListInternal(const uint64_t start, const uint64_t end, Ranges* ranges) {
-        ranges->insert({ start, end });
-    }
-
-    bool AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges);
-    bool AddSymbolWhiteListInternal(const std::string &symbol_name, const uint32_t size, Ranges* ranges);
-};
-//////////////////////////////////////////////////////////////////////////
 // analyze, display, print
-//////////////////////////////////////////////////////////////////////////
-class WDbgArkBPProxy {
- public:
-     virtual ~WDbgArkBPProxy() {}
-
-     virtual void PrintHeader(void) { m_tp->PrintHeader(); }
-     virtual void PrintFooter(void) { m_tp->PrintFooter(); }
-     virtual void AddColumn(const std::string &header_name, const int column_width) {
-         m_tp->AddColumn(header_name, column_width);
-     }
-     virtual void FlushOut(void) { m_tp->flush_out(); }
-     virtual void FlushWarn(void) { m_tp->flush_warn(); }
-     virtual void FlushErr(void) { m_tp->flush_err(); }
-
-     template<typename T> WDbgArkBPProxy& operator<<(T input) {
-         *m_tp << input;
-         return *this;
-     }
-
- protected:
-    std::stringstream m_bprinter_out{};
-    std::unique_ptr<bprinter::TablePrinter> m_tp = std::make_unique<bprinter::TablePrinter>(&m_bprinter_out);
-};
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList {
  public:
@@ -209,8 +99,8 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
     WDbgArkAnalyzeBase& operator=(WDbgArkAnalyzeBase const&) = delete;
 
  protected:
-    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
-    std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
+    std::unique_ptr<WDbgArkObjHelper> m_obj_helper{ nullptr };
 
  private:
     using ObjDmlCmd = std::tuple<std::string, std::string, std::string>;
