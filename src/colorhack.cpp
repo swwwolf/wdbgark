@@ -156,7 +156,7 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         if ( !IsWinDbgWindow() )
             throw ExtStatusException(S_OK, "Can't find WinDBG window");
 
-        std::unique_ptr<char[]> module_file_name(new char[MAX_PATH]);
+        auto module_file_name = std::make_unique<char[]>(MAX_PATH);
         if ( !GetModuleFileName(GetModuleHandle(nullptr), module_file_name.get(), MAX_PATH) )
             throw ExtStatusException(S_OK, "Can't get module file name");
 
@@ -289,7 +289,7 @@ BOOL CALLBACK WDbgArkColorHack::EnumWindowsProc(HWND hwnd, LPARAM lParam) {
             size_t window_text_len = static_cast<size_t>(GetWindowTextLength(top_window));
 
             if ( window_text_len ) {
-                std::unique_ptr<char[]> test_name(new char[window_text_len]);
+                auto test_name = std::make_unique<char[]>(window_text_len);
 
                 if ( GetWindowText(top_window, test_name.get(), static_cast<int>(window_text_len)) ) {
                     std::string window_text_name = test_name.get();
@@ -324,7 +324,7 @@ bool WDbgArkColorHack::GetFileVersion(const std::string& file_path, uint16_t* ma
         return false;
     }
 
-    std::unique_ptr<char[]> version_data(new char[file_version_size]);
+    auto version_data = std::make_unique<char[]>(file_version_size);
 
     if ( !GetFileVersionInfo(file_path.c_str(), 0, file_version_size, version_data.get()) ) {
         err << wa::showminus << __FUNCTION__ << ": GetFileVersionInfo failed" << endlerr;

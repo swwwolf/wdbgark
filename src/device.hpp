@@ -52,13 +52,10 @@ class WDbgArkDevice {
     const DevicesInformation& Get(void) const { return m_devices_list; }
 
  private:
-    bool m_inited;
-    DevicesInformation m_devices_list;
-    std::unique_ptr<WDbgArkObjHelper> m_obj_helper;
-    //////////////////////////////////////////////////////////////////////////
-    // output streams
-    //////////////////////////////////////////////////////////////////////////
-    std::stringstream err;
+    bool m_inited = false;
+    DevicesInformation m_devices_list{};
+    std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};
+    std::stringstream err{};
 };
 
 }   // namespace wa

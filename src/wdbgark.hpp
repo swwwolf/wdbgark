@@ -231,7 +231,7 @@ class WDbgArk : public ExtExtension {
     ScanCommands m_scan_commands{};
     callbacksInfo m_system_cb_commands{};
     std::vector<DEBUG_MODULE_AND_ID> m_synthetic_symbols{};
-    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ new WDbgArkSymCache };
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache = std::make_shared<WDbgArkSymCache>();
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};
     std::unique_ptr<WDbgArkColorHack> m_color_hack{};
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{};

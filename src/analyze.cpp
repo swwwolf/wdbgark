@@ -111,28 +111,28 @@ std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared
                                                                const AnalyzeType type) {
     switch ( type ) {
         case AnalyzeType::AnalyzeTypeCallback:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeCallback(sym_cache));
+            return std::make_unique<WDbgArkAnalyzeCallback>(sym_cache);
         break;
 
         case AnalyzeType::AnalyzeTypeObjType:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeObjType(sym_cache));
+            return std::make_unique<WDbgArkAnalyzeObjType>(sym_cache);
         break;
 
         case AnalyzeType::AnalyzeTypeIDT:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeIDT(sym_cache));
+            return std::make_unique<WDbgArkAnalyzeIDT>(sym_cache);
         break;
 
         case AnalyzeType::AnalyzeTypeGDT:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeGDT(sym_cache));
+            return std::make_unique<WDbgArkAnalyzeGDT>(sym_cache);
         break;
 
         case AnalyzeType::AnalyzeTypeDriver:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDriver(sym_cache));
+            return std::make_unique<WDbgArkAnalyzeDriver>(sym_cache);
         break;
 
         case AnalyzeType::AnalyzeTypeDefault:
         default:
-            return std::unique_ptr<WDbgArkAnalyzeBase>(new WDbgArkAnalyzeDefault(sym_cache));
+            return std::make_unique<WDbgArkAnalyzeDefault>(sym_cache);
         break;
     }
 }

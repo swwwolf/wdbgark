@@ -56,7 +56,7 @@ std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped
         if ( maxlen >= sizeof(wchar_t) && (maxlen % sizeof(wchar_t) == 0) ) {
             uint16_t max_len_wide = maxlen / sizeof(wchar_t) + 1;
 
-            std::unique_ptr<wchar_t[]> test_name(new wchar_t[max_len_wide]);
+            auto test_name = std::make_unique<wchar_t[]>(max_len_wide);
             std::memset(test_name.get(), 0, max_len_wide * sizeof(wchar_t));
 
             uint32_t read = buffer.ReadBuffer(test_name.get(), maxlen, true);

@@ -76,7 +76,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     else
         resource_name = MAKEINTRESOURCE(IDR_RT_RCDATA1);
 
-    std::unique_ptr<WDbgArkResHelper> res_helper(new WDbgArkResHelper);
+    auto res_helper = std::make_unique<WDbgArkResHelper>();
 
     if ( !res_helper->DropResource(resource_name, "RT_RCDATA", m_dummy_pdb_name_long) ) {
         err << wa::showminus << __FUNCTION__ << ": DropResource failed" << endlerr;

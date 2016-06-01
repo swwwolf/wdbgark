@@ -31,10 +31,7 @@
 namespace wa {
 
 WDbgArkDevice::WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
-    : m_inited(false),
-      m_devices_list(),
-      m_obj_helper(new WDbgArkObjHelper(sym_cache)),
-      err() {
+    : m_obj_helper(std::make_unique<WDbgArkObjHelper>(sym_cache)) {
     if ( !m_obj_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to initialize WDbgArkObjHelper" << endlerr;
         return;

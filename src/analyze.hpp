@@ -58,7 +58,7 @@ class WDbgArkAnalyzeWhiteList {
     using WhiteListEntries = std::map<std::string, WhiteListEntry>;     // some name : vector of module names
 
     WDbgArkAnalyzeWhiteList() = delete;
-    explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_sym_cache(sym_cache) {}  
+    explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_sym_cache(sym_cache) {}
     virtual ~WDbgArkAnalyzeWhiteList() {}
 
     //////////////////////////////////////////////////////////////////////////
@@ -158,7 +158,7 @@ class WDbgArkBPProxy {
 
  protected:
     std::stringstream m_bprinter_out{};
-    std::unique_ptr<bprinter::TablePrinter> m_tp{ new bprinter::TablePrinter(&m_bprinter_out) };
+    std::unique_ptr<bprinter::TablePrinter> m_tp = std::make_unique<bprinter::TablePrinter>(&m_bprinter_out);
 };
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList {
@@ -175,7 +175,7 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
     explicit WDbgArkAnalyzeBase(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
         : WDbgArkAnalyzeWhiteList(sym_cache),
           m_sym_cache(sym_cache),
-          m_obj_helper(new WDbgArkObjHelper(sym_cache)) {}
+          m_obj_helper(std::make_unique<WDbgArkObjHelper>(sym_cache)) {}
     virtual ~WDbgArkAnalyzeBase() {}
 
     template<typename T> WDbgArkAnalyzeBase& operator<<(T input) {

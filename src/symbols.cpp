@@ -49,7 +49,7 @@ bool WDbgArkSymbolsBase::InitSymbolPath() {
     HRESULT result = g_Ext->m_Symbols->GetSymbolPath(nullptr, 0, &sym_buf_size);
 
     if ( SUCCEEDED(result) ) {
-        std::unique_ptr<char[]> sym_path_buf(new char[static_cast<size_t>(sym_buf_size)]);
+        auto sym_path_buf = std::make_unique<char[]>(static_cast<size_t>(sym_buf_size));
 
         result = g_Ext->m_Symbols->GetSymbolPath(sym_path_buf.get(), sym_buf_size, &sym_buf_size);
 
@@ -71,7 +71,7 @@ bool WDbgArkSymbolsBase::InitImagePath() {
     HRESULT result = g_Ext->m_Symbols->GetImagePath(nullptr, 0, &img_buf_size);
 
     if ( SUCCEEDED(result) ) {
-        std::unique_ptr<char[]> img_path_buf(new char[static_cast<size_t>(img_buf_size)]);
+        std::unique_ptr<char[]> img_path_buf = std::make_unique<char[]>(static_cast<size_t>(img_buf_size));
 
         result = g_Ext->m_Symbols->GetImagePath(img_path_buf.get(), img_buf_size, &img_buf_size);
 
@@ -237,19 +237,16 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
                                                   reinterpret_cast<PULONG>(&loaded_module_name_size));
 
         if ( SUCCEEDED(result) ) {
-            std::unique_ptr<char[]> buf1;
             size_t img_name_buf_length = static_cast<size_t>(img_name_size + 1);
-            buf1.reset(new char[img_name_buf_length]);
+            auto buf1 = std::make_unique<char[]>(img_name_buf_length);
             std::memset(buf1.get(), 0, img_name_buf_length);
 
-            std::unique_ptr<char[]> buf2;
             size_t module_name_buf_length = static_cast<size_t>(module_name_size + 1);
-            buf2.reset(new char[module_name_buf_length]);
+            auto buf2 = std::make_unique<char[]>(module_name_buf_length);
             std::memset(buf2.get(), 0, module_name_buf_length);
 
-            std::unique_ptr<char[]> buf3;
             size_t loaded_module_name_buf_length = static_cast<size_t>(loaded_module_name_size + 1);
-            buf3.reset(new char[loaded_module_name_buf_length]);
+            auto buf3 = std::make_unique<char[]>(loaded_module_name_buf_length);
             std::memset(buf3.get(), 0, loaded_module_name_buf_length);
 
             result = g_Ext->m_Symbols->GetModuleNames(index,
@@ -335,7 +332,7 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetNameByOffset(const uint6
 
     if ( SUCCEEDED(result) && name_buffer_size ) {
         size_t buf_size = static_cast<size_t>(name_buffer_size + 1);
-        std::unique_ptr<char[]> tmp_name(new char[buf_size]);
+        auto tmp_name = std::make_unique<char[]>(buf_size);
         std::memset(tmp_name.get(), 0, buf_size);
 
         ignore_output.Start();
@@ -423,7 +420,7 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetModuleNameString(const u
         return std::make_pair(E_NOT_SET, m_unknown_name);
 
     len++;
-    std::unique_ptr<char[]> tmp_name(new char[static_cast<size_t>(len)]);
+    auto tmp_name = std::make_unique<char[]>(static_cast<size_t>(len));
     std::memset(tmp_name.get(), 0, static_cast<size_t>(len));
 
     result = g_Ext->m_Symbols2->GetModuleNameString(type,

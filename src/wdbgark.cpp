@@ -63,7 +63,7 @@ bool WDbgArk::Init() {
     m_is_cur_machine64 = IsCurMachine64();
 
     // get system version
-    m_system_ver.reset(new WDbgArkSystemVer);
+    m_system_ver = std::make_unique<WDbgArkSystemVer>();
 
     if ( !m_system_ver->IsInited() ) {
         err << wa::showminus << __FUNCTION__ ": WDbgArkSystemVer init failed" << endlerr;
@@ -74,23 +74,23 @@ bool WDbgArk::Init() {
 
     m_Symbols->Reload("");  // revise debuggee modules list
 
-    m_symbols_base.reset(new WDbgArkSymbolsBase);
+    m_symbols_base = std::make_shared<WDbgArkSymbolsBase>();
 
     if ( !m_symbols_base->CheckMsSymbolsPath() )
         warn << wa::showqmark << __FUNCTION__ ": CheckMsSymbolsPath failed" << endlwarn;
 
     // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized
-    m_obj_helper.reset(new WDbgArkObjHelper(m_sym_cache));
+    m_obj_helper = std::make_unique<WDbgArkObjHelper>(m_sym_cache);
 
     if ( !m_obj_helper->IsInited() )
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkObjHelper init failed" << endlwarn;
 
-    m_color_hack.reset(new WDbgArkColorHack);
+    m_color_hack = std::make_unique<WDbgArkColorHack>();
 
     if ( !m_color_hack->IsInited() )
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkColorHack init failed" << endlwarn;
 
-    m_dummy_pdb.reset(new WDbgArkDummyPdb);
+    m_dummy_pdb = std::make_shared<WDbgArkDummyPdb>();
 
     if ( !m_dummy_pdb->IsInited() )
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;

@@ -45,7 +45,7 @@ EXT_COMMAND(wa_drvmajor,
 
     out << wa::showplus << __FUNCTION__ << ": displaying " << name << endlout;
 
-    std::unique_ptr<WDbgArkDriver> drivers(new WDbgArkDriver(m_sym_cache));
+    auto drivers = std::make_unique<WDbgArkDriver>(m_sym_cache);
 
     if ( !drivers->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to initialize WDbgArkDriver" << endlerr;

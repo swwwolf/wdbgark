@@ -32,17 +32,14 @@
 namespace wa {
 
 WDbgArkDriver::WDbgArkDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
-    : m_inited(false),
-      m_drivers_list(),
-      m_sym_cache(sym_cache),
-      m_obj_helper(new WDbgArkObjHelper(m_sym_cache)),
-      err() {
+    : m_sym_cache(sym_cache),
+      m_obj_helper(std::make_unique<WDbgArkObjHelper>(m_sym_cache)) {
     if ( !m_obj_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to initialize WDbgArkObjHelper" << endlerr;
         return;
     }
 
-    std::unique_ptr<WDbgArkDevice> devices(new WDbgArkDevice(m_sym_cache));
+    auto devices = std::make_unique<WDbgArkDevice>(m_sym_cache);
 
     if ( !devices->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to initialize WDbgArkDevice" << endlerr;

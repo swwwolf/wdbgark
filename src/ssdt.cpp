@@ -121,7 +121,7 @@ EXT_COMMAND(wa_w32psdt,
 
     out << wa::showplus << "Displaying win32k!W32pServiceTable" << endlout;
 
-    std::unique_ptr<WDbgArkProcess> process_helper(new WDbgArkProcess);
+    auto process_helper = std::make_unique<WDbgArkProcess>();
     uint64_t set_eprocess = 0;
 
     if ( HasArg("process") )
@@ -195,7 +195,7 @@ EXT_COMMAND(wa_w32psdtflt,
         return;
     }
 
-    std::unique_ptr<WDbgArkProcess> process_helper(new WDbgArkProcess);
+    auto process_helper = std::make_unique<WDbgArkProcess>();
     uint64_t set_eprocess = 0;
 
     if ( HasArg("process") )

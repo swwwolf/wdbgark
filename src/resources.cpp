@@ -41,7 +41,7 @@ WDbgArkResHelper::WDbgArkResHelper() : m_main_subdir("wdbgark"),
     else
         m_platform_subdir = "x64";
 
-    std::unique_ptr<char[]> tmp_path(new char[MAX_PATH + 1]);
+    auto tmp_path = std::make_unique<char[]>(MAX_PATH + 1);
 
     if ( GetTempPath(MAX_PATH + 1, tmp_path.get()) ) {
         m_temp_path = tmp_path.get();
@@ -98,7 +98,7 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
         return false;
     }
 
-    std::unique_ptr<char[]> error_msg(new char[MAX_PATH]);
+    auto error_msg = std::make_unique<char[]>(MAX_PATH);
     std::string file_path = m_temp_path + file_name;
     std::ofstream drop(file_path, std::ios::out | std::ios::binary | std::ios::trunc);
 
