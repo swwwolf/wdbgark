@@ -217,11 +217,16 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
 
         WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
+        std::string parse_procedure_name("ParseProcedure");
+
+        if ( obj_type_info.HasField("ObjectTypeFlags2") && obj_type_info.Field("UseExtendedParameters").GetUchar() & 1 )
+            parse_procedure_name = "ParseProcedureEx";
+
         display->Analyze(obj_type_info.Field("DumpProcedure").GetPtr(), "DumpProcedure", "");
         display->Analyze(obj_type_info.Field("OpenProcedure").GetPtr(), "OpenProcedure", "");
         display->Analyze(obj_type_info.Field("CloseProcedure").GetPtr(), "CloseProcedure", "");
         display->Analyze(obj_type_info.Field("DeleteProcedure").GetPtr(), "DeleteProcedure", "");
-        display->Analyze(obj_type_info.Field("ParseProcedure").GetPtr(), "ParseProcedure", "");
+        display->Analyze(obj_type_info.Field(parse_procedure_name.c_str()).GetPtr(), parse_procedure_name.c_str(), "");
         display->Analyze(obj_type_info.Field("SecurityProcedure").GetPtr(), "SecurityProcedure", "");
         display->Analyze(obj_type_info.Field("SecurityProcedure").GetPtr(), "QueryNameProcedure", "");
         PrintFooter();
