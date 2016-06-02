@@ -50,7 +50,7 @@ void DisplayServiceTable(const uint64_t offset,
             address = ExtRemoteData(offset + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize).GetPtr();
         }
 
-        display->Analyze(address, get_service_table_routine_name(build, type, i), "");
+        display->Analyze(address, get_service_table_routine_name(build, type, i));
         display->PrintFooter();
     }
 }
@@ -63,7 +63,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
 
     out << wa::showplus << "Displaying nt!KiServiceTable" << endlout;
 
-    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeSDT);
 
     if ( !display->AddRangeWhiteList("nt") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -132,7 +132,7 @@ EXT_COMMAND(wa_w32psdt,
     if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) )
         throw ExtStatusException(S_OK, "failed to set process");
 
-    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeSDT);
 
     if ( !display->AddRangeWhiteList("win32k") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -206,7 +206,7 @@ EXT_COMMAND(wa_w32psdtflt,
     if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) )
         throw ExtStatusException(S_OK, "failed to set process");
 
-    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeSDT);
 
     if ( !display->AddRangeWhiteList("win32k") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;

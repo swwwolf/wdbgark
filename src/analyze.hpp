@@ -55,6 +55,7 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
  public:
     enum class AnalyzeType {
         AnalyzeTypeDefault,
+        AnalyzeTypeSDT,
         AnalyzeTypeCallback,
         AnalyzeTypeObjType,
         AnalyzeTypeIDT,
@@ -81,6 +82,10 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
     //////////////////////////////////////////////////////////////////////////
     virtual bool IsSuspiciousAddress(const uint64_t address) const;
     virtual void Analyze(const uint64_t address, const std::string &type, const std::string &additional_info);
+    virtual void Analyze(const uint64_t, const std::string&) {
+        std::stringstream locerr;
+        locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+    }
     virtual void Analyze(const ExtRemoteTyped&, const ExtRemoteTyped&) {
         std::stringstream locerr;
         locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
@@ -123,6 +128,19 @@ class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
  public:
     explicit WDbgArkAnalyzeDefault(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     virtual ~WDbgArkAnalyzeDefault() {}
+};
+//////////////////////////////////////////////////////////////////////////
+// Service table analyzer
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeSDT : public WDbgArkAnalyzeBase {
+ public:
+    explicit WDbgArkAnalyzeSDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
+    virtual ~WDbgArkAnalyzeSDT() {}
+
+    virtual void Analyze(const uint64_t address, const std::string &type);
+
+ private:
+    uint64_t index = 0;
 };
 //////////////////////////////////////////////////////////////////////////
 // Callback analyzer

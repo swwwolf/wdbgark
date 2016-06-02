@@ -37,6 +37,10 @@ namespace wa {
 std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
                                                                const AnalyzeType type) {
     switch ( type ) {
+        case AnalyzeType::AnalyzeTypeSDT:
+            return std::make_unique<WDbgArkAnalyzeSDT>(sym_cache);
+        break;
+
         case AnalyzeType::AnalyzeTypeCallback:
             return std::make_unique<WDbgArkAnalyzeCallback>(sym_cache);
         break;
@@ -180,6 +184,25 @@ WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault(const std::shared_ptr<WDbgArkSymCac
     AddColumn("Symbol", 68);
     AddColumn("Module", 16);
     AddColumn("Suspicious", 10);
+}
+//////////////////////////////////////////////////////////////////////////
+WDbgArkAnalyzeSDT::WDbgArkAnalyzeSDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache) {
+    // width = 185
+    AddColumn("#", 5);
+    AddColumn("Address", 18);
+    AddColumn("Name", 68);
+    AddColumn("Symbol", 68);
+    AddColumn("Module", 16);
+    AddColumn("Suspicious", 10);
+}
+void WDbgArkAnalyzeSDT::Analyze(const uint64_t address, const std::string &type) {
+    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+
+    std::stringstream str_index;
+    str_index << std::hex << index++;
+    *this << str_index.str();
+    display->Analyze(address, type, "");
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
