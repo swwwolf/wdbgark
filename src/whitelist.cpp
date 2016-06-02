@@ -188,7 +188,8 @@ WDbgArkAnalyzeWhiteList::WhiteListEntries GetObjectTypesWhiteList() {
         { "pcwobject", { "pcw" } },
         { "filterconnectionport", { "fltmgr" } },
         { "filtercommunicationport", { "fltmgr" } },
-        { "virtualkey", { "registry" } }
+        { "virtualkey", { "registry" } },
+        { "ndiscmstate", { "ndis" } }
     };
 }
 
