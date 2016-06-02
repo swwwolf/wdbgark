@@ -289,6 +289,11 @@ EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "")
         return;
     }
 
+    if ( FAILED(m_Symbols3->GetModuleByModuleName2("lxcore", 0UL, 0UL, nullptr, nullptr)) ) {
+        out << wa::showplus << __FUNCTION__ << ": LXCORE module not found" << endlout;
+        return;
+    }
+
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     if ( !display->AddRangeWhiteList("lxcore") )
