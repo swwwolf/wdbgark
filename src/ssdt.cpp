@@ -294,7 +294,7 @@ EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "")
         return;
     }
 
-    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeSDT);
 
     if ( !display->AddRangeWhiteList("lxcore") )
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
@@ -327,8 +327,7 @@ EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "")
 
         for ( const auto &walk_info : output_list ) {
             display->Analyze(walk_info.address,
-                             get_service_table_routine_name(m_system_ver->GetStrictVer(), LxpSyscalls_x64, i),
-                             walk_info.info);
+                             get_service_table_routine_name(m_system_ver->GetStrictVer(), LxpSyscalls_x64, i));
             display->PrintFooter();
             i++;
         }
