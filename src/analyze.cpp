@@ -97,7 +97,28 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
         if ( !SUCCEEDED(symbols_base.GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) )
             suspicious = true;
 
-        module_command_buf << "<exec cmd=\"lmvm " << module_name << "\">" << std::setw(16) << module_name << "</exec>";
+        module_command_buf << "<link cmd=\"lmDvm " << module_name << "\">" << std::setw(16) << module_name;
+        module_command_buf << "<altlink name=\"Dump module (" << module_name << ")\"";
+
+        uint64_t base = 0;
+        uint32_t size = 0;
+
+        if ( SUCCEEDED(symbols_base.GetModuleStartSize(address, &base, &size)) ) {
+            module_command_buf << "cmd=\".writemem ";
+
+            char current_dir[MAX_PATH];
+            if ( GetCurrentDirectory(MAX_PATH, current_dir) && GetShortPathName(current_dir, current_dir, MAX_PATH) )
+                module_command_buf << current_dir << "\\";
+
+            module_command_buf << module_name << "_" << std::hex << base << "_" << std::hex << size << ".bin" << " ";
+            module_command_buf << std::hex << std::showbase << base << " ";
+            module_command_buf << "L?" << std::hex << std::showbase << size;
+            module_command_buf << "\" />";
+        } else {
+            module_command_buf << "cmd=\"*ERROR*\" />";
+        }
+
+        module_command_buf << "</link>";
 
         std::pair<HRESULT, std::string> result = symbols_base.GetNameByOffset(address);
 

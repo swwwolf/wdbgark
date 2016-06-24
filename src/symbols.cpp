@@ -280,6 +280,35 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
     return result;
 }
 //////////////////////////////////////////////////////////////////////////
+HRESULT WDbgArkSymbolsBase::GetModuleStartSize(const uint64_t address, uint64_t* start, uint32_t* size) {
+    if ( !address )
+        return E_INVALIDARG;
+
+    ExtCaptureOutputA ignore_output;
+    ignore_output.Start();
+
+    uint32_t index = 0;
+    uint64_t base = 0;
+    HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address, 0, reinterpret_cast<PULONG>(&index), &base);
+
+    if ( FAILED(result) )
+        return result;
+
+    DEBUG_MODULE_PARAMETERS parameters;
+    result = g_Ext->m_Symbols->GetModuleParameters(1, &base, 0, &parameters);
+
+    if ( FAILED(result) )
+        return result;
+
+    if ( parameters.Base == DEBUG_INVALID_OFFSET )
+        return E_POINTER;
+
+    *start = base;
+    *size = parameters.Size;
+
+    return S_OK;
+}
+//////////////////////////////////////////////////////////////////////////
 bool WDbgArkSymbolsBase::CheckMsSymbolsPath() {
     bool result = false;
 
@@ -376,6 +405,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetModuleImagePath(const ui
         if ( FAILED(result) )
             return std::make_pair(result, m_unknown_name);
 
+        if ( parameters.Base == DEBUG_INVALID_OFFSET )
+            return std::make_pair(E_POINTER, m_unknown_name);
+
         if ( parameters.Flags & DEBUG_MODULE_UNLOADED )
             return std::make_pair(E_NOT_SET, m_unknown_name);
     }
@@ -439,6 +471,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindModuleImage(const uint6
 
     if ( FAILED(result) )
         return std::make_pair(result, m_unknown_name);
+
+    if ( parameters.Base == DEBUG_INVALID_OFFSET )
+        return std::make_pair(E_POINTER, m_unknown_name);
 
     std::string image_name;
     std::string module_name;
