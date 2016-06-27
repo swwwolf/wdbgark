@@ -46,6 +46,7 @@
 #include "symcache.hpp"
 #include "whitelist.hpp"
 #include "bproxy.hpp"
+#include "symbols.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -99,6 +100,9 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList 
         locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
     virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
+    virtual std::string GetModuleDmlCmd(const uint64_t address,
+                                        const std::string &module_name,
+                                        const WDbgArkSymbolsBase &symbols_base);
 
     WDbgArkAnalyzeBase(WDbgArkAnalyzeBase const&) = delete;
     WDbgArkAnalyzeBase& operator=(WDbgArkAnalyzeBase const&) = delete;

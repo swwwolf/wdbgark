@@ -85,7 +85,7 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
     std::string module_name;
     std::string image_name;
     std::string loaded_image_name;
-    std::stringstream module_command_buf;
+    std::string module_command_buf;
 
     bool suspicious = IsSuspiciousAddress(address);
 
@@ -94,31 +94,11 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
         module_name = "*UNKNOWN*";
 
         WDbgArkSymbolsBase symbols_base;
+
         if ( !SUCCEEDED(symbols_base.GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) )
             suspicious = true;
 
-        module_command_buf << "<link cmd=\"lmDvm " << module_name << "\">" << std::setw(16) << module_name;
-        module_command_buf << "<altlink name=\"Dump module (" << module_name << ")\"";
-
-        uint64_t base = 0;
-        uint32_t size = 0;
-
-        if ( SUCCEEDED(symbols_base.GetModuleStartSize(address, &base, &size)) ) {
-            module_command_buf << "cmd=\".writemem ";
-
-            char current_dir[MAX_PATH];
-            if ( GetCurrentDirectory(MAX_PATH, current_dir) && GetShortPathName(current_dir, current_dir, MAX_PATH) )
-                module_command_buf << current_dir << "\\";
-
-            module_command_buf << module_name << "_" << std::hex << base << "_" << std::hex << size << ".bin" << " ";
-            module_command_buf << std::hex << std::showbase << base << " ";
-            module_command_buf << "L?" << std::hex << std::showbase << size;
-            module_command_buf << "\" />";
-        } else {
-            module_command_buf << "cmd=\"*ERROR*\" />";
-        }
-
-        module_command_buf << "</link>";
+        module_command_buf = GetModuleDmlCmd(address, module_name, symbols_base);
 
         std::pair<HRESULT, std::string> result = symbols_base.GetNameByOffset(address);
 
@@ -138,7 +118,7 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
     if ( address )
         addr_ext << "</exec>";
 
-    *m_tp << addr_ext.str() << type << symbol_name << module_command_buf.str();
+    *m_tp << addr_ext.str() << type << symbol_name << module_command_buf;
 
     if ( suspicious )
         *m_tp << "Y";
@@ -195,6 +175,37 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
 
     *this << object_command.str() << object_name_ext.str();
     m_tp->flush_out();
+}
+//////////////////////////////////////////////////////////////////////////
+std::string WDbgArkAnalyzeBase::GetModuleDmlCmd(const uint64_t address,
+                                                const std::string &module_name,
+                                                const WDbgArkSymbolsBase &symbols_base) {
+    std::stringstream module_command_buf;
+
+    module_command_buf << "<link cmd=\"lmDvm " << module_name << "\">" << std::setw(16) << module_name;
+    module_command_buf << "<altlink name=\"Dump module (" << module_name << ")\"";
+
+    uint64_t base = 0;
+    uint32_t size = 0;
+
+    if ( SUCCEEDED(symbols_base.GetModuleStartSize(address, &base, &size)) ) {
+        module_command_buf << "cmd=\".writemem ";
+
+        char current_dir[MAX_PATH];
+        if ( GetCurrentDirectory(MAX_PATH, current_dir) && GetShortPathName(current_dir, current_dir, MAX_PATH) )
+            module_command_buf << current_dir << "\\";
+
+        module_command_buf << module_name << "_" << std::hex << base << "_" << std::hex << size << ".bin" << " ";
+        module_command_buf << std::hex << std::showbase << base << " ";
+        module_command_buf << "L?" << std::hex << std::showbase << size;
+        module_command_buf << "\" />";
+    } else {
+        module_command_buf << "cmd=\"*ERROR*\" />";
+    }
+
+    module_command_buf << "</link>";
+
+    return module_command_buf.str();
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault(const std::shared_ptr<WDbgArkSymCache> &sym_cache)

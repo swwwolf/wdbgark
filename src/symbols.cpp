@@ -280,7 +280,7 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
     return result;
 }
 //////////////////////////////////////////////////////////////////////////
-HRESULT WDbgArkSymbolsBase::GetModuleStartSize(const uint64_t address, uint64_t* start, uint32_t* size) {
+HRESULT WDbgArkSymbolsBase::GetModuleStartSize(const uint64_t address, uint64_t* start, uint32_t* size) const {
     if ( !address )
         return E_INVALIDARG;
 
