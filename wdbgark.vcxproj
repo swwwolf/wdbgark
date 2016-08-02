@@ -245,6 +245,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="COPYING" />
+    <None Include="dummypdb_build\Release\dummypdb_x86.pdb" />
+    <None Include="dummypdb_build\x64\Release\dummypdb_x64.pdb" />
     <None Include="README.html" />
     <None Include="README.md" />
     <None Include="src\wdbgark.def" />

@@ -52,7 +52,7 @@ namespace wa {
 #define W81RTM_VER      9600    // Windows 8.1 RTM
 #define W10RTM_VER      10240   // Windows 10 RTM
 #define W10TH2_VER      10586   // Windows 10 TH2
-#define W10RS1_VER      16000   // Windows 10 RS1 TODO(swwwolf): fix it
+#define W10RS1_VER      14393   // Windows 10 RS1
 
 //////////////////////////////////////////////////////////////////////////
 // drivers
