@@ -49,7 +49,6 @@ class WDbgArkSystemVer {
 
  private:
      bool SetWindowsStrictMinorBuild(void);
-     void InitKnownWindowsBuilds(void);
 
  private:
     bool m_inited = false;

@@ -37,6 +37,9 @@
     <Filter Include="Header Files\Analyze">
       <UniqueIdentifier>{18ae3e2e-ee9d-49a9-b9a5-4933ca428d01}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\engextcpp">
+      <UniqueIdentifier>{06fadfc8-2bc3-4e90-8fb9-6395755a0190}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\bprinter\src\table_printer.cpp">
@@ -158,6 +161,9 @@
     </ClCompile>
     <ClCompile Include="src\whitelist.cpp">
       <Filter>Source Files\Support\Analyze</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engextcpp\engextcpp.cpp">
+      <Filter>Source Files\engextcpp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
