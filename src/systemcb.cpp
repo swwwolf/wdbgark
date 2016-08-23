@@ -256,10 +256,24 @@ uint32_t GetCmCallbackItemFunctionOffset() {
 // http://redplait.blogspot.ru/2012/10/poregisterpowersettingcallback-callbacks.html
 //////////////////////////////////////////////////////////////////////////
 uint32_t GetPowerCallbackItemFunctionOffset() {
-    if ( !g_Ext->IsCurMachine64() )
-        return 0x28;
+    WDbgArkSystemVer system_ver;
 
-    return 0x40;
+    if ( !system_ver.IsInited() )
+        return 0;
+
+    if ( system_ver.GetStrictVer() >= W10RS1_VER ) {
+        if ( !g_Ext->IsCurMachine64() )
+            return 0x38;
+        else
+            return 0x50;
+    } else {
+        if ( !g_Ext->IsCurMachine64() )
+            return 0x28;
+        else
+            return 0x40;
+    }
+
+    return 0;
 }
 //////////////////////////////////////////////////////////////////////////
 uint32_t GetPnpCallbackItemFunctionOffset() {

@@ -169,7 +169,8 @@ WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList() {
         { "nativewifip", { "ndis" } },
         { "vmsp", { "ndis" } },
         { "lxss", { "lxcore" } },
-        { "usbaudio", { "ks" } }
+        { "usbaudio", { "ks" } },
+        { "wscvreg", { "nt" } }
     };
 }
 
