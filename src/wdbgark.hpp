@@ -210,7 +210,7 @@ class WDbgArk : public ExtExtension {
     //////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////
-    void CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
+    void CallCorrespondingWalkListRoutine(const CallbacksInfo::const_iterator &citer,
                                           walkresType* output_list);
     //////////////////////////////////////////////////////////////////////////
     // private inits
@@ -229,14 +229,14 @@ class WDbgArk : public ExtExtension {
     bool m_inited = false;
     bool m_is_cur_machine64 = false;
     ScanCommands m_scan_commands{};
-    callbacksInfo m_system_cb_commands{};
+    CallbacksInfo m_system_cb_commands{};
     std::vector<DEBUG_MODULE_AND_ID> m_synthetic_symbols{};
     std::shared_ptr<WDbgArkSymCache> m_sym_cache = std::make_shared<WDbgArkSymCache>();
-    std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};
-    std::unique_ptr<WDbgArkColorHack> m_color_hack{};
-    std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{};
-    std::unique_ptr<WDbgArkSystemVer> m_system_ver{};
-    std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{};
+    std::unique_ptr<WDbgArkObjHelper> m_obj_helper{ nullptr };
+    std::unique_ptr<WDbgArkColorHack> m_color_hack{ nullptr };
+    std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
+    std::unique_ptr<WDbgArkSystemVer> m_system_ver{ nullptr };
+    std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{ nullptr };
     ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface{ "The extension did not initialize properly." };
     //////////////////////////////////////////////////////////////////////////
     // output streams
