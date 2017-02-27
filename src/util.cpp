@@ -45,4 +45,8 @@ bool NormalizeAddress(const uint64_t address, uint64_t* result) {
     return false;
 }
 
+bool IsLiveKernel() {
+    return ((g_Ext->m_DebuggeeClass == DEBUG_CLASS_KERNEL) && (g_Ext->m_DebuggeeQual == DEBUG_KERNEL_CONNECTION));
+}
+
 }   // namespace wa

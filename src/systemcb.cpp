@@ -361,7 +361,7 @@ EXT_COMMAND(wa_systemcb,
     }
 }
 
-void WDbgArk::CallCorrespondingWalkListRoutine(const callbacksInfo::const_iterator &citer,
+void WDbgArk::CallCorrespondingWalkListRoutine(const CallbacksInfo::const_iterator &citer,
                                                walkresType* output_list) {
     auto &type = citer->first;
     auto &command = citer->second;

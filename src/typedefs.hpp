@@ -40,7 +40,7 @@ namespace wa {
         uint64_t list_head_address;
     } SystemCbCommand;
 
-    using callbacksInfo = std::map<std::string, SystemCbCommand>;
+    using CallbacksInfo = std::map<std::string, SystemCbCommand>;
     //////////////////////////////////////////////////////////////////////////
     typedef struct OutputWalkInfoTag {
         uint64_t address;
