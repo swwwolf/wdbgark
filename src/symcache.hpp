@@ -28,7 +28,6 @@
 
 #include <string>
 #include <map>
-#include <mutex>
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -36,7 +35,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkSymCache {
  public:
-    WDbgArkSymCache() : m_cache() {}
+    WDbgArkSymCache() {}
 
     bool GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, uint64_t* offset);
     void Invalidate(void) { m_cache.clear(); }
@@ -44,7 +43,7 @@ class WDbgArkSymCache {
  private:
      using SymbolCache = std::map<std::string, uint64_t>;   // symbol name : address
 
-     SymbolCache m_cache;
+     SymbolCache m_cache{};
 };
 
 }   // namespace wa

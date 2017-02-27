@@ -42,8 +42,9 @@ bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool
     // not found in cache
     bool result = g_Ext->GetSymbolOffset(symbol_name.c_str(), ret_zero, offset);    // may throw
 
-    if ( result )
+    if ( result ) {
         m_cache.insert({ symbol_name, *offset });
+    }
 
     return result;
 }
