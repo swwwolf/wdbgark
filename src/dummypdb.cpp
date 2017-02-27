@@ -32,49 +32,27 @@
 
 namespace wa {
 
-WDbgArkDummyPdb::WDbgArkDummyPdb() : m_inited(false),
-                                     m_dummy_pdb_name_long(),
-                                     m_dummy_pdb_name_short(),
-                                     m_drop_path(),
-                                     out(),
-                                     warn(),
-                                     err() {
-    m_inited = InitDummyPdbModule();
-}
-
-// symbols should be already unloaded (.reload /u)
-WDbgArkDummyPdb::~WDbgArkDummyPdb() {
-    std::string filename = m_drop_path + m_dummy_pdb_name_long;
-    std::ifstream file(filename);
-
-    if ( file.good() ) {
-        file.close();
-        std::remove(filename.c_str());
-    }
-}
-
 //////////////////////////////////////////////////////////////////////////
 // don't include resource.h
 //////////////////////////////////////////////////////////////////////////
 #define IDR_RT_RCDATA1 105
 #define IDR_RT_RCDATA2 106
+
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
-    char* resource_name = nullptr;
-
-    m_dummy_pdb_name_short = "dummypdb_" + std::to_string(GetCurrentProcessId());
-    m_dummy_pdb_name_long = m_dummy_pdb_name_short + ".pdb";
-
     // it is not possible to remove this fake module on unload
     if ( !RemoveDummyPdbModule(g_Ext->m_Symbols3) ) {
         err << wa::showminus << __FUNCTION__ << ": RemoveDummyPdbModule failed" << endlerr;
         return false;
     }
 
-    if ( g_Ext->IsCurMachine64() )
+    char* resource_name = nullptr;
+
+    if ( g_Ext->IsCurMachine64() ) {
         resource_name = MAKEINTRESOURCE(IDR_RT_RCDATA2);
-    else
+    } else {
         resource_name = MAKEINTRESOURCE(IDR_RT_RCDATA1);
+    }
 
     auto res_helper = std::make_unique<WDbgArkResHelper>();
 
@@ -86,6 +64,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     m_drop_path = res_helper->GetDropPath();
 
     WDbgArkSymbolsBase symbols_base;
+
     if ( !symbols_base.CheckSymbolsPath(false, m_drop_path) ) {
         if ( !SUCCEEDED(symbols_base.AppendSymbolPath(m_drop_path)) ) {
             err << wa::showminus << __FUNCTION__ << ": AppendSymbolPath failed" << endlerr;
@@ -93,13 +72,16 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
         }
     }
 
-    std::string reload_cmd = "/i " + m_dummy_pdb_name_short + "=0xFFFFFFFFFFFFF000,0xFFF";
+    std::stringstream reload_cmd;
+    reload_cmd << "/i " << m_dummy_pdb_name_short << "=" << std::hex << std::showbase << m_dummy_pdb_base;
+    reload_cmd << "," << std::hex << std::showbase << m_dummy_pdb_size;
 
-    if ( !SUCCEEDED(g_Ext->m_Symbols->Reload(reload_cmd.c_str())) ) {
+    if ( !SUCCEEDED(g_Ext->m_Symbols->Reload(reload_cmd.str().c_str())) ) {
         err << wa::showminus << __FUNCTION__ << ": Reload failed" << endlerr;
         return false;
     }
 
+    m_full_path = m_drop_path + m_dummy_pdb_name_long;
     return true;
 }
 
@@ -107,8 +89,9 @@ bool WDbgArkDummyPdb::RemoveDummyPdbModule(const ExtCheckedPointer<IDebugSymbols
     if ( SUCCEEDED(symbols3_iface->GetModuleByModuleName(m_dummy_pdb_name_short.c_str(), 0, nullptr, nullptr)) ) {
         std::string unload_cmd = "/u " + m_dummy_pdb_name_short;
 
-        if ( !SUCCEEDED(symbols3_iface->Reload(unload_cmd.c_str())) )
+        if ( !SUCCEEDED(symbols3_iface->Reload(unload_cmd.c_str())) ) {
             return false;
+        }
     }
 
     return true;
