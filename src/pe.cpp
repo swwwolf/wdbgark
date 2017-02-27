@@ -49,22 +49,30 @@ WDbgArkPe::WDbgArkPe(const std::wstring &path,
     m_valid = MapImage(base_address);
 }
 
+WDbgArkPe::WDbgArkPe(const uint64_t base_address,
+                     const uint32_t size,
+                     const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base) : m_symbols_base(symbols_base) {
+    m_valid = ReadMapMappedImage(base_address, size);
+}
+
 WDbgArkPe::~WDbgArkPe() {
-    if ( m_load_base )
+    if ( m_load_base ) {
         VirtualFree(m_load_base, 0, MEM_RELEASE);
+    }
 }
 
 uint32_t WDbgArkPe::GetSizeOfImage() {
     NtHeaders nth;
 
-    if ( GetNtHeaders(&nth) )
+    if ( GetNtHeaders(&nth) ) {
         return nth->GetImageSize();
+    }
 
     return 0;
 }
 
 bool WDbgArkPe::MapImage(const uint64_t base_address) {
-    std::unique_ptr<char[]> buffer;
+    unique_buf buffer;
 
     if ( !ReadImage(&buffer) ) {
         err << wa::showminus << __FUNCTION__ ": ReadImage failed" << endlerr;
@@ -89,7 +97,32 @@ bool WDbgArkPe::MapImage(const uint64_t base_address) {
     return true;
 }
 
-bool WDbgArkPe::ReadImage(std::unique_ptr<char[]>* buffer) {
+bool WDbgArkPe::ReadMapMappedImage(const uint64_t base_address, const uint32_t size) {
+    unique_buf buffer = std::make_unique<uint8_t[]>(size);
+
+    uint32_t read_size = 0UL;
+    auto result = g_Ext->m_Data->ReadVirtualUncached(base_address,
+                                                     buffer.get(),
+                                                     size,
+                                                     reinterpret_cast<PULONG>(&read_size));
+
+    // it's OK to read smaller number of bytes due to discardable sections
+    if ( FAILED(result) ) {
+        err << wa::showminus << __FUNCTION__ ": ReadVirtual failed" << endlerr;
+        return false;
+    }
+
+    if ( !LoadImage(buffer, true) ) {
+        err << wa::showminus << __FUNCTION__ ": LoadImage failed" << endlerr;
+        return false;
+    }
+
+    m_read_memory_base = base_address;
+
+    return true;
+}
+
+bool WDbgArkPe::ReadImage(unique_buf* buffer) {
     std::ifstream file;
 
     file.open(m_path, std::ifstream::in | std::ifstream::binary);
@@ -103,15 +136,19 @@ bool WDbgArkPe::ReadImage(std::unique_ptr<char[]>* buffer) {
     m_file_size = file.tellg();
     file.seekg(0, file.beg);
 
-    buffer->reset(new char[m_file_size]);
-    file.read(buffer->get(), m_file_size);
+    unique_buf temp_buffer = std::make_unique<uint8_t[]>(m_file_size);
+    file.read(reinterpret_cast<char*>(temp_buffer.get()), m_file_size);
     auto result = !file.fail();
-
     file.close();
+
+    if ( result ) {
+        buffer->reset(temp_buffer.release());
+    }
+
     return result;
 }
 
-bool WDbgArkPe::VerifyChecksum(const std::unique_ptr<char[]> &buffer) {
+bool WDbgArkPe::VerifyChecksum(const unique_buf &buffer) {
     NtHeaders nth;
 
     if ( !GetNtHeaders(buffer.get(), &nth) )
@@ -162,7 +199,35 @@ bool WDbgArkPe::VerifyChecksum(const std::unique_ptr<char[]> &buffer) {
     return (calc_sum == header_sum);
 }
 
-bool WDbgArkPe::LoadImage(const std::unique_ptr<char[]> &buffer) {
+bool WDbgArkPe::GetImageSection(const std::string &name, IMAGE_SECTION_HEADER* section_header) {
+    NtHeaders nth;
+
+    if ( !GetNtHeaders(&nth) )
+        return false;
+
+    auto search_name(name);
+    std::transform(search_name.begin(), search_name.end(), search_name.begin(), tolower);
+
+    auto temp_header = IMAGE_FIRST_SECTION(nth->GetPtr());
+
+    for ( uint16_t i = 0; i < nth->GetFileHeader()->NumberOfSections; i++ ) {
+        char temp_name[9];
+        std::memset(temp_name, 0, sizeof(temp_name));
+        std::memcpy(temp_name, temp_header[i].Name, sizeof(temp_header[i].Name));
+
+        std::string section_name(temp_name);
+        std::transform(section_name.begin(), section_name.end(), section_name.begin(), tolower);
+
+        if ( section_name == search_name ) {
+            *section_header = temp_header[i];
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
     NtHeaders nth;
 
     if ( !GetNtHeaders(buffer.get(), &nth) )
@@ -181,20 +246,24 @@ bool WDbgArkPe::LoadImage(const std::unique_ptr<char[]> &buffer) {
         return false;
     }
 
-    uint32_t headers_size = nth->GetHeadersSize();
-    std::memcpy(m_load_base, buffer.get(), headers_size);
+    if ( !mapped ) {
+        uint32_t headers_size = nth->GetHeadersSize();
+        std::memcpy(m_load_base, buffer.get(), headers_size);
 
-    IMAGE_SECTION_HEADER* section_header = IMAGE_FIRST_SECTION(nth->GetPtr());
+        auto section_header = IMAGE_FIRST_SECTION(nth->GetPtr());
 
-    for ( uint16_t i = 0; i < nth->GetFileHeader()->NumberOfSections; i++ ) {
-        if ( !section_header[i].SizeOfRawData )
-            continue;
+        for ( uint16_t i = 0; i < nth->GetFileHeader()->NumberOfSections; i++ ) {
+            if ( !section_header[i].SizeOfRawData )
+                continue;
 
-        void* section_dst = reinterpret_cast<void*>RtlOffsetToPointer(m_load_base, section_header[i].VirtualAddress);
-        void* section_src = reinterpret_cast<void*>RtlOffsetToPointer(buffer.get(), section_header[i].PointerToRawData);
-        uint32_t section_size = min(section_header[i].SizeOfRawData, section_header[i].Misc.VirtualSize);
+            void* section_dst = reinterpret_cast<void*>RtlOffsetToPointer(m_load_base, section_header[i].VirtualAddress);
+            void* section_src = reinterpret_cast<void*>RtlOffsetToPointer(buffer.get(), section_header[i].PointerToRawData);
+            uint32_t section_size = min(section_header[i].SizeOfRawData, section_header[i].Misc.VirtualSize);
 
-        std::memcpy(section_dst, section_src, section_size);
+            std::memcpy(section_dst, section_src, section_size);
+        }
+    } else {
+        std::memcpy(m_load_base, buffer.get(), image_size);
     }
 
     return true;
@@ -213,12 +282,12 @@ bool WDbgArkPe::RelocateImage(const uint64_t base_address) {
         return true;
 
     uint32_t dir_size = 0;
-    IMAGE_BASE_RELOCATION* next_relocation =
-        reinterpret_cast<IMAGE_BASE_RELOCATION*>(::ImageDirectoryEntryToDataEx(m_load_base,
-                                                                               true,
-                                                                               IMAGE_DIRECTORY_ENTRY_BASERELOC,
-                                                                               reinterpret_cast<PULONG>(&dir_size),
-                                                                               nullptr));
+    auto next_relocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>(::ImageDirectoryEntryToDataEx(
+        m_load_base,
+        true,
+        IMAGE_DIRECTORY_ENTRY_BASERELOC,
+        reinterpret_cast<PULONG>(&dir_size),
+        nullptr));
 
     if ( !next_relocation || !dir_size ) {
         std::string lasterr = LastErrorToString(GetLastError());
@@ -227,9 +296,7 @@ bool WDbgArkPe::RelocateImage(const uint64_t base_address) {
     }
 
     int64_t delta = RtlPointerToOffset(nth->GetImageBase(), base_address);
-
-    IMAGE_BASE_RELOCATION* last_relocation =
-        reinterpret_cast<IMAGE_BASE_RELOCATION*>RtlOffsetToPointer(next_relocation, dir_size);
+    auto last_relocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>RtlOffsetToPointer(next_relocation, dir_size);
 
     while ( next_relocation < last_relocation && next_relocation->SizeOfBlock > 0 ) {
         uint64_t address = reinterpret_cast<uint64_t>RtlOffsetToPointer(m_load_base, next_relocation->VirtualAddress);
@@ -251,7 +318,7 @@ IMAGE_BASE_RELOCATION* WDbgArkPe::RelocateBlock(const uint64_t address,
                                                 const uint32_t count,
                                                 const uint16_t* type_offset,
                                                 const int64_t delta) {
-    uint16_t* loc_type_offset = const_cast<uint16_t*>(type_offset);
+    auto loc_type_offset = const_cast<uint16_t*>(type_offset);
 
     for ( uint32_t i = 0; i < count; i++ ) {
         int16_t offset = (*loc_type_offset) & 0xFFF;
@@ -276,14 +343,14 @@ IMAGE_BASE_RELOCATION* WDbgArkPe::RelocateBlock(const uint64_t address,
 
             case IMAGE_REL_BASED_HIGHLOW:
             {
-                uint32_t* long_ptr = reinterpret_cast<uint32_t*>RtlOffsetToPointer(address, offset);
+                auto long_ptr = reinterpret_cast<uint32_t*>RtlOffsetToPointer(address, offset);
                 *long_ptr = *long_ptr + (delta & 0x00000000FFFFFFFF);
                 break;
             }
 
             case IMAGE_REL_BASED_DIR64:
             {
-                uint64_t* longlong_ptr = reinterpret_cast<uint64_t*>RtlOffsetToPointer(address, offset);
+                auto longlong_ptr = reinterpret_cast<uint64_t*>RtlOffsetToPointer(address, offset);
                 *longlong_ptr = *longlong_ptr + delta;
                 break;
             }

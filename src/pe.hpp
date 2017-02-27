@@ -90,26 +90,38 @@ NtHeaders GetNtHeaders(const IMAGE_NT_HEADERS* nth);
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkPe {
  public:
-    // map PE file and apply relocations
+    using unique_buf = std::unique_ptr<uint8_t[]>;
+
+    // read PE image from file, map and apply relocations
     WDbgArkPe(const std::wstring &path,
               const uint64_t base_address,
               const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base);
-    // just map PE file
+
+    // read PE image from file and map without applying relocations
     explicit WDbgArkPe(const std::wstring &path,
                        const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base) : WDbgArkPe(path, 0ULL, symbols_base) {}
+
+    // read PE image from target memory without applying relocations
+    WDbgArkPe(const uint64_t base_address,
+              const uint32_t size,
+              const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base);
+
     ~WDbgArkPe();
 
     bool IsValid() const { return m_valid; }
     bool IsRelocated() const { return m_relocated; }
     void* GetBase() const { return m_load_base; }
     uint64_t GetBaseRelocated() const { return m_relocated_base; }
+    uint64_t GetReadMemoryBase() const { return m_read_memory_base; }
     uint32_t GetSizeOfImage();
+    bool VerifyChecksum(const unique_buf &buffer);
+    bool GetImageSection(const std::string &name, IMAGE_SECTION_HEADER* section_header);
 
  private:
     bool MapImage(const uint64_t base_address = 0ULL);
-    bool ReadImage(std::unique_ptr<char[]>* buffer);
-    bool VerifyChecksum(const std::unique_ptr<char[]> &buffer);
-    bool LoadImage(const std::unique_ptr<char[]> &buffer);
+    bool ReadMapMappedImage(const uint64_t base_address, const uint32_t size);
+    bool ReadImage(unique_buf* buffer);
+    bool LoadImage(const unique_buf &buffer, const bool mapped = false);
     bool RelocateImage(const uint64_t base_address = 0ULL);
     IMAGE_BASE_RELOCATION* RelocateBlock(const uint64_t address,
                                          const uint32_t count,
@@ -120,12 +132,13 @@ class WDbgArkPe {
     bool GetNtHeaders(const void* base, NtHeaders* nth);
 
  private:
-    std::wstring m_path;
+    std::wstring m_path{};
     bool m_valid = false;
     bool m_relocated = false;
     int64_t m_file_size = 0LL;
     void* m_load_base = nullptr;
     uint64_t m_relocated_base = 0ULL;
+    uint64_t m_read_memory_base = 0ULL;
     std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{};
     std::stringstream err{};
 };
