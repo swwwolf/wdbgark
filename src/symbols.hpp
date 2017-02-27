@@ -61,6 +61,8 @@ class WDbgArkSymbolsBase {
                            std::string* module_name,
                            std::string* loaded_image_name);
     HRESULT GetModuleStartSize(const uint64_t address, uint64_t* start, uint32_t* size) const;
+    HRESULT GetFunctionInformation(const std::string &function_name, uint64_t* start_offset, uint64_t* end_offset);
+    HRESULT GetFunctionInformation(const uint64_t offset, uint64_t* start_offset, uint64_t* end_offset);
     bool CheckMsSymbolsPath();
     bool CheckSymbolsPath(const bool display_error,
                           const std::string &test_path = "https://msdl.microsoft.com/download/symbols");

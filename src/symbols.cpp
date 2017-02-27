@@ -37,11 +37,13 @@
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
 WDbgArkSymbolsBase::WDbgArkSymbolsBase() {
-    if ( !InitSymbolPath() )
+    if ( !InitSymbolPath() ) {
         err << wa::showminus << __FUNCTION__ ": InitSymbolPath failed" << endlerr;
+    }
 
-    if ( !InitImagePath() )
+    if ( !InitImagePath() ) {
         err << wa::showminus << __FUNCTION__ ": InitImagePath failed" << endlerr;
+    }
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkSymbolsBase::InitSymbolPath() {
@@ -291,20 +293,73 @@ HRESULT WDbgArkSymbolsBase::GetModuleStartSize(const uint64_t address, uint64_t*
     uint64_t base = 0;
     HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address, 0, reinterpret_cast<PULONG>(&index), &base);
 
-    if ( FAILED(result) )
+    if ( FAILED(result) ) {
         return result;
+    }
 
     DEBUG_MODULE_PARAMETERS parameters;
     result = g_Ext->m_Symbols->GetModuleParameters(1, &base, 0, &parameters);
 
-    if ( FAILED(result) )
+    if ( FAILED(result) ) {
         return result;
+    }
 
-    if ( parameters.Base == DEBUG_INVALID_OFFSET )
+    if ( parameters.Base == DEBUG_INVALID_OFFSET ) {
         return E_POINTER;
+    }
 
     *start = base;
     *size = parameters.Size;
+
+    return S_OK;
+}
+//////////////////////////////////////////////////////////////////////////
+HRESULT WDbgArkSymbolsBase::GetFunctionInformation(const std::string &function_name,
+                                                   uint64_t* start_offset,
+                                                   uint64_t* end_offset) {
+    uint64_t offset = 0ULL;
+    if ( !g_Ext->GetSymbolOffset(function_name.c_str(), true, &offset) ) {
+        err << wa::showminus << __FUNCTION__ << ": Unable to find " << function_name << endlerr;
+        return E_UNEXPECTED;
+    }
+
+    return GetFunctionInformation(offset, start_offset, end_offset);
+}
+//////////////////////////////////////////////////////////////////////////
+HRESULT WDbgArkSymbolsBase::GetFunctionInformation(const uint64_t offset,
+                                                   uint64_t* start_offset,
+                                                   uint64_t* end_offset) {
+    *start_offset = 0ULL;
+    *end_offset = 0ULL;
+
+    size_t size = 0;
+
+    if ( g_Ext->IsCurMachine64() ) {
+        size = sizeof(IMAGE_FUNCTION_ENTRY);
+    } else {
+        size = sizeof(FPO_DATA);
+    }
+
+    std::unique_ptr<uint8_t[]> function_entry = std::make_unique<uint8_t[]>(size);
+    auto result = g_Ext->m_Symbols3->GetFunctionEntryByOffset(offset,
+                                                              0,
+                                                              function_entry.get(),
+                                                              static_cast<ULONG>(size),
+                                                              nullptr);
+
+    if ( FAILED(result) ) {
+        return result;
+    }
+
+    if ( g_Ext->IsCurMachine64() ) {
+        PIMAGE_FUNCTION_ENTRY entry = reinterpret_cast<PIMAGE_FUNCTION_ENTRY>(function_entry.get());
+        *start_offset = entry->StartingAddress;
+        *end_offset = entry->EndingAddress;
+    } else {
+        PFPO_DATA entry = reinterpret_cast<PFPO_DATA>(function_entry.get());
+        *start_offset = entry->ulOffStart;
+        *end_offset = entry->ulOffStart + entry->cbProcSize;
+    }
 
     return S_OK;
 }
