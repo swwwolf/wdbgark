@@ -203,6 +203,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\analyze.cpp" />
+    <ClCompile Include="src\bp.cpp" />
     <ClCompile Include="src\bprinter\src\table_printer.cpp" />
     <ClCompile Include="src\callouts.cpp" />
     <ClCompile Include="src\checkmsr.cpp" />
@@ -210,6 +211,7 @@
     <ClCompile Include="src\colorhack.cpp" />
     <ClCompile Include="src\colorize.cpp" />
     <ClCompile Include="src\crashdmpcall.cpp" />
+    <ClCompile Include="src\dbgevent.cpp" />
     <ClCompile Include="src\device.cpp" />
     <ClCompile Include="src\driver.cpp" />
     <ClCompile Include="src\drvmajor.cpp" />
@@ -262,8 +264,10 @@
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\analyze.hpp" />
+    <ClInclude Include="src\bp.hpp" />
     <ClInclude Include="src\bproxy.hpp" />
     <ClInclude Include="src\colorhack.hpp" />
+    <ClInclude Include="src\dbgevent.hpp" />
     <ClInclude Include="src\ddk.h" />
     <ClInclude Include="src\device.hpp" />
     <ClInclude Include="src\driver.hpp" />

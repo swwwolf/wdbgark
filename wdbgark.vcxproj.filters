@@ -144,6 +144,12 @@
     <ClCompile Include="src\winapi.cpp">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
+    <ClCompile Include="src\bp.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dbgevent.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
     <ClCompile Include="src\nirvana.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
@@ -264,6 +270,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\winapi.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\bp.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dbgevent.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\util.hpp">
