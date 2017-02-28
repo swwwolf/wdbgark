@@ -51,6 +51,7 @@
 #include "typedefs.hpp"
 #include "symcache.hpp"
 #include "symbols.hpp"
+#include "wdrce.hpp"
 #include "ver.hpp"
 
 namespace wa {
@@ -237,6 +238,7 @@ class WDbgArk : public ExtExtension {
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
     std::unique_ptr<WDbgArkSystemVer> m_system_ver{ nullptr };
     std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{ nullptr };
+    std::unique_ptr<WDbgArkRce> m_wdrce{ nullptr };
     ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface{ "The extension did not initialize properly." };
     //////////////////////////////////////////////////////////////////////////
     // output streams
