@@ -773,8 +773,10 @@
 #define IDR_RT_RCDATA2                  106
 #define VK_ADD                          0x6B
 #define LANG_QUECHUA                    0x6b
+#define IDR_RT_RCDATA3                  107
 #define VK_SEPARATOR                    0x6C
 #define LANG_SOTHO                      0x6c
+#define IDR_RT_RCDATA4                  108
 #define VK_SUBTRACT                     0x6D
 #define LANG_BASHKIR                    0x6d
 #define VK_DECIMAL                      0x6E
@@ -1514,7 +1516,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        107
+#define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40002
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101

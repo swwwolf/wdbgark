@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <RootNamespace>dummypdb</RootNamespace>
     <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VisualStudioVersion)' == '11.0'">$(VCTargetsPath11)</VCTargetsPath>
-    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Label="PropertySheets">
     <ConfigurationType>Driver</ConfigurationType>
@@ -32,11 +32,17 @@
     <TargetVersion>Windows7</TargetVersion>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetVersion>Windows7</TargetVersion>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -51,34 +57,64 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>$(TargetName.Replace(' ',''))_$(DDKPlatform)</TargetName>
     <OutDir>$(SolutionDir)\dummypdb_build\$(ConfigurationName)\</OutDir>
+    <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>$(TargetName.Replace(' ',''))_$(DDKPlatform)</TargetName>
     <OutDir>$(SolutionDir)\dummypdb_build\$(Platform)\$(ConfigurationName)\</OutDir>
+    <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <StringPooling>true</StringPooling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <Optimization>MinSpace</Optimization>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <OptimizeReferences>false</OptimizeReferences>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <Profile>false</Profile>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <StringPooling>true</StringPooling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <Optimization>MinSpace</Optimization>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <OptimizeReferences>false</OptimizeReferences>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <Profile>false</Profile>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -52,6 +52,10 @@ IDR_RT_RCDATA1          RT_RCDATA               "dummypdb_build\\Release\\dummyp
 
 IDR_RT_RCDATA2          RT_RCDATA               "dummypdb_build\\x64\\Release\\dummypdb_x64.pdb"
 
+IDR_RT_RCDATA3          RT_RCDATA               "dummypdb_build\\Release\\dummypdb_x86.sys"
+
+IDR_RT_RCDATA4          RT_RCDATA               "dummypdb_build\\x64\\Release\\dummypdb_x64.sys"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -78,7 +82,7 @@ BEGIN
             VALUE "FileDescription", "WinDBG Anti-RootKit extension"
             VALUE "FileVersion", "2.0.0.0"
             VALUE "InternalName", "wdbgark.dll"
-            VALUE "LegalCopyright", "Copyright © 2013-2016  Vyacheslav Rusakoff"
+            VALUE "LegalCopyright", "Copyright © 2013-2017  Vyacheslav Rusakoff"
             VALUE "OriginalFilename", "wdbgark.dll"
             VALUE "ProductName", "WinDBG Anti-RootKit extension"
             VALUE "ProductVersion", "2.0.0.0"
