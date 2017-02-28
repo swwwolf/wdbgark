@@ -47,10 +47,7 @@ class WDbgArkDummyPdb {
 
         if ( file.good() ) {
             file.close();
-
-            if ( std::remove(filename.c_str()) ) {
-                err << wa::showminus << __FUNCTION__ << ": Failed to remove" << endlerr;
-            }
+            std::remove(filename.c_str());
         }
     };
 
