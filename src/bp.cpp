@@ -1,6 +1,6 @@
 /*
     * WinDBG Anti-RootKit extension
-    * Copyright © 2013-2016  Vyacheslav Rusakoff
+    * Copyright © 2013-2017  Vyacheslav Rusakoff
     *
     * This program is free software: you can redistribute it and/or modify
     * it under the terms of the GNU General Public License as published by
