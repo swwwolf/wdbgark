@@ -414,7 +414,7 @@ bool WDbgArkRce::InitRceShellcode(const std::string &function_name, const std::s
         return false;
     }
 
-    auto size = end_offset - start_offset;
+    size_t size = static_cast<size_t>(end_offset - start_offset);
 
     if ( size > m_code_section.second ) {
         err << wa::showminus << __FUNCTION__ << ": Code length is too big to fit in .text section" << endlerr;
@@ -633,15 +633,13 @@ bool WDbgArkRce::SetWorkItemState(const WINKD_WORKER_STATE state) {
 }
 //////////////////////////////////////////////////////////////////////////
 void WDbgArkRce::RevertTempModule() {
-    HRESULT result = S_OK;
-
     if ( m_code_section_used ) {
-        result = WriteCodeData(m_code_section);
+        WriteCodeData(m_code_section);
         m_code_section_used = false;
     }
 
     if ( m_data_section_used ) {
-        result = WriteGlobalData(m_data_section);
+        WriteGlobalData(m_data_section);
         m_data_section_used = false;
     }
 }

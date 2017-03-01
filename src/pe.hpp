@@ -135,7 +135,7 @@ class WDbgArkPe {
     std::wstring m_path{};
     bool m_valid = false;
     bool m_relocated = false;
-    int64_t m_file_size = 0LL;
+    size_t m_file_size = 0;
     void* m_load_base = nullptr;
     uint64_t m_relocated_base = 0ULL;
     uint64_t m_read_memory_base = 0ULL;

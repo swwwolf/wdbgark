@@ -133,7 +133,7 @@ bool WDbgArkPe::ReadImage(unique_buf* buffer) {
     }
 
     file.seekg(0, file.end);
-    m_file_size = file.tellg();
+    m_file_size = static_cast<size_t>(file.tellg());
     file.seekg(0, file.beg);
 
     unique_buf temp_buffer = std::make_unique<uint8_t[]>(m_file_size);
@@ -256,8 +256,10 @@ bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
             if ( !section_header[i].SizeOfRawData )
                 continue;
 
-            void* section_dst = reinterpret_cast<void*>RtlOffsetToPointer(m_load_base, section_header[i].VirtualAddress);
-            void* section_src = reinterpret_cast<void*>RtlOffsetToPointer(buffer.get(), section_header[i].PointerToRawData);
+            void* section_dst = reinterpret_cast<void*>RtlOffsetToPointer(m_load_base,
+                                                                          section_header[i].VirtualAddress);
+            void* section_src = reinterpret_cast<void*>RtlOffsetToPointer(buffer.get(),
+                                                                          section_header[i].PointerToRawData);
             uint32_t section_size = min(section_header[i].SizeOfRawData, section_header[i].Misc.VirtualSize);
 
             std::memcpy(section_dst, section_src, section_size);
