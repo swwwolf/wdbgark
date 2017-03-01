@@ -30,7 +30,7 @@ namespace wa {
 
 // don't forget to change in resources too
 #define VER_MAJOR 2
-#define VER_MINOR 0
+#define VER_MINOR 5
 
 }   // namespace wa
 

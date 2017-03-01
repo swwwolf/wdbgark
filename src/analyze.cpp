@@ -274,8 +274,10 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
 
         std::string parse_procedure_name("ParseProcedure");
 
-        if ( obj_type_info.HasField("ObjectTypeFlags2") && obj_type_info.Field("UseExtendedParameters").GetUchar() & 1 )
+        if ( obj_type_info.HasField("UseExtendedParameters") &&
+             obj_type_info.Field("UseExtendedParameters").GetUchar() & 1 ) {
             parse_procedure_name = "ParseProcedureEx";
+        }
 
         display->Analyze(obj_type_info.Field("DumpProcedure").GetPtr(), "DumpProcedure", "");
         display->Analyze(obj_type_info.Field("OpenProcedure").GetPtr(), "OpenProcedure", "");

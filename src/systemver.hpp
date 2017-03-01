@@ -40,11 +40,13 @@ namespace wa {
 class WDbgArkSystemVer {
  public:
     WDbgArkSystemVer();
+
     bool IsInited(void) const { return m_inited; }
     uint32_t GetStrictVer(void) const { return m_strict_minor_build; }
     bool IsBuildInRangeStrict(const uint32_t low, const uint32_t high) const {
         return ((m_strict_minor_build >= low) && (m_strict_minor_build <= high));
     }
+
     void CheckWindowsBuild(void);
 
  private:
@@ -59,7 +61,7 @@ class WDbgArkSystemVer {
     uint32_t m_strict_minor_build = 0;
     std::set<uint32_t> m_known_windows_builds = {
         WXP_VER, W2K3_VER, VISTA_RTM_VER, VISTA_SP1_VER, VISTA_SP2_VER, W7RTM_VER, W7SP1_VER, W8RTM_VER, W81RTM_VER,
-        W10RTM_VER, W10TH2_VER, W10RS1_VER };
+        W10RTM_VER, W10TH2_VER, W10RS1_VER, W10RS2_VER };
 
     std::stringstream out{};
     std::stringstream warn{};

@@ -63,8 +63,8 @@ IDR_RT_RCDATA4          RT_RCDATA               "dummypdb_build\\x64\\Release\\d
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 2,5,0,0
+ PRODUCTVERSION 2,5,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x9L
@@ -80,12 +80,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "WinDBG Anti-RootKit extension"
-            VALUE "FileVersion", "2.0.0.0"
+            VALUE "FileVersion", "2.5.0.0"
             VALUE "InternalName", "wdbgark.dll"
             VALUE "LegalCopyright", "Copyright © 2013-2017  Vyacheslav Rusakoff"
             VALUE "OriginalFilename", "wdbgark.dll"
             VALUE "ProductName", "WinDBG Anti-RootKit extension"
-            VALUE "ProductVersion", "2.0.0.0"
+            VALUE "ProductVersion", "2.5.0.0"
         END
     END
     BLOCK "VarFileInfo"

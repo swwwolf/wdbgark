@@ -53,6 +53,7 @@ namespace wa {
 #define W10RTM_VER      10240   // Windows 10 RTM
 #define W10TH2_VER      10586   // Windows 10 TH2
 #define W10RS1_VER      14393   // Windows 10 RS1
+#define W10RS2_VER      16000   // Windows 10 RS2   // TODO(swwwolf): change it
 
 //////////////////////////////////////////////////////////////////////////
 // drivers
