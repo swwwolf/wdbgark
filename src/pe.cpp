@@ -199,16 +199,34 @@ bool WDbgArkPe::VerifyChecksum(const unique_buf &buffer) {
     return (calc_sum == header_sum);
 }
 
+bool WDbgArkPe::GetImageFirstSection(IMAGE_SECTION_HEADER** section_header) {
+    *section_header = nullptr;
+
+    NtHeaders nth;
+
+    if ( !GetNtHeaders(&nth) ) {
+        return false;
+    }
+
+    *section_header = IMAGE_FIRST_SECTION(nth->GetPtr());
+    return true;
+}
+
 bool WDbgArkPe::GetImageSection(const std::string &name, IMAGE_SECTION_HEADER* section_header) {
     NtHeaders nth;
 
-    if ( !GetNtHeaders(&nth) )
+    if ( !GetNtHeaders(&nth) ) {
         return false;
+    }
 
     auto search_name(name);
     std::transform(search_name.begin(), search_name.end(), search_name.begin(), tolower);
 
-    auto temp_header = IMAGE_FIRST_SECTION(nth->GetPtr());
+    IMAGE_SECTION_HEADER* temp_header = nullptr;
+
+    if ( !GetImageFirstSection(&temp_header) ) {
+        return false;
+    }
 
     for ( uint16_t i = 0; i < nth->GetFileHeader()->NumberOfSections; i++ ) {
         char temp_name[9];

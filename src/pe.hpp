@@ -115,6 +115,7 @@ class WDbgArkPe {
     uint64_t GetReadMemoryBase() const { return m_read_memory_base; }
     uint32_t GetSizeOfImage();
     bool VerifyChecksum(const unique_buf &buffer);
+    bool GetImageFirstSection(IMAGE_SECTION_HEADER** section_header);
     bool GetImageSection(const std::string &name, IMAGE_SECTION_HEADER* section_header);
 
  private:
