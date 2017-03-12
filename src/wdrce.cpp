@@ -333,24 +333,41 @@ bool WDbgArkRce::InitTempModuleDataSection() {
     auto result = m_temp_module->GetImageSection(".rdata", &header);
 
     if ( !result || !header.VirtualAddress || !header.Misc.VirtualSize ) {
-        err << wa::showminus << __FUNCTION__ << ": Unable to find .rdata section" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": Unable to locate .rdata section" << endlerr;
         return false;
     }
 
+    ptrdiff_t start = 0;
+    uint32_t size = 0;
+
     if ( m_global_data.second > header.Misc.VirtualSize ) {
-        err << wa::showminus << __FUNCTION__ << ": .rdata section is too small" << endlerr;
-        return false;
+        IMAGE_SECTION_HEADER* first_header = nullptr;
+
+        if ( !m_temp_module->GetImageFirstSection(&first_header) ) {
+            err << wa::showminus << __FUNCTION__ << ": unable to reserve data section" << endlerr;
+            return false;
+        }
+
+        if ( m_global_data.second > first_header->VirtualAddress ) {
+            err << wa::showminus << __FUNCTION__ << ": data section is too small" << endlerr;
+            return false;
+        }
+
+        start = 0;
+        size = first_header->VirtualAddress;
+    } else {
+        start = static_cast<ptrdiff_t>(header.VirtualAddress);
+        size = header.Misc.VirtualSize;
     }
 
     m_data_section_start = reinterpret_cast<uint64_t>(reinterpret_cast<char*>(m_temp_module->GetReadMemoryBase()) + \
-                                                      static_cast<ptrdiff_t>(header.VirtualAddress));
-    auto data_section_size = header.Misc.VirtualSize;
-    auto data_section_bytes = std::make_unique<uint8_t[]>(data_section_size);
+                                                      start);
+    auto data_section_bytes = std::make_unique<uint8_t[]>(size);
     auto data_section_start = reinterpret_cast<const void*>(reinterpret_cast<char*>(m_temp_module->GetBase()) + \
-                                                            static_cast<ptrdiff_t>(header.VirtualAddress));
+                                                            start);
 
-    std::memcpy(data_section_bytes.get(), data_section_start, data_section_size);
-    m_data_section = { std::move(data_section_bytes), data_section_size };
+    std::memcpy(data_section_bytes.get(), data_section_start, size);
+    m_data_section = { std::move(data_section_bytes), size };
 
     return true;
 }
