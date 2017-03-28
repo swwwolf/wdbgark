@@ -36,3 +36,5 @@ EXPORTS
     wa_cicallbacks
     wa_chknirvana
     wa_psppico
+    wdrce_cpuid
+    ;wdrce_copyfile

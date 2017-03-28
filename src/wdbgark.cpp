@@ -1,6 +1,6 @@
 /*
     * WinDBG Anti-RootKit extension
-    * Copyright © 2013-2016  Vyacheslav Rusakoff
+    * Copyright © 2013-2017  Vyacheslav Rusakoff
     * 
     * This program is free software: you can redistribute it and/or modify
     * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include "manipulators.hpp"
 #include "symbols.hpp"
 #include "systemcb.hpp"
+#include "wdrce.hpp"
 
 EXT_DECLARE_GLOBALS();
 
@@ -76,35 +77,44 @@ bool WDbgArk::Init() {
 
     m_symbols_base = std::make_shared<WDbgArkSymbolsBase>();
 
-    if ( !m_symbols_base->CheckMsSymbolsPath() )
+    if ( !m_symbols_base->CheckMsSymbolsPath() ) {
         warn << wa::showqmark << __FUNCTION__ ": CheckMsSymbolsPath failed" << endlwarn;
+    }
 
     // it's a bad idea to do this in constructor's initialization list 'coz global class uninitialized
     m_obj_helper = std::make_unique<WDbgArkObjHelper>(m_sym_cache);
 
-    if ( !m_obj_helper->IsInited() )
+    if ( !m_obj_helper->IsInited() ) {
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkObjHelper init failed" << endlwarn;
+    }
 
     m_color_hack = std::make_unique<WDbgArkColorHack>();
 
-    if ( !m_color_hack->IsInited() )
+    if ( !m_color_hack->IsInited() ) {
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkColorHack init failed" << endlwarn;
+    }
 
     m_dummy_pdb = std::make_shared<WDbgArkDummyPdb>();
 
-    if ( !m_dummy_pdb->IsInited() )
+    if ( !m_dummy_pdb->IsInited() ) {
         warn << wa::showqmark << __FUNCTION__ ": WDbgArkDummyPdb init failed" << endlwarn;
+    }
 
     InitScanCommands();
     InitCallbackCommands();
 
-    if ( m_system_ver->GetStrictVer() >= W7RTM_VER && !FindDbgkLkmdCallbackArray() )
+    if ( m_system_ver->GetStrictVer() >= W7RTM_VER && !FindDbgkLkmdCallbackArray() ) {
         warn << wa::showqmark << __FUNCTION__ ": FindDbgkLkmdCallbackArray failed" << endlwarn;
+    }
 
-    if ( m_system_ver->GetStrictVer() >= W10RTM_VER && !FindMiApiSetSchema() )
+    if ( m_system_ver->GetStrictVer() >= W10RTM_VER && !FindMiApiSetSchema() ) {
         warn << wa::showqmark << __FUNCTION__ ": FindMiApiSetSchema failed" << endlwarn;
+    }
 
-    return (m_inited = true);
+    m_wdrce = std::make_unique<WDbgArkRce>(m_symbols_base, m_dummy_pdb, m_sym_cache);
+
+    m_inited = true;
+    return true;
 }
 
 void WDbgArk::InitScanCommands() {
