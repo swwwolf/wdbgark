@@ -27,6 +27,8 @@ extern "C" {
     DRIVER_INITIALIZE DriverEntry;
 
     WORKER_THREAD_ROUTINE CpuidWorker;
+    WORKER_THREAD_ROUTINE CopyfileWorker;
+    WORKER_THREAD_ROUTINE QuerydirWorker;
 #ifdef __cplusplus
 }
 #endif
@@ -82,15 +84,182 @@ NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* DriverObject, _In_ PUNICODE_STRING Regi
 }
 //////////////////////////////////////////////////////////////////////////
 VOID CpuidWorker(_In_ PVOID Parameter) {
-    WORKITEM_GLOBAL_DATA_PROLOG(Parameter);
-
     PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
+    WORKITEM_GLOBAL_DATA_PROLOG(Global);
 
     int Info[4];
-    RtlZeroMemory(Info, sizeof(Info));
+    Global->Iat.fnt_memset(Info, 0, sizeof(Info));
     __cpuidex(Info, Global->p.CpuidEntry.function_id, Global->p.CpuidEntry.subfunction_id);
 
     Global->Iat.fnt_DbgPrint(Global->Print.Output, Global->Print.Function, Info[0], Info[1], Info[2], Info[3]);
+    Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+}
+//////////////////////////////////////////////////////////////////////////
+VOID CopyfileWorker(_In_ PVOID Parameter) {
+    PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
+    WORKITEM_GLOBAL_DATA_PROLOG(Global);
+
+    UNICODE_STRING file_path;
+    Global->Iat.fnt_RtlInitUnicodeString(&file_path, Global->p.CopyfileEntry.file_path);
+
+    OBJECT_ATTRIBUTES oa;
+    InitializeObjectAttributes(&oa, &file_path, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+    HANDLE file_handle = NULL;
+    IO_STATUS_BLOCK iosb;
+    Global->Iat.fnt_memset(&iosb, 0, sizeof(iosb));
+
+    NTSTATUS status = Global->Iat.fnt_IoCreateFile(&file_handle,
+                                                   SYNCHRONIZE | FILE_READ_ATTRIBUTES,
+                                                   &oa,
+                                                   &iosb,
+                                                   NULL,
+                                                   0,
+                                                   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                                   FILE_OPEN,
+                                                   FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT,
+                                                   NULL,
+                                                   0,
+                                                   CreateFileTypeNone,
+                                                   NULL,
+                                                   IO_NO_PARAMETER_CHECKING);
+
+    if ( !NT_SUCCESS(status) ) {
+        Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+        return;
+    }
+
+    FILE_STANDARD_INFORMATION info;
+    Global->Iat.fnt_memset(&info, 0, sizeof(info));
+    Global->Iat.fnt_memset(&iosb, 0, sizeof(iosb));
+
+    status = Global->Iat.fnt_ZwQueryInformationFile(file_handle, &iosb, &info, sizeof(info), FileStandardInformation);
+
+    if ( !NT_SUCCESS(status) ) {
+        Global->Iat.fnt_ZwClose(file_handle);
+        Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+        return;
+    }
+
+    PVOID Buffer = Global->Iat.fnt_ExAllocatePoolWithTag(PagedPool, (SIZE_T)info.EndOfFile.QuadPart, POOL_TAG);
+
+    if ( !Buffer ) {
+        Global->Iat.fnt_ZwClose(file_handle);
+        Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+        return;
+    }
+
+    InitializeObjectAttributes(&oa, NULL, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+    HANDLE section_handle = NULL;
+    status = Global->Iat.fnt_ZwCreateSection(&section_handle,
+                                             SECTION_ALL_ACCESS,
+                                             &oa,
+                                             NULL,
+                                             PAGE_READONLY,
+                                             SEC_COMMIT,
+                                             file_handle);
+
+    if ( !NT_SUCCESS(status) ) {
+        Global->Iat.fnt_ExFreePoolWithTag(Buffer, POOL_TAG);
+        Global->Iat.fnt_ZwClose(file_handle);
+        Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+        return;
+    }
+
+    PVOID base = NULL;
+    LARGE_INTEGER offset = { 0 };
+    SIZE_T view_size = 0;
+
+    status = Global->Iat.fnt_ZwMapViewOfSection(section_handle,
+                                                NtCurrentProcess(),
+                                                &base,
+                                                0,
+                                                (SIZE_T)info.EndOfFile.QuadPart,
+                                                &offset,
+                                                &view_size,
+                                                ViewUnmap,
+                                                0,
+                                                PAGE_READONLY);
+
+    if ( !NT_SUCCESS(status) ) {
+        Global->Iat.fnt_ZwClose(section_handle);
+        Global->Iat.fnt_ExFreePoolWithTag(Buffer, POOL_TAG);
+        Global->Iat.fnt_ZwClose(file_handle);
+        Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+        return;
+    }
+
+    Global->Iat.fnt_memcpy(Buffer, base, (SIZE_T)info.EndOfFile.QuadPart);
+
+    Global->Iat.fnt_ZwUnmapViewOfSection(NtCurrentProcess(), base);
+    Global->Iat.fnt_ZwClose(section_handle);
+    Global->Iat.fnt_ZwClose(file_handle);
+
+    Global->Iat.fnt_DbgPrint(Global->Print.Output, Global->Print.Function, Buffer, info.EndOfFile.QuadPart);
+    Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+
+    Global->Iat.fnt_ExFreePoolWithTag(Buffer, POOL_TAG);
+}
+//////////////////////////////////////////////////////////////////////////
+VOID QuerydirWorker(_In_ PVOID Parameter) {
+    PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
+    WORKITEM_GLOBAL_DATA_PROLOG(Global);
+
+    UNICODE_STRING dir_path;
+    Global->Iat.fnt_RtlInitUnicodeString(&dir_path, Global->p.QuerydirEntry.dir_path);
+
+    OBJECT_ATTRIBUTES oa;
+    InitializeObjectAttributes(&oa, &dir_path, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+    HANDLE dir_handle = NULL;
+    IO_STATUS_BLOCK iosb;
+    Global->Iat.fnt_memset(&iosb, 0, sizeof(iosb));
+
+    NTSTATUS status = Global->Iat.fnt_IoCreateFile(
+        &dir_handle,
+        FILE_LIST_DIRECTORY | FILE_TRAVERSE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+        &oa,
+        &iosb,
+        NULL,
+        0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        FILE_OPEN,
+        FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT,
+        NULL,
+        0,
+        CreateFileTypeNone,
+        NULL,
+        IO_NO_PARAMETER_CHECKING | IO_IGNORE_SHARE_ACCESS_CHECK);
+
+    if ( !NT_SUCCESS(status) ) {
+        Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+        return;
+    }
+
+    FILE_ID_BOTH_DIR_INFORMATION temp_info;
+
+    status = ZwQueryDirectoryFile(dir_handle,
+                                  NULL,
+                                  NULL,
+                                  NULL,
+                                  &iosb,
+                                  &temp_info,
+                                  sizeof(temp_info),
+                                  FileIdBothDirectoryInformation,
+                                  FALSE,
+                                  NULL,
+                                  TRUE);
+
+    if ( !NT_SUCCESS(status) ) {
+        Global->Iat.fnt_ZwClose(dir_handle);
+        Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
+        return;
+    }
+
+
+
+    //Global->Iat.fnt_DbgPrint(Global->Print.Output, Global->Print.Function, Info[0], Info[1], Info[2], Info[3]);
     Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
 }
 //////////////////////////////////////////////////////////////////////////
