@@ -27,7 +27,7 @@ namespace wa {
 
 EXT_COMMAND(wa_colorize,
             "Adjust WinDBG colors dynamically (prints info with no parameters)",
-            "{enable;b;o;enable,Enable colorizing}{disable;b;o;disable,Disable colorizing}") {
+            "{enable;b,o;enable;Enable colorizing}{disable;b,o;disable;Disable colorizing}") {
     if ( !Init() )
         throw ExtStatusException(S_OK, "global init failed");
 

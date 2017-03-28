@@ -113,7 +113,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
 
 EXT_COMMAND(wa_w32psdt,
             "Output the Win32k Service Descriptor Table",
-            "{process;e64;o;process,Any GUI EPROCESS address (use explorer.exe)}") {
+            "{process;e64,o;process;Any GUI EPROCESS address (use explorer.exe)}") {
     RequireKernelMode();
 
     if ( !Init() )
@@ -182,7 +182,7 @@ EXT_COMMAND(wa_w32psdt,
 
 EXT_COMMAND(wa_w32psdtflt,
             "Output the Win32k Service Descriptor Table Filter",
-            "{process;e64;o;process,Any GUI EPROCESS address (use explorer.exe)}") {
+            "{process;e64,o;process,Any GUI EPROCESS address (use explorer.exe)}") {
     RequireKernelMode();
 
     if ( !Init() )

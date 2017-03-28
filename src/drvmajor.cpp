@@ -32,7 +32,7 @@ namespace wa {
 
 EXT_COMMAND(wa_drvmajor,
             "Output driver(s) major table",
-            "{name;s;o;name,Driver full path}") {
+            "{name;s,o;name;Driver full path}") {
     std::string name = "*";
 
     RequireKernelMode();

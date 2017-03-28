@@ -32,7 +32,7 @@ namespace wa {
 
 EXT_COMMAND(wa_objtypecb,
             "Output kernel-mode callbacks registered with ObRegisterCallbacks",
-            "{type;s;o;type,Object type name}") {
+            "{type;s,o;type;Object type name}") {
     std::string type = "*";
 
     RequireKernelMode();

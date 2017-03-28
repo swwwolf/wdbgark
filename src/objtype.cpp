@@ -31,7 +31,7 @@ namespace wa {
 
 EXT_COMMAND(wa_objtype,
             "Output kernel-mode object type(s)",
-            "{type;s;o;type,Object type name}") {
+            "{type;s,o;type;Object type name}") {
     std::string type = "*";
 
     RequireKernelMode();
