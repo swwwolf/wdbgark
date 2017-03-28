@@ -32,6 +32,7 @@ namespace wa {
 
 bool NormalizeAddress(const uint64_t address, uint64_t* result);
 bool IsLiveKernel();
+void WaitForGoInput();
 
 }   // namespace wa
 

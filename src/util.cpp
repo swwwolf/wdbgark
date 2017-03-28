@@ -22,15 +22,15 @@
 #include "util.hpp"
 #include <engextcpp.hpp>
 
+#include <string>
 #include <sstream>
+#include <algorithm>
 
 #include "manipulators.hpp"
 
 namespace wa {
 
 bool NormalizeAddress(const uint64_t address, uint64_t* result) {
-    *result = 0;
-
     std::stringstream string_value;
     string_value << std::hex << std::showbase << address;
 
@@ -42,11 +42,30 @@ bool NormalizeAddress(const uint64_t address, uint64_t* result) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
+    *result = 0ULL;
     return false;
 }
 
 bool IsLiveKernel() {
     return ((g_Ext->m_DebuggeeClass == DEBUG_CLASS_KERNEL) && (g_Ext->m_DebuggeeQual == DEBUG_KERNEL_CONNECTION));
+}
+
+void WaitForGoInput() {
+    while ( true ) {
+        char buffer[3] = { 0 };
+        auto result = g_Ext->m_Control->Input(buffer, sizeof(buffer), nullptr);
+
+        if ( !SUCCEEDED(result) ) {
+            continue;
+        }
+
+        std::string check_go(buffer);
+        std::transform(check_go.begin(), check_go.end(), check_go.begin(), tolower);
+
+        if ( check_go == "g" || check_go == "go" ) {
+            break;
+        }
+    }
 }
 
 }   // namespace wa
