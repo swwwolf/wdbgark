@@ -34,6 +34,7 @@
 #include <memory>
 #include <utility>
 #include <unordered_map>
+#include <vector>
 
 #include "symbols.hpp"
 #include "dummypdb.hpp"
@@ -138,7 +139,7 @@ class WDbgArkRce {
     std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{ nullptr };
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
-    ExtCheckedPointer<IDebugDataSpaces> m_data_iface{ "The extension did not initialize properly." };
+    ExtCheckedPointer<IDebugDataSpaces> m_Data{ "The extension did not initialize properly." };
 
     std::string m_dummy_rce_full_path{};
     std::string m_temp_module_name{ "beep" };
@@ -163,7 +164,7 @@ class WDbgArkRce {
 
     command_info m_command_info = {
         { "cpuid", { "CpuidWorker", "%s : EAX = 0x%X, EBX = 0x%X, ECX = 0x%X, EDX = 0x%X\n" } },
-        { "copyfile",{ "CopyfileWorker", "%s : Buffer = 0x%p, Size = 0x%p. Input \'go\' to free the buffer\n" } }
+        { "copyfile", { "CopyfileWorker", "%s : Buffer = 0x%p, Size = 0x%p. Input \'go\' to free the buffer\n" } }
     };
 
     std::vector<import> m_imports = {

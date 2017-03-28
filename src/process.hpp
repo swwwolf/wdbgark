@@ -85,6 +85,7 @@ class WDbgArkProcess {
     uint64_t m_old_process = 0ULL;
     ProcessList m_process_list{};
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
+    ExtCheckedPointer<IDebugSystemObjects2> m_System2{ "The extension did not initialize properly." };
 
     //////////////////////////////////////////////////////////////////////////
     // output streams

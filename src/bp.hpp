@@ -74,6 +74,8 @@ class WDbgArkBP {
     Breakpoints m_bp{};
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};
+    ExtCheckedPointer<IDebugControl> m_Control{ "The extension did not initialize properly." };
+
     std::stringstream err{};
     std::stringstream warn{};
 };

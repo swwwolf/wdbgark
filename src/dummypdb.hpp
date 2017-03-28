@@ -42,13 +42,16 @@ class WDbgArkDummyPdb {
 
     // symbols should be already unloaded (.reload /u)
     ~WDbgArkDummyPdb() {
-        std::string filename = GetFullPath();
-        std::ifstream file(filename);
+        try {
+            std::string filename = GetFullPath();
+            std::ifstream file(filename);
 
-        if ( file.good() ) {
-            file.close();
-            std::remove(filename.c_str());
-        }
+            if ( file.good() ) {
+                file.close();
+                std::remove(filename.c_str());
+            }
+        } catch ( const std::ios_base::failure& ) {}
+          catch ( const std::runtime_error& ) {}
     };
 
     bool IsInited(void) const { return m_inited; }

@@ -32,6 +32,13 @@
 namespace wa {
 
 WDbgArkProcess::WDbgArkProcess() {
+    if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugSystemObjects2),
+                                                reinterpret_cast<void**>(&m_System2))) ) {
+        m_System2.Set(nullptr);
+        err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
+        return;
+    }
+
     try {
         if ( GetTypeSize("nt!_EWOW64PROCESS") )
             m_new_wow64 = true;     // 10586+
@@ -44,10 +51,11 @@ WDbgArkProcess::WDbgArkProcess() {
             info.eprocess = GetProcessDataOffset(info.process);
 
             if ( m_wow64_proc_field_name.empty() && g_Ext->IsCurMachine64() ) {
-                if ( info.process.HasField("WoW64Process") )
+                if ( info.process.HasField("WoW64Process") ) {
                     m_wow64_proc_field_name = "WoW64Process";
-                else
+                } else {
                     m_wow64_proc_field_name = "Wow64Process";
+                }
             }
 
             std::pair<bool, std::string> result = GetProcessImageFileName(info.process);
@@ -62,12 +70,12 @@ WDbgArkProcess::WDbgArkProcess() {
             }
 
             info.is_wow64 = IsWow64Process(info.process);
-
             m_process_list.push_back(info);
         }
 
-        if ( !m_process_list.empty() )
+        if ( !m_process_list.empty() ) {
             m_inited = true;
+        }
     }
     catch( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -80,6 +88,10 @@ WDbgArkProcess::WDbgArkProcess(const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb
 
 WDbgArkProcess::~WDbgArkProcess() {
     RevertImplicitProcess();
+
+    if ( m_System2.IsSet() ) {
+        EXT_RELEASE(m_System2);
+    }
 }
 
 uint64_t WDbgArkProcess::FindEProcessByImageFileName(const std::string &process_name) {
@@ -128,7 +140,7 @@ HRESULT WDbgArkProcess::SetImplicitProcess(const uint64_t set_eprocess) {
         return E_INVALIDARG;
     }
 
-    HRESULT result = g_Ext->m_System2->GetImplicitProcessDataOffset(&m_old_process);
+    HRESULT result = m_System2->GetImplicitProcessDataOffset(&m_old_process);
 
     if ( !SUCCEEDED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get current EPROCESS" << endlerr;
@@ -140,7 +152,7 @@ HRESULT WDbgArkProcess::SetImplicitProcess(const uint64_t set_eprocess) {
         return S_OK;
     }
 
-    result = g_Ext->m_System2->SetImplicitProcessDataOffset(set_eprocess);
+    result = m_System2->SetImplicitProcessDataOffset(set_eprocess);
 
     if ( !SUCCEEDED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to set implicit process to ";
@@ -159,12 +171,13 @@ HRESULT WDbgArkProcess::RevertImplicitProcess() {
     HRESULT result = E_NOT_SET;
 
     if ( m_old_process ) {
-        result = g_Ext->m_System2->SetImplicitProcessDataOffset(m_old_process);
+        result = m_System2->SetImplicitProcessDataOffset(m_old_process);
 
-        if ( !SUCCEEDED(result) )
+        if ( !SUCCEEDED(result) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to revert" << endlerr;
-        else
+        } else {
             m_old_process = 0ULL;
+        }
     }
 
     return result;
@@ -247,8 +260,9 @@ bool WDbgArkProcess::IsWow64Process(const ExtRemoteTyped &process) {
 }
 
 uint64_t WDbgArkProcess::GetWow64ProcessPeb32(const ProcessInfo &info) {
-    if ( !info.is_wow64 )
+    if ( !info.is_wow64 ) {
         return 0ULL;
+    }
 
     return GetWow64ProcessPeb32(info.process);
 }
@@ -268,8 +282,9 @@ uint64_t WDbgArkProcess::GetWow64ProcessPeb32(const ExtRemoteTyped &process) {
 }
 
 uint64_t WDbgArkProcess::GetWow64InfoPtr(const ProcessInfo &info) {
-    if ( !info.is_wow64 )
+    if ( !info.is_wow64 ) {
         return 0ULL;
+    }
 
     return GetWow64InfoPtr(info.process);
 }
@@ -277,8 +292,9 @@ uint64_t WDbgArkProcess::GetWow64InfoPtr(const ProcessInfo &info) {
 uint64_t WDbgArkProcess::GetWow64InfoPtr(const ExtRemoteTyped &process) {
     uint64_t wow64peb = GetWow64ProcessPeb32(process);
 
-    if ( !wow64peb )
+    if ( !wow64peb ) {
         return 0ULL;
+    }
 
     return wow64peb + GetTypeSize("nt!_PEB32");
 }
@@ -286,11 +302,13 @@ uint64_t WDbgArkProcess::GetWow64InfoPtr(const ExtRemoteTyped &process) {
 uint64_t WDbgArkProcess::GetWow64InstrumentationCallback(const ProcessInfo &info) {
     uint64_t offset = GetWow64InfoPtr(info);
 
-    if ( !offset )
+    if ( !offset ) {
         return 0ULL;
+    }
 
-    if ( FAILED(SetImplicitProcess(info.eprocess)) )
+    if ( FAILED(SetImplicitProcess(info.eprocess)) ) {
         return 0ULL;
+    }
 
     uint64_t address = 0ULL;
 

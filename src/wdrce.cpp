@@ -42,10 +42,8 @@ WDbgArkRce::WDbgArkRce(const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base,
                        const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_symbols_base(symbols_base),
                                                                             m_dummy_pdb(dummy_pdb),
                                                                             m_sym_cache(sym_cache) {
-    auto result = g_Ext->m_Client->QueryInterface(__uuidof(IDebugDataSpaces), reinterpret_cast<void**>(&m_data_iface));
-
-    if ( FAILED(result) ) {
-        m_data_iface.Set(nullptr);
+    if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugDataSpaces), reinterpret_cast<void**>(&m_Data))) ) {
+        m_Data.Set(nullptr);
         err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
     }
 }
@@ -58,13 +56,16 @@ WDbgArkRce::WDbgArkRce(const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base,
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkRce::~WDbgArkRce() {
-    std::string filename = GetFullPath();
-    std::ifstream file(filename);
+    try {
+        std::string filename = GetFullPath();
+        std::ifstream file(filename);
 
-    if ( file.good() ) {
-        file.close();
-        std::remove(filename.c_str());
-    }
+        if ( file.good() ) {
+            file.close();
+            std::remove(filename.c_str());
+        }
+    } catch ( const std::ios_base::failure& ) {}
+      catch ( const std::runtime_error& ) {}
 
     if ( IsInited() ) {
         SetWorkItemState(WinKdWorkerReady);
@@ -72,8 +73,8 @@ WDbgArkRce::~WDbgArkRce() {
         RevertTempModule();
     }
 
-    if ( m_data_iface.IsSet() ) {
-        EXT_RELEASE(m_data_iface);
+    if ( m_Data.IsSet() ) {
+        EXT_RELEASE(m_Data);
     }
 }
 //////////////////////////////////////////////////////////////////////////
@@ -82,7 +83,7 @@ bool WDbgArkRce::Init() {
         return true;
     }
 
-    if ( !m_data_iface.IsSet() ) {
+    if ( !m_Data.IsSet() ) {
         return false;
     }
 
@@ -652,7 +653,7 @@ HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const unique_bu
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const void* buffer, const size_t buffer_size) {
     uint32_t write_size = 0;
-    auto result = m_data_iface->WriteVirtualUncached(address,
+    auto result = m_Data->WriteVirtualUncached(address,
                                                      const_cast<PVOID>(buffer),
                                                      static_cast<ULONG>(buffer_size),
                                                      reinterpret_cast<PULONG>(&write_size));
@@ -666,7 +667,7 @@ HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const void* buf
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkRce::ReadVirtualUncached(const uint64_t address, const size_t buffer_size, void* buffer) {
     uint32_t read_size = 0;
-    auto result = m_data_iface->ReadVirtualUncached(address,
+    auto result = m_Data->ReadVirtualUncached(address,
                                                     buffer,
                                                     static_cast<ULONG>(buffer_size),
                                                     reinterpret_cast<PULONG>(&read_size));

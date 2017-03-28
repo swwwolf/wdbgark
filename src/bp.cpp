@@ -39,18 +39,29 @@ WDbgArkBP::WDbgArkBP(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
         return;
     }
 
+    if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugControl), reinterpret_cast<void**>(&m_Control))) ) {
+        m_Control.Set(nullptr);
+        err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
+        return;
+    }
+
     m_inited = true;
 }
 
 WDbgArkBP::~WDbgArkBP() {
     Invalidate();
+
+    if ( m_Control.IsSet() ) {
+        EXT_RELEASE(m_Control);
+    }
 }
 
 bool WDbgArkBP::IsKnownBp(const uint32_t id) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    if ( m_bp.empty() )
+    if ( m_bp.empty() ) {
         return false;
+    }
 
     try {
         m_bp.at(id);
@@ -64,8 +75,9 @@ bool WDbgArkBP::IsKnownBp(const IDebugBreakpoint* bp) {
     uint32_t id = 0;
     HRESULT result = const_cast<IDebugBreakpoint*>(bp)->GetId(reinterpret_cast<PULONG>(&id));
 
-    if ( SUCCEEDED(result) )
+    if ( SUCCEEDED(result) ) {
         return IsKnownBp(id);
+    }
 
     return false;
 }
@@ -73,9 +85,7 @@ bool WDbgArkBP::IsKnownBp(const IDebugBreakpoint* bp) {
 void WDbgArkBP::Invalidate() {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    for_each(m_bp.begin(), m_bp.end(), [](Breakpoints::value_type &bp) {
-        g_Ext->m_Control->RemoveBreakpoint(bp.second); });
-
+    for_each(m_bp.begin(), m_bp.end(), [&](Breakpoints::value_type &bp) { m_Control->RemoveBreakpoint(bp.second); });
     m_bp.clear();
 }
 
@@ -88,8 +98,9 @@ void WDbgArkBP::Add(const BPList &bp_list, BPIdList* id_list) {
         uint32_t id = 0;
         HRESULT result = Add(offset, &id);
 
-        if ( SUCCEEDED(result) )
+        if ( SUCCEEDED(result) ) {
             id_list->push_back(id);
+        }
     }
 }
 
@@ -114,10 +125,11 @@ HRESULT WDbgArkBP::Add(const ExtRemoteTyped &object, BPIdList* id_list) {
 
     ExtRemoteTyped driver;
 
-    if ( type_name == "Device" )
+    if ( type_name == "Device" ) {
         driver = *const_cast<ExtRemoteTyped&>(object).Field("DriverObject");
-    else
+    } else {
         driver = object;
+    }
 
     auto major_table = WDbgArkDrvObjHelper(m_sym_cache, driver).GetMajorTable();
 
@@ -127,13 +139,16 @@ HRESULT WDbgArkBP::Add(const ExtRemoteTyped &object, BPIdList* id_list) {
     }
 
     uint64_t offset = 0;
-    if ( !m_sym_cache->GetSymbolOffset("nt!IopInvalidDeviceRequest", true, &offset) )
+    if ( !m_sym_cache->GetSymbolOffset("nt!IopInvalidDeviceRequest", true, &offset) ) {
         warn << wa::showqmark << __FUNCTION__ ": nt!IopInvalidDeviceRequest not found" << endlwarn;
+    }
 
     BPList bp_list;
+
     for ( auto &entry : major_table ) {
-        if ( entry.first && entry.first != offset )
+        if ( entry.first && entry.first != offset ) {
             bp_list.push_back(entry.first);
+        }
     }
 
     Add(bp_list, id_list);
@@ -148,7 +163,7 @@ HRESULT WDbgArkBP::Remove(const uint32_t id) {
     try {
         auto bp = m_bp.at(id);
         m_bp.erase(id);
-        result = g_Ext->m_Control->RemoveBreakpoint(bp);
+        result = m_Control->RemoveBreakpoint(bp);
     } catch (const std::out_of_range&) {}
 
     if ( FAILED(result) ) {
@@ -169,7 +184,7 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, const std::string &expression, uin
     std::lock_guard<std::mutex> lock(m_mutex);
 
     IDebugBreakpoint* bp = nullptr;
-    HRESULT result = g_Ext->m_Control->AddBreakpoint(DEBUG_BREAKPOINT_CODE, DEBUG_ANY_ID, &bp);
+    HRESULT result = m_Control->AddBreakpoint(DEBUG_BREAKPOINT_CODE, DEBUG_ANY_ID, &bp);
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to add breakpoint" << endlerr;
@@ -180,14 +195,15 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, const std::string &expression, uin
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to enable breakpoint flags" << endlerr;
-        g_Ext->m_Control->RemoveBreakpoint(bp);
+        m_Control->RemoveBreakpoint(bp);
         return result;
     }
 
-    if ( expression.empty() )
+    if ( expression.empty() ) {
         result = bp->SetOffset(offset);
-    else
+    } else {
         result = bp->SetOffsetExpression(expression.c_str());
+    }
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to set breakpoint offset to ";
@@ -197,7 +213,7 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, const std::string &expression, uin
         else
             err << expression << endlerr;
 
-        g_Ext->m_Control->RemoveBreakpoint(bp);
+        m_Control->RemoveBreakpoint(bp);
         return result;
     }
 
@@ -206,7 +222,7 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, const std::string &expression, uin
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get breakpoint id" << endlerr;
-        g_Ext->m_Control->RemoveBreakpoint(bp);
+        m_Control->RemoveBreakpoint(bp);
         return result;
     }
 
