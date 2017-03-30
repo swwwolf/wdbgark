@@ -143,13 +143,13 @@ typedef struct _QUERYDIR_WORKER_ENTRY {
 } QUERYDIR_WORKER_ENTRY, *PQUERYDIR_WORKER_ENTRY;
 //////////////////////////////////////////////////////////////////////////
 // Function
-//              "CpuidWorker",
+//              "CpuidWorker"
 // Output
-//              "%s : EAX = 0x%X, EBX = 0x%X, ECX = 0x%X, EDX = 0x%X\n",
+//              "%s : EAX = 0x%X, EBX = 0x%X, ECX = 0x%X, EDX = 0x%X. Hit \'go\' to continue.\n"
 // Function
-//              "CopyfileWorker",
+//              "CopyfileWorker"
 // Output
-//              "%s : Buffer = 0x%p, Size = 0x%p. Press \'go\' to free the buffer\n",
+//              "%s : Buffer = 0x%p, Size = 0x%p. Hit \'go\' to continue and free the buffer.\n"
 typedef struct _WORKITEM_GLOBAL_DATA_PRINT {
     CHAR Function[16];
     CHAR Output[112];

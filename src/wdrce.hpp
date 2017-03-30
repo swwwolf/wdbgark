@@ -163,8 +163,10 @@ class WDbgArkRce {
     size_t m_data_section_need_size = 0;
 
     command_info m_command_info = {
-        { "cpuid", { "CpuidWorker", "%s : EAX = 0x%X, EBX = 0x%X, ECX = 0x%X, EDX = 0x%X\n" } },
-        { "copyfile", { "CopyfileWorker", "%s : Buffer = 0x%p, Size = 0x%p. Input \'go\' to free the buffer\n" } }
+        { "cpuid", { "CpuidWorker",
+                     "%s : EAX = 0x%X, EBX = 0x%X, ECX = 0x%X, EDX = 0x%X. Hit \'go\' to continue.\n" } },
+        { "copyfile", { "CopyfileWorker",
+                        "%s : Buffer = 0x%p, Size = 0x%p. Hit \'go\' to continue and free the buffer.\n" } }
     };
 
     std::vector<import> m_imports = {

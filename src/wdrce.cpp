@@ -490,6 +490,8 @@ bool WDbgArkRce::RelocateCodeAndData() {
         return false;
     }
 
+    RevertTempModule();
+
     if ( !ReInitTempModuleCodeSection(buffer_code, buffer_code_size) ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to re-init code section" << endlerr;
         return false;
@@ -500,8 +502,6 @@ bool WDbgArkRce::RelocateCodeAndData() {
         return false;
     }
 
-    m_code_section_used = false;
-    m_data_section_used = false;
     m_relocated = true;
     return true;
 }
