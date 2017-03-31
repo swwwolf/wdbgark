@@ -40,6 +40,9 @@
     <Filter Include="Source Files\engextcpp">
       <UniqueIdentifier>{06fadfc8-2bc3-4e90-8fb9-6395755a0190}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Commands\wdrce">
+      <UniqueIdentifier>{420e3912-4ed2-40bd-85de-f6e6e308cb5f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\bprinter\src\table_printer.cpp">
@@ -175,7 +178,10 @@
       <Filter>Source Files\Support</Filter>
     </ClCompile>
     <ClCompile Include="src\cpuid.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\Commands\wdrce</Filter>
+    </ClCompile>
+    <ClCompile Include="src\copyfile.cpp">
+      <Filter>Source Files\Commands\wdrce</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

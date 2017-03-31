@@ -214,6 +214,7 @@
     <ClCompile Include="src\ciinfo.cpp" />
     <ClCompile Include="src\colorhack.cpp" />
     <ClCompile Include="src\colorize.cpp" />
+    <ClCompile Include="src\copyfile.cpp" />
     <ClCompile Include="src\cpuid.cpp" />
     <ClCompile Include="src\crashdmpcall.cpp" />
     <ClCompile Include="src\dbgevent.cpp" />

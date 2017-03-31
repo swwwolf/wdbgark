@@ -121,7 +121,7 @@ class WDbgArk : public ExtExtension {
     // Windows Debugger Remote Code Execution commands
     //////////////////////////////////////////////////////////////////////////
     EXT_COMMAND_METHOD(wdrce_cpuid);
-    //EXT_COMMAND_METHOD(wdrce_copyfile);
+    EXT_COMMAND_METHOD(wdrce_copyfile);
 
     //////////////////////////////////////////////////////////////////////////
     // init

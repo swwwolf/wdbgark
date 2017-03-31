@@ -37,4 +37,4 @@ EXPORTS
     wa_chknirvana
     wa_psppico
     wdrce_cpuid
-    ;wdrce_copyfile
+    wdrce_copyfile

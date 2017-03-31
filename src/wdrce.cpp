@@ -111,6 +111,10 @@ bool WDbgArkRce::ExecuteCopyfile(const std::wstring &path) {
         return false;
     }
 
+    if ( path.empty() ) {
+        return false;
+    }
+
     ExecutePreCommand();
 
     if ( !SetCopyfileParameters(path) ) {
@@ -312,7 +316,7 @@ bool WDbgArkRce::InitTempModuleCodeSection(const std::unique_ptr<WDbgArkPe> &tem
 bool WDbgArkRce::ReInitTempModuleCodeSection(const uint64_t address, const size_t buffer_size) {
     auto code_section_bytes = std::make_unique<uint8_t[]>(buffer_size);
 
-    if ( !SUCCEEDED(ReadVirtualUncached(address, buffer_size, code_section_bytes.get())) ) {
+    if ( FAILED(ReadVirtualUncached(address, buffer_size, code_section_bytes.get())) ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to read code section" << endlerr;
         return false;
     }
@@ -349,7 +353,7 @@ bool WDbgArkRce::InitTempModuleDataSection(const std::unique_ptr<WDbgArkPe> &tem
 bool WDbgArkRce::ReInitTempModuleDataSection(const uint64_t address, const size_t buffer_size) {
     auto data_section_bytes = std::make_unique<uint8_t[]>(buffer_size);
 
-    if ( !SUCCEEDED(ReadVirtualUncached(address, buffer_size, data_section_bytes.get())) ) {
+    if ( FAILED(ReadVirtualUncached(address, buffer_size, data_section_bytes.get())) ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to read data section" << endlerr;
         return false;
     }
