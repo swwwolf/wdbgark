@@ -37,11 +37,13 @@ EXT_COMMAND(wa_objtypecb,
 
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
-    if ( HasArg("type") )   // object type was provided
+    if ( HasArg("type") ) {
         type.assign(GetArgStr("type"));
+    }
 
     out << wa::showplus << "Displaying callbacks registered with ObRegisterCallbacks with type " << type << endlout;
 
@@ -99,7 +101,10 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
 
     try {
         ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
-        uint8_t object_type_flags = object_type.Field("TypeInfo").Field("ObjectTypeFlags").GetUchar();
+        auto object_type_flags_typed = object_type.Field("TypeInfo").Field("ObjectTypeFlags");
+        auto size = object_type_flags_typed.GetTypeSize();
+
+        uint16_t object_type_flags = static_cast<uint16_t>(object_type_flags_typed.GetData(size));
 
         if ( !(object_type_flags & OBJTYPE_SUPPORTS_OBJECT_CALLBACKS) )
             return S_OK;
@@ -107,7 +112,7 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
         display->PrintObjectDmlCmd(object);
         display->PrintFooter();
 
-        std::string dummy_pdb_callback_entry_common = wdbg_ark_class->m_dummy_pdb->GetShortName() +\
+        std::string dummy_pdb_callback_entry_common = wdbg_ark_class->m_dummy_pdb->GetShortName() + \
             "!_OBJECT_CALLBACK_ENTRY_COMMON";
 
         ExtRemoteTypedList list_head(object_type.Field("CallbackList").m_Offset,
