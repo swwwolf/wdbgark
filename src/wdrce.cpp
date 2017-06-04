@@ -147,14 +147,16 @@ bool WDbgArkRce::InitWdRce() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::InitSymbols() {
-    auto result = m_sym_cache->GetSymbolOffset("nt!ExpDebuggerWorkItem", true, &m_expdebuggerworkitem_offset);
+    auto result = m_sym_cache->GetSymbolOffset("nt!ExpDebuggerWorkItem",
+                                               true,
+                                               &m_debugger_info.expdebuggerworkitem_offset);
 
     if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to locate ExpDebuggerWorkItem" << endlerr;
         return false;
     }
 
-    result = m_sym_cache->GetSymbolOffset("nt!ExpDebuggerWork", true, &m_expdebuggerwork_offset);
+    result = m_sym_cache->GetSymbolOffset("nt!ExpDebuggerWork", true, &m_debugger_info.expdebuggerwork_offset);
 
     if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to locate ExpDebuggerWork" << endlerr;
@@ -175,14 +177,21 @@ bool WDbgArkRce::InitGlobalData() {
 
     m_global_data = { std::make_unique<uint8_t[]>(global_data_size), global_data_size };
 
-    auto result = FillGlobalData(m_struct_name, "ExpDebuggerWorkItem", &m_expdebuggerworkitem_offset, g_Ext->m_PtrSize);
+    auto result = FillGlobalData(m_struct_name,
+                                 "ExpDebuggerWorkItem",
+                                 &m_debugger_info.expdebuggerworkitem_offset,
+                                 g_Ext->m_PtrSize);
 
     if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": FillGlobalData for ExpDebuggerWorkItem failed" << endlerr;
         return false;
     }
 
-    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM", m_expdebuggerworkitem_offset, false, nullptr, nullptr);
+    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM",
+                                       m_debugger_info.expdebuggerworkitem_offset,
+                                       false,
+                                       nullptr,
+                                       nullptr);
 
     auto type_size = expdebuggerworkitem.GetTypeSize();
     unique_buf temp_buffer = std::make_unique<uint8_t[]>(type_size);
@@ -194,7 +203,10 @@ bool WDbgArkRce::InitGlobalData() {
         return false;
     }
 
-    result = FillGlobalData(m_struct_name, "ExpDebuggerWork", &m_expdebuggerwork_offset, g_Ext->m_PtrSize);
+    result = FillGlobalData(m_struct_name,
+                            "ExpDebuggerWork",
+                            &m_debugger_info.expdebuggerwork_offset,
+                            g_Ext->m_PtrSize);
 
     if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": FillGlobalData for ExpDebuggerWork failed" << endlerr;
@@ -460,8 +472,17 @@ bool WDbgArkRce::RelocateCodeAndData() {
         return false;
     }
 
-    if ( !NormalizeAddress(buffer_code, &buffer_code) ) {
+    result = NormalizeAddress(buffer_code, &buffer_code);
+
+    if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to normalize BufferCode" << endlerr;
+        return false;
+    }
+
+    result = SetOption("BufferCode", &buffer_code, g_Ext->m_PtrSize);
+
+    if ( !result ) {
+        err << wa::showminus << __FUNCTION__ << ": Unable to set BufferCode" << endlerr;
         return false;
     }
 
@@ -473,6 +494,13 @@ bool WDbgArkRce::RelocateCodeAndData() {
         return false;
     }
 
+    result = SetOption("BufferCodeSize", &buffer_code_size, sizeof(buffer_code_size));
+
+    if ( !result ) {
+        err << wa::showminus << __FUNCTION__ << ": Unable to set BufferCodeSize" << endlerr;
+        return false;
+    }
+
     uint64_t buffer_data = 0ULL;
     result = GetOption("BufferData", g_Ext->m_PtrSize, &buffer_data);
 
@@ -481,8 +509,17 @@ bool WDbgArkRce::RelocateCodeAndData() {
         return false;
     }
 
-    if ( !NormalizeAddress(buffer_data, &buffer_data) ) {
+    result = NormalizeAddress(buffer_data, &buffer_data);
+
+    if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to normalize BufferData" << endlerr;
+        return false;
+    }
+
+    result = SetOption("BufferData", &buffer_data, g_Ext->m_PtrSize);
+
+    if ( !result ) {
+        err << wa::showminus << __FUNCTION__ << ": Unable to set BufferData" << endlerr;
         return false;
     }
 
@@ -494,14 +531,25 @@ bool WDbgArkRce::RelocateCodeAndData() {
         return false;
     }
 
+    result = SetOption("BufferDataSize", &buffer_data_size, sizeof(buffer_data_size));
+
+    if ( !result ) {
+        err << wa::showminus << __FUNCTION__ << ": Unable to set BufferDataSize" << endlerr;
+        return false;
+    }
+
     RevertTempModule();
 
-    if ( !ReInitTempModuleCodeSection(buffer_code, buffer_code_size) ) {
+    result = ReInitTempModuleCodeSection(buffer_code, buffer_code_size);
+
+    if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to re-init code section" << endlerr;
         return false;
     }
 
-    if ( !ReInitTempModuleDataSection(buffer_data, buffer_data_size) ) {
+    result = ReInitTempModuleDataSection(buffer_data, buffer_data_size);
+
+    if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to re-init data section" << endlerr;
         return false;
     }
@@ -521,6 +569,11 @@ bool WDbgArkRce::ExecuteCommand(const std::string &command_name) {
 
     if ( !SetOutput(command.output) ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to set output" << endlerr;
+        return false;
+    }
+
+    if ( !CheckWorkItemState() ) {
+        err << wa::showminus << __FUNCTION__ << ": Invalid work item state" << endlerr;
         return false;
     }
 
@@ -702,13 +755,19 @@ bool WDbgArkRce::HookWorkItem() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::HookWorkItemRoutine() {
-    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM", m_expdebuggerworkitem_offset, false, nullptr, nullptr);
+    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM",
+                                       m_debugger_info.expdebuggerworkitem_offset,
+                                       false,
+                                       nullptr,
+                                       nullptr);
 
     auto routine = expdebuggerworkitem.Field("WorkerRoutine");
-    m_workerroutine_original_offset = routine.m_Offset;
-    m_workerroutine_original = routine.GetPtr();
+    m_debugger_info.workerroutine_original_offset = routine.m_Offset;
+    m_debugger_info.workerroutine_original = routine.GetPtr();
 
-    auto result = WriteVirtualUncached(m_workerroutine_original_offset, &m_code_section_start, g_Ext->m_PtrSize);
+    auto result = WriteVirtualUncached(m_debugger_info.workerroutine_original_offset,
+                                       &m_code_section_start,
+                                       g_Ext->m_PtrSize);
 
     if ( FAILED(result) ) {
         return false;
@@ -718,12 +777,16 @@ bool WDbgArkRce::HookWorkItemRoutine() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::HookWorkItemParameter() {
-    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM", m_expdebuggerworkitem_offset, false, nullptr, nullptr);
+    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM",
+                                       m_debugger_info.expdebuggerworkitem_offset,
+                                       false,
+                                       nullptr,
+                                       nullptr);
 
     auto parameter = expdebuggerworkitem.Field("Parameter");
-    m_workerroutine_parameter_original_offset = parameter.m_Offset;
-    m_workerroutine_parameter_original = parameter.GetPtr();
-    auto result = WriteVirtualUncached(m_workerroutine_parameter_original_offset,
+    m_debugger_info.workerroutine_parameter_original_offset = parameter.m_Offset;
+    m_debugger_info.workerroutine_parameter_original = parameter.GetPtr();
+    auto result = WriteVirtualUncached(m_debugger_info.workerroutine_parameter_original_offset,
                                        &m_data_section_start,
                                        g_Ext->m_PtrSize);
 
@@ -736,23 +799,25 @@ bool WDbgArkRce::HookWorkItemParameter() {
 //////////////////////////////////////////////////////////////////////////
 void WDbgArkRce::UnHookWorkItemParameter() {
     uint64_t address = 0ULL;
-    auto result = ReadVirtualUncached(m_workerroutine_parameter_original_offset,
+    auto result = ReadVirtualUncached(m_debugger_info.workerroutine_parameter_original_offset,
                                       g_Ext->m_PtrSize,
                                       &address);
 
-    if ( SUCCEEDED(result) && address != m_workerroutine_parameter_original ) {
-        result = WriteVirtualUncached(m_workerroutine_parameter_original_offset,
-                                      &m_workerroutine_parameter_original,
+    if ( SUCCEEDED(result) && address != m_debugger_info.workerroutine_parameter_original ) {
+        result = WriteVirtualUncached(m_debugger_info.workerroutine_parameter_original_offset,
+                                      &m_debugger_info.workerroutine_parameter_original,
                                       g_Ext->m_PtrSize);
     }
 }
 //////////////////////////////////////////////////////////////////////////
 void WDbgArkRce::UnHookWorkItemRoutine() {
     uint64_t address = 0ULL;
-    auto result = ReadVirtualUncached(m_workerroutine_original_offset, g_Ext->m_PtrSize, &address);
+    auto result = ReadVirtualUncached(m_debugger_info.workerroutine_original_offset, g_Ext->m_PtrSize, &address);
 
-    if ( SUCCEEDED(result) && address != m_workerroutine_original ) {
-        result = WriteVirtualUncached(m_workerroutine_original_offset, &m_workerroutine_original, g_Ext->m_PtrSize);
+    if ( SUCCEEDED(result) && address != m_debugger_info.workerroutine_original ) {
+        result = WriteVirtualUncached(m_debugger_info.workerroutine_original_offset,
+                                      &m_debugger_info.workerroutine_original,
+                                      g_Ext->m_PtrSize);
     }
 }
 //////////////////////////////////////////////////////////////////////////
@@ -762,13 +827,24 @@ void WDbgArkRce::UnHookWorkItem() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::SetWorkItemState(const WINKD_WORKER_STATE state) {
-    auto result = WriteVirtualUncached(m_expdebuggerwork_offset, &state, sizeof(LONG));
+    auto result = WriteVirtualUncached(m_debugger_info.expdebuggerwork_offset, &state, sizeof(LONG));
 
     if ( FAILED(result) ) {
         return false;
     }
 
     return true;
+}
+//////////////////////////////////////////////////////////////////////////
+bool WDbgArkRce::CheckWorkItemState() {
+    WINKD_WORKER_STATE state;
+    auto result = ReadVirtualUncached(m_debugger_info.expdebuggerwork_offset, sizeof(LONG), &state);
+
+    if ( FAILED(result) ) {
+        return false;
+    }
+
+    return (state == WinKdWorkerReady);
 }
 //////////////////////////////////////////////////////////////////////////
 void WDbgArkRce::RevertTempModule() {

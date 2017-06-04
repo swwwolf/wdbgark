@@ -79,6 +79,15 @@ class WDbgArkRce {
         std::string output;
     } CommandInfo;
 
+    typedef struct DebuggerInfoTag {
+        uint64_t expdebuggerworkitem_offset;
+        uint64_t workerroutine_original_offset;
+        uint64_t workerroutine_original;
+        uint64_t workerroutine_parameter_original_offset;
+        uint64_t workerroutine_parameter_original;
+        uint64_t expdebuggerwork_offset;
+    } DebuggerInfo;
+
     using command_info = std::unordered_map<std::string, CommandInfo>;          // function name : command info
     using shellcode_info = std::unordered_map<std::string, unique_buf_size>;    // function name : shellcode info
 
@@ -131,6 +140,7 @@ class WDbgArkRce {
     void UnHookWorkItemRoutine();
     void UnHookWorkItem();
     bool SetWorkItemState(const WINKD_WORKER_STATE state);
+    bool CheckWorkItemState();
     void RevertTempModule();
 
  private:
@@ -145,12 +155,7 @@ class WDbgArkRce {
     std::string m_temp_module_name{ "beep" };
 
     std::string m_struct_name{};
-    uint64_t m_expdebuggerworkitem_offset = 0ULL;
-    uint64_t m_workerroutine_original_offset = 0ULL;
-    uint64_t m_workerroutine_original = 0ULL;
-    uint64_t m_workerroutine_parameter_original_offset = 0ULL;
-    uint64_t m_workerroutine_parameter_original = 0ULL;
-    uint64_t m_expdebuggerwork_offset = 0ULL;
+    DebuggerInfo m_debugger_info = { 0 };
     unique_buf_size m_global_data{};
 
     bool m_code_section_used = false;
@@ -166,7 +171,8 @@ class WDbgArkRce {
         { "cpuid", { "CpuidWorker",
                      "%s : EAX = 0x%X, EBX = 0x%X, ECX = 0x%X, EDX = 0x%X. Hit \'go\' to continue.\n" } },
         { "copyfile", { "CopyfileWorker",
-                        "%s : Buffer = 0x%p, Size = 0x%p. Hit \'go\' to continue and free the buffer.\n" } }
+                        "%s : Buffer = 0x%p, Size = 0x%p. Hit \'go\' to continue and free the buffer.\n" } },
+        { "freemem", { "FreememWorker", "%s : Buffer = 0x%p\n" } }
     };
 
     std::vector<import> m_imports = {

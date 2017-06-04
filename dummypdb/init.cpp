@@ -26,6 +26,8 @@ extern "C" {
 #endif
     DRIVER_INITIALIZE DriverEntry;
 
+    WORKER_THREAD_ROUTINE FreememWorker;
+
     WORKER_THREAD_ROUTINE CpuidWorker;
     WORKER_THREAD_ROUTINE CopyfileWorker;
     WORKER_THREAD_ROUTINE QuerydirWorker;
@@ -82,6 +84,35 @@ NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* DriverObject, _In_ PUNICODE_STRING Regi
 
     return STATUS_SUCCESS;
 }
+//////////////////////////////////////////////////////////////////////////
+VOID FreememWorker(_In_ PVOID Parameter) {
+    PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
+    WORKITEM_GLOBAL_DATA_PROLOG(Global);
+
+#ifndef _X86_
+    PVOID BufferCode = Global->BufferCode;
+    Global->Iat.fnt_ExFreePoolWithTag(Global->BufferData, POOL_TAG);
+    return Global->Iat.fnt_ExFreePoolWithTag(BufferCode, POOL_TAG);
+#else
+    __asm {
+        pop     edi     //
+        pop     esi     // epilogue
+        pop     ebx     //
+        mov     eax, [edi + 18h]
+        push    POOL_TAG
+        push    eax
+        lea     eax, [edi + 44h]
+        push    eax
+        mov     eax, [edi + 20h]
+        push    POOL_TAG
+        push    eax
+        lea     eax, [edi + 44h]
+        push    eax
+        retn
+    }
+#endif  // _X86_
+}
+
 //////////////////////////////////////////////////////////////////////////
 VOID CpuidWorker(_In_ PVOID Parameter) {
     PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
