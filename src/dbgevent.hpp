@@ -98,10 +98,10 @@ class WDbgArkDbgEventsBP : public WDbgArkDbgEventsBase, public WDbgArkBP {
     STDMETHOD(Breakpoint)(__in PDEBUG_BREAKPOINT Bp);
 
  private:
-    bool m_inited;
-    std::stringstream err;
-    std::stringstream warn;
-    std::stringstream out;
+    bool m_inited = false;
+    std::stringstream err{};
+    std::stringstream warn{};
+    std::stringstream out{};
 };
 
 }   // namespace wa

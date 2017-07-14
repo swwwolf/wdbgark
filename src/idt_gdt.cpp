@@ -687,8 +687,9 @@ bool InitIdtSupport(const uint32_t strict_minor_build, IdtSupport* support_info)
 EXT_COMMAND(wa_idt, "Output processors IDT", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Dumping IDTs" << endlout;
 
@@ -737,10 +738,11 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                 std::stringstream info;
 
-                if ( m_is_cur_machine64 )
+                if ( m_is_cur_machine64 ) {
                     info << std::setw(52);
-                else
+                } else {
                     info << std::setw(50);
+                }
 
                 if ( m_is_cur_machine64 ) {
                     KIDT_HANDLER_ADDRESS idt_handler;
@@ -769,8 +771,9 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                     isr_address = static_cast<uint64_t>(MAKEULONG(idt_entry.Field("ExtendedOffset").GetUshort(),
                                                                   idt_entry.Field("Offset").GetUshort()));
 
-                    if ( !NormalizeAddress(isr_address, &isr_address) )
+                    if ( !NormalizeAddress(isr_address, &isr_address) ) {
                         err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
+                    }
 
                     info << "<exec cmd=\"dx -r1 *(nt!_KIDTENTRY *)" << std::hex << std::showbase;
                     info << idt_entry.m_Offset << "\">dx" << "</exec>" << " ";
@@ -791,7 +794,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                 // now deal with _KINTERRUPTs
                 ExtRemoteTyped interrupt;
-                bool           valid_interrupt = false;
+                bool valid_interrupt = false;
 
                 if ( isr_address < support_info.start_unexpected_range ||
                      isr_address > support_info.end_unexpected_range ||
@@ -849,15 +852,17 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                     uint64_t message_address = 0;
 
-                    if ( support_info.message_service_offset )
+                    if ( support_info.message_service_offset ) {
                         message_address = interrupt.Field("MessageServiceRoutine").GetPtr();
+                    }
 
-                    if ( !message_address )
+                    if ( !message_address ) {
                         message_address = interrupt.Field("ServiceRoutine").GetPtr();
+                    }
 
                     display->Analyze(message_address, processor_index.str(), info_intr.str());
 
-                    walkresType    output_list;
+                    walkresType output_list;
                     ExtRemoteTyped list_entry = interrupt.Field("InterruptListEntry");
 
                     if ( support_info.message_service_offset ) {
@@ -881,8 +886,9 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                    &output_list);
 
                     for ( const auto &walk_info : output_list ) {
-                        if ( !walk_info.address )
+                        if ( !walk_info.address ) {
                             continue;
+                        }
 
                         std::stringstream info_intr_list;
                         info_intr_list << std::setw(51);
@@ -942,10 +948,8 @@ bool InitIdtSupport(const uint32_t strict_minor_build, IdtSupport* support_info)
         }
     }
 
-    if ( g_Ext->IsCurMachine32()
-         &&
-         strict_minor_build >= W81RTM_VER
-         &&
+    if ( g_Ext->IsCurMachine32() &&
+         strict_minor_build >= W81RTM_VER &&
          GetFieldOffset("nt!_KPCR",
                         "PrcbData.VectorToInterruptObject",
                         reinterpret_cast<PULONG>(&support_info->vector_to_interrupt_object)) != 0 ) {
@@ -954,23 +958,20 @@ bool InitIdtSupport(const uint32_t strict_minor_build, IdtSupport* support_info)
     }
 
     if ( strict_minor_build < W10RTM_VER ) {
-        if ( (g_Ext->IsCurMachine64() || strict_minor_build <= W8RTM_VER)
-              &&
+        if ( (g_Ext->IsCurMachine64() || strict_minor_build <= W8RTM_VER) &&
               GetFieldOffset("nt!_KINTERRUPT",
                              "DispatchCode",
                              reinterpret_cast<PULONG>(&support_info->dispatch_code_offset)) != 0 ) {
             warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with DispatchCode" << endlwarn;
         }
-    } else if ( g_Ext->IsCurMachine64()
-                &&
+    } else if ( g_Ext->IsCurMachine64() &&
                 GetFieldOffset("nt!_KPRCB",
                                "InterruptObject",
                                reinterpret_cast<PULONG>(&support_info->interrupt_object_offset)) != 0 ) {
         warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with InterruptObject" << endlwarn;
     }
 
-    if ( strict_minor_build >= VISTA_RTM_VER
-         &&
+    if ( strict_minor_build >= VISTA_RTM_VER &&
          GetFieldOffset("nt!_KINTERRUPT",
                         "MessageServiceRoutine",
                         reinterpret_cast<PULONG>(&support_info->message_service_offset)) != 0 ) {
@@ -1084,8 +1085,9 @@ std::vector<uint32_t> GetGDTSelectors() {
 EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Dumping GDTs" << endlout;
 
@@ -1122,10 +1124,11 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
 
             ExtRemoteTyped pcr("nt!_KPCR", kpcr_offset, false, NULL, NULL);
 
-            if ( m_is_cur_machine64 )
+            if ( m_is_cur_machine64 ) {
                 gdt_entry_start = pcr.Field("GdtBase").GetPtr();    // _KGDTENTRY64*
-            else
+            } else {
                 gdt_entry_start = pcr.Field("GDT").GetPtr();        // _KGDTENTRY*
+            }
 
             uint32_t gdt_selector = 0;
 

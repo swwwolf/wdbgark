@@ -34,16 +34,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 // base object manager helper class
 //////////////////////////////////////////////////////////////////////////
-WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
-    : m_inited(false),
-      m_object_header_old(true),
-      m_ObpInfoMaskToOffset(0),
-      m_ObTypeIndexTableOffset(0),
-      m_ObHeaderCookie(0),
-      m_sym_cache(sym_cache),
-      out(),
-      warn(),
-      err() {
+WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_sym_cache(sym_cache) {
     // determine object header format
     uint32_t type_index_offset = 0;
 
@@ -96,8 +87,9 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
         int num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
 
         for ( int i = 0; i < num_buckets; i++ ) {
-            if ( !buckets.m_Offset )
+            if ( !buckets.m_Offset ) {
                 continue;
+            }
 
             for ( ExtRemoteTyped directory_entry = *buckets[static_cast<ULONG>(i)];
                   directory_entry.m_Offset;
@@ -109,16 +101,18 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
 
                 std::pair<HRESULT, std::string> result = GetObjectName(object_information.object);
 
-                if ( FAILED(result.first) )
+                if ( FAILED(result.first) ) {
                     continue;
+                }
 
                 object_information.obj_name = result.second;
                 object_information.full_path = root_path + object_information.obj_name;
 
                 result = GetObjectTypeName(object_information.object);
 
-                if ( FAILED(result.first) )
+                if ( FAILED(result.first) ) {
                     continue;
+                }
 
                 object_information.type_name = result.second;
 
@@ -140,8 +134,9 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
                                                          object_information.full_path,
                                                          recursive);
 
-                    if ( SUCCEEDED(recursive_info.first) )
+                    if ( SUCCEEDED(recursive_info.first) ) {
                         info.insert(recursive_info.second.begin(), recursive_info.second.end());
+                    }
                 }
             }
         }
@@ -171,8 +166,9 @@ uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
 
     std::string compare_full_path = root_path + object_name;
 
-    if ( root_path == "\\" && object_name[0] == '\\' )
+    if ( root_path == "\\" && object_name[0] == '\\' ) {
         compare_full_path = object_name;
+    }
 
     std::transform(compare_full_path.begin(), compare_full_path.end(), compare_full_path.begin(), tolower);
 
@@ -180,8 +176,9 @@ uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
         std::string full_path = object_info.second.full_path;
         std::transform(full_path.begin(), full_path.end(), full_path.begin(), tolower);
 
-        if ( full_path == compare_full_path )
+        if ( full_path == compare_full_path ) {
             return object_info.second.object.m_Offset;
+        }
     }
 
     return 0ULL;
@@ -342,8 +339,9 @@ WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetMajorTable() {
 
     Table table;
 
-    for ( size_t i = 0; i < m_major_table_name.size(); i++ )
+    for ( size_t i = 0; i < m_major_table_name.size(); i++ ) {
         table.push_back({ major_table[static_cast<int64_t>(i)].GetPtr(), m_major_table_name[i] });
+    }
 
     return table;
 }

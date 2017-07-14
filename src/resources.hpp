@@ -42,16 +42,16 @@ class WDbgArkResHelper {
     std::string GetDropPath(void) const { return m_temp_path; }
 
  private:
-     std::string m_main_subdir;
-     std::string m_platform_subdir;
-     std::string m_temp_path;
+     std::string m_main_subdir{ "wdbgark" };
+     std::string m_platform_subdir{};
+     std::string m_temp_path{};
 
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
+    std::stringstream out{};
+    std::stringstream warn{};
+    std::stringstream err{};
 };
 
 }   // namespace wa

@@ -143,30 +143,26 @@ void __stdcall InitUiColors()
 
 namespace wa {
 
-WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
-                                       m_g_ui_colors(nullptr),
-                                       m_g_out_mask_ui_colors(nullptr),
-                                       m_internal_colors(),
-                                       m_cur_theme(),
-                                       m_themes(),
-                                       out(),
-                                       warn(),
-                                       err() {
+WDbgArkColorHack::WDbgArkColorHack() {
     try {
-        if ( !IsWinDbgWindow() )
+        if ( !IsWinDbgWindow() ) {
             throw ExtStatusException(S_OK, "Can't find WinDBG window");
+        }
 
         auto module_file_name = std::make_unique<char[]>(MAX_PATH);
-        if ( !GetModuleFileName(GetModuleHandle(nullptr), module_file_name.get(), MAX_PATH) )
-            throw ExtStatusException(S_OK, "Can't get module file name");
 
-        uint16_t windbg_major    = 0;
-        uint16_t windbg_minor    = 0;
-        uint16_t windbg_build    = 0;
+        if ( !GetModuleFileName(GetModuleHandle(nullptr), module_file_name.get(), MAX_PATH) ) {
+            throw ExtStatusException(S_OK, "Can't get module file name");
+        }
+
+        uint16_t windbg_major = 0;
+        uint16_t windbg_minor = 0;
+        uint16_t windbg_build = 0;
         uint16_t windbg_revision = 0;
 
-        if ( !GetFileVersion(module_file_name.get(), &windbg_major, &windbg_minor, &windbg_build, &windbg_revision) )
+        if ( !GetFileVersion(module_file_name.get(), &windbg_major, &windbg_minor, &windbg_build, &windbg_revision) ) {
             throw ExtStatusException(S_OK, "Can't get module version");
+        }
 
         m_tp->AddColumn("DML name", 15);
         m_tp->AddColumn("Description", 70);
@@ -177,13 +173,15 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
 
         uintptr_t windbg_module_start = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
 
-        if ( !windbg_module_start )
+        if ( !windbg_module_start ) {
             throw ExtStatusException(S_OK, "GetModuleHandle failed");
+        }
 
         PIMAGE_NT_HEADERS nth = ImageNtHeader(reinterpret_cast<PVOID>(windbg_module_start));
 
-        if ( !nth )
+        if ( !nth ) {
             throw ExtStatusException(S_OK, "Can't get NT header");
+        }
 
         uintptr_t windbg_module_end = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
             static_cast<ptrdiff_t>(nth->OptionalHeader.SizeOfImage));
@@ -197,20 +195,22 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
         for ( int16_t i = 0; i < nth->FileHeader.NumberOfSections; i++ ) {
             std::string section_name = reinterpret_cast<char*>(&sech->Name[0]);
 
-            if ( sech_check_in && sech_search_in )
+            if ( sech_check_in && sech_search_in ) {
                 break;
-            else if ( windbg_build < W10RTM_VER && section_name == ".text" )
+            } else if ( windbg_build < W10RTM_VER && section_name == ".text" ) {
                 sech_check_in = sech;
-            else if ( windbg_build >= W10RTM_VER && section_name == ".rdata" )
+            } else if ( windbg_build >= W10RTM_VER && section_name == ".rdata" ) {
                 sech_check_in = sech;
-            else if ( section_name == ".data" )
+            } else if ( section_name == ".data" ) {
                 sech_search_in = sech;
+            }
 
             sech++;
         }
 
-        if ( !sech_check_in || !sech_search_in )
+        if ( !sech_check_in || !sech_search_in ) {
             throw ExtStatusException(S_OK, "Can't get sections header");
+        }
 
         uintptr_t start_search_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
             static_cast<ptrdiff_t>(sech_search_in->VirtualAddress));
@@ -236,12 +236,14 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
             try {
                 if ( *mem_point >= start_check_in && *mem_point <= end_check_in ) {
                     std::wstring check_sig = reinterpret_cast<wchar_t*>(*mem_point);
-                    if ( check_sig == L"Background" )
+
+                    if ( check_sig == L"Background" ) {
                         m_g_ui_colors = reinterpret_cast<UiColor*>(mem_point);
-                    else if ( check_sig == L"Normal level command window text" )
+                    } else if ( check_sig == L"Normal level command window text" ) {
                         m_g_out_mask_ui_colors = reinterpret_cast<UiColor*>(mem_point);
-                    else if ( m_g_ui_colors && m_g_out_mask_ui_colors )
+                    } else if ( m_g_ui_colors && m_g_out_mask_ui_colors ) {
                         break;
+                    }
                 }
             }
             catch( ... ) { }    // continue
@@ -249,8 +251,9 @@ WDbgArkColorHack::WDbgArkColorHack() : m_inited(false),
             mem_point++;
         }
 
-        if ( !m_g_ui_colors || !m_g_out_mask_ui_colors )
+        if ( !m_g_ui_colors || !m_g_out_mask_ui_colors ) {
             throw ExtStatusException(S_OK, "WinDbg internal structures are not found");
+        }
 
         UiColor* loc_ui_color = m_g_ui_colors;
 
@@ -309,14 +312,18 @@ BOOL CALLBACK WDbgArkColorHack::EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 bool WDbgArkColorHack::IsWinDbgWindow(void) {
     bool found = false;
 
-    if ( !EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&found)) && !found )
+    if ( !EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&found)) && !found ) {
         return false;
+    }
 
     return true;
 }
 
-bool WDbgArkColorHack::GetFileVersion(const std::string& file_path, uint16_t* major, uint16_t* minor,
-                                      uint16_t* build, uint16_t* revision) {
+bool WDbgArkColorHack::GetFileVersion(const std::string& file_path,
+                                      uint16_t* major,
+                                      uint16_t* minor,
+                                      uint16_t* build,
+                                      uint16_t* revision) {
     uint32_t file_version_size = GetFileVersionInfoSize(file_path.c_str(), nullptr);
 
     if ( !file_version_size ) {
@@ -332,7 +339,7 @@ bool WDbgArkColorHack::GetFileVersion(const std::string& file_path, uint16_t* ma
     }
 
     VS_FIXEDFILEINFO* file_info = nullptr;
-    unsigned int      buf_len   = 0;
+    unsigned int buf_len = 0;
 
     if ( !VerQueryValue(version_data.get(), "\\", reinterpret_cast<LPVOID*>(&file_info), &buf_len) ) {
         err << wa::showminus << __FUNCTION__ << ": VerQueryValue failed" << endlerr;
@@ -444,8 +451,9 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
         return false;
     }
 
-    if ( m_cur_theme == theme_name )
+    if ( m_cur_theme == theme_name ) {
         return true;
+    }
 
     themes::const_iterator it = m_themes.find(theme_name);
 
@@ -473,8 +481,15 @@ WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiC
     std::string dml_name = wstring_to_string(ui_color->dml_name);
     std::transform(dml_name.begin(), dml_name.end(), dml_name.begin(), tolower);
 
-    return { ui_color, false, ui_color_type, wstring_to_string(ui_color->description), dml_name, ui_color->color, 0,
-             ui_color->int_color, 0 };
+    return { ui_color,
+             false,
+             ui_color_type,
+             wstring_to_string(ui_color->description),
+             dml_name,
+             ui_color->color,
+             0,
+             ui_color->int_color,
+             0 };
 }
 
 void WDbgArkColorHack::RevertColors(void) {

@@ -53,11 +53,7 @@ STDMETHODIMP WDbgArkDbgEventsBase::QueryInterface(REFIID InterfaceId, PVOID* Int
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkDbgEventsBP::WDbgArkDbgEventsBP(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : WDbgArkDbgEventsBase(),
-                                                                                            WDbgArkBP(sym_cache),
-                                                                                            m_inited(false),
-                                                                                            err(),
-                                                                                            warn(),
-                                                                                            out() {
+                                                                                            WDbgArkBP(sym_cache) {
     m_inited = WDbgArkBP::IsInited();
 }
 

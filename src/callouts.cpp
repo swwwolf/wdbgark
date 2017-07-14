@@ -98,15 +98,17 @@ std::vector<std::string> GetCalloutNames() {
 EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying Win32k callouts" << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
-    if ( !display->AddRangeWhiteList("win32k") )
+    if ( !display->AddRangeWhiteList("win32k") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     display->PrintHeader();
 

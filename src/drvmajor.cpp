@@ -33,15 +33,17 @@ namespace wa {
 EXT_COMMAND(wa_drvmajor,
             "Output driver(s) major table",
             "{name;s,o;name;Driver full path}") {
-    std::string name = "*";
-
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
-    if ( HasArg("name") )
+    std::string name = "*";
+
+    if ( HasArg("name") ) {
         name.assign(GetArgStr("name"));
+    }
 
     out << wa::showplus << __FUNCTION__ << ": displaying " << name << endlout;
 
@@ -61,19 +63,22 @@ EXT_COMMAND(wa_drvmajor,
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeDriver);
 
-    if ( !display->AddSymbolWhiteList("nt!IopInvalidDeviceRequest", 0) )
+    if ( !display->AddSymbolWhiteList("nt!IopInvalidDeviceRequest", 0) ) {
         warn << wa::showqmark << __FUNCTION__ ": AddSymbolWhiteList failed" << endlwarn;
+    }
 
-    if ( m_system_ver->GetStrictVer() >= VISTA_SP2_VER && !display->AddRangeWhiteList("wdf01000") )
+    if ( m_system_ver->GetStrictVer() >= VISTA_SP2_VER && !display->AddRangeWhiteList("wdf01000") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     display->SetWhiteListEntries(GetDriversWhiteList());
     display->PrintHeader();
 
     try {
         if ( name == "*" ) {
-            for ( auto &driver_info : drivers_info )
+            for ( auto &driver_info : drivers_info ) {
                 display->Analyze(driver_info.second);
+            }
         } else {
             auto object_address = m_obj_helper->FindObjectByName(name, 0ULL, "\\", true);
             display->Analyze(ExtRemoteTyped("nt!_DRIVER_OBJECT", object_address, false, nullptr, nullptr));

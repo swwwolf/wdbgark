@@ -151,13 +151,15 @@ bool WDbgArkPe::ReadImage(unique_buf* buffer) {
 bool WDbgArkPe::VerifyChecksum(const unique_buf &buffer) {
     NtHeaders nth;
 
-    if ( !GetNtHeaders(buffer.get(), &nth) )
+    if ( !GetNtHeaders(buffer.get(), &nth) ) {
         return false;
+    }
 
     uint32_t header_sum = nth->GetChecksum();
 
-    if ( !header_sum )
+    if ( !header_sum ) {
         return true;
+    }
 
     uint16_t* address = reinterpret_cast<uint16_t*>(buffer.get());
     uint32_t sum = 0;
@@ -248,13 +250,15 @@ bool WDbgArkPe::GetImageSection(const std::string &name, IMAGE_SECTION_HEADER* s
 bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
     NtHeaders nth;
 
-    if ( !GetNtHeaders(buffer.get(), &nth) )
+    if ( !GetNtHeaders(buffer.get(), &nth) ) {
         return false;
+    }
 
     uint32_t image_size = nth->GetImageSize();
 
-    if ( !image_size || image_size < m_file_size )
+    if ( !image_size || image_size < m_file_size ) {
         return false;
+    }
 
     m_load_base = VirtualAlloc(nullptr, image_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
@@ -271,8 +275,9 @@ bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
         auto section_header = IMAGE_FIRST_SECTION(nth->GetPtr());
 
         for ( uint16_t i = 0; i < nth->GetFileHeader()->NumberOfSections; i++ ) {
-            if ( !section_header[i].SizeOfRawData )
+            if ( !section_header[i].SizeOfRawData ) {
                 continue;
+            }
 
             void* section_dst = reinterpret_cast<void*>RtlOffsetToPointer(m_load_base,
                                                                           section_header[i].VirtualAddress);
@@ -290,16 +295,19 @@ bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
 }
 
 bool WDbgArkPe::RelocateImage(const uint64_t base_address) {
-    if ( !base_address )
+    if ( !base_address ) {
         return false;
+    }
 
     NtHeaders nth;
 
-    if ( !GetNtHeaders(&nth) )
+    if ( !GetNtHeaders(&nth) ) {
         return false;
+    }
 
-    if ( nth->GetFileHeader()->Characteristics & IMAGE_FILE_RELOCS_STRIPPED )    // it's ok
+    if ( nth->GetFileHeader()->Characteristics & IMAGE_FILE_RELOCS_STRIPPED ) {     // it's ok
         return true;
+    }
 
     uint32_t dir_size = 0;
     auto next_relocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>(::ImageDirectoryEntryToDataEx(

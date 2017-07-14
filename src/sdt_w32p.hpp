@@ -53,6 +53,7 @@ enum ServiceTableIndex {
     ServiceTableW10Th1,
     ServiceTableW10Th2,
     ServiceTableW10Rs1,
+    ServiceTableW10Rs2
 };
 
 std::string get_service_table_routine_name(const uint32_t minor_build,

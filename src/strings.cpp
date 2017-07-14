@@ -61,8 +61,9 @@ std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped
 
             uint32_t read = buffer.ReadBuffer(test_name.get(), maxlen, true);
 
-            if ( read == maxlen )
+            if ( read == maxlen ) {
                 output_string = wstring_to_string(test_name.get());
+            }
 
             return std::make_pair(S_OK, output_string);
         }

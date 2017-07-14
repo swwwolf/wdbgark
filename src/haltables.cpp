@@ -47,8 +47,9 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
             "nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying HAL tables" << endlout;
 
@@ -77,8 +78,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalPrivateDispatchTable" << endlerr;
     }
 
-    if ( m_system_ver->GetStrictVer() >= W81RTM_VER
-         &&
+    if ( m_system_ver->GetStrictVer() >= W81RTM_VER &&
          !m_sym_cache->GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
     }
@@ -157,6 +157,12 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
     display->PrintFooter();
 }
 
+/* { HalDispatchTable table count
+     HalPrivateDispatchTable table count
+     HalIommuDispatch table count (W8.1+)
+     Skip first N entries
+   }
+*/
 HalTableInfo GetHalTableInfo() {
     return { {
         { WXP_VER, { 0x15, 0x12, 0x0, 0x1 } },
@@ -170,7 +176,8 @@ HalTableInfo GetHalTableInfo() {
         { W81RTM_VER, { 0x16, 0x69, 0x0B, 0x1 } },
         { W10RTM_VER, { 0x16, 0x71, 0x10, 0x1 } },
         { W10TH2_VER, { 0x16, 0x71, 0x10, 0x1 } },
-        { W10RS1_VER, { 0x16, 0x7C, 0x11, 0x1 } }
+        { W10RS1_VER, { 0x16, 0x7C, 0x11, 0x1 } },
+        { W10RS2_VER, { 0x16, 0x7F, 0x13, 0x1 } }
         } };
 }
 

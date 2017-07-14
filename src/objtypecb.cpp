@@ -33,13 +33,13 @@ namespace wa {
 EXT_COMMAND(wa_objtypecb,
             "Output kernel-mode callbacks registered with ObRegisterCallbacks",
             "{type;s,o;type;Object type name}") {
-    std::string type = "*";
-
     RequireKernelMode();
 
     if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
     }
+
+    std::string type = "*";
 
     if ( HasArg("type") ) {
         type.assign(GetArgStr("type"));

@@ -123,8 +123,9 @@ namespace wa {
 EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying nt!PlugPlayHandlerTable" << endlout;
 
@@ -141,8 +142,9 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
-    if ( !display->AddRangeWhiteList("nt") )
+    if ( !display->AddRangeWhiteList("nt") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     display->PrintHeader();
 
@@ -150,8 +152,9 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
         for ( uint32_t i = 0; i < 0x100; i++ ) {
             ExtRemoteData pnp_table_entry_class(offset + i * size, static_cast<ULONG>(sizeof(uint32_t)));
 
-            if ( pnp_table_entry_class.GetUlong() != i )    // check PnpControlClass
+            if ( pnp_table_entry_class.GetUlong() != i ) {      // check PnpControlClass
                 break;
+            }
 
             uint64_t init_offset = offset + i * size + sizeof(uint32_t) + sizeof(uint32_t);
 

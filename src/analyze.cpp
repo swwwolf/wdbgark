@@ -69,11 +69,13 @@ std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared
 }
 
 bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const uint64_t address) const {
-    if ( !address )
+    if ( !address ) {
         return false;
+    }
 
-    if ( IsAddressInWhiteList(address) )
+    if ( IsAddressInWhiteList(address) ) {
         return false;
+    }
 
     return true;
 }
@@ -95,43 +97,50 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
 
         WDbgArkSymbolsBase symbols_base;
 
-        if ( !SUCCEEDED(symbols_base.GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) )
+        if ( !SUCCEEDED(symbols_base.GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) ) {
             suspicious = true;
+        }
 
         module_command_buf = GetModuleDmlCmd(address, module_name, symbols_base);
 
         std::pair<HRESULT, std::string> result = symbols_base.GetNameByOffset(address);
 
-        if ( !SUCCEEDED(result.first) )
+        if ( !SUCCEEDED(result.first) ) {
             suspicious = true;
-        else
+        } else {
             symbol_name = result.second;
+        }
     }
 
     std::stringstream addr_ext;
 
-    if ( address )
+    if ( address ) {
         addr_ext << "<exec cmd=\"u " << std::hex << std::showbase << address << " L10\">";
+    }
 
     addr_ext << std::internal << std::setw(18) << std::setfill('0') << std::hex << std::showbase << address;
 
-    if ( address )
+    if ( address ) {
         addr_ext << "</exec>";
+    }
 
     *m_tp << addr_ext.str() << type << symbol_name << module_command_buf;
 
-    if ( suspicious )
+    if ( suspicious ) {
         *m_tp << "Y";
-    else
+    } else {
         *m_tp << "";
+    }
 
-    if ( !additional_info.empty() )
+    if ( !additional_info.empty() ) {
         *m_tp << additional_info;
+    }
 
-    if ( suspicious )
+    if ( suspicious ) {
         m_tp->flush_warn();
-    else
+    } else {
         m_tp->flush_out();
+    }
 }
 //////////////////////////////////////////////////////////////////////////
 void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
@@ -192,8 +201,10 @@ std::string WDbgArkAnalyzeBase::GetModuleDmlCmd(const uint64_t address,
         module_command_buf << "cmd=\".writemem ";
 
         char current_dir[MAX_PATH];
-        if ( GetCurrentDirectory(MAX_PATH, current_dir) && GetShortPathName(current_dir, current_dir, MAX_PATH) )
+
+        if ( GetCurrentDirectory(MAX_PATH, current_dir) && GetShortPathName(current_dir, current_dir, MAX_PATH) ) {
             module_command_buf << current_dir << "\\";
+        }
 
         module_command_buf << module_name << "_" << std::hex << base << "_" << std::hex << size << ".bin" << " ";
         module_command_buf << std::hex << std::showbase << base << " ";
@@ -267,8 +278,9 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
 
         auto result = m_obj_helper->GetObjectName(object);
 
-        if ( SUCCEEDED(result.first) )
+        if ( SUCCEEDED(result.first) ) {
             AddTempWhiteList(result.second);
+        }
 
         WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
@@ -329,20 +341,23 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
         uint32_t limit = GetGDTLimit(gdt_entry);
         uint64_t address = 0ULL;
 
-        if ( !NormalizeAddress(GetGDTBase(gdt_entry), &address) )
+        if ( !NormalizeAddress(GetGDTBase(gdt_entry), &address) ) {
             err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
+        }
 
         std::stringstream addr_ext;
 
         if ( address ) {
             if ( g_Ext->IsCurMachine64() ) {
-                if ( selector == KGDT64_SYS_TSS )
+                if ( selector == KGDT64_SYS_TSS ) {
                     addr_ext << "<exec cmd=\"dt nt!_KTSS64 " << std::hex << std::showbase << address << "\">";
+                }
             } else {
-                if ( selector == KGDT_TSS || selector == KGDT_DF_TSS || selector == KGDT_NMI_TSS )
+                if ( selector == KGDT_TSS || selector == KGDT_DF_TSS || selector == KGDT_NMI_TSS ) {
                     addr_ext << "<exec cmd=\"dt nt!_KTSS " << std::hex << std::showbase << address << "\">";
-                else if ( selector == KGDT_R0_PCR )
+                } else if ( selector == KGDT_R0_PCR ) {
                     addr_ext << "<exec cmd=\"dt nt!_KPCR " << std::hex << std::showbase << address << "\">";
+                }
             }
         }
 
@@ -350,8 +365,9 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
 
         if ( address ) {
             if ( g_Ext->IsCurMachine64() ) {
-                if ( selector == KGDT64_SYS_TSS )
+                if ( selector == KGDT64_SYS_TSS ) {
                     addr_ext << "</exec>";
+                }
             } else {
                 if ( selector == KGDT_TSS ||
                      selector == KGDT_DF_TSS ||
@@ -373,17 +389,19 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
 
         std::stringstream granularity;
 
-        if ( IsGDTPageGranularity(gdt_entry) )
+        if ( IsGDTPageGranularity(gdt_entry) ) {
             granularity << "Page";
-        else
+        } else {
             granularity << "Byte";
+        }
 
         std::stringstream present;
 
-        if ( IsGDTFlagPresent(gdt_entry) )
+        if ( IsGDTFlagPresent(gdt_entry) ) {
             present << "P";
-        else
+        } else {
             present << "NP";
+        }
 
         *this << addr_ext.str() << limit_ext.str() << cpu_idx << selector_ext.str();
         *this << GetGDTSelectorName(selector) << GetGDTTypeName(gdt_entry);
@@ -400,10 +418,11 @@ bool WDbgArkAnalyzeGDT::IsGDTPageGranularity(const ExtRemoteTyped &gdt_entry) {
     ExtRemoteTyped loc_gdt_entry = gdt_entry;
     std::string field_name;
 
-    if ( g_Ext->IsCurMachine64() )
+    if ( g_Ext->IsCurMachine64() ) {
         field_name = "Bits.Granularity";
-    else
+    } else {
         field_name = "HighWord.Bits.Granularity";
+    }
 
     return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
 }
@@ -412,10 +431,11 @@ bool WDbgArkAnalyzeGDT::IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry) {
     ExtRemoteTyped loc_gdt_entry = gdt_entry;
     std::string field_name;
 
-    if ( g_Ext->IsCurMachine64() )
+    if ( g_Ext->IsCurMachine64() ) {
         field_name = "Bits.Present";
-    else
+    } else {
         field_name = "HighWord.Bits.Pres";
+    }
 
     return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
 }
@@ -424,10 +444,11 @@ uint32_t WDbgArkAnalyzeGDT::GetGDTDpl(const ExtRemoteTyped &gdt_entry) {
     ExtRemoteTyped loc_gdt_entry = gdt_entry;
     std::string field_name;
 
-    if ( g_Ext->IsCurMachine64() )
+    if ( g_Ext->IsCurMachine64() ) {
         field_name = "Bits.Dpl";
-    else
+    } else {
         field_name = "HighWord.Bits.Dpl";
+    }
 
     return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
 }
@@ -436,10 +457,11 @@ uint32_t WDbgArkAnalyzeGDT::GetGDTType(const ExtRemoteTyped &gdt_entry) {
     ExtRemoteTyped loc_gdt_entry = gdt_entry;
     std::string field_name;
 
-    if ( g_Ext->IsCurMachine64() )
+    if ( g_Ext->IsCurMachine64() ) {
         field_name = "Bits.Type";
-    else
+    } else {
         field_name = "HighWord.Bits.Type";
+    }
 
     return loc_gdt_entry.Field(field_name.c_str()).GetUlong();
 }
@@ -460,8 +482,9 @@ uint32_t WDbgArkAnalyzeGDT::GetGDTLimit(const ExtRemoteTyped &gdt_entry) {
                 (loc_gdt_entry.Field("LimitLow").GetUshort());
     }
 
-    if ( IsGDTPageGranularity(gdt_entry) )  // 4k segment
+    if ( IsGDTPageGranularity(gdt_entry) ) {    // 4k segment
         limit = ((limit + 1) << PAGE_SHIFT) - 1;
+    }
 
     return limit;
 }
@@ -541,13 +564,15 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
         auto driver_start = loc_object.Field("DriverStart").GetPtr();
         uint32_t driver_size = loc_object.Field("DriverSize").GetUlong();
 
-        if ( driver_start && driver_size )
+        if ( driver_start && driver_size ) {
             display->AddTempRangeWhiteList(driver_start, driver_size);
+        }
 
         auto result = m_obj_helper->GetObjectName(object);
 
-        if ( SUCCEEDED(result.first) )
+        if ( SUCCEEDED(result.first) ) {
             AddTempWhiteList(result.second);
+        }
 
         out << wa::showplus << "Driver routines: " << endlout;
         PrintFooter();
@@ -556,8 +581,9 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
         display->Analyze(loc_object.Field("DriverStartIo").GetPtr(), "DriverStartIo", "");
         display->Analyze(loc_object.Field("DriverUnload").GetPtr(), "DriverUnload", "");
 
-        if ( loc_object.Field("DriverExtension").GetPtr() )
+        if ( loc_object.Field("DriverExtension").GetPtr() ) {
             display->Analyze(loc_object.Field("DriverExtension").Field("AddDevice").GetPtr(), "AddDevice", "");
+        }
 
         PrintFooter();
 
@@ -586,8 +612,9 @@ void WDbgArkAnalyzeDriver::DisplayMajorTable(const ExtRemoteTyped &object) {
 
     auto major_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetMajorTable();
 
-    for ( auto &entry : major_table )
+    for ( auto &entry : major_table ) {
         display->Analyze(entry.first, entry.second, "");
+    }
 
     PrintFooter();
 }
@@ -601,8 +628,9 @@ void WDbgArkAnalyzeDriver::DisplayFastIo(const ExtRemoteTyped &object) {
         out << wa::showplus << "FastIO table routines: " << endlout;
         PrintFooter();
 
-        for ( auto &entry : fast_io_table )
+        for ( auto &entry : fast_io_table ) {
             display->Analyze(entry.first, entry.second, "");
+        }
 
         PrintFooter();
     }
@@ -617,8 +645,9 @@ void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object
         out << wa::showplus << "FsFilterCallbacks table routines: " << endlout;
         PrintFooter();
 
-        for ( auto &entry : fs_cb_table )
+        for ( auto &entry : fs_cb_table ) {
             display->Analyze(entry.first, entry.second, "");
+        }
 
         PrintFooter();
     }

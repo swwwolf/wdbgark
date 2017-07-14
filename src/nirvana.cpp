@@ -31,8 +31,9 @@ namespace wa {
 EXT_COMMAND(wa_chknirvana, "Checks processes for Hooking Nirvana instrumentation", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Searching for Hooking Nirvana instrumentation" << endlout;
 
@@ -63,8 +64,9 @@ EXT_COMMAND(wa_chknirvana, "Checks processes for Hooking Nirvana instrumentation
             if ( address ) {
                 HRESULT result = process_helper->SetImplicitProcess(process.eprocess);
 
-                if ( FAILED(result) )
+                if ( FAILED(result) ) {
                     continue;
+                }
 
                 // reload user-mode symbols without output
                 // I'm cheating here executing .cache command

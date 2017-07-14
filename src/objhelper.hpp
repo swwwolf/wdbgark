@@ -80,28 +80,29 @@ class WDbgArkObjHelper {
                               const bool recursive = false);
 
     uint64_t ExFastRefGetObject(uint64_t FastRef) const {
-        if ( g_Ext->IsCurMachine32() )
+        if ( g_Ext->IsCurMachine32() ) {
             return FastRef & ~MAX_FAST_REFS_X86;
-        else
+        } else {
             return FastRef & ~MAX_FAST_REFS_X64;
+        }
     }
 
  private:
     std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);
 
  private:
-    bool m_inited;
-    bool m_object_header_old;
-    uint64_t m_ObpInfoMaskToOffset;
-    uint64_t m_ObTypeIndexTableOffset;
-    uint8_t m_ObHeaderCookie;
-    std::shared_ptr<WDbgArkSymCache> m_sym_cache;
+    bool m_inited = false;
+    bool m_object_header_old = true;
+    uint64_t m_ObpInfoMaskToOffset = 0ULL;
+    uint64_t m_ObTypeIndexTableOffset = 0ULL;
+    uint8_t m_ObHeaderCookie = 0;
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
     //////////////////////////////////////////////////////////////////////////
     // output streams
     //////////////////////////////////////////////////////////////////////////
-    std::stringstream out;
-    std::stringstream warn;
-    std::stringstream err;
+    std::stringstream out{};
+    std::stringstream warn{};
+    std::stringstream err{};
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -121,6 +122,7 @@ class WDbgArkDrvObjHelper : public WDbgArkObjHelper {
 
  private:
     ExtRemoteTyped m_driver;
+
     std::vector<std::string> m_major_table_name = {
         make_string(IRP_MJ_CREATE),
         make_string(IRP_MJ_CREATE_NAMED_PIPE),
@@ -151,6 +153,7 @@ class WDbgArkDrvObjHelper : public WDbgArkObjHelper {
         make_string(IRP_MJ_SET_QUOTA),
         make_string(IRP_MJ_PNP)
     };
+
     std::vector<std::string> m_fast_io_table_name = {
         make_string(FastIoCheckIfPossible),
         make_string(FastIoRead),
@@ -180,6 +183,7 @@ class WDbgArkDrvObjHelper : public WDbgArkObjHelper {
         make_string(AcquireForCcFlush),
         make_string(ReleaseForCcFlush)
     };
+
     std::vector<std::string> m_fs_filter_cb_table_name = {
         make_string(PreAcquireForSectionSynchronization),
         make_string(PostAcquireForSectionSynchronization),

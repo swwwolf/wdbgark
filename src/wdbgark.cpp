@@ -53,8 +53,9 @@ WDbgArk::WDbgArk() {
 }
 
 bool WDbgArk::Init() {
-    if ( IsInited() )
+    if ( IsInited() ) {
         return true;
+    }
 
     if ( m_Client->QueryInterface(__uuidof(IDebugSymbols3), reinterpret_cast<void**>(&m_symbols3_iface)) != S_OK ) {
         m_symbols3_iface.Set(nullptr);
@@ -145,8 +146,9 @@ void WDbgArk::InitScanCommands() {
 void WDbgArk::InitCallbackCommands() {
     uint32_t timer_routine_offset = 0;
 
-    if ( GetFieldOffset("nt!_IO_TIMER", "TimerRoutine", reinterpret_cast<PULONG>(&timer_routine_offset)) != 0 )
+    if ( GetFieldOffset("nt!_IO_TIMER", "TimerRoutine", reinterpret_cast<PULONG>(&timer_routine_offset)) != 0 ) {
         warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
+    }
 
     uint32_t le_size = GetTypeSize("nt!_LIST_ENTRY");
 

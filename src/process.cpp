@@ -40,8 +40,9 @@ WDbgArkProcess::WDbgArkProcess() {
     }
 
     try {
-        if ( GetTypeSize("nt!_EWOW64PROCESS") )
+        if ( GetTypeSize("nt!_EWOW64PROCESS") ) {
             m_new_wow64 = true;     // 10586+
+        }
 
         ExtRemoteTypedList list_head = ExtNtOsInformation::GetKernelProcessList();
 
@@ -58,7 +59,7 @@ WDbgArkProcess::WDbgArkProcess() {
                 }
             }
 
-            std::pair<bool, std::string> result = GetProcessImageFileName(info.process);
+            auto result = GetProcessImageFileName(info.process);
 
             if ( !result.first ) {
                 warn << wa::showqmark << __FUNCTION__ << ": failed to read process file name ";
@@ -102,8 +103,9 @@ uint64_t WDbgArkProcess::FindEProcessByImageFileName(const std::string &process_
         return 0ULL;
     }
 
-    if ( FindProcessInfoByImageFileName(process_name, &info) )
+    if ( FindProcessInfoByImageFileName(process_name, &info) ) {
         return info.eprocess;
+    }
 
     return 0ULL;
 }
@@ -119,8 +121,9 @@ uint64_t WDbgArkProcess::FindEProcessAnyGUIProcess() {
             std::find_if(std::begin(m_process_list), std::end(m_process_list), [](ProcessInfo &proc_info) {
                 return proc_info.process.Field("Win32Process").GetPtr() != 0ULL; });
 
-        if ( it != std::end(m_process_list) )
+        if ( it != std::end(m_process_list) ) {
             return it->eprocess;
+        }
     }
     catch( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -247,8 +250,9 @@ bool WDbgArkProcess::FindProcessInfoByImageFileName(const std::string &process_n
 }
 
 bool WDbgArkProcess::IsWow64Process(const ExtRemoteTyped &process) {
-    if ( g_Ext->IsCurMachine32() )
+    if ( g_Ext->IsCurMachine32() ) {
         return false;
+    }
 
     try {
         return (const_cast<ExtRemoteTyped&>(process).Field(m_wow64_proc_field_name.c_str()).GetPtr() != 0ULL);

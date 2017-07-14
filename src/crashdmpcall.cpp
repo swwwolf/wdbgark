@@ -37,8 +37,9 @@ uint32_t GetCrashdmpCallTableCount();
 EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying nt!CrashdmpCallTable" << endlout;
 
@@ -65,8 +66,9 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
-    if ( !display->AddRangeWhiteList("crashdmp") )
+    if ( !display->AddRangeWhiteList("crashdmp") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     display->PrintHeader();
 
@@ -92,15 +94,19 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
 uint32_t GetCrashdmpCallTableCount() {
     WDbgArkSystemVer system_ver;
 
-    if ( !system_ver.IsInited() )
+    if ( !system_ver.IsInited() ) {
         return 0;
+    }
 
-    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP1_VER) )
+    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP1_VER) ) {
         return 7;
-    else if ( system_ver.IsBuildInRangeStrict(VISTA_SP2_VER, W7SP1_VER) )
+    } else if ( system_ver.IsBuildInRangeStrict(VISTA_SP2_VER, W7SP1_VER) ) {
         return 8;
-    else if ( system_ver.GetStrictVer() >= W8RTM_VER )
+    } else if ( system_ver.IsBuildInRangeStrict(W8RTM_VER, W10RS1_VER) ) {
         return 12;
+    } else if ( system_ver.GetStrictVer() >= W10RS2_VER ) {
+        return 13;
+    }
 
     return 0;
 }

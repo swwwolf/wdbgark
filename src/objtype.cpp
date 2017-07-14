@@ -36,11 +36,13 @@ EXT_COMMAND(wa_objtype,
 
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
-    if ( HasArg("type") )   // object type was provided
+    if ( HasArg("type") ) {     // object type was provided
         type.assign(GetArgStr("type"));
+    }
 
     out << wa::showplus << "Displaying \\ObjectTypes\\" << type << endlout;
 
@@ -53,8 +55,9 @@ EXT_COMMAND(wa_objtype,
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeObjType);
 
-    if ( !display->AddRangeWhiteList("nt") )
+    if ( !display->AddRangeWhiteList("nt") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     display->SetWhiteListEntries(GetObjectTypesWhiteList());
     display->PrintHeader();

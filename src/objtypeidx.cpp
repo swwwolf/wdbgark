@@ -31,8 +31,9 @@ namespace wa {
 EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying nt!ObTypeIndexTable" << endlout;
 
@@ -52,8 +53,9 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeObjType);
 
-    if ( !display->AddRangeWhiteList("nt") )
+    if ( !display->AddRangeWhiteList("nt") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     display->SetWhiteListEntries(GetObjectTypesWhiteList());
     display->PrintHeader();

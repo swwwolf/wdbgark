@@ -93,8 +93,9 @@ bool WDbgArkSymbolsBase::InitImagePath() {
 WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindExecutableImage(const std::string &search_path,
                                                                          const std::string &image_name,
                                                                          const DEBUG_MODULE_PARAMETERS &parameters) {
-    if ( search_path.empty() || image_name.empty() )
+    if ( search_path.empty() || image_name.empty() ) {
         return std::make_pair(E_INVALIDARG, m_unknown_name);
+    }
 
     char image_file_path[MAX_PATH + 1] = { 0 };
     HANDLE exe_file = FindExecutableImageEx(image_name.c_str(),
@@ -116,18 +117,21 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindExecutableImageInternal
     const DEBUG_MODULE_PARAMETERS &parameters) {
     ResultString result_string = FindExecutableImage(GetImagePath(), image_name, parameters);
 
-    if ( SUCCEEDED(result_string.first) )
+    if ( SUCCEEDED(result_string.first) ) {
         return std::make_pair(result_string.first, result_string.second);
+    }
 
     result_string = SymFindExecutableImage(GetSymbolPath(), image_name, parameters);
 
-    if ( SUCCEEDED(result_string.first) )
+    if ( SUCCEEDED(result_string.first) ) {
         return std::make_pair(result_string.first, result_string.second);
+    }
 
     result_string = SymFindExecutableImage(GetImagePath(), image_name, parameters);
 
-    if ( SUCCEEDED(result_string.first) )
+    if ( SUCCEEDED(result_string.first) ) {
         return std::make_pair(result_string.first, result_string.second);
+    }
 
     return std::make_pair(E_NOT_SET, m_unknown_name);
 }
@@ -135,8 +139,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindExecutableImageInternal
 WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::SymFindExecutableImage(const std::string &search_path,
                                                                             const std::string &image_name,
                                                                             const DEBUG_MODULE_PARAMETERS &parameters) {
-    if ( search_path.empty() || image_name.empty() )
+    if ( search_path.empty() || image_name.empty() ) {
         return std::make_pair(E_INVALIDARG, m_unknown_name);
+    }
 
     char image_file_path[MAX_PATH + 1] = { 0 };
     auto result = SymFindFileInPath(GetCurrentProcess(),
@@ -150,13 +155,15 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::SymFindExecutableImage(cons
                                     SymFindFileInPathProc,
                                     reinterpret_cast<void*>(const_cast<DEBUG_MODULE_PARAMETERS*>(&parameters)));
 
-    if ( result )
+    if ( result ) {
         return std::make_pair(S_OK, std::string(image_file_path));
+    }
 
     auto alias_result = FindImageNameByAlias(image_name);
 
-    if ( SUCCEEDED(alias_result.first) )
+    if ( SUCCEEDED(alias_result.first) ) {
         return SymFindExecutableImage(search_path, alias_result.second, parameters);
+    }
 
     return std::make_pair(E_NOT_SET, m_unknown_name);
 }
@@ -167,8 +174,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindImageNameByAlias(const 
                                std::end(aliases.second),
                                [&image_name](const std::string &alias) { return alias == image_name; });
 
-        if ( it != std::end(aliases.second) )
+        if ( it != std::end(aliases.second) ) {
             return std::make_pair(S_OK, aliases.first);
+        }
     }
 
     return std::make_pair(E_NOT_SET, m_unknown_name);
@@ -186,8 +194,9 @@ BOOL WDbgArkSymbolsBase::SymFindFileInPathProc(const char* file_name, void* data
 
     BOOL result = TRUE;     // continue searching
 
-    if ( !MapImage(file_name, &hfile, &hmap, &base) )
+    if ( !MapImage(file_name, &hfile, &hmap, &base) ) {
         return result;
+    }
 
     auto header = ::ImageNtHeader(base);
 
@@ -211,8 +220,9 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
                                            std::string* image_name,
                                            std::string* module_name,
                                            std::string* loaded_image_name) {
-    if ( !address )
+    if ( !address ) {
         return E_INVALIDARG;
+    }
 
     ExtCaptureOutputA ignore_output;
     ignore_output.Start();
@@ -283,8 +293,9 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
 }
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkSymbolsBase::GetModuleStartSize(const uint64_t address, uint64_t* start, uint32_t* size) const {
-    if ( !address )
+    if ( !address ) {
         return E_INVALIDARG;
+    }
 
     ExtCaptureOutputA ignore_output;
     ignore_output.Start();
@@ -318,6 +329,7 @@ HRESULT WDbgArkSymbolsBase::GetFunctionInformation(const std::string &function_n
                                                    uint64_t* start_offset,
                                                    uint64_t* end_offset) {
     uint64_t offset = 0ULL;
+
     if ( !g_Ext->GetSymbolOffset(function_name.c_str(), true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to find " << function_name << endlerr;
         return E_UNEXPECTED;
@@ -368,8 +380,9 @@ bool WDbgArkSymbolsBase::CheckMsSymbolsPath() {
     bool result = false;
 
     for ( const auto& path : m_ms_symbol_servers ) {
-        if ( CheckSymbolsPath(false, path) )
+        if ( CheckSymbolsPath(false, path) ) {
             result = true;
+        }
     }
 
     return result;
@@ -399,8 +412,9 @@ bool WDbgArkSymbolsBase::CheckSymbolsPath(const bool display_error, const std::s
 WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetNameByOffset(const uint64_t address) {
     std::string output_name = m_unknown_name;
 
-    if ( !address )
+    if ( !address ) {
         return std::make_pair(E_INVALIDARG, output_name);
+    }
 
     ExtCaptureOutputA ignore_output;
     ignore_output.Start();
@@ -428,8 +442,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetNameByOffset(const uint6
 
             stream_name << tmp_name.get();
 
-            if ( displacement )
+            if ( displacement ) {
                 stream_name << "+" << std::hex << std::showbase << displacement;
+            }
 
             output_name = normalize_special_chars(stream_name.str());
         }
@@ -440,8 +455,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetNameByOffset(const uint6
 //////////////////////////////////////////////////////////////////////////
 WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetModuleImagePath(const uint64_t address,
                                                                         const bool skip_unloaded) {
-    if ( !address )
+    if ( !address ) {
         return std::make_pair(E_INVALIDARG, m_unknown_name);
+    }
 
     ExtCaptureOutputA ignore_output;
     ignore_output.Start();
@@ -450,27 +466,32 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetModuleImagePath(const ui
     uint64_t base = 0;
     HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address, 0, reinterpret_cast<PULONG>(&index), &base);
 
-    if ( FAILED(result) )
+    if ( FAILED(result) ) {
         return std::make_pair(result, m_unknown_name);
+    }
 
     if ( skip_unloaded ) {
         DEBUG_MODULE_PARAMETERS parameters;
         result = g_Ext->m_Symbols->GetModuleParameters(1, &base, 0, &parameters);
 
-        if ( FAILED(result) )
+        if ( FAILED(result) ) {
             return std::make_pair(result, m_unknown_name);
+        }
 
-        if ( parameters.Base == DEBUG_INVALID_OFFSET )
+        if ( parameters.Base == DEBUG_INVALID_OFFSET ) {
             return std::make_pair(E_POINTER, m_unknown_name);
+        }
 
-        if ( parameters.Flags & DEBUG_MODULE_UNLOADED )
+        if ( parameters.Flags & DEBUG_MODULE_UNLOADED ) {
             return std::make_pair(E_NOT_SET, m_unknown_name);
+        }
     }
 
     ResultString result_string = GetModuleNameString(DEBUG_MODNAME_MAPPED_IMAGE, index, base);
 
-    if ( SUCCEEDED(result_string.first) )
+    if ( SUCCEEDED(result_string.first) ) {
         return std::make_pair(result_string.first, result_string.second);
+    }
 
     return FindModuleImage(base, index);
 }
@@ -483,8 +504,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetModuleImagePath(const st
     uint64_t base = 0;
     HRESULT result = g_Ext->m_Symbols->GetModuleByModuleName(module_name.c_str(), 0, nullptr, &base);
 
-    if ( FAILED(result) )
+    if ( FAILED(result) ) {
         return std::make_pair(result, m_unknown_name);
+    }
 
     return GetModuleImagePath(base, skip_unloaded);
 }
@@ -500,11 +522,13 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetModuleNameString(const u
                                                             0,
                                                             reinterpret_cast<PULONG>(&len));
 
-    if ( FAILED(result) )
+    if ( FAILED(result) ) {
         return std::make_pair(result, m_unknown_name);
+    }
 
-    if ( len < 3 )
+    if ( len < 3 ) {
         return std::make_pair(E_NOT_SET, m_unknown_name);
+    }
 
     len++;
     auto tmp_name = std::make_unique<char[]>(static_cast<size_t>(len));
@@ -524,11 +548,13 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindModuleImage(const uint6
     DEBUG_MODULE_PARAMETERS parameters;
     HRESULT result = g_Ext->m_Symbols->GetModuleParameters(1, const_cast<uint64_t*>(&base), index, &parameters);
 
-    if ( FAILED(result) )
+    if ( FAILED(result) ) {
         return std::make_pair(result, m_unknown_name);
+    }
 
-    if ( parameters.Base == DEBUG_INVALID_OFFSET )
+    if ( parameters.Base == DEBUG_INVALID_OFFSET ) {
         return std::make_pair(E_POINTER, m_unknown_name);
+    }
 
     std::string image_name;
     std::string module_name;
@@ -536,13 +562,15 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindModuleImage(const uint6
 
     result = GetModuleNames(base, &image_name, &module_name, &loaded_image_name);
 
-    if ( FAILED(result) )
+    if ( FAILED(result) ) {
         return std::make_pair(result, m_unknown_name);
+    }
 
     size_t pos = image_name.find_last_of("/\\");
 
-    if ( pos != std::string::npos )
+    if ( pos != std::string::npos ) {
         image_name = image_name.substr(pos + 1);
+    }
 
     return FindExecutableImageInternal(image_name, parameters);
 }
@@ -550,8 +578,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindModuleImage(const uint6
 HRESULT WDbgArkSymbolsBase::AppendSymbolPath(const std::string &symbol_path) {
     HRESULT result = g_Ext->m_Symbols->AppendSymbolPath(symbol_path.c_str());
 
-    if ( !InitSymbolPath() )
+    if ( !InitSymbolPath() ) {
         err << wa::showminus << __FUNCTION__ ": InitSymbolPath failed" << endlerr;
+    }
 
     return result;
 }
@@ -559,8 +588,9 @@ HRESULT WDbgArkSymbolsBase::AppendSymbolPath(const std::string &symbol_path) {
 HRESULT WDbgArkSymbolsBase::AppendImagePath(const std::string &image_path) {
     HRESULT result = g_Ext->m_Symbols->AppendImagePath(image_path.c_str());
 
-    if ( !InitImagePath() )
+    if ( !InitImagePath() ) {
         err << wa::showminus << __FUNCTION__ ": InitImagePath failed" << endlerr;
+    }
 
     return result;
 }

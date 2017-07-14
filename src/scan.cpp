@@ -34,14 +34,17 @@ EXT_COMMAND(wa_scan,
             /*"{colorize;b,o;colorize;Use default theme}"*/) {
     RequireKernelMode();
 
-    if ( HasArg("reload") )
+    if ( HasArg("reload") ) {
         m_Symbols->Reload("/f /n");
+    }
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
-    if ( HasArg("log") )
+    if ( HasArg("log") ) {
         Execute(".logopen /t %s", GetArgStr("log"));
+    }
 
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     out << wa::showplus << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
@@ -92,8 +95,9 @@ EXT_COMMAND(wa_scan,
 
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
 
-    if ( HasArg("log") )
+    if ( HasArg("log") ) {
         Execute(".logclose");
+    }
 }
 
 }   // namespace wa

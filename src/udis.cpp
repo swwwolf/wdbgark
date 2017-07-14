@@ -49,15 +49,17 @@ void WDbgArkUdis::Init(const uint8_t mode) {
         (g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_I386 || g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_AMD64) ) {
             std::string vendor_string;
 
-            if ( g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_I386 )
+            if ( g_Ext->m_ActualMachine == IMAGE_FILE_MACHINE_I386 ) {
                 vendor_string = processor_info.X86.VendorString;
-            else
+            } else {
                 vendor_string = processor_info.Amd64.VendorString;
+            }
 
-            if ( vendor_string == "GenuineIntel" )
+            if ( vendor_string == "GenuineIntel" ) {
                 vendor = UD_VENDOR_INTEL;
-            else
+            } else {
                 vendor = UD_VENDOR_AMD;
+            }
     }
 
     ud_set_vendor(&m_udis_obj, vendor);
@@ -66,10 +68,11 @@ void WDbgArkUdis::Init(const uint8_t mode) {
 WDbgArkUdis::WDbgArkUdis() {
     uint8_t mode = 0;
 
-    if ( g_Ext->IsCurMachine32() )
+    if ( g_Ext->IsCurMachine32() ) {
         mode = 32;
-    else
+    } else {
         mode = 64;
+    }
 
     Init(mode);
     m_inited = true;
@@ -79,10 +82,11 @@ WDbgArkUdis::WDbgArkUdis(uint8_t mode, uint64_t address, size_t size)  {
     uint8_t init_mode = mode;
 
     if ( !init_mode ) {
-        if ( g_Ext->IsCurMachine32() )
+        if ( g_Ext->IsCurMachine32() ) {
             init_mode = 32;
-        else
+        } else {
             init_mode = 64;
+        }
     }
 
     Init(init_mode);

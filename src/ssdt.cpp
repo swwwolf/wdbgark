@@ -40,10 +40,11 @@ void DisplayServiceTable(const uint64_t offset,
         if ( g_Ext->IsCurMachine64() ) {
             int service_offset = ExtRemoteData(offset + i * sizeof(int), sizeof(int)).GetLong();
 
-            if ( build >= VISTA_RTM_VER )
+            if ( build >= VISTA_RTM_VER ) {
                 service_offset >>= 4;
-            else
+            } else {
                 service_offset &= ~MAX_FAST_REFS_X64;
+            }
 
             address = offset + service_offset;
         } else {
@@ -58,15 +59,17 @@ void DisplayServiceTable(const uint64_t offset,
 EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying nt!KiServiceTable" << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeSDT);
 
-    if ( !display->AddRangeWhiteList("nt") )
+    if ( !display->AddRangeWhiteList("nt") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     try {
         uint64_t offset = 0;
@@ -116,26 +119,30 @@ EXT_COMMAND(wa_w32psdt,
             "{process;e64,o;process;Any GUI EPROCESS address (use explorer.exe)}") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying win32k!W32pServiceTable" << endlout;
 
     auto process_helper = std::make_unique<WDbgArkProcess>();
     uint64_t set_eprocess = 0;
 
-    if ( HasArg("process") )
+    if ( HasArg("process") ) {
         set_eprocess = GetArgU64("process");
-    else
+    } else {
         set_eprocess = process_helper->FindEProcessAnyGUIProcess();
+    }
 
-    if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) )
+    if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) ) {
         throw ExtStatusException(S_OK, "failed to set process");
+    }
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeSDT);
 
-    if ( !display->AddRangeWhiteList("win32k") )
+    if ( !display->AddRangeWhiteList("win32k") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     try {
         uint64_t offset = 0;
@@ -185,8 +192,9 @@ EXT_COMMAND(wa_w32psdtflt,
             "{process;e64,o;process,Any GUI EPROCESS address (use explorer.exe)}") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying win32k!W32pServiceTableFilter" << endlout;
 
@@ -198,18 +206,21 @@ EXT_COMMAND(wa_w32psdtflt,
     auto process_helper = std::make_unique<WDbgArkProcess>();
     uint64_t set_eprocess = 0;
 
-    if ( HasArg("process") )
+    if ( HasArg("process") ) {
         set_eprocess = GetArgU64("process");
-    else
+    } else {
         set_eprocess = process_helper->FindEProcessAnyGUIProcess();
+    }
 
-    if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) )
+    if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) ) {
         throw ExtStatusException(S_OK, "failed to set process");
+    }
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeSDT);
 
-    if ( !display->AddRangeWhiteList("win32k") )
+    if ( !display->AddRangeWhiteList("win32k") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     try {
         uint64_t offset = 0;
@@ -255,11 +266,13 @@ EXT_COMMAND(wa_w32psdtflt,
 uint32_t GetLxpSyscallsLimit() {
     WDbgArkSystemVer system_ver;
 
-    if ( !system_ver.IsInited() )
+    if ( !system_ver.IsInited() ) {
         return 0;
+    }
 
-    if ( system_ver.GetStrictVer() >= W10RS1_VER )
+    if ( system_ver.GetStrictVer() >= W10RS1_VER ) {
         return 0x138;
+    }
 
     return 0;
 }
@@ -267,11 +280,13 @@ uint32_t GetLxpSyscallsLimit() {
 uint32_t GetLxpSyscallsRoutineDelta() {
     WDbgArkSystemVer system_ver;
 
-    if ( !system_ver.IsInited() )
+    if ( !system_ver.IsInited() ) {
         return 0;
+    }
 
-    if ( system_ver.GetStrictVer() >= W10RS1_VER )
+    if ( system_ver.GetStrictVer() >= W10RS1_VER ) {
         return 0x38;
+    }
 
     return 0;
 }
@@ -279,8 +294,9 @@ uint32_t GetLxpSyscallsRoutineDelta() {
 EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying lxcore!LxpSyscalls" << endlout;
 
@@ -296,8 +312,9 @@ EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "")
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeSDT);
 
-    if ( !display->AddRangeWhiteList("lxcore") )
+    if ( !display->AddRangeWhiteList("lxcore") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     try {
         uint32_t limit = GetLxpSyscallsLimit();

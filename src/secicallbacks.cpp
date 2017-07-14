@@ -40,19 +40,23 @@ namespace wa {
 std::pair<uint32_t, uint32_t> GetCiCallbacksTableCount() {
     WDbgArkSystemVer system_ver;
 
-    if ( !system_ver.IsInited() )
+    if ( !system_ver.IsInited() ) {
         return std::make_pair(0, 0);
+    }
 
-    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, W7SP1_VER) )
+    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, W7SP1_VER) ) {
         return std::make_pair(3, 0);
-    else if ( system_ver.GetStrictVer() == W8RTM_VER )
+    } else if ( system_ver.GetStrictVer() == W8RTM_VER ) {
         return std::make_pair(7, g_Ext->m_PtrSize);
-    else if ( system_ver.GetStrictVer() == W81RTM_VER )
+    } else if ( system_ver.GetStrictVer() == W81RTM_VER ) {
         return std::make_pair(12, g_Ext->m_PtrSize);
-    else if ( system_ver.IsBuildInRangeStrict(W10RTM_VER, W10TH2_VER) )
+    } else if ( system_ver.IsBuildInRangeStrict(W10RTM_VER, W10TH2_VER) ) {
         return std::make_pair(18, g_Ext->m_PtrSize);
-    else if ( system_ver.GetStrictVer() >= W10RS1_VER )
+    } else if ( system_ver.GetStrictVer() == W10RS1_VER ) {
         return std::make_pair(19, g_Ext->m_PtrSize);
+    } else if ( system_ver.GetStrictVer() >= W10RS2_VER ) {
+        return std::make_pair(22, g_Ext->m_PtrSize);
+    }
 
     return std::make_pair(0, 0);
 }
@@ -60,8 +64,9 @@ std::pair<uint32_t, uint32_t> GetCiCallbacksTableCount() {
 EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
         out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
@@ -96,8 +101,9 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
-    if ( !display->AddRangeWhiteList("ci") )
+    if ( !display->AddRangeWhiteList("ci") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     display->PrintHeader();
 

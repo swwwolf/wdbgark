@@ -123,8 +123,9 @@ std::string CiQueryInformation(const uint32_t ci_options,
 EXT_COMMAND(wa_ciinfo, "Output Code Integrity information", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     out << wa::showplus << "Displaying Code Integrity information" << endlout;
 

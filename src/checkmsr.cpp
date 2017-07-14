@@ -31,13 +31,15 @@ namespace wa {
 EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
     RequireLiveKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
-    if ( !display->AddRangeWhiteList("nt") )
+    if ( !display->AddRangeWhiteList("nt") ) {
         warn << wa::showqmark << __FUNCTION__ ": AddRangeWhiteList failed" << endlwarn;
+    }
 
     display->PrintHeader();
 
@@ -46,24 +48,27 @@ EXT_COMMAND(wa_checkmsr, "Output system MSRs (live debug only!)", "") {
             uint64_t msr_address = 0;
             ReadMsr(IA32_SYSENTER_EIP, &msr_address);
 
-            if ( !NormalizeAddress(msr_address, &msr_address) )
+            if ( !NormalizeAddress(msr_address, &msr_address) ) {
                 err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
+            }
 
             display->Analyze(msr_address, "IA32_SYSENTER_EIP", "");
         } else {
             uint64_t msr_address_lstar = 0;
             ReadMsr(MSR_LSTAR, &msr_address_lstar);
             
-            if ( !NormalizeAddress(msr_address_lstar, &msr_address_lstar) )
+            if ( !NormalizeAddress(msr_address_lstar, &msr_address_lstar) ) {
                 err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
+            }
 
             display->Analyze(msr_address_lstar, "MSR_LSTAR", "");
 
             uint64_t msr_address_cstar = 0;
             ReadMsr(MSR_CSTAR, &msr_address_cstar);
             
-            if ( !NormalizeAddress(msr_address_cstar, &msr_address_cstar) )
+            if ( !NormalizeAddress(msr_address_cstar, &msr_address_cstar) ) {
                 err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
+            }
 
             display->Analyze(msr_address_cstar, "MSR_CSTAR", "");
         }

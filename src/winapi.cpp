@@ -27,8 +27,9 @@
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
 std::string LastErrorToString(const DWORD message_error) {
-    if ( !message_error )
+    if ( !message_error ) {
         return std::string();
+    }
 
     char* buffer = nullptr;
 
@@ -47,8 +48,9 @@ std::string LastErrorToString(const DWORD message_error) {
 }
 //////////////////////////////////////////////////////////////////////////
 bool MapImage(const std::string &path, HANDLE* file_handle, HANDLE* map_handle, void** map_address) {
-    if ( !file_handle || !map_handle || !map_address )
+    if ( !file_handle || !map_handle || !map_address ) {
         return false;
+    }
 
     *file_handle = INVALID_HANDLE_VALUE;
     *map_handle = nullptr;
@@ -62,8 +64,9 @@ bool MapImage(const std::string &path, HANDLE* file_handle, HANDLE* map_handle, 
                               FILE_ATTRIBUTE_NORMAL | FILE_SUPPORTS_SPARSE_VDL,
                               nullptr);
 
-    if ( hfile == INVALID_HANDLE_VALUE )
+    if ( hfile == INVALID_HANDLE_VALUE ) {
         return false;
+    }
 
     HANDLE hmap = CreateFileMapping(hfile, nullptr, PAGE_WRITECOPY, 0, 0, nullptr);
 

@@ -76,13 +76,15 @@ void WDbgArk::WalkPicoTable(const std::string &table_name) {
 EXT_COMMAND(wa_psppico, "Output kernel-mode Pico tables", "") {
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
     WalkPicoTable("nt!PspPicoProviderRoutines");
 
-    if ( SUCCEEDED(m_Symbols3->GetModuleByModuleName2("lxcore", 0UL, 0UL, nullptr, nullptr)) )
+    if ( SUCCEEDED(m_Symbols3->GetModuleByModuleName2("lxcore", 0UL, 0UL, nullptr, nullptr)) ) {
         WalkPicoTable("lxcore!LxpRoutines");
+    }
 }
 
 }   // namespace wa

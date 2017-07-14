@@ -238,16 +238,19 @@ uint32_t GetDbgkLkmdCallbackArrayDistance() { return 2 * g_Ext->m_PtrSize; }
 uint32_t GetCmCallbackItemFunctionOffset() {
     WDbgArkSystemVer system_ver;
 
-    if ( !system_ver.IsInited() )
+    if ( !system_ver.IsInited() ) {
         return 0;
+    }
 
-    if ( !g_Ext->IsCurMachine64() )
+    if ( !g_Ext->IsCurMachine64() ) {
         return 0x1C;
+    }
 
-    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP2_VER) )
+    if ( system_ver.IsBuildInRangeStrict(VISTA_RTM_VER, VISTA_SP2_VER) ) {
         return 0x30;
-    else if ( system_ver.GetStrictVer() >= W7RTM_VER )
+    } else if ( system_ver.GetStrictVer() >= W7RTM_VER ) {
         return 0x28;
+    }
 
     return 0;
 }
@@ -258,27 +261,31 @@ uint32_t GetCmCallbackItemFunctionOffset() {
 uint32_t GetPowerCallbackItemFunctionOffset() {
     WDbgArkSystemVer system_ver;
 
-    if ( !system_ver.IsInited() )
+    if ( !system_ver.IsInited() ) {
         return 0;
+    }
 
     if ( system_ver.GetStrictVer() >= W10RS1_VER ) {
-        if ( !g_Ext->IsCurMachine64() )
+        if ( !g_Ext->IsCurMachine64() ) {
             return 0x38;
-        else
+        } else {
             return 0x50;
+        }
     } else {
-        if ( !g_Ext->IsCurMachine64() )
+        if ( !g_Ext->IsCurMachine64() ) {
             return 0x28;
-        else
+        } else {
             return 0x40;
+        }
     }
 
     return 0;
 }
 //////////////////////////////////////////////////////////////////////////
 uint32_t GetPnpCallbackItemFunctionOffset() {
-    if ( !g_Ext->IsCurMachine64() )
+    if ( !g_Ext->IsCurMachine64() ) {
         return 0x14;
+    }
 
     return 0x20;
 }
@@ -286,8 +293,9 @@ uint32_t GetPnpCallbackItemFunctionOffset() {
 // http://redplait.blogspot.ru/2012/09/emproviderregisterempproviderregister.html
 //////////////////////////////////////////////////////////////////////////
 uint32_t GetEmpCallbackItemLinkOffset() {
-    if ( !g_Ext->IsCurMachine64() )
+    if ( !g_Ext->IsCurMachine64() ) {
         return 0x1C;
+    }
 
     return 0x28;
 }
@@ -300,20 +308,23 @@ EXT_COMMAND(wa_systemcb,
             "powersetting, callbackdir, " \
             "shutdown, shutdownlast, drvreinit, bootdrvreinit, fschange, nmi, logonsessionroutine, prioritycallback, " \
             "pnp, lego, debugprint, alpcplog, empcb, ioperf, dbgklkmd, kdppower, ioptimer}") {
-    std::string type = "*";
-    walkresType output_list;
-
     RequireKernelMode();
 
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
-    if ( HasArg("type") )   // callback type was provided
+    std::string type = "*";
+
+    if ( HasArg("type") ) {     // callback type was provided
         type.assign(GetArgStr("type"));
+    }
 
     out << wa::showplus << "Displaying OS registered callback(s) with type " << type << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeCallback);
+
+    walkresType output_list;
 
     try {
         if ( type == "*" ) {
@@ -340,8 +351,9 @@ EXT_COMMAND(wa_systemcb,
             if ( prev_list_head != walk_info.list_head_name ) {
                 out << wa::showplus << walk_info.list_head_name;
 
-                if ( walk_info.list_head_address )
+                if ( walk_info.list_head_address ) {
                     out << ": " << std::hex << std::showbase << walk_info.list_head_address;
+                }
 
                 out << endlout;
                 display->PrintHeader();
@@ -578,8 +590,9 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
             return;
         }
 
-        if ( !rcount )
+        if ( !rcount ) {
             routine_count.Set(offset, static_cast<uint32_t>(sizeof(uint32_t)));
+        }
 
         offset = offset_list_head;
 
@@ -590,8 +603,9 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
 
         const uint64_t list_head_offset_out = offset;
 
-        if ( !rcount )
+        if ( !rcount ) {
             rcount = routine_count.GetUlong();
+        }
 
         for ( uint32_t i = 0; i < rcount; i++ ) {
             ExtRemoteData notify_routine_list(offset + i * array_distance, m_PtrSize);
@@ -637,9 +651,9 @@ void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType* output
 }
 
 HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
-    WalkCallbackContext* cb_context     = reinterpret_cast<WalkCallbackContext*>(context);
-    std::string          type           = cb_context->type;
-    std::string          list_head_name = "\\Callback\\";
+    WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
+    std::string type = cb_context->type;
+    std::string list_head_name = "\\Callback\\";
 
     std::pair<HRESULT, std::string> result = wdbg_ark_class->m_obj_helper->GetObjectName(object);
 
@@ -675,8 +689,9 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
     context.list_head_name = list_head_name;
     context.output_list_pointer = output_list;
 
-    if ( !m_sym_cache->GetSymbolOffset(list_head_name, true, &context.list_head_address) )
+    if ( !m_sym_cache->GetSymbolOffset(list_head_name, true, &context.list_head_address) ) {
         warn << wa::showqmark << __FUNCTION__ << ": GetSymbolOffset failed with " << list_head_name << endlwarn;
+    }
 
     WalkAnyListWithOffsetToObjectPointer(list_head_name,
                                          0ULL,
@@ -739,17 +754,19 @@ void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
     uint64_t offset = 0;
     const uint32_t offset_to_routine = GetPnpCallbackItemFunctionOffset();
 
-    if ( m_system_ver->GetStrictVer() <= W2K3_VER )
+    if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
         list_head_name = "nt!IopProfileNotifyList";
-    else
+    } else {
         list_head_name = "nt!PnpProfileNotifyList";
+    }
 
     WalkAnyListWithOffsetToRoutine(list_head_name, 0ULL, 0, true, offset_to_routine, type, "", output_list);
 
-    if ( m_system_ver->GetStrictVer() <= W2K3_VER )
+    if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
         list_head_name = "nt!IopDeviceClassNotifyList";
-    else
+    } else {
         list_head_name = "nt!PnpDeviceClassNotifyList";
+    }
 
     if ( !m_sym_cache->GetSymbolOffset(list_head_name, true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;

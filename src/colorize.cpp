@@ -28,17 +28,20 @@ namespace wa {
 EXT_COMMAND(wa_colorize,
             "Adjust WinDBG colors dynamically (prints info with no parameters)",
             "{enable;b,o;enable;Enable colorizing}{disable;b,o;disable;Disable colorizing}") {
-    if ( !Init() )
+    if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
+    }
 
-    if ( !m_color_hack->IsInited() )
+    if ( !m_color_hack->IsInited() ) {
         throw ExtStatusException(S_OK, "color hack init failed");
+    }
 
     bool enable = HasArg("enable");
     bool disable = HasArg("disable");
 
-    if ( enable && disable )
+    if ( enable && disable ) {
         throw ExtStatusException(S_OK, "42");
+    }
 
     if ( !enable && !disable ) {
         m_color_hack->PrintInformation();

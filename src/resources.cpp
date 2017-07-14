@@ -30,16 +30,12 @@
 
 namespace wa {
 
-WDbgArkResHelper::WDbgArkResHelper() : m_main_subdir("wdbgark"),
-                                       m_platform_subdir(),
-                                       m_temp_path(),
-                                       out(),
-                                       warn(),
-                                       err() {
-    if ( g_Ext->IsCurMachine32() )
+WDbgArkResHelper::WDbgArkResHelper() {
+    if ( g_Ext->IsCurMachine32() ) {
         m_platform_subdir = "x86";
-    else
+    } else {
         m_platform_subdir = "x64";
+    }
 
     auto tmp_path = std::make_unique<char[]>(MAX_PATH + 1);
 

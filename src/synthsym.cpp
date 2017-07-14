@@ -28,8 +28,9 @@
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
 void WDbgArk::RemoveSyntheticSymbols() {
-    if ( !m_symbols3_iface.IsSet() )
+    if ( !m_symbols3_iface.IsSet() ) {
         return;
+    }
 
     for ( auto &id : m_synthetic_symbols ) {
         m_symbols3_iface->RemoveSyntheticSymbol(&id);
@@ -39,8 +40,9 @@ void WDbgArk::RemoveSyntheticSymbols() {
 bool WDbgArk::AddSyntheticSymbolAddressPtr(const uint64_t address, const std::string &name) {
     uint64_t result_address = 0;
 
-    if ( !NormalizeAddress(address, &result_address) )
+    if ( !NormalizeAddress(address, &result_address) ) {
         return false;
+    }
 
     // do not reload nt module after
     DEBUG_MODULE_AND_ID id;
@@ -122,8 +124,9 @@ bool WDbgArk::FindDbgkLkmdCallbackArray() {
 
     uint64_t symbol_offset = 0;
 
-    if ( m_sym_cache->GetSymbolOffset("nt!DbgkLkmdCallbackArray", true, &symbol_offset) )
+    if ( m_sym_cache->GetSymbolOffset("nt!DbgkLkmdCallbackArray", true, &symbol_offset) ) {
         return true;
+    }
 
     uint64_t offset = 0;
 
@@ -255,8 +258,9 @@ bool WDbgArk::FindMiApiSetSchema() {
 
     uint64_t symbol_offset = 0;
 
-    if ( m_sym_cache->GetSymbolOffset("nt!MiApiSetSchema", true, &symbol_offset) )
+    if ( m_sym_cache->GetSymbolOffset("nt!MiApiSetSchema", true, &symbol_offset) ) {
         return true;
+    }
 
     uint64_t offset = 0;
     size_t disasm_len = m_PageSize;
@@ -324,8 +328,9 @@ bool WDbgArk::FindMiApiSetSchema() {
                     }
                 }
 
-                if ( address )  // global break
+                if ( address ) {  // global break
                     break;
+                }
             }
         } else {
             if ( !m_is_cur_machine64 &&
