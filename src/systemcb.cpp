@@ -233,6 +233,68 @@ namespace wa {
 uint32_t GetDbgkLkmdCallbackCount() { return 0x08; }
 uint32_t GetDbgkLkmdCallbackArrayDistance() { return 2 * g_Ext->m_PtrSize; }
 //////////////////////////////////////////////////////////////////////////
+uint32_t GetLoadImageCallbackCount() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() ) {
+        return 0;
+    }
+
+    if ( system_ver.GetStrictVer() >= W81RTM_VER ) {
+        return 64;
+    }
+
+    return 8;
+}
+//////////////////////////////////////////////////////////////////////////
+uint32_t GetCreateProcessCallbackCount() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() ) {
+        return 0;
+    }
+
+    if ( system_ver.IsBuildInRangeStrict(WXP_VER, W2K3_VER) ) {
+        return 8;
+    } else if ( system_ver.GetStrictVer() == VISTA_RTM_VER ) {
+        return 12;
+    } else if ( system_ver.GetStrictVer() >= VISTA_SP1_VER ) {
+        return 64;
+    }
+
+    return 0;
+}
+//////////////////////////////////////////////////////////////////////////
+uint32_t GetCreateThreadCallbackCount() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() ) {
+        return 0;
+    }
+
+    if ( system_ver.GetStrictVer() >= VISTA_SP1_VER ) {
+        return 64;
+    }
+
+    return 8;
+}
+//////////////////////////////////////////////////////////////////////////
+uint32_t GetCmCallbackCount() { return 100; }
+//////////////////////////////////////////////////////////////////////////
+uint32_t GetPriorityCallbackCount() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() ) {
+        return 0;
+    }
+
+    if ( system_ver.GetStrictVer() >= W7RTM_VER ) {
+        return 8;
+    }
+
+    return 0;
+}
+//////////////////////////////////////////////////////////////////////////
 // http://redplait.blogspot.ru/2010/08/cmregistercallbackex-on-vista.html
 //////////////////////////////////////////////////////////////////////////
 uint32_t GetCmCallbackItemFunctionOffset() {
@@ -382,7 +444,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const CallbacksInfo::const_iterat
         if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
             WalkExCallbackList(command.list_count_name,
                                command.list_count_address,
-                               0,
+                               GetCmCallbackCount(),
                                command.list_head_name,
                                command.list_head_address,
                                m_PtrSize,
@@ -399,9 +461,19 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const CallbacksInfo::const_iterat
                                            output_list);
         }
     } else if ( type == "image" || type == "process" || type == "thread" ) {
+        uint32_t count = 0;
+
+        if ( type == "image" ) {
+            count = GetLoadImageCallbackCount();
+        } else if ( type == "process" ) {
+            count = GetCreateProcessCallbackCount();
+        } else {
+            count = GetCreateThreadCallbackCount();
+        }
+
         WalkExCallbackList(command.list_count_name,
                            command.list_count_address,
-                           0,
+                           count,
                            command.list_head_name,
                            command.list_head_address,
                            m_PtrSize,
@@ -495,7 +567,7 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const CallbacksInfo::const_iterat
     } else if ( type == "prioritycallback" && m_system_ver->GetStrictVer() >= W7RTM_VER ) {
         WalkExCallbackList(command.list_count_name,
                            command.list_count_address,
-                           0,
+                           GetPriorityCallbackCount(),
                            command.list_head_name,
                            command.list_head_address,
                            m_PtrSize,
@@ -546,13 +618,13 @@ void WDbgArk::CallCorrespondingWalkListRoutine(const CallbacksInfo::const_iterat
                                        "",
                                        output_list);
     } else if ( type == "dbgklkmd" && m_system_ver->GetStrictVer() >= W7RTM_VER ) {
-        WalkExCallbackList("",
+        WalkExCallbackList(command.list_count_name,
                            command.list_count_address,
                            GetDbgkLkmdCallbackCount(),
                            command.list_head_name,
                            command.list_head_address,
                            GetDbgkLkmdCallbackArrayDistance(),
-                           "dbgklkmd",
+                           type,
                            output_list);
     } else if ( type == "ioptimer" ) {
         uint32_t link_offset = 0;
@@ -582,13 +654,14 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
                                  walkresType* output_list) {
     uint64_t offset = offset_list_count;
     uint32_t rcount = count;
-    ExtRemoteData routine_count;
 
     try {
         if ( !rcount && !offset && !m_sym_cache->GetSymbolOffset(list_count_name, true, &offset) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get " << list_count_name << endlerr;
             return;
         }
+
+        ExtRemoteData routine_count;
 
         if ( !rcount ) {
             routine_count.Set(offset, static_cast<uint32_t>(sizeof(uint32_t)));
@@ -610,16 +683,14 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
         for ( uint32_t i = 0; i < rcount; i++ ) {
             ExtRemoteData notify_routine_list(offset + i * array_distance, m_PtrSize);
 
-            const uint64_t ex_callback_fast_ref = notify_routine_list.GetPtr();
+            const auto ex_callback_fast_ref = notify_routine_list.GetPtr();
 
-            if ( ex_callback_fast_ref ) {
-                ExtRemoteData routine_block(
-                    m_obj_helper->ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
-                    m_PtrSize);
+            if ( ex_callback_fast_ref != 0 ) {
+                const auto unref_object = m_obj_helper->ExFastRefGetObject(ex_callback_fast_ref);
+                const auto notify_routine = ExtRemoteData(unref_object + GetTypeSize("nt!_EX_RUNDOWN_REF"),
+                                                          m_PtrSize).GetPtr();
 
-                const uint64_t notify_routine = routine_block.GetPtr();
-
-                if ( notify_routine ) {
+                if ( notify_routine != 0 ) {
                     OutputWalkInfo info;
 
                     info.address = notify_routine;

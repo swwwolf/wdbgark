@@ -153,10 +153,10 @@ void WDbgArk::InitCallbackCommands() {
     uint32_t le_size = GetTypeSize("nt!_LIST_ENTRY");
 
     m_system_cb_commands = { {
-        { "image", { "nt!PspLoadImageNotifyRoutineCount", "nt!PspLoadImageNotifyRoutine", 0, 0, 0 } },
-        { "process", { "nt!PspCreateProcessNotifyRoutineCount", "nt!PspCreateProcessNotifyRoutine", 0, 0, 0 } },
-        { "thread", { "nt!PspCreateThreadNotifyRoutineCount", "nt!PspCreateThreadNotifyRoutine", 0, 0, 0 } },
-        { "registry", { "nt!CmpCallBackCount", "nt!CmpCallBackVector", GetCmCallbackItemFunctionOffset(), 0, 0 } },
+        { "image", { "", "nt!PspLoadImageNotifyRoutine", 0, 0, 0 } },
+        { "process", { "", "nt!PspCreateProcessNotifyRoutine", 0, 0, 0 } },
+        { "thread", { "", "nt!PspCreateThreadNotifyRoutine", 0, 0, 0 } },
+        { "registry", { "", "nt!CmpCallBackVector", GetCmCallbackItemFunctionOffset(), 0, 0 } },
         { "bugcheck", { "", "nt!KeBugCheckCallbackListHead", le_size, 0, 0 } },
         { "bugcheckreason", { "", "nt!KeBugCheckReasonCallbackListHead", le_size, 0, 0 } },
         { "bugcheckaddpages", { "", "nt!KeBugCheckAddPagesCallbackListHead", le_size, 0, 0 } },
@@ -171,8 +171,7 @@ void WDbgArk::InitCallbackCommands() {
         { "fschange", { "", "nt!IopFsNotifyChangeQueueHead", le_size + m_PtrSize, 0, 0 } },
         { "nmi", { "", "nt!KiNmiCallbackListHead", m_PtrSize, 0, 0 } },
         { "logonsessionroutine", { "", "nt!SeFileSystemNotifyRoutinesHead", m_PtrSize, 0, 0 } },
-        { "prioritycallback", { "nt!IopUpdatePriorityCallbackRoutineCount", "nt!IopUpdatePriorityCallbackRoutine", 0,
-          0, 0 } },
+        { "prioritycallback", { "", "nt!IopUpdatePriorityCallbackRoutine", 0, 0, 0 } },
         { "pnp", {} },
         { "lego", { "", "nt!PspLegoNotifyRoutine", 0, 0, 0 } },
         { "debugprint", { "", "nt!RtlpDebugPrintCallbackList", le_size, 0, 0 } },
@@ -183,15 +182,16 @@ void WDbgArk::InitCallbackCommands() {
         { "ioptimer", { "", "nt!IopTimerQueueHead", timer_routine_offset, 0, 0 } } } };
 
     for ( auto &cb_pair : m_system_cb_commands ) {
-        uint64_t offset_count = 0ULL;
-        uint64_t offset_head = 0ULL;
-
         if ( !cb_pair.second.list_count_name.empty() ) {
+            uint64_t offset_count = 0ULL;
+
             if ( m_sym_cache->GetSymbolOffset(cb_pair.second.list_count_name, true, &offset_count) )
                 cb_pair.second.list_count_address = offset_count;
         }
 
         if ( !cb_pair.second.list_head_name.empty() ) {
+            uint64_t offset_head = 0ULL;
+
             if ( m_sym_cache->GetSymbolOffset(cb_pair.second.list_head_name, true, &offset_head) )
                 cb_pair.second.list_head_address = offset_head;
         }
