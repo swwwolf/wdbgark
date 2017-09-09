@@ -29,6 +29,7 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "memtable.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -66,87 +67,89 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         return;
     }
 
-    uint64_t offset_hdt = 0;
-    uint64_t offset_hpdt = 0;
-    uint64_t offset_hiommu = 0;
+    WDbgArkMemTable table_hdt(m_sym_cache, "nt!HalDispatchTable");
 
-    if ( !m_sym_cache->GetSymbolOffset("nt!HalDispatchTable", true, &offset_hdt) ) {
+    if ( table_hdt.IsValid() ) {
+        table_hdt.SetTableSkipStart(citer->second.skip * m_PtrSize);
+        table_hdt.SetTableCount(citer->second.hdt_count);
+        table_hdt.SetRoutineDelta(m_PtrSize);
+        table_hdt.SetCollectNull(true);
+    } else {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalDispatchTable" << endlerr;
     }
 
-    if ( !m_sym_cache->GetSymbolOffset("nt!HalPrivateDispatchTable", true, &offset_hpdt) ) {
+    WDbgArkMemTable table_hpdt(m_sym_cache, "nt!HalPrivateDispatchTable");
+
+    if ( table_hpdt.IsValid() ) {
+        table_hpdt.SetTableSkipStart(citer->second.skip * m_PtrSize);
+        table_hpdt.SetTableCount(citer->second.hpdt_count);
+        table_hpdt.SetRoutineDelta(m_PtrSize);
+        table_hpdt.SetCollectNull(true);
+    } else {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalPrivateDispatchTable" << endlerr;
     }
 
-    if ( m_system_ver->GetStrictVer() >= W81RTM_VER &&
-         !m_sym_cache->GetSymbolOffset("nt!HalIommuDispatchTable", true, &offset_hiommu) ) {
-        err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
+    WDbgArkMemTable table_hiommu(m_sym_cache, 0ULL);
+
+    if ( m_system_ver->GetStrictVer() >= W81RTM_VER ) {
+        table_hiommu.SetTableStart("nt!HalIommuDispatchTable");
+
+        if ( table_hiommu.IsValid() ) {
+            table_hiommu.SetTableCount(citer->second.hiommu_count);
+            table_hiommu.SetRoutineDelta(m_PtrSize);
+            table_hiommu.SetCollectNull(true);
+        } else {
+            err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
+        }
     }
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
     try {
-        walkresType output_list_hdt;
-        walkresType output_list_hpdt;
-        walkresType output_list_hiommu;
-
-        if ( offset_hdt ) {
-            WalkAnyTable(offset_hdt,
-                         citer->second.skip * m_PtrSize,
-                         citer->second.hdt_count,
-                         m_PtrSize,
-                         "",
-                         &output_list_hdt,
-                         false,
-                         true);
-        }
-
-        if ( offset_hpdt ) {
-            WalkAnyTable(offset_hpdt,
-                         citer->second.skip * m_PtrSize,
-                         citer->second.hpdt_count,
-                         m_PtrSize,
-                         "",
-                         &output_list_hpdt,
-                         false,
-                         true);
-        }
-
-        if ( offset_hiommu ) {
-            WalkAnyTable(offset_hiommu,
-                         0,
-                         citer->second.hiommu_count,
-                         m_PtrSize,
-                         "",
-                         &output_list_hiommu,
-                         false,
-                         true);
-        }
-
-        out << wa::showplus << "nt!HalDispatchTable: " << std::hex << std::showbase << offset_hdt << endlout;
+        out << wa::showplus << "nt!HalDispatchTable: " << std::hex << std::showbase << table_hdt.GetTableStart();
+        out << endlout;
         display->PrintHeader();
 
-        for ( const auto &walk_info : output_list_hdt ) {
-            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
-            display->PrintFooter();
+        WDbgArkMemTable::WalkResult output_list_hdt;
+
+        if ( table_hdt.Walk(&output_list_hdt) != false ) {
+            for ( const auto &address : output_list_hdt ) {
+                display->Analyze(address, "", "");
+                display->PrintFooter();
+            }
+        } else {
+            err << wa::showminus << __FUNCTION__ << ": failed to walk nt!HalDispatchTable" << endlerr;
         }
 
-        out << wa::showplus << "nt!HalPrivateDispatchTable: " << std::hex << std::showbase << offset_hpdt << endlout;
+        out << wa::showplus << "nt!HalPrivateDispatchTable: " << std::hex << std::showbase;
+        out << table_hpdt.GetTableStart() << endlout;
         display->PrintHeader();
 
-        for ( const auto &walk_info : output_list_hpdt ) {
-            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
-            display->PrintFooter();
+        WDbgArkMemTable::WalkResult output_list_hpdt;
+
+        if ( table_hpdt.Walk(&output_list_hpdt) != false ) {
+            for ( const auto &address : output_list_hpdt ) {
+                display->Analyze(address, "", "");
+                display->PrintFooter();
+            }
+        } else {
+            err << wa::showminus << __FUNCTION__ << ": failed to walk nt!HalPrivateDispatchTable" << endlerr;
         }
 
         if ( m_system_ver->GetStrictVer() >= W81RTM_VER ) {
             out << wa::showplus << "nt!HalIommuDispatchTable: ";
-            out << std::hex << std::showbase << offset_hiommu << endlout;
+            out << std::hex << std::showbase << table_hiommu.GetTableStart() << endlout;
             display->PrintHeader();
 
-            for ( const auto &walk_info : output_list_hiommu ) {
-                display->Analyze(walk_info.address, walk_info.type, walk_info.info);
-                display->PrintFooter();
+            WDbgArkMemTable::WalkResult output_list_hiommu;
+
+            if ( table_hiommu.Walk(&output_list_hiommu) != false ) {
+                for ( const auto &address : output_list_hiommu ) {
+                    display->Analyze(address, "", "");
+                    display->PrintFooter();
+                }
+            } else {
+                err << wa::showminus << __FUNCTION__ << ": failed to walk nt!HalIommuDispatchTable" << endlerr;
             }
         }
     }

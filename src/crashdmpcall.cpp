@@ -29,6 +29,7 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "memtable.hpp"
 
 namespace wa {
 
@@ -55,14 +56,18 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
         return;
     }
 
-    uint64_t offset = 0;
+    WDbgArkMemTable table(m_sym_cache, "nt!CrashdmpCallTable");
 
-    if ( !m_sym_cache->GetSymbolOffset("nt!CrashdmpCallTable", true, &offset) ) {
+    if ( table.IsValid() ) {
+        table.SetTableSkipStart(2 * sizeof(uint32_t));  // skip first two entries, they're system reserved signatures
+        table.SetTableCount(table_count);
+        table.SetRoutineDelta(m_PtrSize);
+    } else {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!CrashdmpCallTable" << endlerr;
         return;
     }
 
-    out << wa::showplus << "nt!CrashdmpCallTable: " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << "nt!CrashdmpCallTable: " << std::hex << std::showbase << table.GetTableStart() << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
@@ -73,15 +78,15 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
     display->PrintHeader();
 
     try {
-        walkresType output_list;
+        WDbgArkMemTable::WalkResult result;
 
-        // skip first two entries, they're system reserved signatures
-        uint32_t skip_offset = 2 * sizeof(uint32_t);
-        WalkAnyTable(offset, skip_offset, table_count, m_PtrSize, "", &output_list);
-
-        for ( const auto &walk_info : output_list ) {
-            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
-            display->PrintFooter();
+        if ( table.Walk(&result) != false ) {
+            for ( const auto& address : result ) {
+                display->Analyze(address, "", "");
+                display->PrintFooter();
+            }
+        } else {
+            err << wa::showminus << __FUNCTION__ << ": failed to walk table" << endlerr;
         }
     }
     catch( const ExtInterruptException& ) {

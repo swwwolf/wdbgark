@@ -25,6 +25,7 @@
 #include "analyze.hpp"
 #include "manipulators.hpp"
 #include "whitelist.hpp"
+#include "memtable.hpp"
 
 namespace wa {
 
@@ -42,14 +43,19 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
         return;
     }
 
-    uint64_t offset = 0;
+    WDbgArkMemTable table(m_sym_cache, "nt!ObTypeIndexTable");
 
-    if ( !m_sym_cache->GetSymbolOffset("nt!ObTypeIndexTable", true, &offset) ) {
+    if ( table.IsValid() ) {
+        table.SetTableSkipStart(2 * m_PtrSize);
+        table.SetTableCount(0x100);
+        table.SetRoutineDelta(m_PtrSize);
+        table.SetBreakOnNull(true);
+    } else {
         err << wa::showminus << __FUNCTION__ << ": failed to find nt!ObTypeIndexTable" << endlerr;
         return;
     }
 
-    out << wa::showplus << "nt!ObTypeIndexTable: " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << "nt!ObTypeIndexTable: " << std::hex << std::showbase << table.GetTableStart() << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeObjType);
 
@@ -61,16 +67,17 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
     display->PrintHeader();
 
     try {
-        walkresType output_list;
-        WalkAnyTable(offset, 2 * m_PtrSize, 0x100, m_PtrSize, "", &output_list, true);
+        WDbgArkMemTable::WalkResult result;
 
-        for ( const auto &walk_info : output_list ) {
-            ExtRemoteTyped object_type("nt!_OBJECT_TYPE", walk_info.address, false, NULL, NULL);
+        if ( table.Walk(&result) != false ) {
+            for ( const auto &address : result ) {
+                ExtRemoteTyped object_type("nt!_OBJECT_TYPE", address, false, NULL, NULL);
 
-            if ( !SUCCEEDED(DirectoryObjectTypeCallback(this,
-                                                        object_type,
-                                                        reinterpret_cast<void*>(display.get()))) ) {
-                err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
+                if ( !SUCCEEDED(DirectoryObjectTypeCallback(this,
+                                                            object_type,
+                                                            reinterpret_cast<void*>(display.get()))) ) {
+                    err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
+                }
             }
         }
     }

@@ -225,6 +225,7 @@
     <ClCompile Include="src\engextcpp\engextcpp.cpp" />
     <ClCompile Include="src\haltables.cpp" />
     <ClCompile Include="src\idt_gdt.cpp" />
+    <ClCompile Include="src\memtable.cpp" />
     <ClCompile Include="src\nirvana.cpp" />
     <ClCompile Include="src\objhelper.cpp" />
     <ClCompile Include="src\objtype.cpp" />
@@ -282,6 +283,7 @@
     <ClInclude Include="src\driver.hpp" />
     <ClInclude Include="src\dummypdb.hpp" />
     <ClInclude Include="src\manipulators.hpp" />
+    <ClInclude Include="src\memtable.hpp" />
     <ClInclude Include="src\objhelper.hpp" />
     <ClInclude Include="src\pe.hpp" />
     <ClInclude Include="src\process.hpp" />

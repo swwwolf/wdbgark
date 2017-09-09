@@ -183,6 +183,9 @@
     <ClCompile Include="src\copyfile.cpp">
       <Filter>Source Files\Commands\wdrce</Filter>
     </ClCompile>
+    <ClCompile Include="src\memtable.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -305,6 +308,9 @@
       <Filter>Header Files\Analyze</Filter>
     </ClInclude>
     <ClInclude Include="src\wdrce.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\memtable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

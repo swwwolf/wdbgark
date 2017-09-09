@@ -26,6 +26,8 @@
 #include "sdt_w32p.hpp"
 #include "process.hpp"
 #include "analyze.hpp"
+#include "memtable.hpp"
+#include "manipulators.hpp"
 
 namespace wa {
 
@@ -326,27 +328,32 @@ EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "")
 
         out << wa::showplus << "ServiceLimit:       " << std::hex << std::showbase << limit << endlout;
 
-        uint64_t offset = 0;
+        WDbgArkMemTable table(m_sym_cache, "lxcore!LxpSyscalls");
 
-        if ( !m_sym_cache->GetSymbolOffset("lxcore!LxpSyscalls", true, &offset) ) {
+        if ( table.IsValid() ) {
+            table.SetTableCount(limit);
+            table.SetRoutineDelta(GetLxpSyscallsRoutineDelta());
+            table.SetCollectNull(true);
+        } else {
             err << wa::showminus << __FUNCTION__ << ": failed to find lxcore!LxpSyscalls" << endlerr;
             return;
         }
 
-        out << wa::showplus << "lxcore!LxpSyscalls: " << std::hex << std::showbase << offset << endlout;
+        out << wa::showplus << "lxcore!LxpSyscalls: " << std::hex << std::showbase << table.GetTableStart() << endlout;
 
         display->PrintHeader();
 
-        walkresType output_list;
-        WalkAnyTable(offset, 0, limit, GetLxpSyscallsRoutineDelta(), "", &output_list, false, true);
+        WDbgArkMemTable::WalkResult result;
 
-        uint32_t i = 0;
+        if ( table.Walk(&result) != false ) {
+            uint32_t i = 0;
 
-        for ( const auto &walk_info : output_list ) {
-            display->Analyze(walk_info.address,
-                             get_service_table_routine_name(m_system_ver->GetStrictVer(), LxpSyscalls_x64, i));
-            display->PrintFooter();
-            i++;
+            for ( const auto &address : result ) {
+                display->Analyze(address,
+                                 get_service_table_routine_name(m_system_ver->GetStrictVer(), LxpSyscalls_x64, i));
+                display->PrintFooter();
+                i++;
+            }
         }
     } catch ( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;

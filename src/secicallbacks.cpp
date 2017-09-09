@@ -34,6 +34,7 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "memtable.hpp"
 
 namespace wa {
 
@@ -90,14 +91,18 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
         return;
     }
 
-    uint64_t offset = 0;
+    WDbgArkMemTable table(m_sym_cache, symbol_name);
 
-    if ( !m_sym_cache->GetSymbolOffset(symbol_name, true, &offset) ) {
+    if ( table.IsValid() ) {
+        table.SetTableCount(table_count_skip_offset.first);
+        table.SetTableSkipStart(table_count_skip_offset.second);
+        table.SetRoutineDelta(m_PtrSize);
+    } else {
         err << wa::showminus << __FUNCTION__ << ": failed to find " << symbol_name << endlerr;
         return;
     }
 
-    out << wa::showplus << symbol_name << ": " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << symbol_name << ": " << std::hex << std::showbase << table.GetTableStart() << endlout;
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
@@ -108,17 +113,13 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
     display->PrintHeader();
 
     try {
-        walkresType output_list;
-        WalkAnyTable(offset,
-                     table_count_skip_offset.second,
-                     table_count_skip_offset.first,
-                     m_PtrSize,
-                     "",
-                     &output_list);
+        WDbgArkMemTable::WalkResult result;
 
-        for ( const auto &walk_info : output_list ) {
-            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
-            display->PrintFooter();
+        if ( table.Walk(&result) != false ) {
+            for ( const auto &address : result ) {
+                display->Analyze(address, "", "");
+                display->PrintFooter();
+            }
         }
     }
     catch( const ExtInterruptException& ) {

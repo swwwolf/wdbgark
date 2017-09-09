@@ -26,6 +26,7 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "memtable.hpp"
 
 namespace wa {
 
@@ -37,34 +38,40 @@ void WDbgArk::WalkPicoTable(const std::string &table_name) {
         return;
     }
 
-    uint64_t offset = 0;
+    WDbgArkMemTable table(m_sym_cache, table_name);
 
-    if ( !m_sym_cache->GetSymbolOffset(table_name, true, &offset) ) {
+    if ( table.IsValid() ) {
+        table.SetTableSkipStart(m_PtrSize);
+        table.SetRoutineDelta(m_PtrSize);
+    } else {
         err << wa::showminus << __FUNCTION__ << ": failed to find " << table_name << endlerr;
         return;
     }
 
-    out << wa::showplus << table_name << ": " << std::hex << std::showbase << offset << endlout;
+    out << wa::showplus << table_name << ": " << std::hex << std::showbase << table.GetTableStart() << endlout;
 
-    uint32_t count = static_cast<uint32_t>(ExtRemoteData(offset, m_PtrSize).GetPtr() / m_PtrSize);
+    uint32_t count = static_cast<uint32_t>(ExtRemoteData(table.GetTableStart(), m_PtrSize).GetPtr() / m_PtrSize);
 
     if ( !count ) {
         out << wa::showplus << __FUNCTION__ << ": empty table" << endlout;
         return;
+    } else {
+        count--;
     }
 
-    count--;
+    table.SetTableCount(count);
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
     display->PrintHeader();
 
     try {
-        walkresType output_list;
-        WalkAnyTable(offset, m_PtrSize, count, m_PtrSize, "", &output_list);
+        WDbgArkMemTable::WalkResult result;
 
-        for ( const auto &walk_info : output_list ) {
-            display->Analyze(walk_info.address, walk_info.type, walk_info.info);
-            display->PrintFooter();
+        if ( table.Walk(&result) != false ) {
+            for ( const auto &address : result ) {
+                display->Analyze(address, "", "");
+                display->PrintFooter();
+            }
         }
     } catch ( const ExtInterruptException& ) {
         throw;

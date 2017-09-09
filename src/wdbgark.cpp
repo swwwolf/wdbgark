@@ -362,41 +362,6 @@ void WDbgArk::WalkDeviceNode(const uint64_t device_node_address,
     }
 }
 
-void WDbgArk::WalkAnyTable(const uint64_t table_start,
-                           const uint32_t offset_table_skip_start,
-                           const uint32_t table_count,
-                           uint32_t routine_delta,
-                           const std::string &type,
-                           walkresType* output_list,
-                           bool break_on_null,
-                           bool collect_null) {
-    uint64_t offset = table_start + offset_table_skip_start;
-
-    try {
-        for ( uint32_t i = 0; i < table_count; i++ ) {
-            ExtRemoteData data(offset + i * routine_delta, m_PtrSize);
-
-            if ( data.GetPtr() || collect_null ) {
-                OutputWalkInfo info;
-
-                info.address = data.GetPtr();
-                info.type = type;
-                info.info.clear();
-                info.list_head_name.clear();
-                info.object_address = 0ULL;
-                info.list_head_address = 0ULL;
-
-                output_list->push_back(info);
-            } else if ( break_on_null ) {
-                break;
-            }
-        }
-    }
-    catch ( const ExtRemoteException &Ex ) {
-        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-    }
-}
-
 void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
                                const std::string &type,
                                const std::string &additional_info,
