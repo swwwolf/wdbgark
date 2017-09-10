@@ -314,6 +314,15 @@ uint64_t WDbgArkProcess::GetWow64InstrumentationCallback(const ProcessInfo &info
         return 0ULL;
     }
 
+    // check that PEB32 is not paged out
+    try {
+        ExtRemoteTyped("nt!_PEB32",
+                       GetWow64ProcessPeb32(info.process), false, nullptr, nullptr).Field("Ldr").GetUlong();
+    } catch ( const ExtRemoteException& ) {
+        RevertImplicitProcess();
+        return 0ULL;
+    }
+
     uint64_t address = 0ULL;
 
     try {

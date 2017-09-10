@@ -23,8 +23,8 @@
 #pragma once
 #endif
 
-#ifndef SRC_MEMTABLE_H_
-#define SRC_MEMTABLE_H_
+#ifndef SRC_MEMTABLE_HPP_
+#define SRC_MEMTABLE_HPP_
 
 #include <engextcpp.hpp>
 
@@ -87,4 +87,4 @@ class WDbgArkMemTable {
 
 }   // namespace wa
 
-#endif  // SRC_MEMTABLE_H_
+#endif  // SRC_MEMTABLE_HPP_

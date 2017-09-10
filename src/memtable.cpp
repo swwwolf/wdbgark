@@ -57,10 +57,9 @@ bool WDbgArkMemTable::Walk(WDbgArkMemTable::WalkResult* result) {
         }
     } catch ( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-        return false;
     }
 
-    return true;
+    return !result->empty();
 }
 
 }   // namespace wa
