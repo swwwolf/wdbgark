@@ -175,7 +175,8 @@ WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList() {
         { "vmsp", { "ndis" } },
         { "lxss", { "lxcore" } },
         { "usbaudio", { "ks" } },
-        { "wscvreg", { "nt" } }
+        { "wscvreg", { "nt" } },
+        { "vhdmp",{ "storport" } }
     };
 }
 
