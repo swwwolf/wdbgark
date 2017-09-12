@@ -186,6 +186,9 @@
     <ClCompile Include="src\memtable.cpp">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
+    <ClCompile Include="src\systables.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">

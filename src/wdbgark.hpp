@@ -116,6 +116,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_cicallbacks);
     EXT_COMMAND_METHOD(wa_chknirvana);
     EXT_COMMAND_METHOD(wa_psppico);
+    EXT_COMMAND_METHOD(wa_systables);
 
     //////////////////////////////////////////////////////////////////////////
     // Windows Debugger Remote Code Execution commands

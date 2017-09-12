@@ -137,6 +137,7 @@ void WDbgArk::InitScanCommands() {
         { "!wa_crashdmpcall", std::bind(&WDbgArk::wa_crashdmpcall, this) },
         { "!wa_haltables", std::bind(&WDbgArk::wa_haltables, this) },
         { "!wa_psppico", std::bind(&WDbgArk::wa_psppico, this) },
+        { "!wa_systables", std::bind(&WDbgArk::wa_systables, this) },
         { "!wa_ciinfo", std::bind(&WDbgArk::wa_ciinfo, this) },
         { "!wa_cicallbacks", std::bind(&WDbgArk::wa_cicallbacks, this) },
         { "!wa_drvmajor", std::bind(&WDbgArk::wa_drvmajor, this) }
@@ -198,6 +199,7 @@ void WDbgArk::InitCallbackCommands() {
     }
 }
 
+// TODO(swwwolf): implement as a class
 void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
                                              const uint64_t offset_list_head,
                                              const uint32_t link_offset,
@@ -251,6 +253,7 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
     }
 }
 
+// TODO(swwwolf): implement as a class
 void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_name,
                                                    const uint64_t offset_list_head,
                                                    const bool is_double,

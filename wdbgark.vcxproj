@@ -244,6 +244,7 @@
     <ClCompile Include="src\symbols.cpp" />
     <ClCompile Include="src\symcache.cpp" />
     <ClCompile Include="src\synthsym.cpp" />
+    <ClCompile Include="src\systables.cpp" />
     <ClCompile Include="src\systemcb.cpp" />
     <ClCompile Include="src\systemver.cpp" />
     <ClCompile Include="src\udis.cpp" />
