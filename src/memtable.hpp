@@ -67,6 +67,9 @@ class WDbgArkMemTable {
     void SetRoutineDelta(const uint32_t delta) { m_routine_delta = delta; }
     uint32_t GetRoutineDelta() const { return m_routine_delta; }
 
+    void SetRoutineCount(const uint32_t count) { m_routine_count = count; }
+    uint32_t GetRoutineCount() const { return m_routine_count; }
+
     void SetBreakOnNull(const bool flag) { m_break_on_null = flag; }
     bool IsBreakOnNull() const { return m_break_on_null; }
 
@@ -78,6 +81,7 @@ class WDbgArkMemTable {
     uint32_t m_offset_table_skip_start = 0UL;
     uint32_t m_table_count = 0UL;
     uint32_t m_routine_delta = 0UL;
+    uint32_t m_routine_count = 1;
     bool m_break_on_null = false;
     bool m_collect_null = false;
 

@@ -42,16 +42,25 @@ bool WDbgArkMemTable::Walk(WDbgArkMemTable::WalkResult* result) {
         return false;
     }
 
-    uint64_t offset = GetTableStart() + GetTableSkipStart();
+    auto offset = GetTableStart() + GetTableSkipStart();
 
     try {
-        for ( uint32_t i = 0; i < GetTableCount(); i++ ) {
-            ExtRemoteData data(offset + i * GetRoutineDelta(), g_Ext->m_PtrSize);
-            auto ptr = data.GetPtr();
+        bool terminate = false;
 
-            if ( ptr != 0ULL || IsCollectNull() ) {
-                result->push_back(ptr);
-            } else if ( IsBreakOnNull() ) {
+        for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
+            for ( uint32_t rc = 0; rc < GetRoutineCount(); rc++ ) {
+                ExtRemoteData data(offset + tc * GetRoutineDelta() + rc * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+                auto ptr = data.GetPtr();
+
+                if ( ptr != 0ULL || IsCollectNull() ) {
+                    result->push_back(ptr);
+                } else if ( IsBreakOnNull() ) {
+                    terminate = true;
+                    break;
+                }
+            }
+
+            if ( terminate == true ) {
                 break;
             }
         }
