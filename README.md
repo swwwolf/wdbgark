@@ -18,7 +18,7 @@
 ## Preface
 
 [WDBGARK](https://github.com/swwwolf/wdbgark) is an extension (dynamic library) for the
-[Microsoft Debugging Tools for Windows](http://msdn.microsoft.com/en-US/library/windows/hardware/ff551063).
+[Microsoft Debugging Tools for Windows](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/index).
 It main purpose is to view and analyze anomalies in Windows kernel using kernel debugger. It is possible to view
 various system callbacks, system tables, object types and so on. For more user-friendly view extension uses DML.
 For the most of commands kernel-mode connection is required. Feel free to use extension with live kernel-mode debugging
@@ -55,7 +55,7 @@ to reload them, ignore checksum problems, prepare them before analysis and you'l
 Multiple targets debugging is not supported!
 
 Windows BETA/RC is supported by design, but read a few notes. First, i don't care about checked builds.
-Second, i don't care if you don't have [symbols](http://msdn.microsoft.com/en-us/windows/hardware/gg463028.aspx)
+Second, i don't care if you don't have [symbols](https://developer.microsoft.com/en-us/windows/hardware/download-symbols)
 (public or private). IA64/ARM is unsupported (and will not).
 
 ## Sources and build
@@ -64,7 +64,7 @@ Sources are organized as a Visual Studio 2015 solution.
 
 ### Build using VS2015
 
-* Download and install latest [WDK](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx)
+* Download and install latest [WDK](https://developer.microsoft.com/en-us/windows/hardware/windows-driver-kit)
 * Select **Build -> Batch Build** from the menu and build dummypdb module (x86 and x64).
 ![Batch Build](https://raw.githubusercontent.com/swwwolf/wdbgark/master/images/batch_build.png)
 * Choose solution configuration and platform for the main project.
@@ -91,14 +91,14 @@ Yeah, it's possible to build all the stuff using simple batch script.
 
 ## Using
 
-* Download and install Debugging Tools from the [Microsoft WDK](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) downloads page.
+* Download and install Debugging Tools from the [Microsoft WDK](https://developer.microsoft.com/en-us/windows/hardware/windows-driver-kit) downloads page.
 * [Build](#sources-and-build) or download the extention.
-* Make sure that [Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-US/download/details.aspx?id=46881) has already been installed.
+* Make sure that [Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145) has already been installed.
 * Copy extension to the WDK debugger's directory (e.g. WDK 10):
     * x64: ```C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\```
     * x86: ```C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\winext\```
 * Start WinDBG.
-* [Setup](http://support.microsoft.com/kb/311503/en-us) WinDBG to use Microsoft Symbol Server correctly or deal with them manually.
+* [Setup](https://msdn.microsoft.com/en-us/library/windows/desktop/ee416588(v=vs.85).aspx) WinDBG to use Microsoft Symbol Server correctly or deal with them manually.
 * Load extension by **.load wdbgark** (you can see loaded extensions with a **.chain** command).
 * Execute **!wdbgark.help** for help or **!wdbgark.wa_scan** for a full system scan.
 * Have fun!

@@ -311,12 +311,9 @@ BOOL CALLBACK WDbgArkColorHack::EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 
 bool WDbgArkColorHack::IsWinDbgWindow(void) {
     bool found = false;
+    EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&found));
 
-    if ( !EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&found)) && !found ) {
-        return false;
-    }
-
-    return true;
+    return found;
 }
 
 bool WDbgArkColorHack::GetFileVersion(const std::string& file_path,

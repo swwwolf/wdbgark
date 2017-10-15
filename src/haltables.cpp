@@ -162,7 +162,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
 
 /* { HalDispatchTable table count
      HalPrivateDispatchTable table count
-     HalIommuDispatch table count (W8.1+)
+     HalIommuDispatchTable table count (W8.1+)
      Skip first N entries
    }
 */
@@ -180,7 +180,8 @@ HalTableInfo GetHalTableInfo() {
         { W10RTM_VER, { 0x16, 0x71, 0x10, 0x1 } },
         { W10TH2_VER, { 0x16, 0x71, 0x10, 0x1 } },
         { W10RS1_VER, { 0x16, 0x7C, 0x11, 0x1 } },
-        { W10RS2_VER, { 0x16, 0x7F, 0x13, 0x1 } }
+        { W10RS2_VER, { 0x16, 0x7F, 0x13, 0x1 } },
+        { W10RS3_VER, { 0x16, 0x89, 0x13, 0x1 } }
         } };
 }
 

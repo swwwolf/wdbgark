@@ -87,8 +87,10 @@ bool WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
         m_strict_minor_build = W10TH2_VER;
     } else if ( m_minor_build > W10TH2_VER && m_minor_build <= W10RS1_VER ) {
         m_strict_minor_build = W10RS1_VER;
-    } else if ( m_minor_build > W10RS1_VER ) {
+    } else if ( m_minor_build > W10RS1_VER && m_minor_build <= W10RS2_VER ) {
         m_strict_minor_build = W10RS2_VER;
+    } else if ( m_minor_build > W10RS2_VER ) {
+        m_strict_minor_build = W10RS3_VER;
     }
 
     return (m_strict_minor_build ? true : false);

@@ -23,8 +23,8 @@
 #pragma once
 #endif
 
-#ifndef SDT_W32P_HPP_
-#define SDT_W32P_HPP_
+#ifndef SRC_SDT_W32P_HPP_
+#define SRC_SDT_W32P_HPP_
 
 #include <string>
 
@@ -53,7 +53,8 @@ enum ServiceTableIndex {
     ServiceTableW10Th1,
     ServiceTableW10Th2,
     ServiceTableW10Rs1,
-    ServiceTableW10Rs2
+    ServiceTableW10Rs2,
+    ServiceTableW10Rs3
 };
 
 std::string get_service_table_routine_name(const uint32_t minor_build,
@@ -62,4 +63,4 @@ std::string get_service_table_routine_name(const uint32_t minor_build,
 
 }   // namespace wa
 
-#endif  // SDT_W32P_HPP_
+#endif  // SRC_SDT_W32P_HPP_

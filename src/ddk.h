@@ -54,6 +54,7 @@ namespace wa {
 #define W10TH2_VER      10586   // Windows 10 TH2
 #define W10RS1_VER      14393   // Windows 10 RS1
 #define W10RS2_VER      15063   // Windows 10 RS2
+#define W10RS3_VER      16299   // Windows 10 RS3
 
 //////////////////////////////////////////////////////////////////////////
 // drivers

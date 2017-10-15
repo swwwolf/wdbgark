@@ -311,8 +311,10 @@ uint32_t GetHttpUxIoctlTableCount() {
 
     if ( system_ver.IsBuildInRangeStrict(W10TH2_VER, W10RS1_VER) ) {
         return 32;
-    } else if ( system_ver.GetStrictVer() >= W10RS2_VER ) {
+    } else if ( system_ver.GetStrictVer() == W10RS2_VER ) {
         return 34;
+    } else if ( system_ver.GetStrictVer() >= W10RS3_VER ) {
+        return 35;
     }
 
     return 0;
@@ -326,7 +328,7 @@ bool IsSrvDispatchTableSupported() {
         return false;
     }
 
-    if ( system_ver.GetStrictVer() >= WXP_VER ) {
+    if ( system_ver.IsBuildInRangeStrict(WXP_VER, W10RS2_VER) ) {
         return true;
     }
 

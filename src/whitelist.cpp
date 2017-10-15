@@ -176,7 +176,9 @@ WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList() {
         { "lxss", { "lxcore" } },
         { "usbaudio", { "ks" } },
         { "wscvreg", { "nt" } },
-        { "vhdmp",{ "storport" } }
+        { "vhdmp", { "storport" } },
+        { "vmsproxy", { "vmswitch" } },
+        { "udfs", { "nt" } }
     };
 }
 
@@ -191,6 +193,9 @@ WDbgArkAnalyzeWhiteList::WhiteListEntries GetObjectTypesWhiteList() {
         { "dxgksharedresource", { "dxgkrnl" } },
         { "dxgksharedsyncobject", { "dxgkrnl" } },
         { "dxgksharedswapchainobject", { "dxgkrnl" } },
+        { "dxgksharedbundleobject", { "dxgkrnl" } },
+        { "dxgksharedprotectedsessionobject", { "dxgkrnl" } },
+        { "dxgkdisplaymanagerobject", { "dxgkrnl" } },
         { "networknamespace", { "ndis" } },
         { "pcwobject", { "pcw" } },
         { "filterconnectionport", { "fltmgr" } },
