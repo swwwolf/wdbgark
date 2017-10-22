@@ -109,7 +109,7 @@ Yeah, it's possible to build all the stuff using simple batch script.
 
 ## Using
 
-* Download and install Debugging Tools from the [Microsoft WDK](https://developer.microsoft.com/en-us/windows/hardware/windows-driver-kit) downloads page.
+* Download and install [Debugging Tools](https://developer.microsoft.com/en-us/windows/hardware/download-windbg).
 * [Build](#sources-and-build) or [download](https://github.com/swwwolf/wdbgark/releases) the extention.
 * Make sure that [Visual C++ Redistributable for Visual Studio 2017](https://www.visualstudio.com/en-us/productinfo/2017-redistribution-vs) has already been installed.
 * Copy extension to the WDK debugger's directory (e.g. WDK 10):
