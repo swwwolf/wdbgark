@@ -2,7 +2,7 @@
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/3610/badge.svg)](https://scan.coverity.com/projects/3610)
 
 * [Preface](#preface)
-* [Requirements](#equirements)
+* [Requirements](#requirements)
 * [Supported commands](#supported-commands)
 * [Supported targets](#supported-targets)
 * [Sources and build](#sources-and-build)
