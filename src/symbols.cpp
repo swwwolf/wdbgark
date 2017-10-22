@@ -275,16 +275,22 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
 
             if ( SUCCEEDED(result) ) {
                 image_name->assign(buf1.get());
-                std::transform(image_name->begin(), image_name->end(), image_name->begin(), tolower);
+                std::transform(image_name->begin(),
+                               image_name->end(),
+                               image_name->begin(),
+                               [](char c) {return static_cast<char>(tolower(c)); });
 
                 module_name->assign(buf2.get());
-                std::transform(module_name->begin(), module_name->end(), module_name->begin(), tolower);
+                std::transform(module_name->begin(),
+                               module_name->end(),
+                               module_name->begin(),
+                               [](char c) {return static_cast<char>(tolower(c)); });
 
                 loaded_image_name->assign(buf3.get());
                 std::transform(loaded_image_name->begin(),
                                loaded_image_name->end(),
                                loaded_image_name->begin(),
-                               tolower);
+                               [](char c) {return static_cast<char>(tolower(c)); });
             }
         }
     }

@@ -170,11 +170,17 @@ uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
         compare_full_path = object_name;
     }
 
-    std::transform(compare_full_path.begin(), compare_full_path.end(), compare_full_path.begin(), tolower);
+    std::transform(std::begin(compare_full_path),
+                   std::end(compare_full_path),
+                   std::begin(compare_full_path),
+                   [](char c) {return static_cast<char>(tolower(c)); });
 
     for ( auto &object_info : info.second ) {
         std::string full_path = object_info.second.full_path;
-        std::transform(full_path.begin(), full_path.end(), full_path.begin(), tolower);
+        std::transform(std::begin(full_path),
+                       std::end(full_path),
+                       std::begin(full_path),
+                       [](char c) {return static_cast<char>(tolower(c)); });
 
         if ( full_path == compare_full_path ) {
             return object_info.second.object.m_Offset;

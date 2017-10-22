@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <RootNamespace>dummypdb</RootNamespace>
     <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VisualStudioVersion)' == '11.0'">$(VCTargetsPath11)</VCTargetsPath>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Label="PropertySheets">
     <ConfigurationType>Driver</ConfigurationType>
@@ -58,11 +58,15 @@
     <TargetName>$(TargetName.Replace(' ',''))_$(DDKPlatform)</TargetName>
     <OutDir>$(SolutionDir)\dummypdb_build\$(ConfigurationName)\</OutDir>
     <EnableInf2cat>false</EnableInf2cat>
+    <CodeAnalysisRuleSet>..\..\..\..\..\..\Program Files (x86)\Windows Kits\10\CodeAnalysis\DriverMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>$(TargetName.Replace(' ',''))_$(DDKPlatform)</TargetName>
     <OutDir>$(SolutionDir)\dummypdb_build\$(Platform)\$(ConfigurationName)\</OutDir>
     <EnableInf2cat>false</EnableInf2cat>
+    <CodeAnalysisRuleSet>..\..\..\..\..\..\Program Files (x86)\Windows Kits\10\CodeAnalysis\DriverMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -81,6 +85,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <OmitFramePointers>false</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>
       <OptimizeReferences>false</OptimizeReferences>
@@ -107,6 +112,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>
       <OptimizeReferences>false</OptimizeReferences>

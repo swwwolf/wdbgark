@@ -70,7 +70,10 @@ void WDbgArkAnalyzeWhiteList::AddTempWhiteList(const std::string &name) {
     try {
         if ( !m_wl_entries.empty() ) {
             std::string search_name = name;
-            std::transform(search_name.begin(), search_name.end(), search_name.begin(), tolower);
+            std::transform(std::begin(search_name),
+                           std::end(search_name),
+                           std::begin(search_name),
+                           [](char c) {return static_cast<char>(tolower(c)); });
 
             auto entry_list = m_wl_entries.at(search_name);
 

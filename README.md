@@ -2,10 +2,11 @@
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/3610/badge.svg)](https://scan.coverity.com/projects/3610)
 
 * [Preface](#preface)
+* [Requirements](#equirements)
 * [Supported commands](#supported-commands)
 * [Supported targets](#supported-targets)
 * [Sources and build](#sources-and-build)
-    * [Build using VS2015](#build-using-vs2015)
+    * [Build using VS2017](#build-using-vs2017)
     * [Build using BUILD](#build-using-build)
     * [Build using CMD](#build-using-cmd)
 * [Using](#using)
@@ -25,6 +26,12 @@ For the most of commands kernel-mode connection is required. Feel free to use ex
 or with kernel-mode crash dump analysis (some commands will not work). Public symbols are required, so use them, force
 to reload them, ignore checksum problems, prepare them before analysis and you'll be happy.
 
+## Requirements
+
+* Microsoft Visual Studio 2017
+* WDK and SDK for Windows 10, version 1709 (10.0.16299.0)
+* Visual C++ Redistributable for Visual Studio 2017
+
 ## Supported commands
 
 * [!wa_scan](https://github.com/swwwolf/wdbgark/wiki/!wa_scan)
@@ -42,6 +49,17 @@ to reload them, ignore checksum problems, prepare them before analysis and you'l
 * [!wa_gdt](https://github.com/swwwolf/wdbgark/wiki/!wa_gdt)
 * [!wa_haltables](https://github.com/swwwolf/wdbgark/wiki/!wa_haltables)
 * [!wa_colorize](https://github.com/swwwolf/wdbgark/wiki/!wa_colorize)
+* !wa_chknirvana
+* !wa_cicallbacks
+* !wa_ciinfo
+* !wa_drvmajor
+* !wa_lxsdt
+* !wa_psppico
+* !wa_systables
+* !wa_w32psdt
+* !wa_w32psdtflt
+* !wdrce_copyfile
+* !wdrce_cpuid
 
 ## Supported targets
 
@@ -60,9 +78,9 @@ Second, i don't care if you don't have [symbols](https://developer.microsoft.com
 
 ## Sources and build
 
-Sources are organized as a Visual Studio 2015 solution.
+Sources are organized as a Visual Studio 2017 solution.
 
-### Build using VS2015
+### Build using VS2017
 
 * Download and install latest [WDK](https://developer.microsoft.com/en-us/windows/hardware/windows-driver-kit)
 * Select **Build -> Batch Build** from the menu and build dummypdb module (x86 and x64).
@@ -87,13 +105,13 @@ Yeah, it's possible to build all the stuff using simple batch script.
     * If not, then download and install [Windows Management Framework](http://www.microsoft.com/en-US/download/details.aspx?id=40855).
 * Execute the [release_build.cmd](release_build.cmd) with a single parameter - a version.
 * Voila! If there were no errors, the archive file will be created (e.g. wdbgark.X.Y.zip).
-    * If something is wrong, check the path to the Visual Studio 2015 in the script and/or output log file (release_build.log).
+    * If something is wrong, check the path to the Visual Studio 2017 in the script and/or output log file (release_build.log).
 
 ## Using
 
 * Download and install Debugging Tools from the [Microsoft WDK](https://developer.microsoft.com/en-us/windows/hardware/windows-driver-kit) downloads page.
-* [Build](#sources-and-build) or download the extention.
-* Make sure that [Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145) has already been installed.
+* [Build](#sources-and-build) or [download](https://github.com/swwwolf/wdbgark/releases) the extention.
+* Make sure that [Visual C++ Redistributable for Visual Studio 2017](https://www.visualstudio.com/en-us/productinfo/2017-redistribution-vs) has already been installed.
 * Copy extension to the WDK debugger's directory (e.g. WDK 10):
     * x64: ```C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\```
     * x86: ```C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\winext\```
@@ -104,29 +122,31 @@ Yeah, it's possible to build all the stuff using simple batch script.
 * Have fun!
 
 ```
-0: kd> .load wdbgark
-0: kd> .chain
+2: kd> .load wdbgark
+2: kd> .chain
 Extension DLL search Path:
 <...>
 Extension DLL chain:
-    wdbgark: image 1.5.0.0, API 1.5.0, built Wed Aug 05 00:15:28 2015
+    wdbgark: image 2.5.0.0, API 2.5.0, built Fri Oct 20 17:54:03 2017
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark.dll]
-    dbghelp: image 10.0.10240.16399, API 10.0.6, built Thu Jul 23 04:49:35 2015
+    dbghelp: image 10.0.16299.15, API 10.0.6, 
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\dbghelp.dll]
-    ext: image 10.0.10240.16399, API 1.0.0, built Thu Jul 23 04:50:27 2015
+    ext: image 10.0.16299.15, API 1.0.0, 
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\ext.dll]
-    exts: image 10.0.10240.16399, API 1.0.0, built Thu Jul 23 04:49:59 2015
+    exts: image 10.0.16299.15, API 1.0.0, 
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\WINXP\exts.dll]
-    kext: image 10.0.10240.16399, API 1.0.0, built Thu Jul 23 04:49:56 2015
+    kext: image 10.0.16299.15, API 1.0.0, 
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\kext.dll]
-    kdexts: image 10.0.10240.16399, API 1.0.0, built Thu Jul 23 05:05:16 2015
+    kdexts: image 10.0.16299.15, API 1.0.0, 
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\WINXP\kdexts.dll]
-0: kd> !wdbgark.help
+2: kd> !wdbgark.help
 Commands for C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark.dll:
   !help            - Displays information on available extension commands
   !wa_callouts     - Output kernel-mode win32k callouts
   !wa_checkmsr     - Output system MSRs (live debug only!)
+  !wa_chknirvana   - Checks processes for Hooking Nirvana instrumentation
   !wa_cicallbacks  - Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks
+  !wa_ciinfo       - Output Code Integrity information
   !wa_colorize     - Adjust WinDBG colors dynamically (prints info with no
                      parameters)
   !wa_crashdmpcall - Output kernel-mode nt!CrashdmpCallTable
@@ -135,16 +155,22 @@ Commands for C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark
   !wa_haltables    - Output kernel-mode HAL tables: nt!HalDispatchTable,
                      nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable
   !wa_idt          - Output processors IDT
+  !wa_lxsdt        - Output the Linux Subsystem Service Descriptor Table
   !wa_objtype      - Output kernel-mode object type(s)
   !wa_objtypecb    - Output kernel-mode callbacks registered with
                      ObRegisterCallbacks
   !wa_objtypeidx   - Output kernel-mode nt!ObTypeIndexTable
   !wa_pnptable     - Output kernel-mode nt!PlugPlayHandlerTable
+  !wa_psppico      - Output kernel-mode Pico tables
   !wa_scan         - Scan system (execute all commands)
   !wa_ssdt         - Output the System Service Descriptor Table
+  !wa_systables    - Output various kernel-mode system tables
   !wa_systemcb     - Output kernel-mode registered callback(s)
   !wa_ver          - Shows extension version number
   !wa_w32psdt      - Output the Win32k Service Descriptor Table
+  !wa_w32psdtflt   - Output the Win32k Service Descriptor Table Filter
+  !wdrce_copyfile  - Copy file (live debug only!)
+  !wdrce_cpuid     - Execute CPUID instruction (live debug only!)
 !help <cmd> will give more information for a particular command
 ```
 
@@ -187,7 +213,7 @@ A: Feel free to report an issue using GitHub or email to me directly, but please
 ## Whoami
 
 * [LinkedIn profile](https://www.linkedin.com/in/vrusakov)
-* [Blog](http://sww-it.ru/)
+* [Blog](https://sww-it.ru/)
 
 ## License
 

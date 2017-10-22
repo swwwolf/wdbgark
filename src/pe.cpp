@@ -27,6 +27,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <memory>
 
 #include "./ddk.h"
 
@@ -222,7 +223,10 @@ bool WDbgArkPe::GetImageSection(const std::string &name, IMAGE_SECTION_HEADER* s
     }
 
     auto search_name(name);
-    std::transform(search_name.begin(), search_name.end(), search_name.begin(), tolower);
+    std::transform(std::begin(search_name),
+                   std::end(search_name),
+                   std::begin(search_name),
+                   [](char c) {return static_cast<char>(tolower(c)); });
 
     IMAGE_SECTION_HEADER* temp_header = nullptr;
 
@@ -231,12 +235,14 @@ bool WDbgArkPe::GetImageSection(const std::string &name, IMAGE_SECTION_HEADER* s
     }
 
     for ( uint16_t i = 0; i < nth->GetFileHeader()->NumberOfSections; i++ ) {
-        char temp_name[9];
-        std::memset(temp_name, 0, sizeof(temp_name));
-        std::memcpy(temp_name, temp_header[i].Name, sizeof(temp_header[i].Name));
+        char temp_name[9] = { 0 };
+        std::memcpy(&temp_name[0], temp_header[i].Name, sizeof(temp_header[i].Name));
 
         std::string section_name(temp_name);
-        std::transform(section_name.begin(), section_name.end(), section_name.begin(), tolower);
+        std::transform(std::begin(section_name),
+                       std::end(section_name),
+                       std::begin(section_name),
+                       [](char c) {return static_cast<char>(tolower(c)); });
 
         if ( section_name == search_name ) {
             *section_header = temp_header[i];

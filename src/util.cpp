@@ -60,7 +60,10 @@ void WaitForGoInput() {
         }
 
         std::string check_go(buffer);
-        std::transform(check_go.begin(), check_go.end(), check_go.begin(), tolower);
+        std::transform(std::begin(check_go),
+                       std::end(check_go),
+                       std::begin(check_go),
+                       [](char c) {return static_cast<char>(tolower(c)); });
 
         if ( check_go == "g" || check_go == "go" ) {
             break;

@@ -66,7 +66,11 @@ WDbgArkProcess::WDbgArkProcess() {
                 warn << std::hex << std::showbase << info.process.m_Offset << endlwarn;
             } else {
                 std::string image_file_name = result.second;
-                std::transform(image_file_name.begin(), image_file_name.end(), image_file_name.begin(), tolower);
+                std::transform(std::begin(image_file_name),
+                               std::end(image_file_name),
+                               std::begin(image_file_name),
+                               [](char c) {return static_cast<char>(tolower(c)); });
+
                 info.image_file_name = image_file_name;
             }
 
@@ -235,7 +239,10 @@ std::pair<bool, std::string> WDbgArkProcess::GetProcessImageFileName(const ExtRe
 
 bool WDbgArkProcess::FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info) {
     std::string compare_with = process_name;
-    std::transform(compare_with.begin(), compare_with.end(), compare_with.begin(), tolower);
+    std::transform(std::begin(compare_with),
+                   std::end(compare_with),
+                   std::begin(compare_with),
+                   [](char c) {return static_cast<char>(tolower(c)); });
 
     std::vector<ProcessInfo>::iterator it =\
         std::find_if(m_process_list.begin(), m_process_list.end(), [&compare_with](const ProcessInfo &proc_info) {

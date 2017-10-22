@@ -476,7 +476,10 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
 WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiColor* ui_color,
                                                                              const UiColorType ui_color_type) {
     std::string dml_name = wstring_to_string(ui_color->dml_name);
-    std::transform(dml_name.begin(), dml_name.end(), dml_name.begin(), tolower);
+    std::transform(std::begin(dml_name),
+                   std::end(dml_name),
+                   std::begin(dml_name),
+                   [](char c) {return static_cast<char>(tolower(c)); });
 
     return { ui_color,
              false,

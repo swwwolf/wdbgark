@@ -5,7 +5,7 @@
 :main
 setlocal enableextensions
 if [%1]==[] goto usage
-set vstudio="c:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe"
+set vstudio="C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe"
 set output="%temp%\wdbgark.%1\"
 set log="release_build.log"
 call :create %output%
