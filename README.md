@@ -95,7 +95,7 @@ Post-build event is enabled for debug build. It automatically copies linked exte
 
 ### Build using BUILD
 
-Depricated.
+Deprecated.
 
 ### Build using CMD
 
