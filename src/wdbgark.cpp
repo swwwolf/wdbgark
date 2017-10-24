@@ -306,7 +306,7 @@ void WDbgArk::WalkDirectoryObject(const uint64_t directory_address,
         ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", directory_address, false, NULL, NULL);
         ExtRemoteTyped buckets = directory_object.Field("HashBuckets");
 
-        int64_t num_buckets = buckets.GetTypeSize() / m_PtrSize;
+        const int64_t num_buckets = buckets.GetTypeSize() / m_PtrSize;
 
         for ( int64_t i = 0; i < num_buckets; i++ ) {
             for ( ExtRemoteTyped directory_entry = *buckets[i];

@@ -104,7 +104,7 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
         auto object_type_flags_typed = object_type.Field("TypeInfo").Field("ObjectTypeFlags");
         auto size = object_type_flags_typed.GetTypeSize();
 
-        uint16_t object_type_flags = static_cast<uint16_t>(object_type_flags_typed.GetData(size));
+        const auto object_type_flags = static_cast<uint16_t>(object_type_flags_typed.GetData(size));
 
         if ( !(object_type_flags & OBJTYPE_SUPPORTS_OBJECT_CALLBACKS) )
             return S_OK;

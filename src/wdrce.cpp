@@ -23,6 +23,7 @@
 
 #include <string>
 #include <memory>
+#include <utility>
 
 #include "resources.hpp"
 #include "manipulators.hpp"
@@ -247,7 +248,7 @@ bool WDbgArkRce::FillGlobalData(const std::string &struct_name,
                                 const void* buffer,
                                 size_t size) {
     uint32_t offset = 0;
-    auto result = GetFieldOffset(struct_name.c_str(), field_name.c_str(), reinterpret_cast<PULONG>(&offset));
+    const auto result = GetFieldOffset(struct_name.c_str(), field_name.c_str(), reinterpret_cast<PULONG>(&offset));
 
     if ( result ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to locate " << struct_name << "." << field_name << endlerr;
@@ -414,7 +415,7 @@ bool WDbgArkRce::InitRceShellcodes(const std::unique_ptr<WDbgArkPe> &dummy_rce) 
         auto function_name = m_dummy_pdb->GetShortName() + "!" + entry.second.rce_function_name;
         auto command_name = entry.first;
 
-        auto result = InitRceShellcode(function_name, command_name, dummy_rce);
+        const auto result = InitRceShellcode(function_name, command_name, dummy_rce);
 
         if ( !result ) {
             err << wa::showminus << __FUNCTION__ << ": InitRceShellcode failed for " << function_name << endlerr;
@@ -431,7 +432,7 @@ bool WDbgArkRce::InitRceShellcode(const std::string &function_name,
     uint64_t start_offset = 0ULL;
     uint64_t end_offset = 0ULL;
 
-    auto result = m_symbols_base->GetFunctionInformation(function_name, &start_offset, &end_offset);
+    const auto result = m_symbols_base->GetFunctionInformation(function_name, &start_offset, &end_offset);
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": GetFunctionInformation failed for " << function_name << endlerr;
@@ -765,9 +766,9 @@ bool WDbgArkRce::HookWorkItemRoutine() {
     m_debugger_info.workerroutine_original_offset = routine.m_Offset;
     m_debugger_info.workerroutine_original = routine.GetPtr();
 
-    auto result = WriteVirtualUncached(m_debugger_info.workerroutine_original_offset,
-                                       &m_code_section_start,
-                                       g_Ext->m_PtrSize);
+    const auto result = WriteVirtualUncached(m_debugger_info.workerroutine_original_offset,
+                                             &m_code_section_start,
+                                             g_Ext->m_PtrSize);
 
     if ( FAILED(result) ) {
         return false;
@@ -786,9 +787,10 @@ bool WDbgArkRce::HookWorkItemParameter() {
     auto parameter = expdebuggerworkitem.Field("Parameter");
     m_debugger_info.workerroutine_parameter_original_offset = parameter.m_Offset;
     m_debugger_info.workerroutine_parameter_original = parameter.GetPtr();
-    auto result = WriteVirtualUncached(m_debugger_info.workerroutine_parameter_original_offset,
-                                       &m_data_section_start,
-                                       g_Ext->m_PtrSize);
+
+    const auto result = WriteVirtualUncached(m_debugger_info.workerroutine_parameter_original_offset,
+                                             &m_data_section_start,
+                                             g_Ext->m_PtrSize);
 
     if ( FAILED(result) ) {
         return false;
@@ -827,7 +829,7 @@ void WDbgArkRce::UnHookWorkItem() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::SetWorkItemState(const WINKD_WORKER_STATE state) {
-    auto result = WriteVirtualUncached(m_debugger_info.expdebuggerwork_offset, &state, sizeof(LONG));
+    const auto result = WriteVirtualUncached(m_debugger_info.expdebuggerwork_offset, &state, sizeof(LONG));
 
     if ( FAILED(result) ) {
         return false;
@@ -838,7 +840,7 @@ bool WDbgArkRce::SetWorkItemState(const WINKD_WORKER_STATE state) {
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::CheckWorkItemState() {
     WINKD_WORKER_STATE state;
-    auto result = ReadVirtualUncached(m_debugger_info.expdebuggerwork_offset, sizeof(LONG), &state);
+    const auto result = ReadVirtualUncached(m_debugger_info.expdebuggerwork_offset, sizeof(LONG), &state);
 
     if ( FAILED(result) ) {
         return false;

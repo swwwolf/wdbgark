@@ -25,6 +25,7 @@
 
 #include <string>
 #include <algorithm>
+#include <utility>
 
 #include "manipulators.hpp"
 
@@ -33,11 +34,11 @@ namespace wa {
 bool WDbgArkAnalyzeWhiteList::AddRangeWhiteListInternal(const std::string &module_name, Ranges* ranges) {
     try {
         uint64_t module_start = 0;
-        HRESULT result = g_Ext->m_Symbols3->GetModuleByModuleName2(module_name.c_str(),
-                                                                   0UL,
-                                                                   0UL,
-                                                                   nullptr,
-                                                                   &module_start);
+        const auto result = g_Ext->m_Symbols3->GetModuleByModuleName2(module_name.c_str(),
+                                                                      0UL,
+                                                                      0UL,
+                                                                      nullptr,
+                                                                      &module_start);
 
         if ( SUCCEEDED(result) ) {
             IMAGEHLP_MODULEW64 info;
@@ -89,18 +90,14 @@ bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const uint64_t address) const
         return true;
     }
 
-    auto it = std::find_if(m_ranges.begin(),
-                           m_ranges.end(),
-                           [address](const Range &range) {
+    const auto it = std::find_if(m_ranges.begin(), m_ranges.end(), [address](const Range &range) {
         return ((address >= range.first) && (address <= range.second)); });
 
     if ( it != m_ranges.end() ) {
         return true;
     }
 
-    auto temp_it = std::find_if(m_temp_ranges.begin(),
-                                m_temp_ranges.end(),
-                                [address](const Range &range) {
+    const auto temp_it = std::find_if(m_temp_ranges.begin(), m_temp_ranges.end(), [address](const Range &range) {
         return ((address >= range.first) && (address <= range.second)); });
 
     if ( temp_it != m_temp_ranges.end() ) {

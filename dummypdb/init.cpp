@@ -85,7 +85,14 @@ NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* DriverObject, _In_ PUNICODE_STRING Regi
     return STATUS_SUCCESS;
 }
 //////////////////////////////////////////////////////////////////////////
+// disable warning C6011: Dereferencing NULL pointer 'Temp', because I'm checking input variable
+#pragma warning(push)
+#pragma warning(disable: 6011)
 VOID FreememWorker(_In_ PVOID Parameter) {
+    if ( !ARGUMENT_PRESENT(Parameter) ) {
+        return;
+    }
+
     PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
     WORKITEM_GLOBAL_DATA_PROLOG(Global);
 
@@ -112,9 +119,12 @@ VOID FreememWorker(_In_ PVOID Parameter) {
     }
 #endif  // _X86_
 }
-
 //////////////////////////////////////////////////////////////////////////
 VOID CpuidWorker(_In_ PVOID Parameter) {
+    if ( !ARGUMENT_PRESENT(Parameter) ) {
+        return;
+    }
+
     PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
     WORKITEM_GLOBAL_DATA_PROLOG(Global);
 
@@ -127,6 +137,10 @@ VOID CpuidWorker(_In_ PVOID Parameter) {
 }
 //////////////////////////////////////////////////////////////////////////
 VOID CopyfileWorker(_In_ PVOID Parameter) {
+    if ( !ARGUMENT_PRESENT(Parameter) ) {
+        return;
+    }
+
     PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
     WORKITEM_GLOBAL_DATA_PROLOG(Global);
 
@@ -234,6 +248,10 @@ VOID CopyfileWorker(_In_ PVOID Parameter) {
 }
 //////////////////////////////////////////////////////////////////////////
 VOID QuerydirWorker(_In_ PVOID Parameter) {
+    if ( !ARGUMENT_PRESENT(Parameter) ) {
+        return;
+    }
+
     PWORKITEM_GLOBAL_DATA Global = (PWORKITEM_GLOBAL_DATA)Parameter;
     WORKITEM_GLOBAL_DATA_PROLOG(Global);
 
@@ -294,3 +312,4 @@ VOID QuerydirWorker(_In_ PVOID Parameter) {
     Global->Iat.fnt_DbgBreakPointWithStatus(DBG_STATUS_WORKER);
 }
 //////////////////////////////////////////////////////////////////////////
+#pragma warning(pop)    // disable warning C6011

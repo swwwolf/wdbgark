@@ -144,16 +144,16 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::SymFindExecutableImage(cons
     }
 
     char image_file_path[MAX_PATH + 1] = { 0 };
-    auto result = SymFindFileInPath(GetCurrentProcess(),
-                                    search_path.c_str(),
-                                    image_name.c_str(),
-                                    reinterpret_cast<PVOID>(const_cast<ULONG*>(&parameters.TimeDateStamp)),
-                                    parameters.Size,
-                                    0,
-                                    SSRVOPT_DWORDPTR,
-                                    reinterpret_cast<PSTR>(&image_file_path),
-                                    SymFindFileInPathProc,
-                                    reinterpret_cast<void*>(const_cast<DEBUG_MODULE_PARAMETERS*>(&parameters)));
+    const auto result = SymFindFileInPath(GetCurrentProcess(),
+                                          search_path.c_str(),
+                                          image_name.c_str(),
+                                          reinterpret_cast<PVOID>(const_cast<ULONG*>(&parameters.TimeDateStamp)),
+                                          parameters.Size,
+                                          0,
+                                          SSRVOPT_DWORDPTR,
+                                          reinterpret_cast<PSTR>(&image_file_path),
+                                          SymFindFileInPathProc,
+                                          reinterpret_cast<void*>(const_cast<DEBUG_MODULE_PARAMETERS*>(&parameters)));
 
     if ( result ) {
         return std::make_pair(S_OK, std::string(image_file_path));
@@ -170,9 +170,9 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::SymFindExecutableImage(cons
 //////////////////////////////////////////////////////////////////////////
 WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindImageNameByAlias(const std::string &image_name) {
     for ( const auto &aliases : m_aliases ) {
-        auto it = std::find_if(std::begin(aliases.second),
-                               std::end(aliases.second),
-                               [&image_name](const std::string &alias) { return alias == image_name; });
+        const auto it = std::find_if(std::begin(aliases.second),
+                                     std::end(aliases.second),
+                                     [&image_name](const std::string &alias) { return alias == image_name; });
 
         if ( it != std::end(aliases.second) ) {
             return std::make_pair(S_OK, aliases.first);

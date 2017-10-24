@@ -121,8 +121,7 @@ uint64_t WDbgArkProcess::FindEProcessAnyGUIProcess() {
     }
 
     try {
-        std::vector<ProcessInfo>::iterator it =\
-            std::find_if(std::begin(m_process_list), std::end(m_process_list), [](ProcessInfo &proc_info) {
+        const auto it = std::find_if(std::begin(m_process_list), std::end(m_process_list), [](ProcessInfo &proc_info) {
                 return proc_info.process.Field("Win32Process").GetPtr() != 0ULL; });
 
         if ( it != std::end(m_process_list) ) {
@@ -222,7 +221,7 @@ std::pair<bool, std::string> WDbgArkProcess::GetProcessImageFileName(const ExtRe
     std::string output_name = "";
 
     try {
-        char buffer[100] = {0};
+        char buffer[100] = { 0 };
         ExtRemoteTyped image_file_name = const_cast<ExtRemoteTyped&>(process).Field("ImageFileName");
         output_name = image_file_name.GetString(buffer,
                                                 static_cast<ULONG>(sizeof(buffer)),
@@ -244,9 +243,10 @@ bool WDbgArkProcess::FindProcessInfoByImageFileName(const std::string &process_n
                    std::begin(compare_with),
                    [](char c) {return static_cast<char>(tolower(c)); });
 
-    std::vector<ProcessInfo>::iterator it =\
-        std::find_if(m_process_list.begin(), m_process_list.end(), [&compare_with](const ProcessInfo &proc_info) {
-            return proc_info.image_file_name == compare_with; });
+    const auto it = std::find_if(m_process_list.begin(),
+                                 m_process_list.end(),
+                                 [&compare_with](const ProcessInfo &proc_info) {
+        return proc_info.image_file_name == compare_with; });
 
     if ( it != m_process_list.end() ) {
         *info = *it;

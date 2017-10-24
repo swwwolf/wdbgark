@@ -59,7 +59,7 @@ std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped
             auto test_name = std::make_unique<wchar_t[]>(max_len_wide);
             std::memset(test_name.get(), 0, max_len_wide * sizeof(wchar_t));
 
-            uint32_t read = buffer.ReadBuffer(test_name.get(), maxlen, true);
+            const uint32_t read = buffer.ReadBuffer(test_name.get(), maxlen, true);
 
             if ( read == maxlen ) {
                 output_string = wstring_to_string(test_name.get());

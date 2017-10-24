@@ -36,8 +36,8 @@ EXT_COMMAND(wa_colorize,
         throw ExtStatusException(S_OK, "color hack init failed");
     }
 
-    bool enable = HasArg("enable");
-    bool disable = HasArg("disable");
+    const bool enable = HasArg("enable");
+    const bool disable = HasArg("disable");
 
     if ( enable && disable ) {
         throw ExtStatusException(S_OK, "42");

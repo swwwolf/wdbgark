@@ -46,11 +46,11 @@ bool WDbgArk::AddSyntheticSymbolAddressPtr(const uint64_t address, const std::st
 
     // do not reload nt module after
     DEBUG_MODULE_AND_ID id;
-    HRESULT result = m_Symbols3->AddSyntheticSymbol(result_address,
-                                                    m_PtrSize,
-                                                    name.c_str(),
-                                                    DEBUG_ADDSYNTHSYM_DEFAULT,
-                                                    &id);
+    const auto result = m_Symbols3->AddSyntheticSymbol(result_address,
+                                                       m_PtrSize,
+                                                       name.c_str(),
+                                                       DEBUG_ADDSYNTHSYM_DEFAULT,
+                                                       &id);
 
     if ( !SUCCEEDED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to add synthetic symbol " << name << endlerr;

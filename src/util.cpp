@@ -53,7 +53,7 @@ bool IsLiveKernel() {
 void WaitForGoInput() {
     while ( true ) {
         char buffer[3] = { 0 };
-        auto result = g_Ext->m_Control->Input(buffer, sizeof(buffer), nullptr);
+        const auto result = g_Ext->m_Control->Input(buffer, sizeof(buffer), nullptr);
 
         if ( !SUCCEEDED(result) ) {
             continue;

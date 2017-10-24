@@ -37,11 +37,11 @@ void WDbgArkUdis::Init(const uint8_t mode) {
     ud_set_syntax(&m_udis_obj, UD_SYN_INTEL);
 
     DEBUG_PROCESSOR_IDENTIFICATION_ALL processor_info;
-    HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(0,
-                                                            DEBUG_DATA_PROCESSOR_IDENTIFICATION,
-                                                            &processor_info,
-                                                            static_cast<uint32_t>(sizeof(processor_info)),
-                                                            nullptr);
+    const auto result = g_Ext->m_Data->ReadProcessorSystemData(0,
+                                                               DEBUG_DATA_PROCESSOR_IDENTIFICATION,
+                                                               &processor_info,
+                                                               static_cast<uint32_t>(sizeof(processor_info)),
+                                                               nullptr);
 
     uint32_t vendor = UD_VENDOR_ANY;
 
@@ -99,7 +99,7 @@ bool WDbgArkUdis::SetInputBuffer(const uint8_t* buffer, const size_t size) {
         return false;
     }
 
-    m_buffer.reset(new uint8_t[size]);
+    m_buffer = std::make_unique<uint8_t[]>(size);
     std::memcpy(m_buffer.get(), reinterpret_cast<const void*>(buffer), size);
     ud_set_input_buffer(&m_udis_obj, m_buffer.get(), size);
     SetInstructionPointer(0ULL);
@@ -111,7 +111,7 @@ bool WDbgArkUdis::SetInputBuffer(const uint8_t* buffer, const size_t size) {
 bool WDbgArkUdis::SetInputBuffer(const uint64_t address, const size_t size) {
     try {
         ExtRemoteData data(address, static_cast<uint32_t>(size));
-        m_buffer.reset(new uint8_t[size]);
+        m_buffer = std::make_unique<uint8_t[]>(size);
         data.ReadBuffer(reinterpret_cast<void*>(m_buffer.get()), static_cast<uint32_t>(size), true);
         ud_set_input_buffer(&m_udis_obj, m_buffer.get(), size);
         SetInstructionPointer(address);

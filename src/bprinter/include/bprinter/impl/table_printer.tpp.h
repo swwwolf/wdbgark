@@ -47,7 +47,7 @@ template<typename T> void TablePrinter::OutputDecimalNumber(T input){
 
     // leave room for digits before the decimal?
     if (input < -1 || input > 1){
-      int num_digits_before_decimal = 1 + (int)log10(std::abs(input));
+      const int num_digits_before_decimal = 1 + (int)log10(std::abs(input));
       precision -= num_digits_before_decimal;
     }
     else

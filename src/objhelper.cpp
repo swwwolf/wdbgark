@@ -84,7 +84,7 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
         ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", offset, false, nullptr, nullptr);
         ExtRemoteTyped buckets = directory_object.Field("HashBuckets");
 
-        int num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
+        const int num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
 
         for ( int i = 0; i < num_buckets; i++ ) {
             if ( !buckets.m_Offset ) {

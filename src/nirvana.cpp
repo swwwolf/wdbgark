@@ -62,7 +62,7 @@ EXT_COMMAND(wa_chknirvana, "Checks processes for Hooking Nirvana instrumentation
             auto address = process_helper->GetInstrumentationCallback(process);
 
             if ( address ) {
-                HRESULT result = process_helper->SetImplicitProcess(process.eprocess);
+                const auto result = process_helper->SetImplicitProcess(process.eprocess);
 
                 if ( FAILED(result) ) {
                     continue;

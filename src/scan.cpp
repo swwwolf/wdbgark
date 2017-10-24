@@ -49,7 +49,7 @@ EXT_COMMAND(wa_scan,
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     out << wa::showplus << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
 
-    char time_buffer[26];
+    char time_buffer[26] = { 0 };
     std::time_t time_start = std::time(nullptr);
 
     out << wa::showplus << "Scan start: ";

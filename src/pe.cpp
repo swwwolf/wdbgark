@@ -102,10 +102,10 @@ bool WDbgArkPe::ReadMapMappedImage(const uint64_t base_address, const uint32_t s
     unique_buf buffer = std::make_unique<uint8_t[]>(size);
 
     uint32_t read_size = 0UL;
-    auto result = g_Ext->m_Data->ReadVirtualUncached(base_address,
-                                                     buffer.get(),
-                                                     size,
-                                                     reinterpret_cast<PULONG>(&read_size));
+    const auto result = g_Ext->m_Data->ReadVirtualUncached(base_address,
+                                                           buffer.get(),
+                                                           size,
+                                                           reinterpret_cast<PULONG>(&read_size));
 
     // it's OK to read smaller number of bytes due to discardable sections
     if ( FAILED(result) ) {
@@ -139,7 +139,7 @@ bool WDbgArkPe::ReadImage(unique_buf* buffer) {
 
     unique_buf temp_buffer = std::make_unique<uint8_t[]>(m_file_size);
     file.read(reinterpret_cast<char*>(temp_buffer.get()), m_file_size);
-    auto result = !file.fail();
+    const auto result = !file.fail();
     file.close();
 
     if ( result ) {
@@ -287,8 +287,8 @@ bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
 
             void* section_dst = reinterpret_cast<void*>RtlOffsetToPointer(m_load_base,
                                                                           section_header[i].VirtualAddress);
-            void* section_src = reinterpret_cast<void*>RtlOffsetToPointer(buffer.get(),
-                                                                          section_header[i].PointerToRawData);
+            const auto section_src = reinterpret_cast<void*>RtlOffsetToPointer(buffer.get(),
+                                                                               section_header[i].PointerToRawData);
             uint32_t section_size = min(section_header[i].SizeOfRawData, section_header[i].Misc.VirtualSize);
 
             std::memcpy(section_dst, section_src, section_size);
@@ -330,7 +330,7 @@ bool WDbgArkPe::RelocateImage(const uint64_t base_address) {
     }
 
     int64_t delta = RtlPointerToOffset(nth->GetImageBase(), base_address);
-    auto last_relocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>RtlOffsetToPointer(next_relocation, dir_size);
+    const auto last_relocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>RtlOffsetToPointer(next_relocation, dir_size);
 
     while ( next_relocation < last_relocation && next_relocation->SizeOfBlock > 0 ) {
         uint64_t address = reinterpret_cast<uint64_t>RtlOffsetToPointer(m_load_base, next_relocation->VirtualAddress);
@@ -406,7 +406,7 @@ IMAGE_BASE_RELOCATION* WDbgArkPe::RelocateBlock(const uint64_t address,
 }
 
 bool WDbgArkPe::GetNtHeaders(const void* base, NtHeaders* nth) {
-    auto header = ::ImageNtHeader(const_cast<void*>(base));
+    const auto header = ::ImageNtHeader(const_cast<void*>(base));
 
     if ( !header ) {
         std::string lasterr = LastErrorToString(GetLastError());

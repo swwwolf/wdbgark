@@ -25,6 +25,7 @@
 #include <string>
 #include <algorithm>
 #include <mutex>
+#include <memory>
 
 #include "bp.hpp"
 #include "manipulators.hpp"
@@ -73,7 +74,7 @@ bool WDbgArkBP::IsKnownBp(const uint32_t id) {
 
 bool WDbgArkBP::IsKnownBp(const IDebugBreakpoint* bp) {
     uint32_t id = 0;
-    HRESULT result = const_cast<IDebugBreakpoint*>(bp)->GetId(reinterpret_cast<PULONG>(&id));
+    const auto result = const_cast<IDebugBreakpoint*>(bp)->GetId(reinterpret_cast<PULONG>(&id));
 
     if ( SUCCEEDED(result) ) {
         return IsKnownBp(id);
@@ -96,7 +97,7 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, uint32_t* id) {
 void WDbgArkBP::Add(const BPList &bp_list, BPIdList* id_list) {
     for ( auto &offset : bp_list ) {
         uint32_t id = 0;
-        HRESULT result = Add(offset, &id);
+        const auto result = Add(offset, &id);
 
         if ( SUCCEEDED(result) ) {
             id_list->push_back(id);

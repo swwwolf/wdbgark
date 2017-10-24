@@ -19,6 +19,8 @@
     * the COPYING file in the top-level directory.
 */
 
+#include <memory>
+
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
 #include "util.hpp"
@@ -50,7 +52,7 @@ EXT_COMMAND(wdrce_copyfile,
             size_t buffer_size = INT16_MAX + 1;
             std::unique_ptr<wchar_t[]> buffer = std::make_unique<wchar_t[]>(buffer_size);
             std::memset(buffer.get(), 0, buffer_size * sizeof(wchar_t));
-                
+
             if ( FAILED(m_Control4->InputWide(buffer.get(), INT16_MAX, nullptr)) ) {
                 err << wa::showminus << __FUNCTION__ ": input failed" << endlerr;
                 return;
@@ -59,7 +61,7 @@ EXT_COMMAND(wdrce_copyfile,
             file_path.assign(buffer.release());
         }
 
-        auto result = m_wdrce->ExecuteCopyfile(file_path);
+        const auto result = m_wdrce->ExecuteCopyfile(file_path);
 
         if ( !result ) {
             err << wa::showminus << __FUNCTION__ ": ExecuteCopyfile failed" << endlerr;
