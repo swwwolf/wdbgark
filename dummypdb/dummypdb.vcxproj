@@ -58,14 +58,14 @@
     <TargetName>$(TargetName.Replace(' ',''))_$(DDKPlatform)</TargetName>
     <OutDir>$(SolutionDir)\dummypdb_build\$(ConfigurationName)\</OutDir>
     <EnableInf2cat>false</EnableInf2cat>
-    <CodeAnalysisRuleSet>..\..\..\..\..\..\Program Files (x86)\Windows Kits\10\CodeAnalysis\DriverMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Windows Kits\10\CodeAnalysis\DriverMinimumRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>$(TargetName.Replace(' ',''))_$(DDKPlatform)</TargetName>
     <OutDir>$(SolutionDir)\dummypdb_build\$(Platform)\$(ConfigurationName)\</OutDir>
     <EnableInf2cat>false</EnableInf2cat>
-    <CodeAnalysisRuleSet>..\..\..\..\..\..\Program Files (x86)\Windows Kits\10\CodeAnalysis\DriverMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Windows Kits\10\CodeAnalysis\DriverMinimumRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
