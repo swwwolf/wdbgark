@@ -65,13 +65,11 @@ WDbgArkProcess::WDbgArkProcess() {
                 warn << wa::showqmark << __FUNCTION__ << ": failed to read process file name ";
                 warn << std::hex << std::showbase << info.process.m_Offset << endlwarn;
             } else {
-                std::string image_file_name = result.second;
-                std::transform(std::begin(image_file_name),
-                               std::end(image_file_name),
-                               std::begin(image_file_name),
+                info.image_file_name = result.second;
+                std::transform(std::begin(info.image_file_name),
+                               std::end(info.image_file_name),
+                               std::begin(info.image_file_name),
                                [](char c) {return static_cast<char>(tolower(c)); });
-
-                info.image_file_name = image_file_name;
             }
 
             info.is_wow64 = IsWow64Process(info.process);

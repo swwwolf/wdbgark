@@ -198,12 +198,12 @@ BOOL WDbgArkSymbolsBase::SymFindFileInPathProc(const char* file_name, void* data
         return result;
     }
 
-    auto header = ::ImageNtHeader(base);
+    const auto header = ::ImageNtHeader(base);
 
     if ( header ) {
         auto nth = wa::GetNtHeaders(header);
 
-        PDEBUG_MODULE_PARAMETERS parameters = reinterpret_cast<PDEBUG_MODULE_PARAMETERS>(data);
+        auto parameters = reinterpret_cast<const PDEBUG_MODULE_PARAMETERS>(data);
 
         if ( parameters->Size == nth->GetImageSize() &&
              parameters->TimeDateStamp == nth->GetTimeDateStamp() &&

@@ -233,7 +233,7 @@ bool WDbgArkRce::InitGlobalDataImport(const std::string &import_name, const std:
         return false;
     }
 
-    auto result = FillGlobalData(m_struct_name, placeholder_name.c_str(), &offset, g_Ext->m_PtrSize);
+    const auto result = FillGlobalData(m_struct_name, placeholder_name, &offset, g_Ext->m_PtrSize);
 
     if ( !result ) {
         err << wa::showminus << __FUNCTION__ << ": FillGlobalData for " << placeholder_name << " failed" << endlerr;

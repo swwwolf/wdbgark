@@ -64,7 +64,7 @@ EXT_COMMAND(wa_scan,
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     Execute("vertarget");
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
-    Execute("!vm 60");
+    Execute("!vm 7e");
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
 
     for ( const auto &cmd : m_scan_commands ) {

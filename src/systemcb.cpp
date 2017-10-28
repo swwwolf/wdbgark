@@ -774,7 +774,6 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
 
 HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_pointer, void* context) {
     WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
-    std::string type = cb_context->type;
 
     try {
         uint64_t object_ptr = const_cast<ExtRemoteData &>(object_pointer).GetPtr();
@@ -800,7 +799,7 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_poin
         OutputWalkInfo winfo;
 
         winfo.address = routine_address;
-        winfo.type = type;
+        winfo.type = cb_context->type;
         winfo.info = info.str();
         winfo.list_head_name = cb_context->list_head_name;
         winfo.object_address = 0ULL;
