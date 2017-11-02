@@ -229,7 +229,6 @@
     <ClCompile Include="src\engextcpp\engextcpp.cpp" />
     <ClCompile Include="src\haltables.cpp" />
     <ClCompile Include="src\idt_gdt.cpp" />
-    <ClCompile Include="src\memtable.cpp" />
     <ClCompile Include="src\nirvana.cpp" />
     <ClCompile Include="src\objhelper.cpp" />
     <ClCompile Include="src\objtype.cpp" />

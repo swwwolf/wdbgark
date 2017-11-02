@@ -42,13 +42,20 @@ class WDbgArkMemTable {
  public:
     using WalkResult = std::vector<uint64_t>;
 
-    explicit WDbgArkMemTable(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const uint64_t table_start);
-    explicit WDbgArkMemTable(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const std::string &table_start);
+    explicit WDbgArkMemTable(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const uint64_t table_start) :
+        m_sym_cache(sym_cache),
+        m_table_start(table_start) {}
+
+    explicit WDbgArkMemTable(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const std::string &table_start) :
+        WDbgArkMemTable(sym_cache, 0ULL) {
+        SetTableStart(table_start);
+    }
+
     WDbgArkMemTable() = delete;
 
-    bool Walk(WalkResult* result);
+    virtual ~WDbgArkMemTable() = default;
 
-    bool IsValid() const { return m_table_start != 0ULL; }
+    virtual bool IsValid() const { return m_table_start != 0ULL; }
 
     void SetTableStart(const uint64_t table_start) { m_table_start = table_start; }
     void SetTableStart(const std::string &table_start) {
@@ -76,7 +83,41 @@ class WDbgArkMemTable {
     void SetCollectNull(const bool flag) { m_collect_null = flag; }
     bool IsCollectNull() const { return m_collect_null; }
 
- private:
+    virtual bool WDbgArkMemTable::Walk(WalkResult* result) {
+        if ( !IsValid() ) {
+            return false;
+        }
+
+        auto offset = GetTableStart() + GetTableSkipStart();
+
+        try {
+            bool terminate = false;
+
+            for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
+                for ( uint32_t rc = 0; rc < GetRoutineCount(); rc++ ) {
+                    ExtRemoteData data(offset + tc * GetRoutineDelta() + rc * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+                    auto ptr = data.GetPtr();
+
+                    if ( ptr != 0ULL || IsCollectNull() ) {
+                        result->push_back(ptr);
+                    } else if ( IsBreakOnNull() ) {
+                        terminate = true;
+                        break;
+                    }
+                }
+
+                if ( terminate == true ) {
+                    break;
+                }
+            }
+        } catch ( const ExtRemoteException &Ex ) {
+            err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        }
+
+        return !result->empty();
+    }
+
+ protected:
     uint64_t m_table_start = 0ULL;
     uint32_t m_offset_table_skip_start = 0UL;
     uint32_t m_table_count = 0UL;
@@ -87,6 +128,56 @@ class WDbgArkMemTable {
 
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
     std::stringstream err{};
+};
+
+class WDbgArkMemTableTyped : public WDbgArkMemTable {
+ public:
+    using WalkResult = std::vector<ExtRemoteTyped>;
+
+    WDbgArkMemTableTyped(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                         const uint64_t table_start,
+                         const std::string &type) : WDbgArkMemTable(sym_cache, table_start) { SetType(type); }
+
+    WDbgArkMemTableTyped(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                         const std::string &table_start,
+                         const std::string &type) : WDbgArkMemTable(sym_cache, table_start) { SetType(type); }
+
+    WDbgArkMemTableTyped() = delete;
+
+    bool IsValid() const { return (m_table_start != 0ULL && m_type_size != 0UL); }
+
+    void SetType(const std::string &type) {
+        m_type_size = ::GetTypeSize(type.c_str());
+
+        if ( m_type_size != 0UL ) {
+            m_type = type;
+        }
+    }
+
+    std::string GetType() const { return m_type; }
+    uint32_t GetTypeSize() const { return m_type_size; }
+
+    bool Walk(WalkResult* result) {
+        if ( !IsValid() ) {
+            return false;
+        }
+
+        auto offset = GetTableStart() + GetTableSkipStart();
+
+        try {
+            for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
+                result->push_back(ExtRemoteTyped(m_type.c_str(), offset + tc * m_type_size, false, nullptr, nullptr));
+            }
+        } catch ( const ExtRemoteException &Ex ) {
+            err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        }
+
+        return !result->empty();
+    }
+
+ private:
+    std::string m_type{};
+    uint32_t m_type_size = 0UL;
 };
 
 }   // namespace wa
