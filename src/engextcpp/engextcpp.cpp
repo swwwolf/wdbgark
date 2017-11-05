@@ -9,6 +9,7 @@
 #include <engextcpp.hpp>
 #include <strsafe.h>
 #include <dbghelp.h>
+#include <new>
 
 #if defined(_PREFAST_) || defined(_PREFIX_)
 #define PRE_ASSUME(_Cond) _Analysis_assume_(_Cond)
@@ -786,11 +787,13 @@ ExtCommandDesc::ParseArgDesc(void)
     // Copy temporary array to permanent storage.
     if (m_NumArgs)
     {
-        m_Args = new ArgDesc[m_NumArgs];
-        if (! m_Args)
-        {
-            m_Ext->ThrowOutOfMemory();
-        }
+		try {
+			m_Args = new ArgDesc[m_NumArgs];
+		}
+		catch (std::bad_alloc& ba) {
+			m_Ext->ThrowOutOfMemory();
+		}
+
         memcpy(m_Args, Args, m_NumArgs * sizeof(m_Args[0]));
     }
     
