@@ -66,10 +66,10 @@ struct _OBJECT_CALLBACK_ENTRY_COMMON {
 //////////////////////////////////////////////////////////////////////////
 #if !defined(_X86_)
 struct _WOW64_INFO {
-    ULONG32 PageSize;
-    ULONG32 Wow64ExecuteFlags;
-    ULONG32 Unknown;
-    ULONG32 InstrumentationCallback;
+    ULONG PageSize;
+    ULONG Wow64ExecuteFlags;
+    ULONG Unknown;
+    ULONG InstrumentationCallback;
 } WOW64_INFO, *PWOW64_INFO;
 
 static_assert(FIELD_OFFSET(_WOW64_INFO, InstrumentationCallback) == 0x0C, "Invalid InstrumentationCallback offset");
