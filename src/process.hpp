@@ -54,22 +54,29 @@ class WDbgArkProcess {
     using ProcessList = std::vector<ProcessInfo>;
 
     WDbgArkProcess();
-    // provide dummy pdb shared pointer here if you wanna to get instrumentation callback info
+    // provide dummy pdb shared pointer here if you wanna get instrumentation callback info
     explicit WDbgArkProcess(const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb);
     ~WDbgArkProcess();
 
     bool IsInited(void) const { return m_inited; }
-    const ProcessList& GetProcessList() const { return m_process_list; }
+    const auto& GetProcessList() const { return m_process_list; }
 
     uint64_t FindEProcessByImageFileName(const std::string &process_name);
     uint64_t FindEProcessAnyGUIProcess();
+    uint64_t FindEProcessAnyApiSetMap();
+    uint64_t GetProcessApiSetMap(const ProcessInfo &info);
+    uint64_t GetProcessApiSetMap(const uint64_t &eprocess);
+    uint64_t GetProcessApiSetMap(const ExtRemoteTyped &process);
+
     HRESULT SetImplicitProcess(const uint64_t set_eprocess);
+    HRESULT SetImplicitProcess(const ExtRemoteTyped &set_eprocess);
     HRESULT RevertImplicitProcess();
+
     uint64_t GetInstrumentationCallback(const ProcessInfo &info);
 
  private:
     std::pair<bool, std::string> GetProcessImageFileName(const ExtRemoteTyped &process);
-    uint64_t GetProcessDataOffset(const ExtRemoteTyped &process) { return process.m_Offset; }
+    uint64_t GetProcessDataOffset(const ExtRemoteTyped &process) const { return process.m_Offset; }
     bool FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info);
     bool IsWow64Process(const ExtRemoteTyped &process);
     uint64_t GetWow64ProcessPeb32(const ProcessInfo &info);

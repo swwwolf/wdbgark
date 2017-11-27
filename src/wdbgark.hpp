@@ -51,6 +51,7 @@
 #include "typedefs.hpp"
 #include "symcache.hpp"
 #include "symbols.hpp"
+#include "process.hpp"
 #include "wdrce.hpp"
 #include "ver.hpp"
 
@@ -117,6 +118,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_chknirvana);
     EXT_COMMAND_METHOD(wa_psppico);
     EXT_COMMAND_METHOD(wa_systables);
+    EXT_COMMAND_METHOD(wa_apiset);
 
     //////////////////////////////////////////////////////////////////////////
     // Windows Debugger Remote Code Execution commands
@@ -174,6 +176,7 @@ class WDbgArk : public ExtExtension {
     void WalkCallbackDirectory(const std::string &type, walkresType* output_list);
 
     void WalkPicoTable(const std::string &table_name);
+    void WalkApiSetTable(const uint64_t header_offset, const std::shared_ptr<WDbgArkProcess> &process_helper);
 
     void AddSymbolPointer(const std::string &symbol_name,
                           const std::string &type,

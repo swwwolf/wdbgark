@@ -28,6 +28,7 @@
 #include "process.hpp"
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
+#include "apisethlp.hpp"
 
 namespace wa {
 
@@ -59,13 +60,13 @@ WDbgArkProcess::WDbgArkProcess() {
                 }
             }
 
-            auto result = GetProcessImageFileName(info.process);
+            const auto [result, name] = GetProcessImageFileName(info.process);
 
-            if ( !result.first ) {
+            if ( !result ) {
                 warn << wa::showqmark << __FUNCTION__ << ": failed to read process file name ";
                 warn << std::hex << std::showbase << info.process.m_Offset << endlwarn;
             } else {
-                info.image_file_name = result.second;
+                info.image_file_name = name;
                 std::transform(std::begin(info.image_file_name),
                                std::end(info.image_file_name),
                                std::begin(info.image_file_name),
@@ -133,6 +134,103 @@ uint64_t WDbgArkProcess::FindEProcessAnyGUIProcess() {
     return 0ULL;
 }
 
+uint64_t WDbgArkProcess::FindEProcessAnyApiSetMap() {
+    if ( !IsInited() ) {
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return 0ULL;
+    }
+
+    const auto it = std::find_if(std::begin(m_process_list),
+                                 std::end(m_process_list),
+                                 [this](ProcessInfo &proc_info) {
+        const auto offset = GetProcessApiSetMap(proc_info);
+
+        if ( !offset ) {
+            return false;
+        }
+
+        if ( FAILED(SetImplicitProcess(proc_info.process)) ) {
+            return false;
+        }
+
+        try {
+            // check that ApiSetMap is not paged out
+            ExtRemoteTyped apiset_header((m_dummy_pdb->GetShortName() + "!" + GetApiSetNamespace()).c_str(),
+                                         offset,
+                                         false,
+                                         nullptr,
+                                         nullptr);
+
+            size_t apiset_size = 0;
+
+            if ( apiset_header.HasField("Size") ) {
+                apiset_size = apiset_header.Field("Size").GetUlong();
+            } else {
+                apiset_size = PAGE_SIZE;
+            }
+
+            std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(apiset_size);
+            ExtRemoteData(offset, static_cast<uint32_t>(apiset_size)).ReadBuffer(buffer.get(),
+                                                                                 static_cast<uint32_t>(apiset_size));
+
+            RevertImplicitProcess();
+            return true;
+        } catch ( const ExtRemoteException& ) {
+            __noop;
+        }
+
+        RevertImplicitProcess();
+        return false;
+    });
+
+    if ( it != std::end(m_process_list) ) {
+        return it->eprocess;
+    }
+
+    return 0ULL;
+}
+
+uint64_t WDbgArkProcess::GetProcessApiSetMap(const ProcessInfo &info) {
+    if ( !IsInited() ) {
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return 0ULL;
+    }
+
+    return GetProcessApiSetMap(info.process);
+}
+
+uint64_t WDbgArkProcess::GetProcessApiSetMap(const uint64_t &eprocess) {
+    try {
+        return GetProcessApiSetMap(ExtRemoteTyped("nt!_EPROCESS", eprocess, false, nullptr, nullptr));
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    return 0ULL;
+}
+
+uint64_t WDbgArkProcess::GetProcessApiSetMap(const ExtRemoteTyped &process) {
+    if ( !IsInited() ) {
+        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
+        return 0ULL;
+    }
+
+    if ( FAILED(SetImplicitProcess(process)) ) {
+        return 0ULL;
+    }
+
+    uint64_t address = 0ULL;
+
+    try {
+        address = const_cast<ExtRemoteTyped&>(process).Field("Peb").Field("ApiSetMap").GetPtr();
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    RevertImplicitProcess();
+    return address;
+}
+
 HRESULT WDbgArkProcess::SetImplicitProcess(const uint64_t set_eprocess) {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
@@ -164,6 +262,10 @@ HRESULT WDbgArkProcess::SetImplicitProcess(const uint64_t set_eprocess) {
     }
 
     return result;
+}
+
+HRESULT WDbgArkProcess::SetImplicitProcess(const ExtRemoteTyped &set_eprocess) {
+    return SetImplicitProcess(GetProcessDataOffset(set_eprocess));
 }
 
 HRESULT WDbgArkProcess::RevertImplicitProcess() {

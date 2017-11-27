@@ -138,6 +138,7 @@ void WDbgArk::InitScanCommands() {
         { "!wa_haltables", std::bind(&WDbgArk::wa_haltables, this) },
         { "!wa_psppico", std::bind(&WDbgArk::wa_psppico, this) },
         { "!wa_systables", std::bind(&WDbgArk::wa_systables, this) },
+        { "!wa_apiset", std::bind(&WDbgArk::wa_apiset, this) },
         { "!wa_ciinfo", std::bind(&WDbgArk::wa_ciinfo, this) },
         { "!wa_cicallbacks", std::bind(&WDbgArk::wa_cicallbacks, this) },
         { "!wa_drvmajor", std::bind(&WDbgArk::wa_drvmajor, this) }
@@ -182,19 +183,19 @@ void WDbgArk::InitCallbackCommands() {
         { "dbgklkmd", { "", "nt!DbgkLkmdCallbackArray", 0, 0, 0 } },
         { "ioptimer", { "", "nt!IopTimerQueueHead", timer_routine_offset, 0, 0 } } } };
 
-    for ( auto &cb_pair : m_system_cb_commands ) {
-        if ( !cb_pair.second.list_count_name.empty() ) {
+    for ( auto [cmd, entry] : m_system_cb_commands ) {
+        if ( !entry.list_count_name.empty() ) {
             uint64_t offset_count = 0ULL;
 
-            if ( m_sym_cache->GetSymbolOffset(cb_pair.second.list_count_name, true, &offset_count) )
-                cb_pair.second.list_count_address = offset_count;
+            if ( m_sym_cache->GetSymbolOffset(entry.list_count_name, true, &offset_count) )
+                entry.list_count_address = offset_count;
         }
 
-        if ( !cb_pair.second.list_head_name.empty() ) {
+        if ( !entry.list_head_name.empty() ) {
             uint64_t offset_head = 0ULL;
 
-            if ( m_sym_cache->GetSymbolOffset(cb_pair.second.list_head_name, true, &offset_head) )
-                cb_pair.second.list_head_address = offset_head;
+            if ( m_sym_cache->GetSymbolOffset(entry.list_head_name, true, &offset_head) )
+                entry.list_head_address = offset_head;
         }
     }
 }

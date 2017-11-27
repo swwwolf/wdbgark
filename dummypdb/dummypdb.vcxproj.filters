@@ -18,9 +18,18 @@
     <ClInclude Include="init.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="wdrce.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="init.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wdrce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="typedefs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

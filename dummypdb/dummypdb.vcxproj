@@ -129,9 +129,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="init.h" />
+    <ClInclude Include="wdrce.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="init.cpp" />
+    <ClCompile Include="typedefs.cpp" />
+    <ClCompile Include="wdrce.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
