@@ -84,14 +84,14 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
         ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", offset, false, nullptr, nullptr);
         ExtRemoteTyped buckets = directory_object.Field("HashBuckets");
 
-        const int num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
+        const ULONG num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
 
-        for ( int i = 0; i < num_buckets; i++ ) {
+        for ( ULONG i = 0; i < num_buckets; i++ ) {
             if ( !buckets.m_Offset ) {
                 continue;
             }
 
-            for ( ExtRemoteTyped directory_entry = *buckets[static_cast<ULONG>(i)];
+            for ( ExtRemoteTyped directory_entry = *buckets[i];
                   directory_entry.m_Offset;
                   directory_entry = *directory_entry.Field("ChainLink") ) {
                 ObjectInfo object_information;
@@ -99,43 +99,35 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
                 object_information.directory_object = directory_object;
                 object_information.object = *directory_entry.Field("Object");
 
-                std::pair<HRESULT, std::string> result = GetObjectName(object_information.object);
+                const auto [result, name] = GetObjectName(object_information.object);
 
-                if ( FAILED(result.first) ) {
-                    continue;
-                }
-
-                object_information.obj_name = result.second;
+                object_information.obj_name = name;
                 object_information.full_path = root_path + object_information.obj_name;
 
-                result = GetObjectTypeName(object_information.object);
+                const auto [result_type, type_name]= GetObjectTypeName(object_information.object);
 
-                if ( FAILED(result.first) ) {
-                    continue;
-                }
-
-                object_information.type_name = result.second;
+                object_information.type_name = type_name;
 
                 // workaround for an infinite loop (broken crash dump with broken object directory)
-                std::pair<ObjectsInformation::iterator, ObjectsInformation::iterator> iter_pair = \
-                    info.equal_range(object_information.object.m_Offset);
+                const auto [iter_first, iter_second] = info.equal_range(object_information.object.m_Offset);
 
-                if ( iter_pair.first == iter_pair.second ) {    // not in map
-                    info.insert(iter_pair.first, std::make_pair(object_information.object.m_Offset,
-                                                                object_information));
-                } else {    // already in map and this is strange
+                // not in map
+                if ( iter_first == iter_second ) {
+                    info.insert(iter_first, std::make_pair(object_information.object.m_Offset, object_information));
+                } else {
+                    // already in map and this is strange
                     break;
                 }
 
                 if ( recursive && object_information.type_name == "Directory" ) {
                     object_information.full_path += "\\";
 
-                    auto recursive_info = GetObjectsInfo(object_information.object.m_Offset,
-                                                         object_information.full_path,
-                                                         recursive);
+                    const auto [result_info, recursive_info] = GetObjectsInfo(object_information.object.m_Offset,
+                                                                              object_information.full_path,
+                                                                              recursive);
 
-                    if ( SUCCEEDED(recursive_info.first) ) {
-                        info.insert(recursive_info.second.begin(), recursive_info.second.end());
+                    if ( SUCCEEDED(result_info) ) {
+                        info.insert(std::begin(recursive_info), std::end(recursive_info));
                     }
                 }
             }
@@ -157,9 +149,9 @@ uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
         return 0ULL;
     }
 
-    auto info = GetObjectsInfo(directory_address, root_path, recursive);
+    const auto [result, info] = GetObjectsInfo(directory_address, root_path, recursive);
 
-    if ( FAILED(info.first) ) {
+    if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": GetObjectsInfo failed" << endlerr;
         return 0ULL;
     }
@@ -175,15 +167,15 @@ uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
                    std::begin(compare_full_path),
                    [](char c) {return static_cast<char>(tolower(c)); });
 
-    for ( auto &object_info : info.second ) {
-        std::string full_path = object_info.second.full_path;
+    for ( const auto [offset, object_info] : info ) {
+        std::string full_path = object_info.full_path;
         std::transform(std::begin(full_path),
                        std::end(full_path),
                        std::begin(full_path),
                        [](char c) {return static_cast<char>(tolower(c)); });
 
         if ( full_path == compare_full_path ) {
-            return object_info.second.object.m_Offset;
+            return object_info.object.m_Offset;
         }
     }
 
@@ -264,48 +256,52 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
 }
 
 std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteTyped &object) {
-    std::string output_string = "*UNKNOWN*";
+    std::string output_string("*UNKNOWN*");
 
-    std::pair<HRESULT, ExtRemoteTyped> result = GetObjectHeader(object);
+    const auto [result, header] = GetObjectHeader(object);
 
-    if ( FAILED(result.first) ) {
+    if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get object header" << endlerr;
-        return std::make_pair(result.first, output_string);
+        return std::make_pair(result, output_string);
     }
 
-    result = GetObjectHeaderNameInfo(result.second);
+    auto [result_info, name_info] = GetObjectHeaderNameInfo(header);
 
-    if ( FAILED(result.first) ) {
+    if ( FAILED(result_info) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get object header name info" << endlerr;
-        return std::make_pair(result.first, output_string);
+        return std::make_pair(result_info, output_string);
     }
 
-    ExtRemoteTyped unicode_string = result.second.Field("Name");
+    const auto [result_unicode, name] = UnicodeStringStructToString(name_info.Field("Name"));
 
-    return UnicodeStringStructToString(unicode_string);
+    if ( FAILED(result_unicode) ) {
+        return std::make_pair(result_unicode, output_string);
+    }
+
+    return std::make_pair(result_unicode, name);
 }
 
 std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemoteTyped &object) {
     ExtRemoteTyped object_type;
 
     try {
-        auto result_header = GetObjectHeader(object);
+        auto [result, header] = GetObjectHeader(object);
 
-        if ( FAILED(result_header.first) ) {
+        if ( FAILED(result) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get object header" << endlerr;
-            return std::make_pair(result_header.first, object_type);
+            return std::make_pair(result, object_type);
         }
 
         if ( m_object_header_old ) {
-            object_type = result_header.second.Field("Type");
+            object_type = header.Field("Type");
         } else {
-            auto type_index = 0;
+            uint8_t type_index = 0;
 
             if ( m_ObHeaderCookie ) {
-                type_index = (m_ObHeaderCookie ^ result_header.second.Field("TypeIndex").GetUchar()) ^ \
-                             static_cast<uint8_t>(result_header.second.m_Offset >> 8);
+                type_index = (m_ObHeaderCookie ^ header.Field("TypeIndex").GetUchar()) ^ \
+                             static_cast<uint8_t>(header.m_Offset >> 8);
             } else {
-                type_index = result_header.second.Field("TypeIndex").GetUchar();
+                type_index = header.Field("TypeIndex").GetUchar();
             }
 
             ExtRemoteData object_type_data(m_ObTypeIndexTableOffset + type_index * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
@@ -321,16 +317,22 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemo
 }
 
 std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectTypeName(const ExtRemoteTyped &object) {
-    std::string output_string = "*UNKNOWN*";
+    std::string output_string("*UNKNOWN*");
 
-    auto result_type = GetObjectType(object);
+    auto [result, type] = GetObjectType(object);
 
-    if ( FAILED(result_type.first) ) {
+    if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get object type" << endlerr;
-        return std::make_pair(result_type.first, output_string);
+        return std::make_pair(result, output_string);
     }
 
-    return UnicodeStringStructToString(result_type.second.Field("Name"));
+    const auto [result_unicode, name] = UnicodeStringStructToString(type.Field("Name"));
+
+    if ( FAILED(result_unicode) ) {
+        return std::make_pair(result_unicode, output_string);
+    }
+
+    return std::make_pair(result_unicode, name);
 }
 
 //////////////////////////////////////////////////////////////////////////

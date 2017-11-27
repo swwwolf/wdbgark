@@ -65,9 +65,10 @@ bool WDbgArkBP::IsKnownBp(const uint32_t id) {
     }
 
     try {
-        m_bp.at(id);
-        return true;
-    } catch ( const std::out_of_range& ) {}
+        return (m_bp.at(id) != nullptr);
+    } catch ( const std::out_of_range& ) {
+        __noop;
+    }
 
     return false;
 }
@@ -110,14 +111,12 @@ HRESULT WDbgArkBP::Add(const std::string &expression, uint32_t* id) {
 }
 
 HRESULT WDbgArkBP::Add(const ExtRemoteTyped &object, BPIdList* id_list) {
-    auto result = m_obj_helper->GetObjectTypeName(object);
+    const auto [result, type_name] = m_obj_helper->GetObjectTypeName(object);
 
-    if ( FAILED(result.first) ) {
+    if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ ": GetObjectTypeName failed" << endlerr;
-        return result.first;
+        return result;
     }
-
-    auto type_name = result.second;
 
     if ( type_name != "Device" && type_name != "Driver" ) {
         err << wa::showminus << __FUNCTION__ ": unsupported object type " << type_name << endlerr;
@@ -146,9 +145,9 @@ HRESULT WDbgArkBP::Add(const ExtRemoteTyped &object, BPIdList* id_list) {
 
     BPList bp_list;
 
-    for ( auto &entry : major_table ) {
-        if ( entry.first && entry.first != offset ) {
-            bp_list.push_back(entry.first);
+    for ( const auto [address, name] : major_table ) {
+        if ( address != 0ULL && address != offset ) {
+            bp_list.push_back(address);
         }
     }
 
@@ -165,7 +164,9 @@ HRESULT WDbgArkBP::Remove(const uint32_t id) {
         auto bp = m_bp.at(id);
         m_bp.erase(id);
         result = m_Control->RemoveBreakpoint(bp);
-    } catch (const std::out_of_range&) {}
+    } catch (const std::out_of_range&) {
+        __noop;
+    }
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to remove breakpoint using id ";

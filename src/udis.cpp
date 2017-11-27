@@ -66,15 +66,7 @@ void WDbgArkUdis::Init(const uint8_t mode) {
 }
 
 WDbgArkUdis::WDbgArkUdis() {
-    uint8_t mode = 0;
-
-    if ( g_Ext->IsCurMachine32() ) {
-        mode = 32;
-    } else {
-        mode = 64;
-    }
-
-    Init(mode);
+    Init(static_cast<uint8_t>(g_Ext->m_PtrSize * 8));
     m_inited = true;
 }
 
@@ -82,11 +74,7 @@ WDbgArkUdis::WDbgArkUdis(uint8_t mode, uint64_t address, size_t size)  {
     uint8_t init_mode = mode;
 
     if ( !init_mode ) {
-        if ( g_Ext->IsCurMachine32() ) {
-            init_mode = 32;
-        } else {
-            init_mode = 64;
-        }
+        init_mode = static_cast<uint8_t>(g_Ext->m_PtrSize * 8);
     }
 
     Init(init_mode);
@@ -112,7 +100,7 @@ bool WDbgArkUdis::SetInputBuffer(const uint64_t address, const size_t size) {
     try {
         ExtRemoteData data(address, static_cast<uint32_t>(size));
         m_buffer = std::make_unique<uint8_t[]>(size);
-        data.ReadBuffer(reinterpret_cast<void*>(m_buffer.get()), static_cast<uint32_t>(size), true);
+        data.ReadBuffer(reinterpret_cast<void*>(m_buffer.get()), static_cast<uint32_t>(size));
         ud_set_input_buffer(&m_udis_obj, m_buffer.get(), size);
         SetInstructionPointer(address);
         m_size = size;

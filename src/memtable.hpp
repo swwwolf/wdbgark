@@ -42,14 +42,12 @@ class WDbgArkMemTable {
  public:
     using WalkResult = std::vector<uint64_t>;
 
-    explicit WDbgArkMemTable(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const uint64_t table_start) :
-        m_sym_cache(sym_cache),
-        m_table_start(table_start) {}
+    explicit WDbgArkMemTable(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const uint64_t table_start)
+        : m_table_start(table_start),
+          m_sym_cache(sym_cache) {}
 
-    explicit WDbgArkMemTable(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const std::string &table_start) :
-        WDbgArkMemTable(sym_cache, 0ULL) {
-        SetTableStart(table_start);
-    }
+    explicit WDbgArkMemTable(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const std::string &table_start)
+        : WDbgArkMemTable(sym_cache, 0ULL) { SetTableStart(table_start); }
 
     WDbgArkMemTable() = delete;
 

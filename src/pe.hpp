@@ -103,7 +103,7 @@ class WDbgArkPe {
 
     // read PE image from target memory without applying relocations
     WDbgArkPe(const uint64_t base_address,
-              const uint32_t size,
+              const size_t size,
               const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base);
 
     ~WDbgArkPe();
@@ -120,12 +120,12 @@ class WDbgArkPe {
 
  private:
     bool MapImage(const uint64_t base_address = 0ULL);
-    bool ReadMapMappedImage(const uint64_t base_address, const uint32_t size);
+    bool ReadMapMappedImage(const uint64_t base_address, const size_t size);
     bool ReadImage(unique_buf* buffer);
     bool LoadImage(const unique_buf &buffer, const bool mapped = false);
     bool RelocateImage(const uint64_t base_address = 0ULL);
     IMAGE_BASE_RELOCATION* RelocateBlock(const uint64_t address,
-                                         const uint32_t count,
+                                         const size_t count,
                                          const uint16_t* type_offset,
                                          const int64_t delta);
 

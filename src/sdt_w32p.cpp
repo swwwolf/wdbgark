@@ -28,8 +28,8 @@
 namespace wa {
 
 //////////////////////////////////////////////////////////////////////////
-std::string get_service_table_routine_name_internal(const uint32_t index,
-                                                    const uint32_t max_count,
+std::string get_service_table_routine_name_internal(const size_t index,
+                                                    const size_t max_count,
                                                     const char** service_table);
 std::string get_service_table_prefix_name(const ServiceTableType type);
 //////////////////////////////////////////////////////////////////////////
@@ -44767,7 +44767,7 @@ static const char** Service_Tables[][14] = {
     }
 };
 
-static const uint32_t Service_Tables_countof[][14] = {
+static const size_t Service_Tables_countof[][14] = {
     { _countof(KiServiceTable_XpSp3_x86), _countof(KiServiceTable_W2k3Sp2_x86),
       _countof(KiServiceTable_VistaSp0_x86), _countof(KiServiceTable_VistaSp1_x86),
       _countof(KiServiceTable_VistaSp2_x86), _countof(KiServiceTable_Win7Sp0_x86),
@@ -44823,8 +44823,8 @@ static const uint32_t Service_Tables_countof[][14] = {
     }
 };
 
-std::string get_service_table_routine_name_internal(const uint32_t index,
-                                                    const uint32_t max_count,
+std::string get_service_table_routine_name_internal(const size_t index,
+                                                    const size_t max_count,
                                                     const char** service_table) {
     if ( service_table && max_count && index < max_count ) {
         return service_table[index];
@@ -44850,9 +44850,9 @@ std::string get_service_table_prefix_name(const ServiceTableType type) {
 
 std::string get_service_table_routine_name(const uint32_t minor_build,
                                            const ServiceTableType type,
-                                           const uint32_t index) {
+                                           const size_t index) {
     std::string routine = get_service_table_prefix_name(type);
-    uint32_t max_count = 0;
+    size_t max_count = 0;
     const char** service_table = nullptr;
 
     if ( minor_build <= WXP_VER ) {

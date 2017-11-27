@@ -376,7 +376,7 @@ EXT_COMMAND(wa_systemcb,
         throw ExtStatusException(S_OK, "global init failed");
     }
 
-    std::string type = "*";
+    std::string type("*");
 
     if ( HasArg("type") ) {     // callback type was provided
         type.assign(GetArgStr("type"));
@@ -390,16 +390,16 @@ EXT_COMMAND(wa_systemcb,
 
     try {
         if ( type == "*" ) {
-            for ( auto citer = m_system_cb_commands.cbegin(); citer != m_system_cb_commands.cend(); ++citer ) {
-                out << wa::showplus << "Collecting " << citer->first << " callbacks" << endlout;
-                CallCorrespondingWalkListRoutine(citer, &output_list);
+            for ( auto it = std::cbegin(m_system_cb_commands); it != std::cend(m_system_cb_commands); ++it ) {
+                out << wa::showplus << "Collecting " << it->first << " callbacks" << endlout;
+                CallCorrespondingWalkListRoutine(it, &output_list);
             }
         } else {
-            auto citer = m_system_cb_commands.find(type);
+            const auto cit = m_system_cb_commands.find(type);
 
-            if ( citer != m_system_cb_commands.end() ) {
-                out << wa::showplus << "Collecting " << citer->first << " callbacks" << endlout;
-                CallCorrespondingWalkListRoutine(citer, &output_list);
+            if ( cit != m_system_cb_commands.end() ) {
+                out << wa::showplus << "Collecting " << cit->first << " callbacks" << endlout;
+                CallCorrespondingWalkListRoutine(cit, &output_list);
             } else {
                 err << wa::showminus << __FUNCTION__ << ": invalid type was specified" << endlerr;
             }
@@ -437,8 +437,7 @@ EXT_COMMAND(wa_systemcb,
 
 void WDbgArk::CallCorrespondingWalkListRoutine(const CallbacksInfo::const_iterator &citer,
                                                walkresType* output_list) {
-    auto &type = citer->first;
-    auto &command = citer->second;
+    const auto& [type, command] = *citer;
 
     if ( type == "registry" ) {
         if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
@@ -723,16 +722,17 @@ void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType* output
 
 HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
     WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
-    std::string type = cb_context->type;
-    std::string list_head_name = "\\Callback\\";
 
-    std::pair<HRESULT, std::string> result = wdbg_ark_class->m_obj_helper->GetObjectName(object);
+    auto type = cb_context->type;
+    std::string list_head_name(R"(\Callback\)");
 
-    if ( !SUCCEEDED(result.first) ) {
+    const auto [result, name] = wdbg_ark_class->m_obj_helper->GetObjectName(object);
+
+    if ( !SUCCEEDED(result) ) {
         std::stringstream tmpwarn;
         tmpwarn << wa::showqmark << __FUNCTION__ << ": failed to get object name" << endlwarn;
     } else {
-        list_head_name.append(result.second);
+        list_head_name.append(name);
     }
 
     // Signature + Lock

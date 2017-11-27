@@ -821,7 +821,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
                         if ( loc_interrupt.m_Offset &&
                              loc_interrupt.Field("Type").GetUshort() == KOBJECTS::InterruptObject ) {
-                            interrupt = loc_interrupt;
+                            interrupt = std::move(loc_interrupt);
                             valid_interrupt = true;
                         }
                     }
@@ -833,7 +833,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                             *vector_to_interrupt[static_cast<ULONG>(j - PRIMARY_VECTOR_BASE)];
 
                         if ( tmp_interrupt.m_Offset ) {
-                            interrupt = tmp_interrupt;
+                            interrupt = std::move(tmp_interrupt);
                             valid_interrupt = true;
                         }
                     }

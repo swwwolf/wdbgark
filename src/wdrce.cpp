@@ -169,7 +169,7 @@ bool WDbgArkRce::InitSymbols() {
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::InitGlobalData() {
     m_struct_name = m_dummy_pdb->GetShortName() + "!_WORKITEM_GLOBAL_DATA";
-    auto global_data_size = GetTypeSize(m_struct_name.c_str());
+    size_t global_data_size = GetTypeSize(m_struct_name.c_str());
 
     if ( !global_data_size ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to locate _WORKITEM_GLOBAL_DATA" << endlerr;
@@ -194,9 +194,10 @@ bool WDbgArkRce::InitGlobalData() {
                                        nullptr,
                                        nullptr);
 
-    auto type_size = expdebuggerworkitem.GetTypeSize();
+    size_t type_size = expdebuggerworkitem.GetTypeSize();
     unique_buf temp_buffer = std::make_unique<uint8_t[]>(type_size);
-    expdebuggerworkitem.ReadBuffer(temp_buffer.get(), type_size);
+    expdebuggerworkitem.ReadBuffer(temp_buffer.get(), static_cast<uint32_t>(type_size));
+
     result = FillGlobalData(m_struct_name, "ExpDebuggerWorkItemOriginal", temp_buffer.get(), type_size);
 
     if ( !result ) {
@@ -217,8 +218,8 @@ bool WDbgArkRce::InitGlobalData() {
     return InitGlobalDataImports();
 }
 bool WDbgArkRce::InitGlobalDataImports() {
-    for ( const auto& import_entry : m_imports ) {
-        if ( !InitGlobalDataImport(import_entry.first, import_entry.second) ) {
+    for ( const auto [import, placeholder] : m_imports ) {
+        if ( !InitGlobalDataImport(import, placeholder) ) {
             return false;
         }
     }
@@ -255,7 +256,8 @@ bool WDbgArkRce::FillGlobalData(const std::string &struct_name,
         return false;
     }
 
-    std::memcpy(reinterpret_cast<char*>(m_global_data.first.get()) + static_cast<ptrdiff_t>(offset), buffer, size);
+    const auto& [global_buffer, global_size] = m_global_data;
+    std::memcpy(reinterpret_cast<char*>(global_buffer.get()) + static_cast<ptrdiff_t>(offset), buffer, size);
     return true;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -315,8 +317,10 @@ bool WDbgArkRce::InitTempModuleCodeSection(const std::unique_ptr<WDbgArkPe> &tem
 
     m_code_section_start = reinterpret_cast<uint64_t>(reinterpret_cast<char*>(temp_module->GetReadMemoryBase()) + \
                                                       static_cast<ptrdiff_t>(header.VirtualAddress));
-    auto code_section_size = header.Misc.VirtualSize;
+
+    size_t code_section_size = static_cast<size_t>(header.Misc.VirtualSize);
     auto code_section_bytes = std::make_unique<uint8_t[]>(code_section_size);
+
     auto code_section_start = reinterpret_cast<const void*>(reinterpret_cast<char*>(temp_module->GetBase()) + \
                                                             static_cast<ptrdiff_t>(header.VirtualAddress));
 
@@ -335,7 +339,9 @@ bool WDbgArkRce::ReInitTempModuleCodeSection(const uint64_t address, const size_
     }
 
     m_code_section_start = address;
-    m_code_section.first.reset(nullptr);
+
+    auto& [code_buffer, code_size] = m_code_section;
+    code_buffer.reset(nullptr);
     m_code_section = { std::move(code_section_bytes), buffer_size };
 
     return true;
@@ -350,10 +356,11 @@ bool WDbgArkRce::InitTempModuleDataSection(const std::unique_ptr<WDbgArkPe> &tem
     }
 
     ptrdiff_t start = 0;
-    uint32_t size = first_header->VirtualAddress;
+    size_t size = static_cast<size_t>(first_header->Misc.VirtualSize);
 
     m_data_section_start = reinterpret_cast<uint64_t>(reinterpret_cast<char*>(temp_module->GetReadMemoryBase()) +
                                                       start);
+
     auto data_section_bytes = std::make_unique<uint8_t[]>(size);
     auto data_section_start = reinterpret_cast<const void*>(reinterpret_cast<char*>(temp_module->GetBase()) + start);
 
@@ -372,7 +379,9 @@ bool WDbgArkRce::ReInitTempModuleDataSection(const uint64_t address, const size_
     }
 
     m_data_section_start = address;
-    m_data_section.first.reset(nullptr);
+
+    auto& [data_buffer, data_size] = m_data_section;
+    data_buffer.reset(nullptr);
     m_data_section = { std::move(data_section_bytes), buffer_size };
 
     return true;
@@ -411,9 +420,8 @@ bool WDbgArkRce::InitRceModule() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::InitRceShellcodes(const std::unique_ptr<WDbgArkPe> &dummy_rce) {
-    for ( const auto& entry : m_command_info ) {
-        auto function_name = m_dummy_pdb->GetShortName() + "!" + entry.second.rce_function_name;
-        auto command_name = entry.first;
+    for ( const auto [command_name, cmd_info] : m_command_info ) {
+        auto function_name = m_dummy_pdb->GetShortName() + "!" + cmd_info.rce_function_name;
 
         const auto result = InitRceShellcode(function_name, command_name, dummy_rce);
 
@@ -440,12 +448,13 @@ bool WDbgArkRce::InitRceShellcode(const std::string &function_name,
     }
 
     size_t size = static_cast<size_t>(end_offset - start_offset);
-    unique_buf_size code{ std::make_unique<uint8_t[]>(size), size };
-
-    std::memcpy(code.first.get(),
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    
+    std::memcpy(buffer.get(),
                 reinterpret_cast<char*>(dummy_rce->GetBase()) + static_cast<ptrdiff_t>(start_offset),
                 size);
 
+    unique_buf_size code{ std::move(buffer), size };
     m_shellcode_info[command_name] = std::move(code);
 
     return true;
@@ -487,7 +496,7 @@ bool WDbgArkRce::RelocateCodeAndData() {
         return false;
     }
 
-    uint32_t buffer_code_size = 0;
+    size_t buffer_code_size = 0;
     result = GetOption("BufferCodeSize", sizeof(buffer_code_size), &buffer_code_size);
 
     if ( !result || !buffer_code_size ) {
@@ -524,7 +533,7 @@ bool WDbgArkRce::RelocateCodeAndData() {
         return false;
     }
 
-    uint32_t buffer_data_size = 0;
+    size_t buffer_data_size = 0;
     result = GetOption("BufferDataSize", sizeof(buffer_data_size), &buffer_data_size);
 
     if ( !result || !buffer_data_size ) {
@@ -655,7 +664,8 @@ bool WDbgArkRce::SetOption(const std::string &field_name,
     }
 
     auto offset = data_section_typed.GetFieldOffset(field_name.c_str());
-    auto ptr = reinterpret_cast<char*>(m_global_data.first.get()) + static_cast<ptrdiff_t>(offset);
+    const auto& [global_buffer, global_size] = m_global_data;
+    auto ptr = reinterpret_cast<char*>(global_buffer.get()) + static_cast<ptrdiff_t>(offset);
 
     std::memset(ptr, 0, size);
     std::memcpy(ptr, buffer, buffer_size);
@@ -680,11 +690,13 @@ bool WDbgArkRce::GetOption(const std::string &field_name, const size_t buffer_si
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::WriteGlobalData(const unique_buf_size &data) {
-    if ( m_data_section_need_size > m_data_section.second ) {
+    const auto& [buffer, size] = data;
+
+    if ( m_data_section_need_size > size ) {
         return false;
     }
 
-    if ( SUCCEEDED(WriteVirtualUncached(m_data_section_start, data.first.get(), m_data_section_need_size)) ) {
+    if ( SUCCEEDED(WriteVirtualUncached(m_data_section_start, buffer.get(), m_data_section_need_size)) ) {
         m_data_section_used = true;
         return true;
     }
@@ -693,7 +705,10 @@ bool WDbgArkRce::WriteGlobalData(const unique_buf_size &data) {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::WriteCodeData(const unique_buf_size &code) {
-    if ( code.second > m_code_section.second ) {
+    const auto& [buffer, size] = code;
+    const auto& [buffer_code, buffer_size] = m_code_section;
+
+    if ( size > buffer_size ) {
         return false;
     }
 
@@ -706,17 +721,18 @@ bool WDbgArkRce::WriteCodeData(const unique_buf_size &code) {
 }
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const unique_buf_size &buffer) {
-    return WriteVirtualUncached(address, buffer.first.get(), buffer.second);
+    const auto& [buffer_write, size] = buffer;
+    return WriteVirtualUncached(address, buffer_write.get(), size);
 }
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const void* buffer, const size_t buffer_size) {
-    uint32_t write_size = 0;
-    auto result = m_Data->WriteVirtualUncached(address,
+    ULONG write_size = 0;
+    const auto result = m_Data->WriteVirtualUncached(address,
                                                      const_cast<PVOID>(buffer),
                                                      static_cast<ULONG>(buffer_size),
-                                                     reinterpret_cast<PULONG>(&write_size));
+                                                     &write_size);
 
-    if ( SUCCEEDED(result) && buffer_size != write_size ) {
+    if ( SUCCEEDED(result) && buffer_size != static_cast<size_t>(write_size) ) {
         return E_FAIL;
     }
 
@@ -724,13 +740,10 @@ HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const void* buf
 }
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkRce::ReadVirtualUncached(const uint64_t address, const size_t buffer_size, void* buffer) {
-    uint32_t read_size = 0;
-    auto result = m_Data->ReadVirtualUncached(address,
-                                                    buffer,
-                                                    static_cast<ULONG>(buffer_size),
-                                                    reinterpret_cast<PULONG>(&read_size));
+    ULONG read_size = 0;
+    const auto result = m_Data->ReadVirtualUncached(address, buffer, static_cast<ULONG>(buffer_size), &read_size);
 
-    if ( SUCCEEDED(result) && buffer_size != read_size ) {
+    if ( SUCCEEDED(result) && buffer_size != static_cast<size_t>(read_size) ) {
         return E_FAIL;
     }
 

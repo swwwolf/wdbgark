@@ -67,11 +67,11 @@ EXT_COMMAND(wa_scan,
     Execute("!vm 7e");
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
 
-    for ( const auto &cmd : m_scan_commands ) {
-        out << wa::showplus << "<b>" << cmd.first << "</b>" << endlout;
+    for ( const auto& [cmd_name, cmd] : m_scan_commands ) {
+        out << wa::showplus << "<b>" << cmd_name << "</b>" << endlout;
 
         try {
-            cmd.second();   // call the command without parameters
+            cmd();   // call the command without parameters
         } catch ( const ExtStatusException &Ex ) {
             err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         }

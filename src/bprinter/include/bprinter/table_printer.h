@@ -14,89 +14,92 @@
 
 namespace bprinter {
 
-class endl{};
+class endl {};
 
 /** \class TablePrinter
 
-  Print a pretty table into your output of choice.
+Print a pretty table into your output of choice.
 
-  Usage:
-    TablePrinter tp(&std::cout);
-    tp.AddColumn("Name", 25);
-    tp.AddColumn("Age", 3);
-    tp.AddColumn("Position", 30);
+Usage:
+TablePrinter tp(&std::cout);
+tp.AddColumn("Name", 25);
+tp.AddColumn("Age", 3);
+tp.AddColumn("Position", 30);
 
-    tp.PrintHeader();
-    tp << "Dat Chu" << 25 << "Research Assistant";
-    tp << "John Doe" << 26 << "Professional Anonymity";
-    tp << "Jane Doe" << tp.SkipToNextLine();
-    tp << "Tom Doe" << 7 << "Student";
-    tp.PrintFooter();
+tp.PrintHeader();
+tp << "Dat Chu" << 25 << "Research Assistant";
+tp << "John Doe" << 26 << "Professional Anonymity";
+tp << "Jane Doe" << tp.SkipToNextLine();
+tp << "Tom Doe" << 7 << "Student";
+tp.PrintFooter();
 
-  \todo Add support for padding in each table cell
-  */
+\todo Add support for padding in each table cell
+*/
 class TablePrinter {
  public:
-  explicit TablePrinter(std::ostream* output, const std::string &separator = "|");
-  ~TablePrinter();
+    explicit TablePrinter(std::ostream* output, const std::string &separator = "|");
+    ~TablePrinter();
 
-  int get_num_columns() const;
-  int get_table_width() const;
-  void set_separator(const std::string & separator);
+    size_t get_num_columns() const;
+    size_t get_table_width() const;
+    void set_separator(const std::string &separator);
 
-  void AddColumn(const std::string & header_name, int column_width);
-  void PrintHeader();
-  void PrintFooter();
+    void AddColumn(const std::string &header_name, const size_t column_width);
+    void PrintHeader();
+    void PrintFooter();
 
-  void flush_out() { *this << bprinter::endl(); *out_stream_ << wa::endlout; }
-  void flush_warn() { *this << bprinter::endl(); *out_stream_ << wa::endlwarn; }
-  void flush_err() { *this << bprinter::endl(); *out_stream_ << wa::endlerr; }
+    void flush_out() { *this << bprinter::endl(); *m_out_stream << wa::endlout; }
+    void flush_warn() { *this << bprinter::endl(); *m_out_stream << wa::endlwarn; }
+    void flush_err() { *this << bprinter::endl(); *m_out_stream << wa::endlerr; }
 
-  TablePrinter& operator<<(endl) {
-    while ( j_ != 0 ) {
-      *this << "";
+    TablePrinter& operator<<(endl) {
+        while ( m_j != 0 ) {
+            *this << "";
+        }
+
+        return *this;
     }
 
-    return *this;
-  }
+    // Can we merge these?
+    TablePrinter& operator<<(float input);
+    TablePrinter& operator<<(double input);
 
-  // Can we merge these?
-  TablePrinter& operator<<(float input);
-  TablePrinter& operator<<(double input);
+    template<typename T> TablePrinter& operator<<(T input) {
+        if ( m_j == 0 ) {
+            *m_out_stream << "|";
+        }
 
-  template<typename T> TablePrinter& operator<<(T input) {
-    if ( j_ == 0 )
-      *out_stream_ << "|";
+        // Leave 3 extra space: One for negative sign, one for zero, one for decimal
+        *m_out_stream << std::setw(m_column_widths.at(m_j)) << input;
 
-    // Leave 3 extra space: One for negative sign, one for zero, one for decimal
-    *out_stream_ << std::setw(column_widths_.at(j_)) << input;
+        if ( m_j == get_num_columns() - 1 ) {
+            *m_out_stream << "|";
+            ++m_i;
+            m_j = 0;
+        } else {
+            *m_out_stream << m_separator;
+            ++m_j;
+        }
 
-    if ( j_ == get_num_columns() - 1 ) {
-      *out_stream_ << "|";
-      i_ = i_ + 1;
-      j_ = 0;
-    } else {
-      *out_stream_ << separator_;
-      j_ = j_ + 1;
+        return *this;
     }
-
-    return *this;
-  }
 
  private:
-  void PrintHorizontalLine();
+    void PrintHorizontalLine();
 
-  template<typename T> void OutputDecimalNumber(T input);
+    template<typename T> void OutputDecimalNumber(T input);
 
-  std::ostream * out_stream_;
-  std::vector<std::string> column_headers_;
-  std::vector<int> column_widths_;
-  std::string separator_;
+ private:
+    std::ostream* m_out_stream = nullptr;
+    std::vector<std::string> m_column_headers{};
+    std::vector<size_t> m_column_widths{};
+    std::string m_separator{};
 
-  int i_;   // index of current row
-  int j_;   // index of current column
+    size_t m_i = 0;   // index of current row
+    size_t m_j = 0;   // index of current column
+    size_t m_table_width = 0;
 
-  int table_width_;
+    size_t m_column_width_min = 4;
 };
 
 }   // namespace bprinter

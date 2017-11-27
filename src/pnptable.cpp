@@ -130,7 +130,8 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
     out << wa::showplus << "Displaying nt!PlugPlayHandlerTable" << endlout;
 
     // PnpControlClass + Length + Routine
-    uint32_t size = sizeof(uint32_t) + sizeof(uint32_t) + m_PtrSize;
+    size_t size = 2 * sizeof(uint32_t) + static_cast<size_t>(m_PtrSize);
+
     uint64_t offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset("nt!PlugPlayHandlerTable", true, &offset) ) {
@@ -156,7 +157,7 @@ EXT_COMMAND(wa_pnptable, "Output kernel-mode nt!PlugPlayHandlerTable", "") {
                 break;
             }
 
-            uint64_t init_offset = offset + i * size + sizeof(uint32_t) + sizeof(uint32_t);
+            uint64_t init_offset = offset + i * size + 2 * sizeof(uint32_t);
 
             ExtRemoteData pnp_table_entry_routine(init_offset, m_PtrSize);
             display->Analyze(pnp_table_entry_routine.GetPtr(), "", "");

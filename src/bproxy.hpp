@@ -42,7 +42,7 @@ class WDbgArkBPProxy {
 
      virtual void PrintHeader(void) { m_tp->PrintHeader(); }
      virtual void PrintFooter(void) { m_tp->PrintFooter(); }
-     virtual void AddColumn(const std::string &header_name, const int column_width) {
+     virtual void AddColumn(const std::string &header_name, const size_t column_width) {
          m_tp->AddColumn(header_name, column_width);
      }
      virtual void FlushOut(void) { m_tp->flush_out(); }

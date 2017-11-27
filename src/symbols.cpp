@@ -115,22 +115,22 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindExecutableImage(const s
 WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindExecutableImageInternal(
     const std::string &image_name,
     const DEBUG_MODULE_PARAMETERS &parameters) {
-    ResultString result_string = FindExecutableImage(GetImagePath(), image_name, parameters);
+    const auto [result, name] = FindExecutableImage(GetImagePath(), image_name, parameters);
 
-    if ( SUCCEEDED(result_string.first) ) {
-        return std::make_pair(result_string.first, result_string.second);
+    if ( SUCCEEDED(result) ) {
+        return std::make_pair(result, name);
     }
 
-    result_string = SymFindExecutableImage(GetSymbolPath(), image_name, parameters);
+    const auto [result_sym, name_sym] = SymFindExecutableImage(GetSymbolPath(), image_name, parameters);
 
-    if ( SUCCEEDED(result_string.first) ) {
-        return std::make_pair(result_string.first, result_string.second);
+    if ( SUCCEEDED(result_sym) ) {
+        return std::make_pair(result_sym, name_sym);
     }
 
-    result_string = SymFindExecutableImage(GetImagePath(), image_name, parameters);
+    const auto [result_img, name_img] = SymFindExecutableImage(GetImagePath(), image_name, parameters);
 
-    if ( SUCCEEDED(result_string.first) ) {
-        return std::make_pair(result_string.first, result_string.second);
+    if ( SUCCEEDED(result_img) ) {
+        return std::make_pair(result_img, name_img);
     }
 
     return std::make_pair(E_NOT_SET, m_unknown_name);
@@ -159,23 +159,23 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::SymFindExecutableImage(cons
         return std::make_pair(S_OK, std::string(image_file_path));
     }
 
-    auto alias_result = FindImageNameByAlias(image_name);
+    const auto [hresult, alias] = FindImageNameByAlias(image_name);
 
-    if ( SUCCEEDED(alias_result.first) ) {
-        return SymFindExecutableImage(search_path, alias_result.second, parameters);
+    if ( SUCCEEDED(hresult) ) {
+        return SymFindExecutableImage(search_path, alias, parameters);
     }
 
     return std::make_pair(E_NOT_SET, m_unknown_name);
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindImageNameByAlias(const std::string &image_name) {
-    for ( const auto &aliases : m_aliases ) {
-        const auto it = std::find_if(std::begin(aliases.second),
-                                     std::end(aliases.second),
+    for ( const auto [module, aliases] : m_aliases ) {
+        const auto it = std::find_if(std::begin(aliases),
+                                     std::end(aliases),
                                      [&image_name](const std::string &alias) { return alias == image_name; });
 
-        if ( it != std::end(aliases.second) ) {
-            return std::make_pair(S_OK, aliases.first);
+        if ( it != std::end(aliases) ) {
+            return std::make_pair(S_OK, module);
         }
     }
 
@@ -198,12 +198,12 @@ BOOL WDbgArkSymbolsBase::SymFindFileInPathProc(const char* file_name, void* data
         return result;
     }
 
-    const auto header = ::ImageNtHeader(base);
+    auto const header = ::ImageNtHeader(base);
 
     if ( header ) {
         auto nth = wa::GetNtHeaders(header);
 
-        auto parameters = reinterpret_cast<const PDEBUG_MODULE_PARAMETERS>(data);
+        auto const parameters = reinterpret_cast<const PDEBUG_MODULE_PARAMETERS>(data);
 
         if ( parameters->Size == nth->GetImageSize() &&
              parameters->TimeDateStamp == nth->GetTimeDateStamp() &&
@@ -229,24 +229,26 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
 
     uint32_t index = 0;
     uint64_t base  = 0;
-    HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address, 0, reinterpret_cast<PULONG>(&index), &base);
+
+    const auto& symbols = g_Ext->m_Symbols;
+    HRESULT result = symbols->GetModuleByOffset(address, 0, reinterpret_cast<PULONG>(&index), &base);
 
     if ( SUCCEEDED(result) ) {
         uint32_t img_name_size = 0;
         uint32_t module_name_size = 0;
         uint32_t loaded_module_name_size = 0;
 
-        result = g_Ext->m_Symbols->GetModuleNames(index,
-                                                  base,
-                                                  nullptr,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&img_name_size),
-                                                  nullptr,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&module_name_size),
-                                                  nullptr,
-                                                  0,
-                                                  reinterpret_cast<PULONG>(&loaded_module_name_size));
+        result = symbols->GetModuleNames(index,
+                                         base,
+                                         nullptr,
+                                         0,
+                                         reinterpret_cast<PULONG>(&img_name_size),
+                                         nullptr,
+                                         0,
+                                         reinterpret_cast<PULONG>(&module_name_size),
+                                         nullptr,
+                                         0,
+                                         reinterpret_cast<PULONG>(&loaded_module_name_size));
 
         if ( SUCCEEDED(result) ) {
             size_t img_name_buf_length = static_cast<size_t>(img_name_size + 1);
@@ -261,17 +263,17 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
             auto buf3 = std::make_unique<char[]>(loaded_module_name_buf_length);
             std::memset(buf3.get(), 0, loaded_module_name_buf_length);
 
-            result = g_Ext->m_Symbols->GetModuleNames(index,
-                                                      base,
-                                                      buf1.get(),
-                                                      static_cast<ULONG>(img_name_buf_length),
-                                                      nullptr,
-                                                      buf2.get(),
-                                                      static_cast<ULONG>(module_name_buf_length),
-                                                      nullptr,
-                                                      buf3.get(),
-                                                      static_cast<ULONG>(loaded_module_name_buf_length),
-                                                      nullptr);
+            result = symbols->GetModuleNames(index,
+                                             base,
+                                             buf1.get(),
+                                             static_cast<ULONG>(img_name_buf_length),
+                                             nullptr,
+                                             buf2.get(),
+                                             static_cast<ULONG>(module_name_buf_length),
+                                             nullptr,
+                                             buf3.get(),
+                                             static_cast<ULONG>(loaded_module_name_buf_length),
+                                             nullptr);
 
             if ( SUCCEEDED(result) ) {
                 image_name->assign(buf1.get());
@@ -470,7 +472,7 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetModuleImagePath(const ui
 
     uint32_t index = 0;
     uint64_t base = 0;
-    HRESULT result = g_Ext->m_Symbols->GetModuleByOffset(address, 0, reinterpret_cast<PULONG>(&index), &base);
+    auto result = g_Ext->m_Symbols->GetModuleByOffset(address, 0, reinterpret_cast<PULONG>(&index), &base);
 
     if ( FAILED(result) ) {
         return std::make_pair(result, m_unknown_name);
@@ -493,10 +495,10 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetModuleImagePath(const ui
         }
     }
 
-    ResultString result_string = GetModuleNameString(DEBUG_MODNAME_MAPPED_IMAGE, index, base);
+    const auto [result_name, name] = GetModuleNameString(DEBUG_MODNAME_MAPPED_IMAGE, index, base);
 
-    if ( SUCCEEDED(result_string.first) ) {
-        return std::make_pair(result_string.first, result_string.second);
+    if ( SUCCEEDED(result_name) ) {
+        return std::make_pair(result_name, name);
     }
 
     return FindModuleImage(base, index);

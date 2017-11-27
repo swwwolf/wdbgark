@@ -59,19 +59,21 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         return;
     }
 
-    auto hal_tbl_info = GetHalTableInfo();
-    auto citer = hal_tbl_info.find(m_system_ver->GetStrictVer());
+    const auto hal_tbl_info = GetHalTableInfo();
+    const auto it = hal_tbl_info.find(m_system_ver->GetStrictVer());
 
-    if ( citer == hal_tbl_info.end() ) {
+    if ( it == hal_tbl_info.end() ) {
         err << wa::showminus << __FUNCTION__ << ": unable to correlate internal info with the minor build" << endlerr;
         return;
     }
 
     WDbgArkMemTable table_hdt(m_sym_cache, "nt!HalDispatchTable");
 
+    const auto[version, info] = *it;
+
     if ( table_hdt.IsValid() ) {
-        table_hdt.SetTableSkipStart(citer->second.skip * m_PtrSize);
-        table_hdt.SetTableCount(citer->second.hdt_count);
+        table_hdt.SetTableSkipStart(info.skip * m_PtrSize);
+        table_hdt.SetTableCount(info.hdt_count);
         table_hdt.SetRoutineDelta(m_PtrSize);
         table_hdt.SetCollectNull(true);
     } else {
@@ -81,8 +83,8 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
     WDbgArkMemTable table_hpdt(m_sym_cache, "nt!HalPrivateDispatchTable");
 
     if ( table_hpdt.IsValid() ) {
-        table_hpdt.SetTableSkipStart(citer->second.skip * m_PtrSize);
-        table_hpdt.SetTableCount(citer->second.hpdt_count);
+        table_hpdt.SetTableSkipStart(info.skip * m_PtrSize);
+        table_hpdt.SetTableCount(info.hpdt_count);
         table_hpdt.SetRoutineDelta(m_PtrSize);
         table_hpdt.SetCollectNull(true);
     } else {
@@ -95,7 +97,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         table_hiommu.SetTableStart("nt!HalIommuDispatchTable");
 
         if ( table_hiommu.IsValid() ) {
-            table_hiommu.SetTableCount(citer->second.hiommu_count);
+            table_hiommu.SetTableCount(info.hiommu_count);
             table_hiommu.SetRoutineDelta(m_PtrSize);
             table_hiommu.SetCollectNull(true);
         } else {

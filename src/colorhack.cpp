@@ -171,7 +171,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
 
         InitThemes();
 
-        uintptr_t windbg_module_start = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+        const uintptr_t windbg_module_start = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
 
         if ( !windbg_module_start ) {
             throw ExtStatusException(S_OK, "GetModuleHandle failed");
@@ -183,7 +183,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
             throw ExtStatusException(S_OK, "Can't get NT header");
         }
 
-        uintptr_t windbg_module_end = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
+        const uintptr_t windbg_module_end = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
             static_cast<ptrdiff_t>(nth->OptionalHeader.SizeOfImage));
 
         PIMAGE_SECTION_HEADER sech = reinterpret_cast<PIMAGE_SECTION_HEADER>(reinterpret_cast<char*>(nth) +\
@@ -212,16 +212,16 @@ WDbgArkColorHack::WDbgArkColorHack() {
             throw ExtStatusException(S_OK, "Can't get sections header");
         }
 
-        uintptr_t start_search_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
+        const uintptr_t start_search_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
             static_cast<ptrdiff_t>(sech_search_in->VirtualAddress));
 
-        uintptr_t end_search_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_search_in) +\
+        const uintptr_t end_search_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_search_in) +\
             static_cast<ptrdiff_t>(sech_search_in->Misc.VirtualSize));
 
-        uintptr_t start_check_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
+        const uintptr_t start_check_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
             static_cast<ptrdiff_t>(sech_check_in->VirtualAddress));
 
-        uintptr_t end_check_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_check_in) +\
+        const uintptr_t end_check_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(start_check_in) +\
             static_cast<ptrdiff_t>(sech_check_in->Misc.VirtualSize));
 
         if ( start_search_in >= windbg_module_end || end_search_in > windbg_module_end ||
@@ -230,7 +230,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
         }
 
         uintptr_t* mem_point = reinterpret_cast<uintptr_t*>(start_search_in);
-        uintptr_t* mem_point_end = reinterpret_cast<uintptr_t*>(end_search_in);
+        const uintptr_t* mem_point_end = reinterpret_cast<uintptr_t*>(end_search_in);
 
         while ( mem_point < mem_point_end ) {
             try {
@@ -246,7 +246,9 @@ WDbgArkColorHack::WDbgArkColorHack() {
                     }
                 }
             }
-            catch( ... ) { }    // continue
+            catch( ... ) {
+                __noop;
+            }    // continue
 
             mem_point++;
         }
@@ -321,7 +323,7 @@ bool WDbgArkColorHack::GetFileVersion(const std::string& file_path,
                                       uint16_t* minor,
                                       uint16_t* build,
                                       uint16_t* revision) {
-    uint32_t file_version_size = GetFileVersionInfoSize(file_path.c_str(), nullptr);
+    size_t file_version_size = GetFileVersionInfoSize(file_path.c_str(), nullptr);
 
     if ( !file_version_size ) {
         err << wa::showminus << __FUNCTION__ << ": GetFileVersionInfoSize failed" << endlerr;
@@ -330,7 +332,7 @@ bool WDbgArkColorHack::GetFileVersion(const std::string& file_path,
 
     auto version_data = std::make_unique<char[]>(file_version_size);
 
-    if ( !GetFileVersionInfo(file_path.c_str(), 0, file_version_size, version_data.get()) ) {
+    if ( !GetFileVersionInfo(file_path.c_str(), 0, static_cast<DWORD>(file_version_size), version_data.get()) ) {
         err << wa::showminus << __FUNCTION__ << ": GetFileVersionInfo failed" << endlerr;
         return false;
     }
@@ -359,7 +361,7 @@ void WDbgArkColorHack::PrintInformation(void) {
 
     m_tp->PrintHeader();
 
-    for ( const auto &internal_color : m_internal_colors ) {
+    for ( const auto& internal_color : m_internal_colors ) {
         std::stringstream original_color;
         original_color << std::internal << std::setw(10) << std::setfill('0');
         original_color << std::hex << std::showbase << internal_color.orig_color;
@@ -459,11 +461,11 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
         return false;
     }
 
-    theme_elems elems = it->second;
+    const auto [theme_name_elem, elems] = *it;
 
-    for ( const auto &element : elems ) {
-        if ( !SetColor(element.first, element.second) ) {
-            err << wa::showminus << __FUNCTION__ << ": failed to set new color for " << element.first << endlerr;
+    for ( const auto [name, color] : elems ) {
+        if ( !SetColor(name, color) ) {
+            err << wa::showminus << __FUNCTION__ << ": failed to set new color for " << name << endlerr;
             RevertColors();
             return false;
         }

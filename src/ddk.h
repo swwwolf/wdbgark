@@ -32,9 +32,9 @@ namespace wa {
 // macroses
 //////////////////////////////////////////////////////////////////////////
 #define MAKEULONG(x, y)          ( ((((uint32_t)(x)) << 16) & 0xFFFF0000) | ((uint32_t)(y) & 0xFFFF) )
-#define CHECK_BIT_SET(x, y)      (x & (1 << y))
-#define RtlOffsetToPointer(B, O) (reinterpret_cast<char*>(B) + static_cast<uint32_t>(O))
-#define RtlPointerToOffset(B, P) (static_cast<uint64_t>(reinterpret_cast<char*>(P) - reinterpret_cast<char*>(B)))
+#define CHECK_BIT_SET(x, y)      ((x) & (1 << (y)))
+#define RtlOffsetToPointer(B, O) (reinterpret_cast<char*>(B) + static_cast<uintptr_t>(O))
+#define RtlPointerToOffset(B, P) (static_cast<uintptr_t>(reinterpret_cast<char*>(P) - reinterpret_cast<char*>(B)))
 
 #define PAGE_SIZE  0x1000
 #define PAGE_SHIFT 12L
@@ -277,6 +277,13 @@ typedef union _KIDT_HANDLER_ADDRESS {
 #define CODEINTEGRITY_OPTION_HVCI_KMCI_STRICTMODE_ENABLED 0x1000
 #define CODEINTEGRITY_OPTION_HVCI_IUM_ENABLED             0x2000
 // TODO(swwwolf): add Windows 10 RS1 new flags (WHQL enforcement)
+
+//////////////////////////////////////////////////////////////////////////
+// ApiSet stuff
+//////////////////////////////////////////////////////////////////////////
+#define API_SET_VERSION_W7      2
+#define API_SET_VERSION_W81     4
+#define API_SET_VERSION_W10     6
 
 }   // namespace wa
 

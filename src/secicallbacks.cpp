@@ -74,7 +74,7 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
         return;
     }
 
-    std::string symbol_name;
+    std::string symbol_name{};
 
     if ( m_system_ver->GetStrictVer() <= W8RTM_VER ) {
         out << wa::showplus << "Displaying nt!g_CiCallbacks" << endlout;
@@ -84,9 +84,9 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
         symbol_name = "nt!SeCiCallbacks";
     }
 
-    std::pair<uint32_t, uint32_t> table_count_skip_offset = GetCiCallbacksTableCount();
+    const auto [table_count, skip_offset] = GetCiCallbacksTableCount();
 
-    if ( !table_count_skip_offset.first ) {
+    if ( !table_count ) {
         err << wa::showminus << __FUNCTION__ << ": unknown table count" << endlerr;
         return;
     }
@@ -94,8 +94,8 @@ EXT_COMMAND(wa_cicallbacks, "Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallb
     WDbgArkMemTable table(m_sym_cache, symbol_name);
 
     if ( table.IsValid() ) {
-        table.SetTableCount(table_count_skip_offset.first);
-        table.SetTableSkipStart(table_count_skip_offset.second);
+        table.SetTableCount(table_count);
+        table.SetTableSkipStart(skip_offset);
         table.SetRoutineDelta(m_PtrSize);
     } else {
         err << wa::showminus << __FUNCTION__ << ": failed to find " << symbol_name << endlerr;

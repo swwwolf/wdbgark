@@ -51,7 +51,7 @@ WDbgArkPe::WDbgArkPe(const std::wstring &path,
 }
 
 WDbgArkPe::WDbgArkPe(const uint64_t base_address,
-                     const uint32_t size,
+                     const size_t size,
                      const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base) : m_symbols_base(symbols_base) {
     m_valid = ReadMapMappedImage(base_address, size);
 }
@@ -98,14 +98,14 @@ bool WDbgArkPe::MapImage(const uint64_t base_address) {
     return true;
 }
 
-bool WDbgArkPe::ReadMapMappedImage(const uint64_t base_address, const uint32_t size) {
+bool WDbgArkPe::ReadMapMappedImage(const uint64_t base_address, const size_t size) {
     unique_buf buffer = std::make_unique<uint8_t[]>(size);
 
-    uint32_t read_size = 0UL;
+    ULONG read_size = 0UL;
     const auto result = g_Ext->m_Data->ReadVirtualUncached(base_address,
                                                            buffer.get(),
-                                                           size,
-                                                           reinterpret_cast<PULONG>(&read_size));
+                                                           static_cast<uint32_t>(size),
+                                                           &read_size);
 
     // it's OK to read smaller number of bytes due to discardable sections
     if ( FAILED(result) ) {
@@ -165,7 +165,7 @@ bool WDbgArkPe::VerifyChecksum(const unique_buf &buffer) {
     uint16_t* address = reinterpret_cast<uint16_t*>(buffer.get());
     uint32_t sum = 0;
 
-    for ( uint32_t i = 0; i < m_file_size / sizeof(uint16_t); i++ ) {
+    for ( size_t i = 0; i < m_file_size / sizeof(uint16_t); i++ ) {
         sum += static_cast<uint32_t>(*address);
 
         if ( HIWORD(sum) != 0 ) {
@@ -260,7 +260,7 @@ bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
         return false;
     }
 
-    uint32_t image_size = nth->GetImageSize();
+    size_t image_size = nth->GetImageSize();
 
     if ( !image_size || image_size < m_file_size ) {
         return false;
@@ -275,7 +275,7 @@ bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
     }
 
     if ( !mapped ) {
-        uint32_t headers_size = nth->GetHeadersSize();
+        size_t headers_size = nth->GetHeadersSize();
         std::memcpy(m_load_base, buffer.get(), headers_size);
 
         auto section_header = IMAGE_FIRST_SECTION(nth->GetPtr());
@@ -285,11 +285,14 @@ bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
                 continue;
             }
 
-            void* section_dst = reinterpret_cast<void*>RtlOffsetToPointer(m_load_base,
-                                                                          section_header[i].VirtualAddress);
-            const auto section_src = reinterpret_cast<void*>RtlOffsetToPointer(buffer.get(),
+            auto section_dst = reinterpret_cast<void*>RtlOffsetToPointer(m_load_base,
+                                                                         section_header[i].VirtualAddress);
+
+            auto const section_src = reinterpret_cast<void*>RtlOffsetToPointer(buffer.get(),
                                                                                section_header[i].PointerToRawData);
-            uint32_t section_size = min(section_header[i].SizeOfRawData, section_header[i].Misc.VirtualSize);
+
+            size_t section_size = static_cast<size_t>min(section_header[i].SizeOfRawData,
+                                                         section_header[i].Misc.VirtualSize);
 
             std::memcpy(section_dst, section_src, section_size);
         }
@@ -315,12 +318,12 @@ bool WDbgArkPe::RelocateImage(const uint64_t base_address) {
         return true;
     }
 
-    uint32_t dir_size = 0;
+    ULONG dir_size = 0;
     auto next_relocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>(::ImageDirectoryEntryToDataEx(
         m_load_base,
         true,
         IMAGE_DIRECTORY_ENTRY_BASERELOC,
-        reinterpret_cast<PULONG>(&dir_size),
+        &dir_size,
         nullptr));
 
     if ( !next_relocation || !dir_size ) {
@@ -330,11 +333,14 @@ bool WDbgArkPe::RelocateImage(const uint64_t base_address) {
     }
 
     int64_t delta = RtlPointerToOffset(nth->GetImageBase(), base_address);
-    const auto last_relocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>RtlOffsetToPointer(next_relocation, dir_size);
+    auto const last_relocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>RtlOffsetToPointer(next_relocation, dir_size);
 
     while ( next_relocation < last_relocation && next_relocation->SizeOfBlock > 0 ) {
         uint64_t address = reinterpret_cast<uint64_t>RtlOffsetToPointer(m_load_base, next_relocation->VirtualAddress);
-        uint32_t count = (next_relocation->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(uint16_t);
+
+        size_t count = static_cast<size_t>(next_relocation->SizeOfBlock) - sizeof(IMAGE_BASE_RELOCATION);
+        count /= sizeof(uint16_t);
+
         uint16_t* type_offset = reinterpret_cast<uint16_t*>(next_relocation + 1);
 
         next_relocation = RelocateBlock(address, count, type_offset, delta);
@@ -349,12 +355,12 @@ bool WDbgArkPe::RelocateImage(const uint64_t base_address) {
 }
 
 IMAGE_BASE_RELOCATION* WDbgArkPe::RelocateBlock(const uint64_t address,
-                                                const uint32_t count,
+                                                const size_t count,
                                                 const uint16_t* type_offset,
                                                 const int64_t delta) {
     auto loc_type_offset = const_cast<uint16_t*>(type_offset);
 
-    for ( uint32_t i = 0; i < count; i++ ) {
+    for ( size_t i = 0; i < count; i++ ) {
         int16_t offset = (*loc_type_offset) & 0xFFF;
         uint16_t type = (*loc_type_offset) >> 12;
         uint16_t* short_ptr = reinterpret_cast<uint16_t*>RtlOffsetToPointer(address, offset);
@@ -406,7 +412,7 @@ IMAGE_BASE_RELOCATION* WDbgArkPe::RelocateBlock(const uint64_t address,
 }
 
 bool WDbgArkPe::GetNtHeaders(const void* base, NtHeaders* nth) {
-    const auto header = ::ImageNtHeader(const_cast<void*>(base));
+    auto const header = ::ImageNtHeader(const_cast<void*>(base));
 
     if ( !header ) {
         std::string lasterr = LastErrorToString(GetLastError());

@@ -41,25 +41,23 @@ std::string wstring_to_string(const std::wstring& wstr) {
 }
 
 std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped &unicode_string) {
-    std::string output_string = "";
+    std::string output_string("*UNKNOWN*");
 
     try {
         ExtRemoteTyped loc_unicode_string = unicode_string;
         ExtRemoteTyped buffer = *loc_unicode_string.Field("Buffer");
-        uint16_t len = loc_unicode_string.Field("Length").GetUshort();
-        uint16_t maxlen = loc_unicode_string.Field("MaximumLength").GetUshort();
+        const auto len = loc_unicode_string.Field("Length").GetUshort();
+        const size_t maxlen = loc_unicode_string.Field("MaximumLength").GetUshort();
 
         if ( len == 0 && maxlen == 1 ) {
             return std::make_pair(S_OK, output_string);
         }
 
         if ( maxlen >= sizeof(wchar_t) && (maxlen % sizeof(wchar_t) == 0) ) {
-            uint16_t max_len_wide = maxlen / sizeof(wchar_t) + 1;
+            const size_t max_len_wide = maxlen / sizeof(wchar_t) + 1;
 
             auto test_name = std::make_unique<wchar_t[]>(max_len_wide);
-            std::memset(test_name.get(), 0, max_len_wide * sizeof(wchar_t));
-
-            const uint32_t read = buffer.ReadBuffer(test_name.get(), maxlen, true);
+            const size_t read = buffer.ReadBuffer(test_name.get(), static_cast<ULONG>(maxlen));
 
             if ( read == maxlen ) {
                 output_string = wstring_to_string(test_name.get());
@@ -68,9 +66,6 @@ std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped
             return std::make_pair(S_OK, output_string);
         }
     } catch ( const ExtRemoteException &Ex ) {
-        std::stringstream locerr;
-
-        locerr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << wa::endlerr;
         return std::make_pair(Ex.GetStatus(), output_string);
     }
 

@@ -38,33 +38,40 @@ std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared
                                                                const AnalyzeType type) {
     switch ( type ) {
         case AnalyzeType::AnalyzeTypeSDT:
+        {
             return std::make_unique<WDbgArkAnalyzeSDT>(sym_cache);
-        break;
+        }
 
         case AnalyzeType::AnalyzeTypeCallback:
+        {
             return std::make_unique<WDbgArkAnalyzeCallback>(sym_cache);
-        break;
+        }
 
         case AnalyzeType::AnalyzeTypeObjType:
+        {
             return std::make_unique<WDbgArkAnalyzeObjType>(sym_cache);
-        break;
+        }
 
         case AnalyzeType::AnalyzeTypeIDT:
+        {
             return std::make_unique<WDbgArkAnalyzeIDT>(sym_cache);
-        break;
+        }
 
         case AnalyzeType::AnalyzeTypeGDT:
+        {
             return std::make_unique<WDbgArkAnalyzeGDT>(sym_cache);
-        break;
+        }
 
         case AnalyzeType::AnalyzeTypeDriver:
+        {
             return std::make_unique<WDbgArkAnalyzeDriver>(sym_cache);
-        break;
+        }
 
         case AnalyzeType::AnalyzeTypeDefault:
         default:
+        {
             return std::make_unique<WDbgArkAnalyzeDefault>(sym_cache);
-        break;
+        }
     }
 }
 
@@ -83,11 +90,11 @@ bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const uint64_t address) const {
 void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
                                  const std::string &type,
                                  const std::string &additional_info) {
-    std::string symbol_name;
-    std::string module_name;
-    std::string image_name;
-    std::string loaded_image_name;
-    std::string module_command_buf;
+    std::string symbol_name{};
+    std::string module_name{};
+    std::string image_name{};
+    std::string loaded_image_name{};
+    std::string module_command_buf{};
 
     bool suspicious = IsSuspiciousAddress(address);
 
@@ -103,12 +110,12 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
 
         module_command_buf = GetModuleDmlCmd(address, module_name, symbols_base);
 
-        std::pair<HRESULT, std::string> result = symbols_base.GetNameByOffset(address);
+        const auto [result, name] = symbols_base.GetNameByOffset(address);
 
-        if ( !SUCCEEDED(result.first) ) {
+        if ( !SUCCEEDED(result) ) {
             suspicious = true;
         } else {
-            symbol_name = result.second;
+            symbol_name = name;
         }
     }
 
@@ -146,34 +153,35 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
 void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     std::string object_name = "*UNKNOWN*";
 
-    auto result = m_obj_helper->GetObjectName(object);
+    const auto [result, name] = m_obj_helper->GetObjectName(object);
 
-    if ( !SUCCEEDED(result.first) ) {
+    if ( !SUCCEEDED(result) ) {
         std::stringstream warn;
         warn << wa::showqmark << __FUNCTION__ ": GetObjectName failed" << endlwarn;
     } else {
-        object_name = result.second;
+        object_name = name;
     }
 
     std::string object_type_name = "*UNKNOWN*";
-    result = m_obj_helper->GetObjectTypeName(object);
+    const auto [result_type, type_name] = m_obj_helper->GetObjectTypeName(object);
 
-    if ( !SUCCEEDED(result.first) ) {
+    if ( !SUCCEEDED(result_type) ) {
         std::stringstream warn;
         warn << wa::showqmark << __FUNCTION__ ": GetObjectTypeName failed" << endlwarn;
     } else {
-        object_type_name = result.second;
+        object_type_name = type_name;
     }
 
     std::stringstream object_command;
     std::stringstream object_name_ext;
 
     try {
-        auto obj_dml_cmd = m_object_dml_cmd.at(object_type_name);
-        object_command << std::get<0>(obj_dml_cmd) << std::hex << std::showbase << object.m_Offset;
-        object_command << std::get<1>(obj_dml_cmd);
-        object_command << std::hex << std::showbase << object.m_Offset << std::get<2>(obj_dml_cmd);
-    } catch ( const std::out_of_range& ) {}
+        const auto [type, cmd_start, cmd_end] = m_object_dml_cmd.at(object_type_name);
+        object_command << type << std::hex << std::showbase << object.m_Offset;
+        object_command << cmd_start << std::hex << std::showbase << object.m_Offset << cmd_end;
+    } catch ( const std::out_of_range& ) {
+        __noop;
+    }
 
     if ( object_command.str().empty() ) {
         object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
@@ -277,10 +285,10 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
         PrintObjectDmlCmd(object);
         PrintFooter();
 
-        auto result = m_obj_helper->GetObjectName(object);
+        const auto [result, name] = m_obj_helper->GetObjectName(object);
 
-        if ( SUCCEEDED(result.first) ) {
-            AddTempWhiteList(result.second);
+        if ( SUCCEEDED(result) ) {
+            AddTempWhiteList(name);
         }
 
         WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
@@ -519,14 +527,16 @@ std::string WDbgArkAnalyzeGDT::GetGDTSelectorName(const uint32_t selector) const
         } else {
             selector_name = m_gdt_selector_x86.at(selector);
         }
-    } catch ( const std::out_of_range& ) {}
+    } catch ( const std::out_of_range& ) {
+        __noop;
+    }
 
     return selector_name;
 }
 
 std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
     std::string type_name = "*UNKNOWN*";
-    uint32_t type = GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1);
+    size_t type = static_cast<size_t>(GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1));
 
     try {
         if ( IsGDTTypeSystem(gdt_entry) ) {
@@ -538,7 +548,9 @@ std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
         } else {
             type_name = m_gdt_code_data.at(type);       // code/data x86/x64
         }
-    } catch ( const std::out_of_range& ) {}
+    } catch ( const std::out_of_range& ) {
+        __noop;
+    }
 
     return type_name;
 }
@@ -569,10 +581,10 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
             display->AddTempRangeWhiteList(driver_start, driver_size);
         }
 
-        auto result = m_obj_helper->GetObjectName(object);
+        const auto [result, name] = m_obj_helper->GetObjectName(object);
 
-        if ( SUCCEEDED(result.first) ) {
-            AddTempWhiteList(result.second);
+        if ( SUCCEEDED(result) ) {
+            AddTempWhiteList(name);
         }
 
         out << wa::showplus << "Driver routines: " << endlout;
@@ -611,10 +623,10 @@ void WDbgArkAnalyzeDriver::DisplayMajorTable(const ExtRemoteTyped &object) {
     out << wa::showplus << "Major table routines: " << endlout;
     PrintFooter();
 
-    auto major_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetMajorTable();
+    const auto major_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetMajorTable();
 
-    for ( auto &entry : major_table ) {
-        display->Analyze(entry.first, entry.second, "");
+    for ( const auto [address, type] : major_table ) {
+        display->Analyze(address, type, "");
     }
 
     PrintFooter();
@@ -623,14 +635,14 @@ void WDbgArkAnalyzeDriver::DisplayMajorTable(const ExtRemoteTyped &object) {
 void WDbgArkAnalyzeDriver::DisplayFastIo(const ExtRemoteTyped &object) {
     WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
-    auto fast_io_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetFastIoTable();
+    const auto fast_io_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetFastIoTable();
 
     if ( !fast_io_table.empty() ) {
         out << wa::showplus << "FastIO table routines: " << endlout;
         PrintFooter();
 
-        for ( auto &entry : fast_io_table ) {
-            display->Analyze(entry.first, entry.second, "");
+        for ( const auto [address, type] : fast_io_table ) {
+            display->Analyze(address, type, "");
         }
 
         PrintFooter();
@@ -640,14 +652,14 @@ void WDbgArkAnalyzeDriver::DisplayFastIo(const ExtRemoteTyped &object) {
 void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object) {
     WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
 
-    auto fs_cb_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetFsFilterCbTable();
+    const auto fs_cb_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetFsFilterCbTable();
 
     if ( !fs_cb_table.empty() ) {
         out << wa::showplus << "FsFilterCallbacks table routines: " << endlout;
         PrintFooter();
 
-        for ( auto &entry : fs_cb_table ) {
-            display->Analyze(entry.first, entry.second, "");
+        for ( const auto [address, type] : fs_cb_table ) {
+            display->Analyze(address, type, "");
         }
 
         PrintFooter();

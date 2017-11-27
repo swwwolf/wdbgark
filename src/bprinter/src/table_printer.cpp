@@ -5,82 +5,81 @@
 #include <string>
 
 namespace bprinter {
-TablePrinter::TablePrinter(std::ostream* output, const std::string &separator) :  out_stream_(output),
-                                                                                  i_(0),
-                                                                                  j_(0),
-                                                                                  separator_(separator),
-                                                                                  table_width_(0) {}
+
+TablePrinter::TablePrinter(std::ostream* output, const std::string &separator) : m_out_stream(output),
+                                                                                 m_separator(separator) {}
 
 TablePrinter::~TablePrinter() {
-    out_stream_ = nullptr;
+    m_out_stream = nullptr;
 }
 
-int TablePrinter::get_num_columns() const {
-  return static_cast<int>( column_headers_.size() );
+size_t TablePrinter::get_num_columns() const {
+    return m_column_headers.size();
 }
 
-int TablePrinter::get_table_width() const {
-  return table_width_;
+size_t TablePrinter::get_table_width() const {
+    return m_table_width;
 }
 
 void TablePrinter::set_separator(const std::string &separator) {
-  separator_ = separator;
+    m_separator = separator;
 }
 
 /** \brief Add a column to our table
- ** 
- ** \param header_name Name to be print for the header
- ** \param column_width the width of the column (has to be >=5)
- ** */
-void TablePrinter::AddColumn(const std::string &header_name, int column_width) {
-  if ( column_width < 4 ) {
-    throw std::invalid_argument("Column size has to be >= 4");
-  }
+**
+** \param header_name Name to be print for the header
+** \param column_width the width of the column (has to be >=5)
+** */
+void TablePrinter::AddColumn(const std::string &header_name, const size_t column_width) {
+    if ( column_width < m_column_width_min ) {
+        throw std::invalid_argument("Column size has to be >= 4");
+    }
 
-  column_headers_.push_back(header_name);
-  column_widths_.push_back(column_width);
-  table_width_ += column_width + static_cast<int>(separator_.size());   // for the separator
+    m_column_headers.push_back(header_name);
+    m_column_widths.push_back(column_width);
+    m_table_width += column_width + m_separator.size();   // for the separator
 }
 
 void TablePrinter::PrintHorizontalLine() {
-  *out_stream_ << "+";  // the left bar
+    *m_out_stream << "+";  // the left bar
 
-  for ( int i = 0; i < table_width_ - 1; ++i )
-    *out_stream_ << "-";
+    for ( size_t i = 0; i < m_table_width - 1; ++i ) {
+        *m_out_stream << "-";
+    }
 
-  *out_stream_ << "+";  // the right bar
-  flush_out();
+    *m_out_stream << "+";  // the right bar
+    flush_out();
 }
 
 void TablePrinter::PrintHeader() {
-  PrintHorizontalLine();
-  *out_stream_ << "|";
+    PrintHorizontalLine();
+    *m_out_stream << "|";
 
-  for ( int i = 0; i < get_num_columns(); ++i ) {
-    *out_stream_ << std::setw(column_widths_.at(i)) << column_headers_.at(i).substr(0, column_widths_.at(i));
+    for ( size_t i = 0; i < get_num_columns(); ++i ) {
+        *m_out_stream << std::setw(m_column_widths.at(i)) << m_column_headers.at(i).substr(0, m_column_widths.at(i));
 
-    if ( i != get_num_columns() - 1 ) {
-      *out_stream_ << separator_;
+        if ( i != get_num_columns() - 1 ) {
+            *m_out_stream << m_separator;
+        }
     }
-  }
 
-  *out_stream_ << "|";
-  flush_out();
-  PrintHorizontalLine();
+    *m_out_stream << "|";
+    flush_out();
+    PrintHorizontalLine();
 }
 
 void TablePrinter::PrintFooter() {
-  PrintHorizontalLine();
+    PrintHorizontalLine();
 }
 
 TablePrinter& TablePrinter::operator<<(float input) {
-  OutputDecimalNumber<float>(input);
-  return *this;
+    OutputDecimalNumber<float>(input);
+    return *this;
 }
 
 TablePrinter& TablePrinter::operator<<(double input) {
-  OutputDecimalNumber<double>(input);
-  return *this;
+    OutputDecimalNumber<double>(input);
+    return *this;
 }
 
 }   // namespace bprinter

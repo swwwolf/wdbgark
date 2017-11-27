@@ -37,20 +37,16 @@ WDbgArkDevice::WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
         return;
     }
 
-    auto info = m_obj_helper->GetObjectsInfo(0ULL, "\\", true);
+    const auto [result, objs_info] = m_obj_helper->GetObjectsInfo(0ULL, R"(\)", true);
 
-    if ( FAILED(info.first) ) {
+    if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": GetObjectsInfo failed" << endlerr;
         return;
     }
 
-    for ( auto &object_info : info.second ) {
-        if ( object_info.second.type_name == "Device" ) {
-            m_devices_list.insert({ object_info.first, ExtRemoteTyped("nt!_DEVICE_OBJECT",
-                                                                      object_info.first,  // offset
-                                                                      false,
-                                                                      nullptr,
-                                                                      nullptr) });
+    for ( const auto [offset, object_info] : objs_info ) {
+        if ( object_info.type_name == "Device" ) {
+            m_devices_list.insert({ offset, ExtRemoteTyped("nt!_DEVICE_OBJECT", offset, false, nullptr, nullptr) });
         }
     }
 
@@ -59,10 +55,10 @@ WDbgArkDevice::WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
         return;
     }
 
-    for ( auto &device : m_devices_list ) {
+    for ( auto [offset, device] : m_devices_list ) {
         try {
             // loop "attached to" field and "next" fields
-            ExtRemoteTyped attached_to = *device.second.Field("DeviceObjectExtension").Field("AttachedTo");
+            ExtRemoteTyped attached_to = *device.Field("DeviceObjectExtension").Field("AttachedTo");
 
             while ( attached_to.m_Offset ) {
                 m_devices_list.insert({ attached_to.m_Offset, attached_to });
@@ -78,7 +74,7 @@ WDbgArkDevice::WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
             }
 
             // loop "attached" field and "next" fields
-            ExtRemoteTyped attached_device = *device.second.Field("AttachedDevice");
+            ExtRemoteTyped attached_device = *device.Field("AttachedDevice");
 
             while ( attached_device.m_Offset ) {
                 m_devices_list.insert({ attached_device.m_Offset, attached_device });
@@ -94,13 +90,15 @@ WDbgArkDevice::WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
             }
 
             // loop "next" fields
-            ExtRemoteTyped next_device = *device.second.Field("NextDevice");
+            ExtRemoteTyped next_device = *device.Field("NextDevice");
 
             while ( next_device.m_Offset ) {
                 m_devices_list.insert({ next_device.m_Offset, next_device });
                 next_device = *next_device.Field("NextDevice");
             }
-        } catch ( const ExtRemoteException& ) {}
+        } catch ( const ExtRemoteException& ) {
+            __noop;
+        }
     }
 
     m_inited = true;

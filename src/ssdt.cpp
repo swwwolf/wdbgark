@@ -32,15 +32,15 @@
 namespace wa {
 
 void DisplayServiceTable(const uint64_t offset,
-                         const uint32_t limit,
+                         const size_t limit,
                          const ServiceTableType type,
                          const uint32_t build,
                          const std::unique_ptr<WDbgArkAnalyzeBase> &display) {
-    for ( uint32_t i = 0; i < limit; i++ ) {
+    for ( size_t i = 0; i < limit; i++ ) {
         uint64_t address = 0;
 
         if ( g_Ext->IsCurMachine64() ) {
-            int service_offset = ExtRemoteData(offset + i * sizeof(int), sizeof(int)).GetLong();
+            auto service_offset = ExtRemoteData(offset + i * sizeof(int), sizeof(int)).GetLong();
 
             if ( build >= VISTA_RTM_VER ) {
                 service_offset >>= 4;
@@ -83,7 +83,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
 
         out << wa::showplus << "nt!KiServiceLimit: " << std::hex << std::showbase << offset << endlout;
 
-        uint32_t limit = ExtRemoteData(offset, sizeof(limit)).GetUlong();
+        size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
 
         if ( !limit ) {
             err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
@@ -156,7 +156,7 @@ EXT_COMMAND(wa_w32psdt,
 
         out << wa::showplus << "win32k!W32pServiceLimit: " << std::hex << std::showbase << offset << endlout;
 
-        uint32_t limit = ExtRemoteData(offset, sizeof(limit)).GetUlong();
+        size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
 
         if ( !limit ) {
             err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
@@ -234,7 +234,7 @@ EXT_COMMAND(wa_w32psdtflt,
 
         out << wa::showplus << "win32k!W32pServiceLimitFilter: " << std::hex << std::showbase << offset << endlout;
 
-        uint32_t limit = ExtRemoteData(offset, sizeof(limit)).GetUlong();
+        size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
 
         if ( !limit ) {
             err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
@@ -346,7 +346,7 @@ EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "")
         WDbgArkMemTable::WalkResult result;
 
         if ( table.Walk(&result) != false ) {
-            uint32_t i = 0;
+            size_t i = 0;
 
             for ( const auto &address : result ) {
                 display->Analyze(address,

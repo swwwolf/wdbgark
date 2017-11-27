@@ -263,7 +263,7 @@ bool WDbgArk::FindMiApiSetSchema() {
     }
 
     uint64_t offset = 0;
-    size_t disasm_len = m_PageSize;
+    size_t disasm_len = static_cast<size_t>(m_PageSize);
 
     if ( m_system_ver->GetStrictVer() <= W10TH2_VER ) {
         if ( !m_sym_cache->GetSymbolOffset("nt!MiResolveImageReferences", true, &offset) ) {
@@ -314,9 +314,9 @@ bool WDbgArk::FindMiApiSetSchema() {
                         uint64_t call_address = udis_local.InstructionOffset() + \
                             udis_local.InstructionOperand(0)->lval.sdword + udis_local.InstructionLength();
 
-                        auto result = m_symbols_base->GetNameByOffset(call_address);
+                        const auto [result, name] = m_symbols_base->GetNameByOffset(call_address);
 
-                        if ( SUCCEEDED(result.first) && result.second == "nt!ApiSetResolveToHost" ) {
+                        if ( SUCCEEDED(result) && name == std::string("nt!ApiSetResolveToHost") ) {
                             if ( !m_is_cur_machine64 ) {
                                 address = static_cast<uint64_t>(udis.InstructionOperand(1)->lval.udword);
                             } else {

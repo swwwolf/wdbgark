@@ -76,8 +76,8 @@ EXT_COMMAND(wa_drvmajor,
 
     try {
         if ( name == "*" ) {
-            for ( auto &driver_info : drivers_info ) {
-                display->Analyze(driver_info.second);
+            for ( const auto [offset, driver] : drivers_info ) {
+                display->Analyze(driver);
             }
         } else {
             auto object_address = m_obj_helper->FindObjectByName(name, 0ULL, "\\", true);
