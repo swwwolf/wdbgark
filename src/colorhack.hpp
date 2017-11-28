@@ -48,7 +48,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 // hack WinDbg colors
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkColorHack : public WDbgArkBPProxy {
+class WDbgArkColorHack : public WDbgArkBPProxy<char> {
  public:
     WDbgArkColorHack();
     ~WDbgArkColorHack() { RevertColors(); }

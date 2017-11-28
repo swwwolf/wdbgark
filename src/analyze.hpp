@@ -52,7 +52,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 // analyze, display, print
 //////////////////////////////////////////////////////////////////////////
-class WDbgArkAnalyzeBase: public WDbgArkBPProxy, public WDbgArkAnalyzeWhiteList {
+class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhiteList {
  public:
     enum class AnalyzeType {
         AnalyzeTypeDefault,

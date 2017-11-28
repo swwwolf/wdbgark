@@ -36,27 +36,29 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 // proxy bprinter class
 //////////////////////////////////////////////////////////////////////////
+template <class T>
 class WDbgArkBPProxy {
  public:
-     virtual ~WDbgArkBPProxy() {}
+     virtual ~WDbgArkBPProxy() = default;
 
      virtual void PrintHeader(void) { m_tp->PrintHeader(); }
      virtual void PrintFooter(void) { m_tp->PrintFooter(); }
-     virtual void AddColumn(const std::string &header_name, const size_t column_width) {
+     virtual void AddColumn(const std::basic_string<T> &header_name, const size_t column_width) {
          m_tp->AddColumn(header_name, column_width);
      }
      virtual void FlushOut(void) { m_tp->flush_out(); }
      virtual void FlushWarn(void) { m_tp->flush_warn(); }
      virtual void FlushErr(void) { m_tp->flush_err(); }
 
-     template<typename T> WDbgArkBPProxy& operator<<(T input) {
+     template<class I>
+     WDbgArkBPProxy<T>& operator<<(I input) {
          *m_tp << input;
          return *this;
      }
 
  protected:
-    std::stringstream m_bprinter_out{};
-    std::unique_ptr<bprinter::TablePrinter> m_tp = std::make_unique<bprinter::TablePrinter>(&m_bprinter_out);
+    std::basic_stringstream<T> m_bprinter_out{};
+    std::unique_ptr<bprinter::TablePrinter<T>> m_tp = std::make_unique<bprinter::TablePrinter<T>>(&m_bprinter_out);
 };
 
 }   // namespace wa

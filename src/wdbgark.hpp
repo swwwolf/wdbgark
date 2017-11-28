@@ -175,7 +175,7 @@ class WDbgArk : public ExtExtension {
     void WalkPnpLists(const std::string &type, walkresType* output_list);
     void WalkCallbackDirectory(const std::string &type, walkresType* output_list);
 
-    void WalkPicoTable(const std::string &table_name);
+    void WalkPicoTable(const std::string &table_name, const uint32_t table_count);
     void WalkApiSetTable(const uint64_t header_offset, const std::shared_ptr<WDbgArkProcess> &process_helper);
 
     void AddSymbolPointer(const std::string &symbol_name,

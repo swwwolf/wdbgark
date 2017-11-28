@@ -154,13 +154,13 @@ void WDbgArk::WalkApiSetTable(const uint64_t header_offset, const std::shared_pt
 }
 
 void DisplayApiSetTable(const WDbgArkApiSet::ApiSets &table) {
-    auto tp = std::make_unique<WDbgArkBPProxy>();
+    auto tp = std::make_unique<WDbgArkBPProxy<wchar_t>>();
 
     // 180
-    tp->AddColumn("#", 5);
-    tp->AddColumn("Name", 85);
-    tp->AddColumn("Hosts", 85);
-    tp->AddColumn("Flags", 5);
+    tp->AddColumn(L"#", 5);
+    tp->AddColumn(L"Name", 85);
+    tp->AddColumn(L"Hosts", 85);
+    tp->AddColumn(L"Flags", 5);
 
     tp->PrintHeader();
 
@@ -177,10 +177,10 @@ void DisplayApiSetTable(const WDbgArkApiSet::ApiSets &table) {
             hosts_result = hosts_result.substr(0, hosts_result.size() - 1);
         }
 
-        std::stringstream hex_str;
+        std::wstringstream hex_str;
         hex_str << std::hex << i;
 
-        *tp << hex_str.str() << wstring_to_string(name) << wstring_to_string(hosts_result) << 0;
+        *tp << hex_str.str() << name << hosts_result << 0;
         tp->FlushOut();
         tp->PrintFooter();
 

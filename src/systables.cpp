@@ -388,19 +388,7 @@ uint32_t GetSrvNtTransactionDispatchTableCount() {
 
 // srv!SrvApiDispatchTable
 uint32_t GetSrvApiDispatchTableCount() {
-    WDbgArkSystemVer system_ver;
-
-    if ( !system_ver.IsInited() ) {
-        return 0;
-    }
-
-    if ( system_ver.IsBuildInRangeStrict(WXP_VER, W7SP1_VER) ) {
-        return 16;
-    } else if ( system_ver.GetStrictVer() >= W8RTM_VER ) {
-        return 15;
-    }
-
-    return 0;
+    return 15;
 }
 
 }   // namespace wa

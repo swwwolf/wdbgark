@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\bprinter">
-      <UniqueIdentifier>{d0d465b1-6342-47e4-82e2-2a7f6767b075}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Information">
       <UniqueIdentifier>{6437a03d-07bb-4c79-9ddb-e6600257b74a}</UniqueIdentifier>
     </Filter>
@@ -43,11 +40,11 @@
     <Filter Include="Source Files\Commands\wdrce">
       <UniqueIdentifier>{420e3912-4ed2-40bd-85de-f6e6e308cb5f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\bprinter">
+      <UniqueIdentifier>{6d158e8a-2c89-434a-9972-370ca853e2f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\bprinter\src\table_printer.cpp">
-      <Filter>Source Files\bprinter</Filter>
-    </ClCompile>
     <ClCompile Include="src\callouts.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
@@ -321,6 +318,9 @@
     </ClInclude>
     <ClInclude Include="src\apisethlp.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\bprinter\include\bprinter\table_printer.h">
+      <Filter>Header Files\bprinter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

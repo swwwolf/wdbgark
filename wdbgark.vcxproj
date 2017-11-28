@@ -218,7 +218,6 @@
     <ClCompile Include="src\apiset.cpp" />
     <ClCompile Include="src\apisethlp.cpp" />
     <ClCompile Include="src\bp.cpp" />
-    <ClCompile Include="src\bprinter\src\table_printer.cpp" />
     <ClCompile Include="src\callouts.cpp" />
     <ClCompile Include="src\checkmsr.cpp" />
     <ClCompile Include="src\ciinfo.cpp" />
@@ -286,6 +285,7 @@
     <ClInclude Include="src\analyze.hpp" />
     <ClInclude Include="src\apisethlp.hpp" />
     <ClInclude Include="src\bp.hpp" />
+    <ClInclude Include="src\bprinter\include\bprinter\table_printer.h" />
     <ClInclude Include="src\bproxy.hpp" />
     <ClInclude Include="src\colorhack.hpp" />
     <ClInclude Include="src\dbgevent.hpp" />

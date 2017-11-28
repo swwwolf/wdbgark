@@ -39,59 +39,108 @@
 
 namespace wa {
 
-/* global stream manipulators */
-inline std::ostream& showplus(std::ostream &arg) {
-    arg << "[+] ";
+template <class T>
+struct ManipTraits {};
+
+template <>
+struct ManipTraits<char> {
+    static auto constexpr p = "[+] ";
+    static auto constexpr m = "[-] ";
+    static auto constexpr q = "[?] ";
+
+    static auto constexpr nl = "\n";
+    static auto constexpr s = "%s";
+
+    static auto constexpr amp = "&";
+    static auto constexpr amp_rpl = "&amp;";
+    static auto constexpr lt = "<";
+    static auto constexpr lt_rpl = "&lt;";
+    static auto constexpr gt = ">";
+    static auto constexpr gt_rpl = "&gt;";
+    static auto constexpr quot = "\"";
+    static auto constexpr quot_rpl = "&quot;";
+};
+
+template <>
+struct ManipTraits<wchar_t> {
+    static auto constexpr p = L"[+] ";
+    static auto constexpr m = L"[-] ";
+    static auto constexpr q = L"[?] ";
+
+    static auto constexpr nl = L"\n";
+    static auto constexpr s = L"%s";
+
+    static auto constexpr amp = L"&";
+    static auto constexpr amp_rpl = L"&amp;";
+    static auto constexpr lt = L"<";
+    static auto constexpr lt_rpl = L"&lt;";
+    static auto constexpr gt = L">";
+    static auto constexpr gt_rpl = L"&gt;";
+    static auto constexpr quot = L"\"";
+    static auto constexpr quot_rpl = L"&quot;";
+};
+
+template <class T = char>
+inline std::basic_ostream<T>& showplus(std::basic_ostream<T> &arg) {
+    arg << ManipTraits<T>::p;
     return arg;
 }
 
-inline std::ostream& showminus(std::ostream &arg) {
-    arg << "[-] ";
+template <class T = char>
+inline std::basic_ostream<T>& showminus(std::basic_ostream<T> &arg) {
+    arg << ManipTraits<T>::m;
     return arg;
 }
 
-inline std::ostream& showqmark(std::ostream &arg) {
-    arg << "[?] ";
+template <class T = char>
+inline std::basic_ostream<T>& showqmark(std::basic_ostream<T> &arg) {
+    arg << ManipTraits<T>::q;
     return arg;
 }
 
-inline std::ostream& endlout(std::ostream &arg) {
-    std::stringstream ss;
+template <class T = char>
+inline std::basic_ostream<T>& endlout(std::basic_ostream<T> &arg) {
+    std::basic_stringstream<T> ss;
 
-    arg << "\n";
+    arg << ManipTraits<T>::nl;
     ss << arg.rdbuf();
-    g_Ext->Dml("%s", ss.str().c_str());
+    g_Ext->Dml(ManipTraits<T>::s, ss.str().c_str());
     return arg.flush();
 }
 
-inline std::ostream& endlwarn(std::ostream &arg) {
-    std::stringstream ss;
+template <class T = char>
+inline std::basic_ostream<T>& endlwarn(std::basic_ostream<T> &arg) {
+    std::basic_stringstream<T> ss;
 
-    arg << "\n";
+    arg << ManipTraits<T>::nl;
     ss << arg.rdbuf();
-    g_Ext->DmlWarn("%s", ss.str().c_str());
+    g_Ext->DmlWarn(ManipTraits<T>::s, ss.str().c_str());
     return arg.flush();
 }
 
-inline std::ostream& endlerr(std::ostream &arg) {
-    std::stringstream ss;
+template <class T = char>
+inline std::basic_ostream<T>& endlerr(std::basic_ostream<T> &arg) {
+    std::basic_stringstream<T> ss;
 
-    arg << "\n";
+    arg << ManipTraits<T>::nl;
     ss << arg.rdbuf();
-    g_Ext->DmlErr("%s", ss.str().c_str());
+    g_Ext->DmlErr(ManipTraits<T>::s, ss.str().c_str());
     return arg.flush();
 }
 
-inline std::string normalize_special_chars(const std::string &s) {
-    std::regex regex_lt("<");
-    std::regex regex_gt(">");
-    std::regex regex_quot("\"");
-    std::regex regex_amp("&");
+template <class T = char>
+inline std::basic_string<T> normalize_special_chars(const std::basic_string<T> &s) {
+    std::basic_regex<T> regex_amp(ManipTraits<T>::amp);
+    std::basic_string<T> out = std::regex_replace(s, regex_amp, ManipTraits<T>::amp_rpl);
 
-    std::string out = std::regex_replace(s, regex_amp, "&amp;");
-    out = std::regex_replace(out, regex_lt, "&lt;");
-    out = std::regex_replace(out, regex_gt, "&gt;");
-    out = std::regex_replace(out, regex_quot, "&quot;");
+    std::basic_regex<T> regex_lt(ManipTraits<T>::lt);
+    out = std::regex_replace(out, regex_lt, ManipTraits<T>::lt_rpl);
+
+    std::basic_regex<T> regex_gt(ManipTraits<T>::gt);
+    out = std::regex_replace(out, regex_gt, ManipTraits<T>::gt_rpl);
+
+    std::basic_regex<T> regex_quot(ManipTraits<T>::quot);
+    out = std::regex_replace(out, regex_quot, ManipTraits<T>::quot_rpl);
 
     return out;
 }

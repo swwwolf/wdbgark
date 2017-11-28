@@ -30,6 +30,9 @@
 
 namespace wa {
 
+uint32_t GetPspPicoTableCount();
+uint32_t GetLxpRoutinesTableCount();
+
 EXT_COMMAND(wa_psppico, "Output kernel-mode Pico tables", "") {
     RequireKernelMode();
 
@@ -37,14 +40,14 @@ EXT_COMMAND(wa_psppico, "Output kernel-mode Pico tables", "") {
         throw ExtStatusException(S_OK, "global init failed");
     }
 
-    WalkPicoTable("nt!PspPicoProviderRoutines");
+    WalkPicoTable("nt!PspPicoProviderRoutines", GetPspPicoTableCount());
 
     if ( SUCCEEDED(m_Symbols3->GetModuleByModuleName2("lxcore", 0UL, 0UL, nullptr, nullptr)) ) {
-        WalkPicoTable("lxcore!LxpRoutines");
+        WalkPicoTable("lxcore!LxpRoutines", GetLxpRoutinesTableCount());
     }
 }
 
-void WDbgArk::WalkPicoTable(const std::string &table_name) {
+void WDbgArk::WalkPicoTable(const std::string &table_name, const uint32_t table_count) {
     out << wa::showplus << "Displaying " << table_name << endlout;
 
     if ( m_system_ver->GetStrictVer() <= W81RTM_VER ) {
@@ -52,28 +55,24 @@ void WDbgArk::WalkPicoTable(const std::string &table_name) {
         return;
     }
 
+    if ( !table_count ) {
+        out << wa::showplus << __FUNCTION__ << ": invalid table count" << endlout;
+        return;
+    }
+
     WDbgArkMemTable table(m_sym_cache, table_name);
 
     if ( table.IsValid() ) {
         table.SetTableSkipStart(m_PtrSize);
+        table.SetTableCount(table_count);
         table.SetRoutineDelta(m_PtrSize);
+        table.SetCollectNull(true);
     } else {
         err << wa::showminus << __FUNCTION__ << ": failed to find " << table_name << endlerr;
         return;
     }
 
     out << wa::showplus << table_name << ": " << std::hex << std::showbase << table.GetTableStart() << endlout;
-
-    uint32_t count = static_cast<uint32_t>(ExtRemoteData(table.GetTableStart(), m_PtrSize).GetPtr() / m_PtrSize);
-
-    if ( !count ) {
-        out << wa::showplus << __FUNCTION__ << ": empty table" << endlout;
-        return;
-    } else {
-        count--;
-    }
-
-    table.SetTableCount(count);
 
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
     display->PrintHeader();
@@ -92,6 +91,36 @@ void WDbgArk::WalkPicoTable(const std::string &table_name) {
     }
 
     display->PrintFooter();
+}
+
+// nt!PspPicoProviderRoutines
+uint32_t GetPspPicoTableCount() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() ) {
+        return 0;
+    }
+
+    if ( system_ver.GetStrictVer() <= W81RTM_VER ) {
+        return 0;
+    }
+
+    return 8;
+}
+
+// lxcore!LxpRoutines
+uint32_t GetLxpRoutinesTableCount() {
+    WDbgArkSystemVer system_ver;
+
+    if ( !system_ver.IsInited() ) {
+        return 0;
+    }
+
+    if ( system_ver.GetStrictVer() <= W81RTM_VER ) {
+        return 0;
+    }
+
+    return 11;
 }
 
 }   // namespace wa
