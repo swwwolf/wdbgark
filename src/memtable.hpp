@@ -61,6 +61,7 @@ class WDbgArkMemTable {
             err << wa::showminus << __FUNCTION__ << ": failed to find " << table_start << endlerr;
         }
     }
+
     uint64_t GetTableStart() const { return m_table_start; }
 
     void SetTableSkipStart(const uint32_t skip_start) { m_offset_table_skip_start = skip_start; }
@@ -164,7 +165,11 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
 
         try {
             for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
-                result->push_back(ExtRemoteTyped(m_type.c_str(), offset + tc * m_type_size, false, nullptr, nullptr));
+                result->push_back(ExtRemoteTyped(m_type.c_str(),
+                                                 offset + tc * m_type_size,
+                                                 false,
+                                                 &m_cache_cookie,
+                                                 nullptr));
             }
         } catch ( const ExtRemoteException &Ex ) {
             err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -176,6 +181,7 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
  private:
     std::string m_type{};
     uint32_t m_type_size = 0UL;
+    uint64_t m_cache_cookie = 0ULL;
 };
 
 }   // namespace wa
