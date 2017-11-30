@@ -43,6 +43,13 @@ EXT_DECLARE_GLOBALS();
 
 namespace wa {
 
+std::stringstream out;
+std::stringstream err;
+std::stringstream warn;
+std::wstringstream wout;
+std::wstringstream werr;
+std::wstringstream wwarn;
+
 WDbgArk::WDbgArk() {
     int flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
     flag |= _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF;

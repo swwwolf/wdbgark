@@ -405,8 +405,6 @@ bool WDbgArkSymbolsBase::CheckSymbolsPath(const bool display_error, const std::s
         }
     } else if ( check_path.find(test_path) == std::string::npos ) {
         if ( display_error ) {
-            std::stringstream warn;
-
             warn << wa::showqmark << __FUNCTION__ << ": seems that your symbol path may be incorrect. ";
             warn << "Include symbol path (" << test_path << ")" << endlwarn;
         }

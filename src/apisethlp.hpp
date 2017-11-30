@@ -80,8 +80,6 @@ class WDbgArkApiSet {
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
 
     ApiSets m_api_sets{};
-
-    std::stringstream err{};
 };
 
 }   // namespace wa

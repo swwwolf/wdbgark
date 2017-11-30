@@ -242,12 +242,6 @@ class WDbgArk : public ExtExtension {
     std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{ nullptr };
     std::unique_ptr<WDbgArkRce> m_wdrce{ nullptr };
     ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface{ "The extension did not initialize properly." };
-    //////////////////////////////////////////////////////////////////////////
-    // output streams
-    //////////////////////////////////////////////////////////////////////////
-    std::stringstream out{};
-    std::stringstream warn{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

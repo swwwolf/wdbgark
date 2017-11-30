@@ -74,13 +74,6 @@ class WDbgArkDummyPdb {
     std::string m_full_path{};
     uint64_t m_dummy_pdb_base = 0xFFFFFFFFFFFF0000;
     uint32_t m_dummy_pdb_size = 0xFFFF;
-
-    //////////////////////////////////////////////////////////////////////////
-    // output streams
-    //////////////////////////////////////////////////////////////////////////
-    std::stringstream out{};
-    std::stringstream warn{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

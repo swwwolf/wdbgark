@@ -97,7 +97,6 @@ class WDbgArkSymbolsBase {
     };
     std::string m_symbol_path{};
     std::string m_image_path{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

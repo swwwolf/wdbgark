@@ -126,7 +126,6 @@ class WDbgArkMemTable {
     bool m_collect_null = false;
 
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
-    std::stringstream err{};
 };
 
 class WDbgArkMemTableTyped : public WDbgArkMemTable {

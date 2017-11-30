@@ -99,9 +99,6 @@ class WDbgArkDbgEventsBP : public WDbgArkDbgEventsBase, public WDbgArkBP {
 
  private:
     bool m_inited = false;
-    std::stringstream err{};
-    std::stringstream warn{};
-    std::stringstream out{};
 };
 
 }   // namespace wa

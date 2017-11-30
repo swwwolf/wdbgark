@@ -38,7 +38,6 @@ bool NormalizeAddress(const uint64_t address, uint64_t* result) {
         *result = g_Ext->EvalExprU64(string_value.str().c_str());
         return true;
     } catch ( const ExtStatusException &Ex ) {
-        std::stringstream err;
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 

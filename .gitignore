@@ -214,3 +214,4 @@ FakesAssemblies/
 wdbgark.VC.opendb
 *.db
 *.opendb
+*.diagsession

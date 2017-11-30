@@ -36,8 +36,16 @@
 #include <iomanip>
 #include <string>
 #include <regex>
+#include <utility>
 
 namespace wa {
+
+extern std::stringstream out;
+extern std::stringstream err;
+extern std::stringstream warn;
+extern std::wstringstream wout;
+extern std::wstringstream werr;
+extern std::wstringstream wwarn;
 
 template <class T>
 struct ManipTraits {};
@@ -131,18 +139,18 @@ inline std::basic_ostream<T>& endlerr(std::basic_ostream<T> &arg) {
 template <class T = char>
 inline std::basic_string<T> normalize_special_chars(const std::basic_string<T> &s) {
     std::basic_regex<T> regex_amp(ManipTraits<T>::amp);
-    std::basic_string<T> out = std::regex_replace(s, regex_amp, ManipTraits<T>::amp_rpl);
+    std::basic_string<T> result = std::regex_replace(s, regex_amp, ManipTraits<T>::amp_rpl);
 
     std::basic_regex<T> regex_lt(ManipTraits<T>::lt);
-    out = std::regex_replace(out, regex_lt, ManipTraits<T>::lt_rpl);
+    result = std::regex_replace(result, regex_lt, ManipTraits<T>::lt_rpl);
 
     std::basic_regex<T> regex_gt(ManipTraits<T>::gt);
-    out = std::regex_replace(out, regex_gt, ManipTraits<T>::gt_rpl);
+    result = std::regex_replace(result, regex_gt, ManipTraits<T>::gt_rpl);
 
     std::basic_regex<T> regex_quot(ManipTraits<T>::quot);
-    out = std::regex_replace(out, regex_quot, ManipTraits<T>::quot_rpl);
+    result = std::regex_replace(result, regex_quot, ManipTraits<T>::quot_rpl);
 
-    return out;
+    return result;
 }
 
 }   // namespace wa

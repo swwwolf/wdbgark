@@ -141,7 +141,6 @@ class WDbgArkPe {
     uint64_t m_relocated_base = 0ULL;
     uint64_t m_read_memory_base = 0ULL;
     std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

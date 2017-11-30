@@ -163,9 +163,6 @@ class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
     virtual ~WDbgArkAnalyzeObjType() {}
 
     virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object);
-
- private:
-     std::stringstream err{};
 };
 //////////////////////////////////////////////////////////////////////////
 // IDT analyzer
@@ -280,7 +277,6 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
         { KGDT_CODE16, make_string(KGDT_CODE16) },
         { KGDT_STACK16, make_string(KGDT_STACK16) }
     };
-    std::stringstream err{};
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -297,11 +293,6 @@ class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
     void DisplayMajorTable(const ExtRemoteTyped &object);
     void DisplayFastIo(const ExtRemoteTyped &object);
     void DisplayFsFilterCallbacks(const ExtRemoteTyped &object);
-
- private:
-    std::stringstream out{};
-    std::stringstream warn{};
-    std::stringstream err{};
 };
 //////////////////////////////////////////////////////////////////////////
 }   // namespace wa

@@ -156,7 +156,6 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     const auto [result, name] = m_obj_helper->GetObjectName(object);
 
     if ( !SUCCEEDED(result) ) {
-        std::stringstream warn;
         warn << wa::showqmark << __FUNCTION__ ": GetObjectName failed" << endlwarn;
     } else {
         object_name = name;
@@ -166,7 +165,6 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     const auto [result_type, type_name] = m_obj_helper->GetObjectTypeName(object);
 
     if ( !SUCCEEDED(result_type) ) {
-        std::stringstream warn;
         warn << wa::showqmark << __FUNCTION__ ": GetObjectTypeName failed" << endlwarn;
     } else {
         object_type_name = type_name;

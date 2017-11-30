@@ -925,9 +925,6 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 }
 
 bool InitIdtSupport(const uint32_t strict_minor_build, IdtSupport* support_info) {
-    std::stringstream warn;
-    std::stringstream err;
-
     if ( g_Ext->IsCurMachine64() ) {
         if ( !g_Ext->GetSymbolOffset("nt!KxUnexpectedInterrupt0", true, &support_info->start_unexpected_range) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get nt!KxUnexpectedInterrupt0" << endlerr;

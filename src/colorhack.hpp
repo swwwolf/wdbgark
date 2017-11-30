@@ -110,12 +110,6 @@ class WDbgArkColorHack : public WDbgArkBPProxy<char> {
     vecUiColor m_internal_colors{};
     std::string m_cur_theme{};
     themes m_themes{};
-    //////////////////////////////////////////////////////////////////////////
-    // output streams
-    //////////////////////////////////////////////////////////////////////////
-    std::stringstream out{};
-    std::stringstream warn{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

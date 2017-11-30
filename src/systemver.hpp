@@ -62,10 +62,6 @@ class WDbgArkSystemVer {
     std::set<uint32_t> m_known_windows_builds = {
         WXP_VER, W2K3_VER, VISTA_RTM_VER, VISTA_SP1_VER, VISTA_SP2_VER, W7RTM_VER, W7SP1_VER, W8RTM_VER, W81RTM_VER,
         W10RTM_VER, W10TH2_VER, W10RS1_VER, W10RS2_VER, W10RS3_VER };
-
-    std::stringstream out{};
-    std::stringstream warn{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

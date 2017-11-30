@@ -45,13 +45,6 @@ class WDbgArkResHelper {
      std::string m_main_subdir{ "wdbgark" };
      std::string m_platform_subdir{};
      std::string m_temp_path{};
-
-    //////////////////////////////////////////////////////////////////////////
-    // output streams
-    //////////////////////////////////////////////////////////////////////////
-    std::stringstream out{};
-    std::stringstream warn{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

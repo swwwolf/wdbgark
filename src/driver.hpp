@@ -56,7 +56,6 @@ class WDbgArkDriver {
     DriversInformation m_drivers_list{};
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

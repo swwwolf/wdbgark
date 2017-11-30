@@ -67,12 +67,6 @@ class WDbgArkUdis {
     std::unique_ptr<uint8_t[]> m_buffer{ nullptr };
     size_t m_size = 0;
     ud_t m_udis_obj = { 0 };
-    //////////////////////////////////////////////////////////////////////////
-    // output streams
-    //////////////////////////////////////////////////////////////////////////
-    std::stringstream out{};
-    std::stringstream warn{};
-    std::stringstream err{};
 };
 
 }   // namespace wa

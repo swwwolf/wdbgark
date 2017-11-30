@@ -121,7 +121,6 @@ class WDbgArkAnalyzeWhiteList {
     Ranges m_temp_ranges{};
     WhiteListEntries m_wl_entries{};
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
-    std::stringstream err{};
 
  private:
     void AddRangeWhiteListInternal(const uint64_t start, const uint64_t end, Ranges* ranges) {
