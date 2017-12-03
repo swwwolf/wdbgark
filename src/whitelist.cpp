@@ -74,7 +74,7 @@ void WDbgArkAnalyzeWhiteList::AddTempWhiteList(const std::string &name) {
             std::transform(std::begin(search_name),
                            std::end(search_name),
                            std::begin(search_name),
-                           [](char c) {return static_cast<char>(tolower(c)); });
+                           [](char c) { return static_cast<char>(tolower(c)); });
 
             auto entry_list = m_wl_entries.at(search_name);
 
@@ -92,19 +92,21 @@ bool WDbgArkAnalyzeWhiteList::IsAddressInWhiteList(const uint64_t address) const
         return true;
     }
 
-    const auto it = std::find_if(m_ranges.begin(), m_ranges.end(), [address](const Range &range) {
+    const auto it = std::find_if(std::begin(m_ranges), std::end(m_ranges), [address](const Range &range) {
         return ((address >= range.first) && (address <= range.second));
     });
 
-    if ( it != m_ranges.end() ) {
+    if ( it != std::end(m_ranges) ) {
         return true;
     }
 
-    const auto temp_it = std::find_if(m_temp_ranges.begin(), m_temp_ranges.end(), [address](const Range &range) {
+    const auto temp_it = std::find_if(std::begin(m_temp_ranges),
+                                      std::end(m_temp_ranges),
+                                      [address](const Range &range) {
         return ((address >= range.first) && (address <= range.second));
     });
 
-    if ( temp_it != m_temp_ranges.end() ) {
+    if ( temp_it != std::end(m_temp_ranges) ) {
         return true;
     }
 

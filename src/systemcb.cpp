@@ -397,7 +397,7 @@ EXT_COMMAND(wa_systemcb,
         } else {
             const auto cit = m_system_cb_commands.find(type);
 
-            if ( cit != m_system_cb_commands.end() ) {
+            if ( cit != std::end(m_system_cb_commands) ) {
                 out << wa::showplus << "Collecting " << cit->first << " callbacks" << endlout;
                 CallCorrespondingWalkListRoutine(cit, &output_list);
             } else {

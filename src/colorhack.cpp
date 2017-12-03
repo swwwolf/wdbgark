@@ -456,7 +456,7 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
 
     const auto it = m_themes.find(theme_name);
 
-    if ( it == m_themes.end() ) {
+    if ( it == std::end(m_themes) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to find theme " << theme_name << endlerr;
         return false;
     }
@@ -526,12 +526,12 @@ bool WDbgArkColorHack::SetColor(const std::string &dml_name, const COLORREF colo
         return false;
     }
 
-    const auto it = std::find_if(m_internal_colors.begin(),
-                                 m_internal_colors.end(),
+    const auto it = std::find_if(std::begin(m_internal_colors),
+                                 std::end(m_internal_colors),
                                  [&dml_name](const InternalUiColor &ui_color) {
         return ui_color.dml_name == dml_name; });
 
-    if ( it != m_internal_colors.end() ) {
+    if ( it != std::end(m_internal_colors) ) {
         // do not touch original color
         it->new_color = color;
         // memory modification

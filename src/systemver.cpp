@@ -56,7 +56,7 @@ WDbgArkSystemVer::WDbgArkSystemVer() {
 }
 
 void WDbgArkSystemVer::CheckWindowsBuild(void) {
-    if ( m_known_windows_builds.find(m_minor_build) == m_known_windows_builds.end() ) {
+    if ( m_known_windows_builds.find(m_minor_build) == std::end(m_known_windows_builds) ) {
         warn << wa::showqmark << __FUNCTION__ << ": unknown Windows version. Be careful and look sharp!" << endlwarn;
     }
 }

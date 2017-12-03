@@ -62,7 +62,7 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
     const auto hal_tbl_info = GetHalTableInfo();
     const auto it = hal_tbl_info.find(m_system_ver->GetStrictVer());
 
-    if ( it == hal_tbl_info.end() ) {
+    if ( it == std::end(hal_tbl_info) ) {
         err << wa::showminus << __FUNCTION__ << ": unable to correlate internal info with the minor build" << endlerr;
         return;
     }

@@ -87,7 +87,10 @@ bool WDbgArkBP::IsKnownBp(const IDebugBreakpoint* bp) {
 void WDbgArkBP::Invalidate() {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    for_each(m_bp.begin(), m_bp.end(), [&](Breakpoints::value_type &bp) { m_Control->RemoveBreakpoint(bp.second); });
+    for_each(std::begin(m_bp),
+             std::end(m_bp),
+             [&](Breakpoints::value_type &bp) { m_Control->RemoveBreakpoint(bp.second); });
+
     m_bp.clear();
 }
 

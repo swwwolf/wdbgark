@@ -44768,58 +44768,58 @@ static const char** Service_Tables[][14] = {
 };
 
 static const size_t Service_Tables_countof[][14] = {
-    { _countof(KiServiceTable_XpSp3_x86), _countof(KiServiceTable_W2k3Sp2_x86),
-      _countof(KiServiceTable_VistaSp0_x86), _countof(KiServiceTable_VistaSp1_x86),
-      _countof(KiServiceTable_VistaSp2_x86), _countof(KiServiceTable_Win7Sp0_x86),
-      _countof(KiServiceTable_Win7Sp1_x86), _countof(KiServiceTable_Win8Sp0_x86),
-      _countof(KiServiceTable_Win8Sp1_x86),
-      _countof(KiServiceTable_Win10Th1_x86), _countof(KiServiceTable_Win10Th2_x86),
-      _countof(KiServiceTable_Win10Rs1_x86), _countof(KiServiceTable_Win10Rs2_x86),
-      _countof(KiServiceTable_Win10Rs3_x86)
+    { std::size(KiServiceTable_XpSp3_x86), std::size(KiServiceTable_W2k3Sp2_x86),
+      std::size(KiServiceTable_VistaSp0_x86), std::size(KiServiceTable_VistaSp1_x86),
+      std::size(KiServiceTable_VistaSp2_x86), std::size(KiServiceTable_Win7Sp0_x86),
+      std::size(KiServiceTable_Win7Sp1_x86), std::size(KiServiceTable_Win8Sp0_x86),
+      std::size(KiServiceTable_Win8Sp1_x86),
+      std::size(KiServiceTable_Win10Th1_x86), std::size(KiServiceTable_Win10Th2_x86),
+      std::size(KiServiceTable_Win10Rs1_x86), std::size(KiServiceTable_Win10Rs2_x86),
+      std::size(KiServiceTable_Win10Rs3_x86)
     },
 
     { 0,
-      _countof(KiServiceTable_W2k3Sp2_x64), _countof(KiServiceTable_VistaSp0_x64),
-      _countof(KiServiceTable_VistaSp1_x64), _countof(KiServiceTable_VistaSp2_x64),
-      _countof(KiServiceTable_Win7Sp0_x64), _countof(KiServiceTable_Win7Sp1_x64),
-      _countof(KiServiceTable_Win8Sp0_x64), _countof(KiServiceTable_Win8Sp1_x64),
-      _countof(KiServiceTable_Win10Th1_x64), _countof(KiServiceTable_Win10Th2_x64),
-      _countof(KiServiceTable_Win10Rs1_x64), _countof(KiServiceTable_Win10Rs2_x64),
-      _countof(KiServiceTable_Win10Rs3_x64)
+      std::size(KiServiceTable_W2k3Sp2_x64), std::size(KiServiceTable_VistaSp0_x64),
+      std::size(KiServiceTable_VistaSp1_x64), std::size(KiServiceTable_VistaSp2_x64),
+      std::size(KiServiceTable_Win7Sp0_x64), std::size(KiServiceTable_Win7Sp1_x64),
+      std::size(KiServiceTable_Win8Sp0_x64), std::size(KiServiceTable_Win8Sp1_x64),
+      std::size(KiServiceTable_Win10Th1_x64), std::size(KiServiceTable_Win10Th2_x64),
+      std::size(KiServiceTable_Win10Rs1_x64), std::size(KiServiceTable_Win10Rs2_x64),
+      std::size(KiServiceTable_Win10Rs3_x64)
     },
 
-    { _countof(W32pServiceTable_XpSp3_x86), _countof(W32pServiceTable_W2k3Sp2_x86),
-      _countof(W32pServiceTable_VistaSp0_x86), _countof(W32pServiceTable_VistaSp1_x86),
-      _countof(W32pServiceTable_VistaSp2_x86), _countof(W32pServiceTable_Win7Sp0_x86),
-      _countof(W32pServiceTable_Win7Sp1_x86), _countof(W32pServiceTable_Win8Sp0_x86),
-      _countof(W32pServiceTable_Win8Sp1_x86),
-      _countof(W32pServiceTable_Win10Th1_x86), _countof(W32pServiceTable_Win10Th2_x86),
-      _countof(W32pServiceTable_Win10Rs1_x86), _countof(W32pServiceTable_Win10Rs2_x86),
-      _countof(W32pServiceTable_Win10Rs3_x86)
+    { std::size(W32pServiceTable_XpSp3_x86), std::size(W32pServiceTable_W2k3Sp2_x86),
+      std::size(W32pServiceTable_VistaSp0_x86), std::size(W32pServiceTable_VistaSp1_x86),
+      std::size(W32pServiceTable_VistaSp2_x86), std::size(W32pServiceTable_Win7Sp0_x86),
+      std::size(W32pServiceTable_Win7Sp1_x86), std::size(W32pServiceTable_Win8Sp0_x86),
+      std::size(W32pServiceTable_Win8Sp1_x86),
+      std::size(W32pServiceTable_Win10Th1_x86), std::size(W32pServiceTable_Win10Th2_x86),
+      std::size(W32pServiceTable_Win10Rs1_x86), std::size(W32pServiceTable_Win10Rs2_x86),
+      std::size(W32pServiceTable_Win10Rs3_x86)
     },
 
     { 0,
-      _countof(W32pServiceTable_W2k3Sp2_x64), _countof(W32pServiceTable_VistaSp0_x64),
-      _countof(W32pServiceTable_VistaSp1_x64), _countof(W32pServiceTable_VistaSp2_x64),
-      _countof(W32pServiceTable_Win7Sp0_x64), _countof(W32pServiceTable_Win7Sp1_x64),
-      _countof(W32pServiceTable_Win8Sp0_x64), _countof(W32pServiceTable_Win8Sp1_x64),
-      _countof(W32pServiceTable_Win10Th1_x64), _countof(W32pServiceTable_Win10Th2_x64),
-      _countof(W32pServiceTable_Win10Rs1_x64), _countof(W32pServiceTable_Win10Rs2_x64),
-      _countof(W32pServiceTable_Win10Rs3_x64)
+      std::size(W32pServiceTable_W2k3Sp2_x64), std::size(W32pServiceTable_VistaSp0_x64),
+      std::size(W32pServiceTable_VistaSp1_x64), std::size(W32pServiceTable_VistaSp2_x64),
+      std::size(W32pServiceTable_Win7Sp0_x64), std::size(W32pServiceTable_Win7Sp1_x64),
+      std::size(W32pServiceTable_Win8Sp0_x64), std::size(W32pServiceTable_Win8Sp1_x64),
+      std::size(W32pServiceTable_Win10Th1_x64), std::size(W32pServiceTable_Win10Th2_x64),
+      std::size(W32pServiceTable_Win10Rs1_x64), std::size(W32pServiceTable_Win10Rs2_x64),
+      std::size(W32pServiceTable_Win10Rs3_x64)
     },
 
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      _countof(W32pServiceTableFilter_Win10Rs1_x86), _countof(W32pServiceTableFilter_Win10Rs2_x86),
-      _countof(W32pServiceTableFilter_Win10Rs3_x86)
+      std::size(W32pServiceTableFilter_Win10Rs1_x86), std::size(W32pServiceTableFilter_Win10Rs2_x86),
+      std::size(W32pServiceTableFilter_Win10Rs3_x86)
     },
 
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      _countof(W32pServiceTableFilter_Win10Rs1_x64), _countof(W32pServiceTableFilter_Win10Rs2_x64),
-      _countof(W32pServiceTableFilter_Win10Rs3_x64)
+      std::size(W32pServiceTableFilter_Win10Rs1_x64), std::size(W32pServiceTableFilter_Win10Rs2_x64),
+      std::size(W32pServiceTableFilter_Win10Rs3_x64)
     },
 
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      _countof(LxpSyscalls_Win10Rs1_x64), _countof(LxpSyscalls_Win10Rs2_x64), _countof(LxpSyscalls_Win10Rs3_x64)
+      std::size(LxpSyscalls_Win10Rs1_x64), std::size(LxpSyscalls_Win10Rs2_x64), std::size(LxpSyscalls_Win10Rs3_x64)
     }
 };
 

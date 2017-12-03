@@ -33,11 +33,11 @@
 namespace wa {
 
 std::wstring string_to_wstring(const std::string& str) {
-    return std::wstring(str.begin(), str.end());
+    return std::wstring(std::begin(str), std::end(str));
 }
 
 std::string wstring_to_string(const std::wstring& wstr) {
-    return std::string(wstr.begin(), wstr.end());
+    return std::string(std::begin(wstr), std::end(wstr));
 }
 
 std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped &unicode_string) {
