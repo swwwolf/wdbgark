@@ -70,7 +70,7 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
         return false;
     }
 
-    uint32_t resource_size = SizeofResource(g_Ext->s_Module, resource);
+    const uint32_t resource_size = SizeofResource(g_Ext->s_Module, resource);
 
     if ( !resource_size ) {
         std::string lasterr = LastErrorToString(GetLastError());
@@ -106,7 +106,7 @@ bool WDbgArkResHelper::DropResource(const char* resource_name,
         return false;
     }
 
-    drop.write(reinterpret_cast<char*>(data), resource_size);
+    drop.write(static_cast<char*>(data), resource_size);
 
     if ( drop.fail() ) {
         strerror_s(error_msg.get(), MAX_PATH, errno);

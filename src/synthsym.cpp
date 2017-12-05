@@ -306,12 +306,13 @@ bool WDbgArk::FindMiApiSetSchema() {
             if ( check_address ) {
                 WDbgArkUdis udis_local(0, check_address, 10 * MAX_INSN_LENGTH);
 
-                if ( !udis_local.IsInited() )
+                if ( !udis_local.IsInited() ) {
                     continue;
+                }
 
                 while ( udis_local.Disassemble() ) {
                     if ( udis_local.InstructionLength() == 5 && udis_local.InstructionMnemonic() == UD_Icall ) {
-                        uint64_t call_address = udis_local.InstructionOffset() + \
+                        const uint64_t call_address = udis_local.InstructionOffset() + \
                             udis_local.InstructionOperand(0)->lval.sdword + udis_local.InstructionLength();
 
                         const auto [result, name] = m_symbols_base->GetNameByOffset(call_address);
@@ -328,7 +329,7 @@ bool WDbgArk::FindMiApiSetSchema() {
                     }
                 }
 
-                if ( address ) {  // global break
+                if ( address != 0ULL ) {  // global break
                     break;
                 }
             }

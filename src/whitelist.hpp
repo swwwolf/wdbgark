@@ -55,7 +55,7 @@ class WDbgArkAnalyzeWhiteList {
 
     WDbgArkAnalyzeWhiteList() = delete;
     explicit WDbgArkAnalyzeWhiteList(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_sym_cache(sym_cache) {}
-    virtual ~WDbgArkAnalyzeWhiteList() {}
+    virtual ~WDbgArkAnalyzeWhiteList() = default;
 
     //////////////////////////////////////////////////////////////////////////
     // permanent list

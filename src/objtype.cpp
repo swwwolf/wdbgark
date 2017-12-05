@@ -101,8 +101,7 @@ HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk*, const ExtRemoteTyped &obj
         display->Analyze(typeinfo, object);
     }
     catch ( const ExtRemoteException &Ex ) {
-        std::stringstream tmperr;
-        tmperr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
 

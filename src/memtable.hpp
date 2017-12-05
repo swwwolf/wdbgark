@@ -87,7 +87,7 @@ class WDbgArkMemTable {
             return false;
         }
 
-        auto offset = GetTableStart() + GetTableSkipStart();
+        const auto offset = GetTableStart() + GetTableSkipStart();
 
         try {
             bool terminate = false;
@@ -95,7 +95,7 @@ class WDbgArkMemTable {
             for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
                 for ( uint32_t rc = 0; rc < GetRoutineCount(); rc++ ) {
                     ExtRemoteData data(offset + tc * GetRoutineDelta() + rc * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
-                    auto ptr = data.GetPtr();
+                    const auto ptr = data.GetPtr();
 
                     if ( ptr != 0ULL || IsCollectNull() ) {
                         result->push_back(ptr);
@@ -160,7 +160,7 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
             return false;
         }
 
-        auto offset = GetTableStart() + GetTableSkipStart();
+        const auto offset = GetTableStart() + GetTableSkipStart();
 
         try {
             for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {

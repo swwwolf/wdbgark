@@ -64,9 +64,7 @@ EXT_COMMAND(wa_objtypecb,
 
     try {
         if ( type == "*" ) {
-            WalkDirectoryObject(object_types_directory_offset,
-                                reinterpret_cast<void*>(display.get()),
-                                DirectoryObjectTypeCallbackListCallback);
+            WalkDirectoryObject(object_types_directory_offset, display.get(), DirectoryObjectTypeCallbackListCallback);
         } else {
             ExtRemoteTyped object_type("nt!_OBJECT_TYPE",
                                        m_obj_helper->FindObjectByName(type,
@@ -77,9 +75,7 @@ EXT_COMMAND(wa_objtypecb,
                                        NULL,
                                        NULL);
 
-            if ( !SUCCEEDED(DirectoryObjectTypeCallbackListCallback(this,
-                                                                    object_type,
-                                                                    reinterpret_cast<void*>(display.get()))) ) {
+            if ( !SUCCEEDED(DirectoryObjectTypeCallbackListCallback(this, object_type, display.get())) ) {
                 err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallbackListCallback failed" << endlerr;
             }
         }
@@ -97,12 +93,12 @@ EXT_COMMAND(wa_objtypecb,
 HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class,
                                                          const ExtRemoteTyped &object,
                                                          void* context) {
-    WDbgArkAnalyzeBase* display = reinterpret_cast<WDbgArkAnalyzeBase*>(context);
+    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(context);
 
     try {
         ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
         auto object_type_flags_typed = object_type.Field("TypeInfo").Field("ObjectTypeFlags");
-        auto size = object_type_flags_typed.GetTypeSize();
+        const auto size = object_type_flags_typed.GetTypeSize();
 
         const auto object_type_flags = static_cast<uint16_t>(object_type_flags_typed.GetData(size));
 
@@ -133,8 +129,7 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
         }
     }
     catch ( const ExtRemoteException &Ex ) {
-        std::stringstream tmperr;
-        tmperr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
 

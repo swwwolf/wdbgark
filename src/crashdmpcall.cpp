@@ -49,7 +49,7 @@ EXT_COMMAND(wa_crashdmpcall, "Output kernel-mode nt!CrashdmpCallTable", "") {
         return;
     }
 
-    uint32_t table_count = GetCrashdmpCallTableCount();
+    const uint32_t table_count = GetCrashdmpCallTableCount();
 
     if ( !table_count ) {
         err << wa::showminus << __FUNCTION__ << ": unknown table count" << endlerr;

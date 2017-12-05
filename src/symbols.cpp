@@ -98,11 +98,11 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindExecutableImage(const s
     }
 
     char image_file_path[MAX_PATH + 1] = { 0 };
-    HANDLE exe_file = FindExecutableImageEx(image_name.c_str(),
-                                            search_path.c_str(),
-                                            reinterpret_cast<PSTR>(&image_file_path),
-                                            FindExecutableImageProc,
-                                            reinterpret_cast<void*>(const_cast<DEBUG_MODULE_PARAMETERS*>(&parameters)));
+    auto exe_file = FindExecutableImageEx(image_name.c_str(),
+                                          search_path.c_str(),
+                                          reinterpret_cast<PSTR>(&image_file_path),
+                                          FindExecutableImageProc,
+                                          const_cast<DEBUG_MODULE_PARAMETERS*>(&parameters));
 
     if ( exe_file ) {
         CloseHandle(exe_file);
@@ -153,7 +153,7 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::SymFindExecutableImage(cons
                                           SSRVOPT_DWORDPTR,
                                           reinterpret_cast<PSTR>(&image_file_path),
                                           SymFindFileInPathProc,
-                                          reinterpret_cast<void*>(const_cast<DEBUG_MODULE_PARAMETERS*>(&parameters)));
+                                          const_cast<DEBUG_MODULE_PARAMETERS*>(&parameters));
 
     if ( result ) {
         return std::make_pair(S_OK, std::string(image_file_path));
@@ -198,12 +198,12 @@ BOOL WDbgArkSymbolsBase::SymFindFileInPathProc(const char* file_name, void* data
         return result;
     }
 
-    auto const header = ::ImageNtHeader(base);
+    const auto header = ::ImageNtHeader(base);
 
     if ( header ) {
         auto nth = wa::GetNtHeaders(header);
 
-        auto const parameters = reinterpret_cast<const PDEBUG_MODULE_PARAMETERS>(data);
+        const auto parameters = reinterpret_cast<const PDEBUG_MODULE_PARAMETERS>(data);
 
         if ( parameters->Size == nth->GetImageSize() &&
              parameters->TimeDateStamp == nth->GetTimeDateStamp() &&
@@ -251,15 +251,15 @@ HRESULT WDbgArkSymbolsBase::GetModuleNames(const uint64_t address,
                                          reinterpret_cast<PULONG>(&loaded_module_name_size));
 
         if ( SUCCEEDED(result) ) {
-            size_t img_name_buf_length = static_cast<size_t>(img_name_size + 1);
+            const size_t img_name_buf_length = static_cast<size_t>(img_name_size + 1);
             auto buf1 = std::make_unique<char[]>(img_name_buf_length);
             std::memset(buf1.get(), 0, img_name_buf_length);
 
-            size_t module_name_buf_length = static_cast<size_t>(module_name_size + 1);
+            const size_t module_name_buf_length = static_cast<size_t>(module_name_size + 1);
             auto buf2 = std::make_unique<char[]>(module_name_buf_length);
             std::memset(buf2.get(), 0, module_name_buf_length);
 
-            size_t loaded_module_name_buf_length = static_cast<size_t>(loaded_module_name_size + 1);
+            const size_t loaded_module_name_buf_length = static_cast<size_t>(loaded_module_name_size + 1);
             auto buf3 = std::make_unique<char[]>(loaded_module_name_buf_length);
             std::memset(buf3.get(), 0, loaded_module_name_buf_length);
 
@@ -361,11 +361,11 @@ HRESULT WDbgArkSymbolsBase::GetFunctionInformation(const uint64_t offset,
     }
 
     std::unique_ptr<uint8_t[]> function_entry = std::make_unique<uint8_t[]>(size);
-    auto result = g_Ext->m_Symbols3->GetFunctionEntryByOffset(offset,
-                                                              0,
-                                                              function_entry.get(),
-                                                              static_cast<ULONG>(size),
-                                                              nullptr);
+    const auto result = g_Ext->m_Symbols3->GetFunctionEntryByOffset(offset,
+                                                                    0,
+                                                                    function_entry.get(),
+                                                                    static_cast<ULONG>(size),
+                                                                    nullptr);
 
     if ( FAILED(result) ) {
         return result;
@@ -396,7 +396,7 @@ bool WDbgArkSymbolsBase::CheckMsSymbolsPath() {
     return result;
 }
 //////////////////////////////////////////////////////////////////////////
-bool WDbgArkSymbolsBase::CheckSymbolsPath(const bool display_error, const std::string &test_path) {
+bool WDbgArkSymbolsBase::CheckSymbolsPath(const bool display_error, const std::string &test_path) const {
     std::string check_path = GetSymbolPath();
 
     if ( check_path.empty() || check_path == " " ) {
@@ -435,7 +435,7 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::GetNameByOffset(const uint6
     ignore_output.Stop();
 
     if ( SUCCEEDED(result) && name_buffer_size ) {
-        size_t buf_size = static_cast<size_t>(name_buffer_size + 1);
+        const size_t buf_size = static_cast<size_t>(name_buffer_size + 1);
         auto tmp_name = std::make_unique<char[]>(buf_size);
         std::memset(tmp_name.get(), 0, buf_size);
 
@@ -572,7 +572,7 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindModuleImage(const uint6
         return std::make_pair(result, m_unknown_name);
     }
 
-    size_t pos = image_name.find_last_of("/\\");
+    const size_t pos = image_name.find_last_of("/\\");
 
     if ( pos != std::string::npos ) {
         image_name = image_name.substr(pos + 1);
@@ -582,7 +582,7 @@ WDbgArkSymbolsBase::ResultString WDbgArkSymbolsBase::FindModuleImage(const uint6
 }
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkSymbolsBase::AppendSymbolPath(const std::string &symbol_path) {
-    HRESULT result = g_Ext->m_Symbols->AppendSymbolPath(symbol_path.c_str());
+    const HRESULT result = g_Ext->m_Symbols->AppendSymbolPath(symbol_path.c_str());
 
     if ( !InitSymbolPath() ) {
         err << wa::showminus << __FUNCTION__ ": InitSymbolPath failed" << endlerr;
@@ -592,7 +592,7 @@ HRESULT WDbgArkSymbolsBase::AppendSymbolPath(const std::string &symbol_path) {
 }
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkSymbolsBase::AppendImagePath(const std::string &image_path) {
-    HRESULT result = g_Ext->m_Symbols->AppendImagePath(image_path.c_str());
+    const HRESULT result = g_Ext->m_Symbols->AppendImagePath(image_path.c_str());
 
     if ( !InitImagePath() ) {
         err << wa::showminus << __FUNCTION__ ": InitImagePath failed" << endlerr;

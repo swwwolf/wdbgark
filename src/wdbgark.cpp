@@ -159,7 +159,7 @@ void WDbgArk::InitCallbackCommands() {
         warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
     }
 
-    uint32_t le_size = GetTypeSize("nt!_LIST_ENTRY");
+    const uint32_t le_size = GetTypeSize("nt!_LIST_ENTRY");
 
     m_system_cb_commands = { {
         { "image", { "", "nt!PspLoadImageNotifyRoutine", 0, 0, 0 } },
@@ -237,10 +237,10 @@ void WDbgArk::WalkAnyListWithOffsetToRoutine(const std::string &list_head_name,
         ExtRemoteList list_head(offset, link_offset, is_double);
 
         for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
-            uint64_t node = list_head.GetNodeOffset();
+            const uint64_t node = list_head.GetNodeOffset();
             ExtRemoteData structure_data(node + offset_to_routine, m_PtrSize);
 
-            uint64_t routine = structure_data.GetPtr();
+            const uint64_t routine = structure_data.GetPtr();
 
             if ( routine ) {
                 OutputWalkInfo info;
@@ -284,7 +284,7 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_
         ExtRemoteList list_head(offset, 0, is_double);
 
         for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
-            ExtRemoteData object_pointer(list_head.GetNodeOffset() + offset_to_object_pointer, m_PtrSize);
+            const ExtRemoteData object_pointer(list_head.GetNodeOffset() + offset_to_object_pointer, m_PtrSize);
 
             if ( !SUCCEEDED(callback(this, object_pointer, context)) ) {
                 err << wa::showminus << __FUNCTION__ << ": error while invoking callback" << endlerr;
@@ -381,7 +381,7 @@ void WDbgArk::AddSymbolPointer(const std::string &symbol_name,
 
     try {
         if ( m_sym_cache->GetSymbolOffset(symbol_name, true, &offset) ) {
-            uint64_t symbol_offset = offset;
+            const uint64_t symbol_offset = offset;
 
             ExtRemoteData routine_ptr(offset, m_PtrSize);
             offset = routine_ptr.GetPtr();

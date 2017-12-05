@@ -33,14 +33,14 @@ std::string LastErrorToString(const DWORD message_error) {
 
     char* buffer = nullptr;
 
-    DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
-    size_t size = FormatMessage(flags,
-                                nullptr,
-                                message_error,
-                                MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
-                                reinterpret_cast<LPTSTR>(&buffer),
-                                0,
-                                nullptr);
+    const DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+    const size_t size = FormatMessage(flags,
+                                      nullptr,
+                                      message_error,
+                                      MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
+                                      reinterpret_cast<LPTSTR>(&buffer),
+                                      0,
+                                      nullptr);
 
     std::string message(buffer, size);
     HeapFree(GetProcessHeap(), 0, buffer);

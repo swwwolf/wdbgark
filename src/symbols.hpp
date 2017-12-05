@@ -46,7 +46,7 @@ class WDbgArkSymbolsBase {
     using ResultString = std::pair<HRESULT, std::string>;
 
     WDbgArkSymbolsBase();
-    virtual ~WDbgArkSymbolsBase() {}
+    virtual ~WDbgArkSymbolsBase() = default;
 
     std::string GetSymbolPath(void) const { return m_symbol_path; }
     std::string GetImagePath(void) const { return m_image_path; }
@@ -65,7 +65,7 @@ class WDbgArkSymbolsBase {
     HRESULT GetFunctionInformation(const uint64_t offset, uint64_t* start_offset, uint64_t* end_offset);
     bool CheckMsSymbolsPath();
     bool CheckSymbolsPath(const bool display_error,
-                          const std::string &test_path = "https://msdl.microsoft.com/download/symbols");
+                          const std::string &test_path = "https://msdl.microsoft.com/download/symbols") const;
     HRESULT AppendSymbolPath(const std::string &symbol_path);
     HRESULT AppendImagePath(const std::string &image_path);
 

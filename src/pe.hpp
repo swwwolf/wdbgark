@@ -44,7 +44,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class IWDbgArkPeNtHeaders {
  public:
-    virtual ~IWDbgArkPeNtHeaders() {}
+    virtual ~IWDbgArkPeNtHeaders() = default;
 
     virtual bool IsPePlus() const = 0;
     virtual IMAGE_NT_HEADERS* GetPtr() const = 0;
@@ -67,7 +67,7 @@ template<typename T> class WDbgArkPeNtHeaders : IWDbgArkPeNtHeaders {
     explicit WDbgArkPeNtHeaders(const IMAGE_NT_HEADERS* image_nt_headers)
         : m_headers(reinterpret_cast<T*>(const_cast<IMAGE_NT_HEADERS*>(image_nt_headers))) {}
 
-    virtual ~WDbgArkPeNtHeaders() {}
+    virtual ~WDbgArkPeNtHeaders() = default;
 
     bool IsPePlus() const { return (m_headers->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC); }
     IMAGE_NT_HEADERS* GetPtr() const { return reinterpret_cast<IMAGE_NT_HEADERS*>(m_headers); }

@@ -100,7 +100,7 @@ bool WDbgArkUdis::SetInputBuffer(const uint64_t address, const size_t size) {
     try {
         ExtRemoteData data(address, static_cast<uint32_t>(size));
         m_buffer = std::make_unique<uint8_t[]>(size);
-        data.ReadBuffer(reinterpret_cast<void*>(m_buffer.get()), static_cast<uint32_t>(size));
+        data.ReadBuffer(m_buffer.get(), static_cast<uint32_t>(size));
         ud_set_input_buffer(&m_udis_obj, m_buffer.get(), size);
         SetInstructionPointer(address);
         m_size = size;

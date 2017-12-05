@@ -149,9 +149,9 @@ WDbgArkColorHack::WDbgArkColorHack() {
             throw ExtStatusException(S_OK, "Can't find WinDBG window");
         }
 
-        auto module_file_name = std::make_unique<char[]>(MAX_PATH);
+        char module_file_name[MAX_PATH] = { 0 };
 
-        if ( !GetModuleFileName(GetModuleHandle(nullptr), module_file_name.get(), MAX_PATH) ) {
+        if ( !GetModuleFileName(GetModuleHandle(nullptr), &module_file_name[0], MAX_PATH) ) {
             throw ExtStatusException(S_OK, "Can't get module file name");
         }
 
@@ -160,7 +160,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
         uint16_t windbg_build = 0;
         uint16_t windbg_revision = 0;
 
-        if ( !GetFileVersion(module_file_name.get(), &windbg_major, &windbg_minor, &windbg_build, &windbg_revision) ) {
+        if ( !GetFileVersion(&module_file_name[0], &windbg_major, &windbg_minor, &windbg_build, &windbg_revision) ) {
             throw ExtStatusException(S_OK, "Can't get module version");
         }
 
@@ -291,7 +291,7 @@ BOOL CALLBACK WDbgArkColorHack::EnumWindowsProc(HWND hwnd, LPARAM lParam) {
         HWND top_window = GetTopWindow(hwnd);
 
         if ( top_window ) {
-            size_t window_text_len = static_cast<size_t>(GetWindowTextLength(top_window));
+            const size_t window_text_len = static_cast<size_t>(GetWindowTextLength(top_window));
 
             if ( window_text_len ) {
                 auto test_name = std::make_unique<char[]>(window_text_len);
@@ -323,7 +323,7 @@ bool WDbgArkColorHack::GetFileVersion(const std::string& file_path,
                                       uint16_t* minor,
                                       uint16_t* build,
                                       uint16_t* revision) {
-    size_t file_version_size = GetFileVersionInfoSize(file_path.c_str(), nullptr);
+    const size_t file_version_size = GetFileVersionInfoSize(file_path.c_str(), nullptr);
 
     if ( !file_version_size ) {
         err << wa::showminus << __FUNCTION__ << ": GetFileVersionInfoSize failed" << endlerr;
@@ -378,7 +378,7 @@ void WDbgArkColorHack::PrintInformation(void) {
     m_tp->PrintFooter();
 }
 
-void WDbgArkColorHack::PrintMemoryInfo(void) {
+void WDbgArkColorHack::PrintMemoryInfo(void) const {
     try {
         out << wa::showplus << "--------------------------------------------------------------------------";
         out << endlout;
@@ -478,10 +478,7 @@ bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
 WDbgArkColorHack::InternalUiColor WDbgArkColorHack::ConvertUiColorToInternal(UiColor* ui_color,
                                                                              const UiColorType ui_color_type) {
     std::string dml_name = wstring_to_string(ui_color->dml_name);
-    std::transform(std::begin(dml_name),
-                   std::end(dml_name),
-                   std::begin(dml_name),
-                   [](char c) {return static_cast<char>(tolower(c)); });
+    dml_name = wa::tolower(dml_name);
 
     return { ui_color,
              false,

@@ -31,16 +31,16 @@
 namespace wa {
 
 WDbgArkSystemVer::WDbgArkSystemVer() {
-    HRESULT result = g_Ext->m_Control->GetSystemVersion(reinterpret_cast<PULONG>(&m_platform_id),
-                                                        reinterpret_cast<PULONG>(&m_major_build),
-                                                        reinterpret_cast<PULONG>(&m_minor_build),
-                                                        nullptr,
-                                                        0,
-                                                        nullptr,
-                                                        reinterpret_cast<PULONG>(&m_service_pack_number),
-                                                        nullptr,
-                                                        0,
-                                                        nullptr);
+    const auto result = g_Ext->m_Control->GetSystemVersion(reinterpret_cast<PULONG>(&m_platform_id),
+                                                           reinterpret_cast<PULONG>(&m_major_build),
+                                                           reinterpret_cast<PULONG>(&m_minor_build),
+                                                           nullptr,
+                                                           0,
+                                                           nullptr,
+                                                           reinterpret_cast<PULONG>(&m_service_pack_number),
+                                                           nullptr,
+                                                           0,
+                                                           nullptr);
 
     if ( !SUCCEEDED(result) ) {
         err << wa::showminus << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlerr;

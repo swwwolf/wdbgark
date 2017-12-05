@@ -40,8 +40,8 @@ EXT_COMMAND(wdrce_cpuid,
     }
 
     try {
-        int function_id = static_cast<int>(GetArgU64("eax"));
-        int subfunction_id = static_cast<int>(GetArgU64("ecx"), false);
+        const int function_id = static_cast<int>(GetArgU64("eax"));
+        const int subfunction_id = static_cast<int>(GetArgU64("ecx"), false);
 
         const auto result = m_wdrce->ExecuteCpuid(function_id, subfunction_id);
 

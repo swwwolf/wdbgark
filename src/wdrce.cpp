@@ -194,7 +194,7 @@ bool WDbgArkRce::InitGlobalData() {
                                        nullptr,
                                        nullptr);
 
-    size_t type_size = expdebuggerworkitem.GetTypeSize();
+    const size_t type_size = expdebuggerworkitem.GetTypeSize();
     unique_buf temp_buffer = std::make_unique<uint8_t[]>(type_size);
     expdebuggerworkitem.ReadBuffer(temp_buffer.get(), static_cast<uint32_t>(type_size));
 
@@ -355,14 +355,12 @@ bool WDbgArkRce::InitTempModuleDataSection(const std::unique_ptr<WDbgArkPe> &tem
         return false;
     }
 
-    ptrdiff_t start = 0;
     size_t size = static_cast<size_t>(first_header->Misc.VirtualSize);
 
-    m_data_section_start = reinterpret_cast<uint64_t>(reinterpret_cast<char*>(temp_module->GetReadMemoryBase()) +
-                                                      start);
+    m_data_section_start = temp_module->GetReadMemoryBase();
 
     auto data_section_bytes = std::make_unique<uint8_t[]>(size);
-    auto data_section_start = reinterpret_cast<const void*>(reinterpret_cast<char*>(temp_module->GetBase()) + start);
+    const void* const data_section_start = temp_module->GetBase();
 
     std::memcpy(data_section_bytes.get(), data_section_start, size);
     m_data_section = { std::move(data_section_bytes), size };
@@ -449,7 +447,7 @@ bool WDbgArkRce::InitRceShellcode(const std::string &function_name,
 
     size_t size = static_cast<size_t>(end_offset - start_offset);
     auto buffer = std::make_unique<uint8_t[]>(size);
-    
+
     std::memcpy(buffer.get(),
                 reinterpret_cast<char*>(dummy_rce->GetBase()) + static_cast<ptrdiff_t>(start_offset),
                 size);
@@ -650,7 +648,7 @@ bool WDbgArkRce::SetOption(const std::string &field_name,
                            const size_t reserved) {
     auto data_section_typed = GetDataSectionTyped();
     size_t size = data_section_typed.Field(field_name.c_str()).GetTypeSize();
-    auto buffer_size_reserved = buffer_size + reserved;
+    const auto buffer_size_reserved = buffer_size + reserved;
 
     if ( buffer_size_reserved > size ) {
         err << wa::showminus << __FUNCTION__ << ": Invalid size" << endlerr;
@@ -682,9 +680,9 @@ bool WDbgArkRce::GetOption(const std::string &field_name, const size_t buffer_si
         return false;
     }
 
-    auto offset = data_section_typed.GetFieldOffset(field_name.c_str());
-    auto ptr = reinterpret_cast<uint64_t>(reinterpret_cast<char*>(m_data_section_start) +
-                                          static_cast<ptrdiff_t>(offset));
+    const auto offset = data_section_typed.GetFieldOffset(field_name.c_str());
+    const auto ptr = reinterpret_cast<uint64_t>(reinterpret_cast<char*>(m_data_section_start) +
+                                                static_cast<ptrdiff_t>(offset));
 
     return SUCCEEDED(ReadVirtualUncached(ptr, buffer_size, buffer));
 }

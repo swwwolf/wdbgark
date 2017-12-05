@@ -91,7 +91,7 @@ class WDbgArkColorHack : public WDbgArkBPProxy<char> {
     using theme_elems = std::vector<theme_elem>;
     using themes = std::unordered_map<std::string, theme_elems>;
     //////////////////////////////////////////////////////////////////////////
-    void PrintMemoryInfo(void);
+    void PrintMemoryInfo(void) const;
     void InitThemes(void);
     bool SetColor(const std::string &dml_name, const COLORREF color);
     InternalUiColor ConvertUiColorToInternal(UiColor* ui_color, const UiColorType ui_color_type);

@@ -662,6 +662,7 @@ Algorithm:
 #include <string>
 #include <sstream>
 #include <memory>
+#include <utility>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
@@ -708,11 +709,11 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
             uint64_t idt_entry_start = 0;
             uint32_t idt_entry_size = 0;
 
-            HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(i,
-                                                                    DEBUG_DATA_KPCR_OFFSET,
-                                                                    &kpcr_offset,
-                                                                    static_cast<uint32_t>(sizeof(kpcr_offset)),
-                                                                    NULL);
+            const HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(i,
+                                                                          DEBUG_DATA_KPCR_OFFSET,
+                                                                          &kpcr_offset,
+                                                                          static_cast<uint32_t>(sizeof(kpcr_offset)),
+                                                                          NULL);
 
             if ( !SUCCEEDED(result) ) {
                 err << wa::showminus << __FUNCTION__ << ": ReadProcessorSystemData failed with error = " << result;
@@ -1107,11 +1108,11 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
             uint64_t kpcr_offset = 0;
             uint64_t gdt_entry_start = 0;
 
-            HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(cpu_idx,
-                                                                    DEBUG_DATA_KPCR_OFFSET,
-                                                                    &kpcr_offset,
-                                                                    sizeof(kpcr_offset),
-                                                                    NULL);
+            const HRESULT result = g_Ext->m_Data->ReadProcessorSystemData(cpu_idx,
+                                                                          DEBUG_DATA_KPCR_OFFSET,
+                                                                          &kpcr_offset,
+                                                                          sizeof(kpcr_offset),
+                                                                          NULL);
 
             if ( !SUCCEEDED(result) ) {
                 err << wa::showminus << __FUNCTION__ << ": CPU " << cpu_idx;

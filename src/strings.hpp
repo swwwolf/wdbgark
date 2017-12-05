@@ -32,6 +32,7 @@
 
 #include <engextcpp.hpp>
 #include <string>
+#include <algorithm>
 
 namespace wa {
 
@@ -43,6 +44,16 @@ namespace wa {
 std::wstring string_to_wstring(const std::string& str);
 std::string wstring_to_string(const std::wstring& wstr);
 std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped &unicode_string);
+
+template <class T = char> inline
+std::basic_string<T> tolower(const std::basic_string<T> &str) {
+    auto s = str;
+    std::transform(std::begin(s), std::end(s), std::begin(s), [](T c) {
+        return static_cast<T>(std::tolower(c, std::locale()));
+    });
+
+    return s;
+}
 
 }   // namespace wa
 

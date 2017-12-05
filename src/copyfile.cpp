@@ -49,7 +49,7 @@ EXT_COMMAND(wdrce_copyfile,
         } else {
             out << wa::showplus << "Enter native file path" << endlout;
 
-            size_t buffer_size = INT16_MAX + 1;
+            const size_t buffer_size = INT16_MAX + 1;
             std::unique_ptr<wchar_t[]> buffer = std::make_unique<wchar_t[]>(buffer_size);
             std::memset(buffer.get(), 0, buffer_size * sizeof(wchar_t));
 
