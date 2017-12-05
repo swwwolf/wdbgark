@@ -31,6 +31,13 @@
 #include "strings.hpp"
 
 namespace wa {
+uint64_t ExFastRefGetObject(uint64_t fast_ref) {
+    if ( g_Ext->IsCurMachine32() ) {
+        return fast_ref & ~MAX_FAST_REFS_X86;
+    } else {
+        return fast_ref & ~MAX_FAST_REFS_X64;
+    }
+}
 //////////////////////////////////////////////////////////////////////////
 // base object manager helper class
 //////////////////////////////////////////////////////////////////////////
@@ -120,7 +127,7 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
                 }
 
                 if ( recursive && object_information.type_name == "Directory" ) {
-                    object_information.full_path += "\\";
+                    object_information.full_path += R"(\)";
 
                     const auto [result_info, recursive_info] = GetObjectsInfo(object_information.object.m_Offset,
                                                                               object_information.full_path,
@@ -158,21 +165,14 @@ uint64_t WDbgArkObjHelper::FindObjectByName(const std::string &object_name,
 
     std::string compare_full_path = root_path + object_name;
 
-    if ( root_path == "\\" && object_name[0] == '\\' ) {
+    if ( root_path == R"(\)" && object_name[0] == '\\' ) {
         compare_full_path = object_name;
     }
 
-    std::transform(std::begin(compare_full_path),
-                   std::end(compare_full_path),
-                   std::begin(compare_full_path),
-                   [](char c) {return static_cast<char>(tolower(c)); });
+    compare_full_path = wa::tolower(compare_full_path);
 
     for ( const auto [offset, object_info] : info ) {
-        std::string full_path = object_info.full_path;
-        std::transform(std::begin(full_path),
-                       std::end(full_path),
-                       std::begin(full_path),
-                       [](char c) {return static_cast<char>(tolower(c)); });
+        std::string full_path = wa::tolower(object_info.full_path);
 
         if ( full_path == compare_full_path ) {
             return object_info.object.m_Offset;
@@ -208,14 +208,34 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
     return std::make_pair(S_OK, object_header);
 }
 
+bool WDbgArkObjHelper::HasObjectHeaderNameInfo(const ExtRemoteTyped &object_header) const {
+    try {
+        auto& loc_object_header = const_cast<ExtRemoteTyped&>(object_header);
+
+        if ( m_object_header_old ) {
+            if ( loc_object_header.Field("NameInfoOffset").GetUchar() ) {
+                return true;
+            }
+        } else {
+            if ( loc_object_header.Field("InfoMask").GetUchar() & HeaderNameInfoFlag ) {
+                return true;
+            }
+        }
+    } catch ( const ExtRemoteException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    return false;
+}
+
 std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header) {
     ExtRemoteTyped object_header_name_info;
 
     try {
-        ExtRemoteTyped& loc_object_header = const_cast<ExtRemoteTyped&>(object_header);
+        auto& loc_object_header = const_cast<ExtRemoteTyped&>(object_header);
 
         if ( m_object_header_old ) {
-            ExtRemoteTyped name_info_offset = loc_object_header.Field("NameInfoOffset");
+            auto name_info_offset = loc_object_header.Field("NameInfoOffset");
 
             if ( name_info_offset.GetUchar() ) {
                 object_header_name_info.Set("nt!_OBJECT_HEADER_NAME_INFO",
@@ -228,13 +248,11 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
             }
         } else {
             if ( m_ObpInfoMaskToOffset ) {
-                ExtRemoteTyped info_mask = loc_object_header.Field("InfoMask");
+                auto info_mask = loc_object_header.Field("InfoMask");
 
                 if ( info_mask.GetUchar() & HeaderNameInfoFlag ) {
-                    ExtRemoteData name_info_mask_to_offset(
-                        m_ObpInfoMaskToOffset +\
-                        (info_mask.GetUchar() & (HeaderNameInfoFlag | (HeaderNameInfoFlag - 1))),
-                        sizeof(uint8_t) );
+                    const auto obp_offset = info_mask.GetUchar() & (HeaderNameInfoFlag | (HeaderNameInfoFlag - 1));
+                    ExtRemoteData name_info_mask_to_offset(m_ObpInfoMaskToOffset + obp_offset, sizeof(uint8_t));
 
                     object_header_name_info.Set("nt!_OBJECT_HEADER_NAME_INFO",
                                                 loc_object_header.m_Offset - name_info_mask_to_offset.GetUchar(),
@@ -263,6 +281,10 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteT
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get object header" << endlerr;
         return std::make_pair(result, output_string);
+    }
+
+    if ( !HasObjectHeaderNameInfo(header) ) {
+        return std::make_pair(S_OK, std::string());
     }
 
     auto [result_info, name_info] = GetObjectHeaderNameInfo(header);

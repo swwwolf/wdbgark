@@ -685,7 +685,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
             const auto ex_callback_fast_ref = notify_routine_list.GetPtr();
 
             if ( ex_callback_fast_ref != 0 ) {
-                const auto unref_object = m_obj_helper->ExFastRefGetObject(ex_callback_fast_ref);
+                const auto unref_object = ExFastRefGetObject(ex_callback_fast_ref);
                 const auto notify_routine = ExtRemoteData(unref_object + GetTypeSize("nt!_EX_RUNDOWN_REF"),
                                                           m_PtrSize).GetPtr();
 
@@ -715,9 +715,7 @@ void WDbgArk::WalkCallbackDirectory(const std::string &type, walkresType* output
     context.type = type;
     context.output_list_pointer = output_list;
 
-    WalkDirectoryObject(m_obj_helper->FindObjectByName("Callback"),
-                        reinterpret_cast<void*>(&context),
-                        DirectoryObjectCallback);
+    WalkDirectoryObject(m_obj_helper->FindObjectByName("Callback"), &context, DirectoryObjectCallback);
 }
 
 HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
@@ -729,8 +727,7 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemot
     const auto [result, name] = wdbg_ark_class->m_obj_helper->GetObjectName(object);
 
     if ( !SUCCEEDED(result) ) {
-        std::stringstream tmpwarn;
-        tmpwarn << wa::showqmark << __FUNCTION__ << ": failed to get object name" << endlwarn;
+        warn << wa::showqmark << __FUNCTION__ << ": failed to get object name" << endlwarn;
     } else {
         list_head_name.append(name);
     }
@@ -768,15 +765,15 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
                                          0ULL,
                                          true,
                                          GetTypeSize("nt!_LIST_ENTRY"),
-                                         reinterpret_cast<void*>(&context),
+                                         &context,
                                          ShutdownListCallback);
 }
 
 HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_pointer, void* context) {
-    WalkCallbackContext* cb_context = reinterpret_cast<WalkCallbackContext*>(context);
+    WalkCallbackContext* cb_context = static_cast<WalkCallbackContext*>(context);
 
     try {
-        uint64_t object_ptr = const_cast<ExtRemoteData &>(object_pointer).GetPtr();
+        const uint64_t object_ptr = const_cast<ExtRemoteData &>(object_pointer).GetPtr();
 
         ExtRemoteTyped device_object("nt!_DEVICE_OBJECT", object_ptr, false, NULL, NULL);
         ExtRemoteTyped driver_object_ptr = device_object.Field("DriverObject");
@@ -808,8 +805,7 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_poin
         cb_context->output_list_pointer->push_back(winfo);
     }
     catch ( const ExtRemoteException &Ex ) {
-        std::stringstream tmperr;
-        tmperr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
 
         return Ex.GetStatus();
     }
@@ -883,9 +879,7 @@ HRESULT WDbgArk::DeviceNodeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteType
                                                        cb_context->output_list_pointer);
     }
     catch ( const ExtRemoteException &Ex ) {
-        std::stringstream tmperr;
-        tmperr << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         return Ex.GetStatus();
     }
 

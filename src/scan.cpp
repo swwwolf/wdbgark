@@ -50,7 +50,7 @@ EXT_COMMAND(wa_scan,
     out << wa::showplus << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
 
     char time_buffer[26] = { 0 };
-    std::time_t time_start = std::time(nullptr);
+    const std::time_t time_start = std::time(nullptr);
 
     out << wa::showplus << "Scan start: ";
 
@@ -80,7 +80,7 @@ EXT_COMMAND(wa_scan,
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     out << wa::showplus << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << endlout;
 
-    std::time_t time_end = std::time(nullptr);
+    const std::time_t time_end = std::time(nullptr);
     out << wa::showplus << "Scan end: ";
 
     if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_end) ) {

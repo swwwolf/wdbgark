@@ -75,7 +75,7 @@ bool WDbgArkApiSet::Process(WDbgArkMemTableTyped::WalkResult &&walk_result) {
                 continue;
             }
 
-            size_t length = name_length / sizeof(wchar_t);
+            const size_t length = name_length / sizeof(wchar_t);
 
             ApiSetKey key;
             key.resize(length);
@@ -120,7 +120,7 @@ bool WDbgArkApiSet::ProcessValues(const std::wstring &key, WDbgArkMemTableTyped:
             ApiSetHost host;
 
             if ( value_offset != 0 && value_length != 0 ) {
-                size_t length = value_length / sizeof(wchar_t);
+                const size_t length = value_length / sizeof(wchar_t);
 
                 host.resize(length);
                 ExtRemoteData(value_offset, value_length).ReadBuffer(host.data(), value_length);

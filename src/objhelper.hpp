@@ -37,12 +37,15 @@
 #include <utility>
 #include <map>
 #include <vector>
+#include <memory>
 
 #include "./ddk.h"
 #include "symcache.hpp"
 #include "strings.hpp"
 
 namespace wa {
+
+uint64_t ExFastRefGetObject(uint64_t fast_ref);
 
 //////////////////////////////////////////////////////////////////////////
 // base object manager helper class
@@ -63,7 +66,7 @@ class WDbgArkObjHelper {
  public:
     explicit WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     WDbgArkObjHelper() = delete;
-    virtual ~WDbgArkObjHelper() {}
+    virtual ~WDbgArkObjHelper() = default;
 
     bool IsInited(void) const { return m_inited; }
 
@@ -79,15 +82,8 @@ class WDbgArkObjHelper {
                               const std::string &root_path = "\\",
                               const bool recursive = false);
 
-    uint64_t ExFastRefGetObject(uint64_t FastRef) const {
-        if ( g_Ext->IsCurMachine32() ) {
-            return FastRef & ~MAX_FAST_REFS_X86;
-        } else {
-            return FastRef & ~MAX_FAST_REFS_X64;
-        }
-    }
-
  private:
+    bool HasObjectHeaderNameInfo(const ExtRemoteTyped &object_header) const;
     std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);
 
  private:
