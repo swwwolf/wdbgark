@@ -189,6 +189,12 @@
     <ClCompile Include="src\apisethlp.cpp">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
+    <ClCompile Include="src\eop.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="src\processimplicithlp.cpp">
+      <Filter>Source Files\Support</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -321,6 +327,12 @@
     </ClInclude>
     <ClInclude Include="src\bprinter\include\bprinter\table_printer.h">
       <Filter>Header Files\bprinter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\processhlp.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\processimplicithlp.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

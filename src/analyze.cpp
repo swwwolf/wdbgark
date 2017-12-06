@@ -31,6 +31,9 @@
 #include "strings.hpp"
 #include "symbols.hpp"
 #include "util.hpp"
+#include "objhelper.hpp"
+#include "process.hpp"
+#include "processhlp.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -67,6 +70,11 @@ std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared
             return std::make_unique<WDbgArkAnalyzeDriver>(sym_cache);
         }
 
+        case AnalyzeType::AnalyzeTypeProcessToken:
+        {
+            return std::make_unique<WDbgArkAnalyzeProcessToken>(sym_cache);
+        }
+
         case AnalyzeType::AnalyzeTypeDefault:
         default:
         {
@@ -87,9 +95,7 @@ bool WDbgArkAnalyzeBase::IsSuspiciousAddress(const uint64_t address) const {
     return true;
 }
 
-void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
-                                 const std::string &type,
-                                 const std::string &additional_info) {
+void WDbgArkAnalyzeBase::Analyze(const uint64_t address, const std::string &type, const std::string &info) {
     std::string symbol_name{};
     std::string module_name{};
     std::string image_name{};
@@ -139,8 +145,8 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address,
         *m_tp << "";
     }
 
-    if ( !additional_info.empty() ) {
-        *m_tp << additional_info;
+    if ( !info.empty() ) {
+        *m_tp << info;
     }
 
     if ( suspicious ) {
@@ -171,7 +177,6 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     }
 
     std::stringstream object_command;
-    std::stringstream object_name_ext;
 
     try {
         const auto [type, cmd_start, cmd_end] = m_object_dml_cmd.at(object_type_name);
@@ -183,10 +188,14 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
 
     if ( object_command.str().empty() ) {
         object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
-        object_command << std::hex << std::showbase << object.m_Offset << "</exec>";
+        object_command << std::hex << std::showbase << object.m_Offset << "0x39 </exec>";
     }
 
-    object_name_ext << object_name;
+    std::stringstream object_name_ext;
+
+    if ( !object_name.empty() ) {
+        object_name_ext << object_name;
+    }
 
     *this << object_command.str() << object_name_ext.str();
     m_tp->flush_out();
@@ -247,7 +256,7 @@ WDbgArkAnalyzeSDT::WDbgArkAnalyzeSDT(const std::shared_ptr<WDbgArkSymCache> &sym
     AddColumn("Suspicious", 10);
 }
 void WDbgArkAnalyzeSDT::Analyze(const uint64_t address, const std::string &type) {
-    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+    WDbgArkAnalyzeBase* display = this;
 
     std::stringstream str_index;
     str_index << std::hex << index++;
@@ -289,7 +298,7 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
             AddTempWhiteList(name);
         }
 
-        WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+        WDbgArkAnalyzeBase* display = this;
 
         std::string parse_procedure_name("ParseProcedure");
 
@@ -345,7 +354,7 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
                                 const uint32_t selector,
                                 const std::string &additional_info) {
     try {
-        uint32_t limit = GetGDTLimit(gdt_entry);
+        const uint32_t limit = GetGDTLimit(gdt_entry);
         uint64_t address = 0ULL;
 
         if ( !NormalizeAddress(GetGDTBase(gdt_entry), &address) ) {
@@ -534,7 +543,7 @@ std::string WDbgArkAnalyzeGDT::GetGDTSelectorName(const uint32_t selector) const
 
 std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
     std::string type_name = "*UNKNOWN*";
-    size_t type = static_cast<size_t>(GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1));
+    const size_t type = static_cast<size_t>(GetGDTType(gdt_entry) & ~SEG_DESCTYPE(1));
 
     try {
         if ( IsGDTTypeSystem(gdt_entry) ) {
@@ -564,13 +573,13 @@ WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache
 }
 
 void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
-    ExtRemoteTyped& loc_object = const_cast<ExtRemoteTyped&>(object);
+    auto loc_object = const_cast<ExtRemoteTyped&>(object);
 
     try {
         PrintObjectDmlCmd(object);
         PrintFooter();
 
-        WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+        WDbgArkAnalyzeBase* display = this;
 
         auto driver_start = loc_object.Field("DriverStart").GetPtr();
         uint32_t driver_size = loc_object.Field("DriverSize").GetUlong();
@@ -616,7 +625,7 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
 }
 
 void WDbgArkAnalyzeDriver::DisplayMajorTable(const ExtRemoteTyped &object) {
-    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+    WDbgArkAnalyzeBase* display = this;
 
     out << wa::showplus << "Major table routines: " << endlout;
     PrintFooter();
@@ -631,7 +640,7 @@ void WDbgArkAnalyzeDriver::DisplayMajorTable(const ExtRemoteTyped &object) {
 }
 
 void WDbgArkAnalyzeDriver::DisplayFastIo(const ExtRemoteTyped &object) {
-    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+    WDbgArkAnalyzeBase* display = this;
 
     const auto fast_io_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetFastIoTable();
 
@@ -648,7 +657,7 @@ void WDbgArkAnalyzeDriver::DisplayFastIo(const ExtRemoteTyped &object) {
 }
 
 void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object) {
-    WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(this);
+    WDbgArkAnalyzeBase* display = this;
 
     const auto fs_cb_table = WDbgArkDrvObjHelper(m_sym_cache, object).GetFsFilterCbTable();
 
@@ -664,5 +673,98 @@ void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object
     }
 }
 //////////////////////////////////////////////////////////////////////////
+WDbgArkAnalyzeProcessToken::WDbgArkAnalyzeProcessToken(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache) {
+    // width = 180
+    AddColumn("Token", 18);
+    AddColumn("Process name", 20);
+    AddColumn("Process image path", 107);
+    AddColumn("Suspicious", 10);
+    AddColumn("Info", 25);
+}
+
+void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &process) {
+    auto check_process = const_cast<WDbgArkRemoteTypedProcess&>(process);
+
+    try {
+        const auto token_ref = check_process.Field("Token.Object").GetPtr();
+
+        if ( token_ref != 0ULL ) {
+            const auto token = ExFastRefGetObject(token_ref);
+            const auto [it, inserted] = m_token_process.try_emplace(token, check_process);
+
+            if ( !inserted ) {
+                auto [key_token, known_process] = *it;
+
+                std::stringstream token_ext;
+
+                token_ext << R"(<exec cmd="!token )" << std::hex << std::showbase << token << R"(">)";
+                token_ext << std::internal << std::setw(18) << std::setfill('0');
+                token_ext << std::hex << std::showbase << token << "</exec>";
+
+                if ( !IsPrinted(known_process) ) {
+                    // output first process
+                    std::string known_image_name{};
+                    std::wstring known_image_path{};
+
+                    try {
+                        known_process.GetProcessImageFileName(&known_image_name);
+                        known_process.GetProcessImageFilePath(&known_image_path);
+                    } catch ( const ExtRemoteException &Ex ) {
+                        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+                    }
+
+                    std::stringstream known_info;
+                    known_info << std::setw(41);
+                    known_info << "<exec cmd=\"dtx nt!_EPROCESS " << std::hex << std::showbase;
+                    known_info << known_process.GetDataOffset() << "\">dtx" << "</exec>" << " ";
+                    
+                    known_info << "<exec cmd=\"!process " << std::hex << std::showbase << known_process.GetDataOffset();
+                    known_info << " \">!process" << "</exec>";
+
+                    *this << token_ext.str() << known_image_name << wstring_to_string(known_image_path);
+                    *this << "Y" << known_info.str();
+
+                    FlushWarn();
+                    PrintFooter();
+                }
+
+                if ( !IsPrinted(check_process) ) {
+                    // output second process
+                    std::string check_image_name{};
+                    std::wstring check_image_path{};
+
+                    std::stringstream check_info;
+                    check_info << std::setw(41);
+                    check_info << "<exec cmd=\"dtx nt!_EPROCESS " << std::hex << std::showbase;
+                    check_info << check_process.GetDataOffset() << "\">dtx" << "</exec>" << " ";
+
+                    check_info << "<exec cmd=\"!process " << std::hex << std::showbase << check_process.GetDataOffset();
+                    check_info << " \">!process" << "</exec>";
+
+                    try {
+                        check_process.GetProcessImageFileName(&check_image_name);
+                        check_process.GetProcessImageFilePath(&check_image_path);
+                    } catch ( const ExtRemoteException &Ex ) {
+                        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+                    }
+
+                    *this << token_ext.str() << check_image_name << wstring_to_string(check_image_path);
+                    *this << "Y" << check_info.str();
+
+                    FlushWarn();
+                    PrintFooter();
+                }
+            }
+        }
+    } catch ( const ExtRemoteException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+}
+
+bool WDbgArkAnalyzeProcessToken::IsPrinted(const WDbgArkRemoteTypedProcess &process) {
+    const auto [it, inserted] = m_printed.insert(process.GetDataOffset());
+    return !(inserted);
+}
 
 }   // namespace wa

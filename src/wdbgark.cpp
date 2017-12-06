@@ -136,6 +136,7 @@ void WDbgArk::InitScanCommands() {
         { "!wa_checkmsr", std::bind(&WDbgArk::wa_checkmsr, this) },
         { "!wa_systemcb", std::bind(&WDbgArk::wa_systemcb, this) },
         { "!wa_chknirvana", std::bind(&WDbgArk::wa_chknirvana, this) },
+        { "!wa_eop", std::bind(&WDbgArk::wa_eop, this) },
         { "!wa_objtype", std::bind(&WDbgArk::wa_objtype, this) },
         { "!wa_objtypeidx", std::bind(&WDbgArk::wa_objtypeidx, this) },
         { "!wa_objtypecb", std::bind(&WDbgArk::wa_objtypecb, this) },

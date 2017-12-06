@@ -119,6 +119,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_psppico);
     EXT_COMMAND_METHOD(wa_systables);
     EXT_COMMAND_METHOD(wa_apiset);
+    EXT_COMMAND_METHOD(wa_eop);
 
     //////////////////////////////////////////////////////////////////////////
     // Windows Debugger Remote Code Execution commands

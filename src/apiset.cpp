@@ -20,6 +20,7 @@
 */
 
 #include <memory>
+#include <string>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
@@ -78,17 +79,29 @@ EXT_COMMAND(wa_apiset,
             return;
         }
 
-        uint64_t set_eprocess = 0;
+        WDbgArkRemoteTypedProcess set_eprocess;
 
         if ( HasArg("process") ) {
-            set_eprocess = GetArgU64("process");
+            set_eprocess.Set("nt!_EPROCESS", GetArgU64("process"), false);
         } else {
-            set_eprocess = process_helper->FindEProcessAnyApiSetMap();
+            set_eprocess = process_helper->FindProcessAnyApiSetMap();
         }
 
-        out << wa::showplus << "Process: " << std::hex << std::showbase << set_eprocess << endlout;
+        out << wa::showplus << "Process: " << std::hex << std::showbase << set_eprocess.GetDataOffset();
+        out << endlout;
 
-        offset = process_helper->GetProcessApiSetMap(set_eprocess);
+        std::string process_name;
+
+        if ( set_eprocess.GetProcessImageFileName(&process_name) ) {
+            out << wa::showplus << "Process name: " << process_name << endlout;
+        }
+
+        if ( FAILED(set_eprocess.SetImplicitProcess()) ) {
+            err << wa::showminus << __FUNCTION__ << ": failed to set process" << endlerr;
+            return;
+        }
+
+        offset = set_eprocess.GetProcessApiSetMap();
 
         if ( !offset ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get process ApiSetMap offset" << endlerr;
@@ -96,11 +109,6 @@ EXT_COMMAND(wa_apiset,
         }
 
         out << wa::showplus << "Process ApiSet map: " << std::hex << std::showbase << offset << endlout;
-
-        if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) ) {
-            err << wa::showminus << __FUNCTION__ << ": failed to set process" << endlerr;
-            return;
-        }
 
         WalkApiSetTable(offset, process_helper);
     } catch ( const ExtRemoteException &Ex ) {

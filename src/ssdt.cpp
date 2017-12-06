@@ -83,7 +83,7 @@ EXT_COMMAND(wa_ssdt, "Output the System Service Descriptor Table", "") {
 
         out << wa::showplus << "nt!KiServiceLimit: " << std::hex << std::showbase << offset << endlout;
 
-        size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
+        const size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
 
         if ( !limit ) {
             err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
@@ -128,15 +128,16 @@ EXT_COMMAND(wa_w32psdt,
     out << wa::showplus << "Displaying win32k!W32pServiceTable" << endlout;
 
     auto process_helper = std::make_unique<WDbgArkProcess>();
-    uint64_t set_eprocess = 0;
+
+    WDbgArkRemoteTypedProcess set_eprocess;
 
     if ( HasArg("process") ) {
-        set_eprocess = GetArgU64("process");
+        set_eprocess.Set("nt!_EPROCESS", GetArgU64("process"), false);
     } else {
-        set_eprocess = process_helper->FindEProcessAnyGUIProcess();
+        set_eprocess = process_helper->FindProcessAnyGUIProcess();
     }
 
-    if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) ) {
+    if ( FAILED(set_eprocess.SetImplicitProcess()) ) {
         throw ExtStatusException(S_OK, "failed to set process");
     }
 
@@ -156,7 +157,7 @@ EXT_COMMAND(wa_w32psdt,
 
         out << wa::showplus << "win32k!W32pServiceLimit: " << std::hex << std::showbase << offset << endlout;
 
-        size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
+        const size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
 
         if ( !limit ) {
             err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
@@ -206,15 +207,16 @@ EXT_COMMAND(wa_w32psdtflt,
     }
 
     auto process_helper = std::make_unique<WDbgArkProcess>();
-    uint64_t set_eprocess = 0;
+
+    WDbgArkRemoteTypedProcess set_eprocess;
 
     if ( HasArg("process") ) {
-        set_eprocess = GetArgU64("process");
+        set_eprocess.Set("nt!_EPROCESS", GetArgU64("process"), false);
     } else {
-        set_eprocess = process_helper->FindEProcessAnyGUIProcess();
+        set_eprocess = process_helper->FindProcessAnyGUIProcess();
     }
 
-    if ( !SUCCEEDED(process_helper->SetImplicitProcess(set_eprocess)) ) {
+    if ( FAILED(set_eprocess.SetImplicitProcess()) ) {
         throw ExtStatusException(S_OK, "failed to set process");
     }
 
@@ -234,7 +236,7 @@ EXT_COMMAND(wa_w32psdtflt,
 
         out << wa::showplus << "win32k!W32pServiceLimitFilter: " << std::hex << std::showbase << offset << endlout;
 
-        size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
+        const size_t limit = ExtRemoteData(offset, sizeof(uint32_t)).GetUlong();
 
         if ( !limit ) {
             err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;
@@ -319,7 +321,7 @@ EXT_COMMAND(wa_lxsdt, "Output the Linux Subsystem Service Descriptor Table", "")
     }
 
     try {
-        uint32_t limit = GetLxpSyscallsLimit();
+        const uint32_t limit = GetLxpSyscallsLimit();
 
         if ( !limit ) {
             err << wa::showminus << __FUNCTION__ << ": invalid service limit number" << endlerr;

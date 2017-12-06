@@ -87,6 +87,8 @@ class WDbgArkMemTable {
             return false;
         }
 
+        result->reserve(GetTableCount() * GetRoutineCount());
+
         const auto offset = GetTableStart() + GetTableSkipStart();
 
         try {
@@ -160,15 +162,17 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
             return false;
         }
 
+        result->reserve(GetTableCount());
+
         const auto offset = GetTableStart() + GetTableSkipStart();
 
         try {
             for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
-                result->push_back(ExtRemoteTyped(m_type.c_str(),
-                                                 offset + tc * m_type_size,
-                                                 false,
-                                                 &m_cache_cookie,
-                                                 nullptr));
+                result->emplace_back(ExtRemoteTyped(m_type.c_str(),
+                                                    offset + tc * m_type_size,
+                                                    false,
+                                                    &m_cache_cookie,
+                                                    nullptr));
             }
         } catch ( const ExtRemoteException &Ex ) {
             err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;

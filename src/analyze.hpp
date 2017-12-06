@@ -47,6 +47,8 @@
 #include "whitelist.hpp"
 #include "bproxy.hpp"
 #include "symbols.hpp"
+#include "process.hpp"
+#include "processhlp.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -61,16 +63,18 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
         AnalyzeTypeObjType,
         AnalyzeTypeIDT,
         AnalyzeTypeGDT,
-        AnalyzeTypeDriver
+        AnalyzeTypeDriver,
+        AnalyzeTypeProcessToken
     };
 
     explicit WDbgArkAnalyzeBase(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
         : WDbgArkAnalyzeWhiteList(sym_cache),
           m_sym_cache(sym_cache),
           m_obj_helper(std::make_unique<WDbgArkObjHelper>(sym_cache)) {}
-    virtual ~WDbgArkAnalyzeBase() {}
+    virtual ~WDbgArkAnalyzeBase() = default;
 
-    template<typename T> WDbgArkAnalyzeBase& operator<<(T input) {
+    template<class T>
+    WDbgArkAnalyzeBase& operator<<(T input) {
         *m_tp << input;
         return *this;
     }
@@ -82,23 +86,29 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
     // analyze routines
     //////////////////////////////////////////////////////////////////////////
     virtual bool IsSuspiciousAddress(const uint64_t address) const;
-    virtual void Analyze(const uint64_t address, const std::string &type, const std::string &additional_info);
+
+    virtual void Analyze(const uint64_t address, const std::string &type, const std::string &info);
+
     virtual void Analyze(const uint64_t, const std::string&) {
-        std::stringstream locerr;
-        locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
+
     virtual void Analyze(const ExtRemoteTyped&, const ExtRemoteTyped&) {
-        std::stringstream locerr;
-        locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
+
     virtual void Analyze(const ExtRemoteTyped&, const std::string&, const uint32_t, const std::string&) {
-        std::stringstream locerr;
-        locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
+
     virtual void Analyze(const ExtRemoteTyped&) {
-        std::stringstream locerr;
-        locerr << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
     }
+
+    virtual void Analyze(const WDbgArkRemoteTypedProcess&) {
+        err << wa::showminus << __FUNCTION__ << ": unimplemented" << endlerr;
+    }
+
     virtual void PrintObjectDmlCmd(const ExtRemoteTyped &object);
     virtual std::string GetModuleDmlCmd(const uint64_t address,
                                         const std::string &module_name,
@@ -114,15 +124,15 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
  private:
     using ObjDmlCmd = std::tuple<std::string, std::string, std::string>;
     std::map<std::string, ObjDmlCmd> m_object_dml_cmd = {
-        { "Type", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_OBJECT_TYPE *)", "\">", "</exec>") },
-        { "Directory", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_OBJECT_DIRECTORY *)", "\">", "</exec>") },
-        { "Process", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_EPROCESS *)", "\">", "</exec>") },
-        { "Thread", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_ETHREAD *)", "\">", "</exec>") },
-        { "Device", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_DEVICE_OBJECT *)", "\">", "</exec>") },
-        { "Driver", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_DRIVER_OBJECT *)", "\">", "</exec>") },
-        { "File", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_FILE_OBJECT *)", "\">", "</exec>") },
-        { "Section", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_SECTION *)", "\">", "</exec>") },
-        { "Key", std::make_tuple("<exec cmd=\"dx -r1 *(nt!_CM_KEY_BODY *)", "\">", "</exec>") }
+        { "Type", std::make_tuple("<exec cmd=\"dtx nt!_OBJECT_TYPE ", "\">", "</exec>") },
+        { "Directory", std::make_tuple("<exec cmd=\"dtx nt!_OBJECT_DIRECTORY ", "\">", "</exec>") },
+        { "Process", std::make_tuple("<exec cmd=\"dtx nt!_EPROCESS ", "\">", "</exec>") },
+        { "Thread", std::make_tuple("<exec cmd=\"dtx nt!_ETHREAD ", "\">", "</exec>") },
+        { "Device", std::make_tuple("<exec cmd=\"dtx nt!_DEVICE_OBJECT ", "\">", "</exec>") },
+        { "Driver", std::make_tuple("<exec cmd=\"dtx nt!_DRIVER_OBJECT ", "\">", "</exec>") },
+        { "File", std::make_tuple("<exec cmd=\"dtx nt!_FILE_OBJECT ", "\">", "</exec>") },
+        { "Section", std::make_tuple("<exec cmd=\"dtx nt!_SECTION ", "\">", "</exec>") },
+        { "Key", std::make_tuple("<exec cmd=\"dtx nt!_CM_KEY_BODY ", "\">", "</exec>") }
     };
 };
 //////////////////////////////////////////////////////////////////////////
@@ -131,7 +141,7 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
 class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
  public:
     explicit WDbgArkAnalyzeDefault(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
-    virtual ~WDbgArkAnalyzeDefault() {}
+    virtual ~WDbgArkAnalyzeDefault() = default;
 };
 //////////////////////////////////////////////////////////////////////////
 // Service table analyzer
@@ -139,7 +149,7 @@ class WDbgArkAnalyzeDefault: public WDbgArkAnalyzeBase {
 class WDbgArkAnalyzeSDT : public WDbgArkAnalyzeBase {
  public:
     explicit WDbgArkAnalyzeSDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
-    virtual ~WDbgArkAnalyzeSDT() {}
+    virtual ~WDbgArkAnalyzeSDT() = default;
 
     virtual void Analyze(const uint64_t address, const std::string &type);
 
@@ -152,7 +162,7 @@ class WDbgArkAnalyzeSDT : public WDbgArkAnalyzeBase {
 class WDbgArkAnalyzeCallback: public WDbgArkAnalyzeBase {
  public:
     explicit WDbgArkAnalyzeCallback(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
-    virtual ~WDbgArkAnalyzeCallback() {}
+    virtual ~WDbgArkAnalyzeCallback() = default;
 };
 //////////////////////////////////////////////////////////////////////////
 // Object type analyzer
@@ -160,7 +170,7 @@ class WDbgArkAnalyzeCallback: public WDbgArkAnalyzeBase {
 class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
  public:
     explicit WDbgArkAnalyzeObjType(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
-    virtual ~WDbgArkAnalyzeObjType() {}
+    virtual ~WDbgArkAnalyzeObjType() = default;
 
     virtual void Analyze(const ExtRemoteTyped &ex_type_info, const ExtRemoteTyped &object);
 };
@@ -170,7 +180,7 @@ class WDbgArkAnalyzeObjType: public WDbgArkAnalyzeBase {
 class WDbgArkAnalyzeIDT: public WDbgArkAnalyzeBase {
  public:
     explicit WDbgArkAnalyzeIDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
-    virtual ~WDbgArkAnalyzeIDT() {}
+    virtual ~WDbgArkAnalyzeIDT() = default;
 };
 //////////////////////////////////////////////////////////////////////////
 // GDT analyzer
@@ -178,7 +188,7 @@ class WDbgArkAnalyzeIDT: public WDbgArkAnalyzeBase {
 class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
  public:
     explicit WDbgArkAnalyzeGDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
-    virtual ~WDbgArkAnalyzeGDT() {}
+    virtual ~WDbgArkAnalyzeGDT() = default;
 
     virtual void Analyze(const ExtRemoteTyped &gdt_entry,
                          const std::string &cpu_idx,
@@ -278,14 +288,13 @@ class WDbgArkAnalyzeGDT: public WDbgArkAnalyzeBase {
         { KGDT_STACK16, make_string(KGDT_STACK16) }
     };
 };
-
 //////////////////////////////////////////////////////////////////////////
 // Driver analyzer
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
  public:
     explicit WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
-    virtual ~WDbgArkAnalyzeDriver() {}
+    virtual ~WDbgArkAnalyzeDriver() = default;
 
     virtual void Analyze(const ExtRemoteTyped &object);
 
@@ -295,6 +304,22 @@ class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
     void DisplayFsFilterCallbacks(const ExtRemoteTyped &object);
 };
 //////////////////////////////////////////////////////////////////////////
+// Process token analyzer
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeProcessToken : public WDbgArkAnalyzeBase {
+ public:
+    explicit WDbgArkAnalyzeProcessToken(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
+    virtual ~WDbgArkAnalyzeProcessToken() = default;
+
+    virtual void Analyze(const WDbgArkRemoteTypedProcess &process);
+
+ private:
+    bool IsPrinted(const WDbgArkRemoteTypedProcess &process);
+
+ private:
+    std::map<uint64_t, WDbgArkRemoteTypedProcess> m_token_process{};    // token : process
+    std::set<uint64_t> m_printed{};                                     // printed process
+};
 }   // namespace wa
 
 #endif  // ANALYZE_HPP_

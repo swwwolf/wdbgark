@@ -22,144 +22,102 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <utility>
 #include <memory>
 
 #include "process.hpp"
 #include "wdbgark.hpp"
 #include "manipulators.hpp"
 #include "apisethlp.hpp"
+#include "processhlp.hpp"
 
 namespace wa {
 
 WDbgArkProcess::WDbgArkProcess() {
-    if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugSystemObjects2),
-                                                reinterpret_cast<void**>(&m_System2))) ) {
-        m_System2.Set(nullptr);
-        err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
-        return;
-    }
+    auto list_head = ExtNtOsInformation::GetKernelProcessList();
 
-    try {
-        if ( GetTypeSize("nt!_EWOW64PROCESS") ) {
-            m_new_wow64 = true;     // 10586+
-        }
+    m_process_list.reserve(100);
 
-        ExtRemoteTypedList list_head = ExtNtOsInformation::GetKernelProcessList();
-
-        for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
-            ProcessInfo info;
-            info.process = list_head.GetTypedNode();
-            info.eprocess = GetProcessDataOffset(info.process);
-
-            if ( m_wow64_proc_field_name.empty() && g_Ext->IsCurMachine64() ) {
-                if ( info.process.HasField("WoW64Process") ) {
-                    m_wow64_proc_field_name = "WoW64Process";
-                } else {
-                    m_wow64_proc_field_name = "Wow64Process";
-                }
-            }
-
-            const auto [result, name] = GetProcessImageFileName(info.process);
-
-            if ( !result ) {
-                warn << wa::showqmark << __FUNCTION__ << ": failed to read process file name ";
-                warn << std::hex << std::showbase << info.process.m_Offset << endlwarn;
-            } else {
-                info.image_file_name = name;
-                std::transform(std::begin(info.image_file_name),
-                               std::end(info.image_file_name),
-                               std::begin(info.image_file_name),
-                               [](char c) {return static_cast<char>(tolower(c)); });
-            }
-
-            info.is_wow64 = IsWow64Process(info.process);
-            m_process_list.push_back(info);
-        }
-
-        if ( !m_process_list.empty() ) {
-            m_inited = true;
+    for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
+        try {
+            m_process_list.emplace_back(WDbgArkRemoteTypedProcess(list_head.GetTypedNode()));
+        } catch ( const ExtRemoteException& ) {
+            __noop;
         }
     }
-    catch( const ExtRemoteException &Ex ) {
-        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+
+    if ( !m_process_list.empty() ) {
+        m_inited = true;
     }
 }
 
 WDbgArkProcess::WDbgArkProcess(const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb) : WDbgArkProcess() {
     m_dummy_pdb = dummy_pdb;
-}
 
-WDbgArkProcess::~WDbgArkProcess() {
-    RevertImplicitProcess();
-
-    if ( m_System2.IsSet() ) {
-        EXT_RELEASE(m_System2);
+    for ( auto& process : m_process_list ) {
+        process.SetDummyPdb(m_dummy_pdb);
     }
 }
 
-uint64_t WDbgArkProcess::FindEProcessByImageFileName(const std::string &process_name) {
-    ProcessInfo info;
-
+WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessByImageFileName(const std::string &process_name) {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0ULL;
+        return WDbgArkRemoteTypedProcess();
     }
 
-    if ( FindProcessInfoByImageFileName(process_name, &info) ) {
-        return info.eprocess;
-    }
+    WDbgArkRemoteTypedProcess process;
+    FindProcessByImageFileName(process_name, &process);
 
-    return 0ULL;
+    return process;
 }
 
-uint64_t WDbgArkProcess::FindEProcessAnyGUIProcess() {
+WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessAnyGUIProcess() {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0ULL;
+        return WDbgArkRemoteTypedProcess();
     }
 
     try {
-        const auto it = std::find_if(std::begin(m_process_list), std::end(m_process_list), [](ProcessInfo &proc_info) {
-                return proc_info.process.Field("Win32Process").GetPtr() != 0ULL; });
+        const auto it = std::find_if(std::begin(m_process_list),
+                                     std::end(m_process_list),
+                                     [](WDbgArkRemoteTypedProcess &process) {
+            return (process.Field("Win32Process").GetPtr() != 0ULL);
+        });
 
         if ( it != std::end(m_process_list) ) {
-            return it->eprocess;
+            return (*it);
         }
     }
     catch( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    return 0ULL;
+    return WDbgArkRemoteTypedProcess();
 }
 
-uint64_t WDbgArkProcess::FindEProcessAnyApiSetMap() {
+WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessAnyApiSetMap() {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0ULL;
+        return WDbgArkRemoteTypedProcess();
     }
 
     const auto it = std::find_if(std::begin(m_process_list),
                                  std::end(m_process_list),
-                                 [this](ProcessInfo &proc_info) {
-        const auto offset = GetProcessApiSetMap(proc_info);
-
-        if ( !offset ) {
-            return false;
-        }
-
-        if ( FAILED(SetImplicitProcess(proc_info.process)) ) {
-            return false;
-        }
-
+                                 [this](WDbgArkRemoteTypedProcess &process) {
         try {
+            if ( FAILED(process.SetImplicitProcess()) ) {
+                return false;
+            }
+
+            const auto offset = process.GetProcessApiSetMap();
+
+            if ( !offset ) {
+                return false;
+            }
+
             // check that ApiSetMap is not paged out
             ExtRemoteTyped apiset_header((m_dummy_pdb->GetShortName() + "!" + GetApiSetNamespace()).c_str(),
                                          offset,
-                                         false,
-                                         nullptr,
-                                         nullptr);
+                                         false);
 
             size_t apiset_size = 0;
 
@@ -169,282 +127,51 @@ uint64_t WDbgArkProcess::FindEProcessAnyApiSetMap() {
                 apiset_size = PAGE_SIZE;
             }
 
-            std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(apiset_size);
+            auto buffer = std::make_unique<uint8_t[]>(apiset_size);
             ExtRemoteData(offset, static_cast<uint32_t>(apiset_size)).ReadBuffer(buffer.get(),
                                                                                  static_cast<uint32_t>(apiset_size));
 
-            RevertImplicitProcess();
             return true;
         } catch ( const ExtRemoteException& ) {
             __noop;
         }
 
-        RevertImplicitProcess();
         return false;
     });
 
     if ( it != std::end(m_process_list) ) {
-        return it->eprocess;
+        return (*it);
     }
 
-    return 0ULL;
+    return WDbgArkRemoteTypedProcess();
 }
 
-uint64_t WDbgArkProcess::GetProcessApiSetMap(const ProcessInfo &info) {
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0ULL;
-    }
-
-    return GetProcessApiSetMap(info.process);
-}
-
-uint64_t WDbgArkProcess::GetProcessApiSetMap(const uint64_t &eprocess) {
-    try {
-        return GetProcessApiSetMap(ExtRemoteTyped("nt!_EPROCESS", eprocess, false, nullptr, nullptr));
-    } catch ( const ExtRemoteException& ) {
-        __noop;
-    }
-
-    return 0ULL;
-}
-
-uint64_t WDbgArkProcess::GetProcessApiSetMap(const ExtRemoteTyped &process) {
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0ULL;
-    }
-
-    if ( FAILED(SetImplicitProcess(process)) ) {
-        return 0ULL;
-    }
-
-    uint64_t address = 0ULL;
+bool WDbgArkProcess::FindProcessByImageFileName(const std::string &process_name, WDbgArkRemoteTypedProcess* process) {
+    auto compare_with = wa::tolower(process_name);
 
     try {
-        address = const_cast<ExtRemoteTyped&>(process).Field("Peb").Field("ApiSetMap").GetPtr();
-    } catch ( const ExtRemoteException& ) {
-        __noop;
-    }
-
-    RevertImplicitProcess();
-    return address;
-}
-
-HRESULT WDbgArkProcess::SetImplicitProcess(const uint64_t set_eprocess) {
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return E_UNEXPECTED;
-    }
-
-    if ( m_old_process ) {
-        err << wa::showminus << __FUNCTION__ << ": implicit process already set" << endlerr;
-        return E_INVALIDARG;
-    }
-
-    HRESULT result = m_System2->GetImplicitProcessDataOffset(&m_old_process);
-
-    if ( !SUCCEEDED(result) ) {
-        err << wa::showminus << __FUNCTION__ << ": failed to get current EPROCESS" << endlerr;
-        return result;
-    }
-
-    if ( m_old_process == set_eprocess ) {
-        m_old_process = 0ULL;
-        return S_OK;
-    }
-
-    result = m_System2->SetImplicitProcessDataOffset(set_eprocess);
-
-    if ( !SUCCEEDED(result) ) {
-        err << wa::showminus << __FUNCTION__ << ": failed to set implicit process to ";
-        err << std::hex << std::showbase << set_eprocess << endlerr;
-    }
-
-    return result;
-}
-
-HRESULT WDbgArkProcess::SetImplicitProcess(const ExtRemoteTyped &set_eprocess) {
-    return SetImplicitProcess(GetProcessDataOffset(set_eprocess));
-}
-
-HRESULT WDbgArkProcess::RevertImplicitProcess() {
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return E_UNEXPECTED;
-    }
-
-    HRESULT result = E_NOT_SET;
-
-    if ( m_old_process ) {
-        result = m_System2->SetImplicitProcessDataOffset(m_old_process);
-
-        if ( !SUCCEEDED(result) ) {
-            err << wa::showminus << __FUNCTION__ << ": failed to revert" << endlerr;
-        } else {
-            m_old_process = 0ULL;
-        }
-    }
-
-    return result;
-}
-
-// 6000 - 9600 x64 only
-// 10240+ x86/x64 ()
-uint64_t WDbgArkProcess::GetInstrumentationCallback(const ProcessInfo &info) {
-    if ( !IsInited() ) {
-        err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return 0ULL;
-    }
-
-    try {
-        if ( g_Ext->IsCurMachine64() ) {
-            if ( !info.is_wow64 ) {
-                // native x64 process: _EPROCESS->_KPROCESS->InstrumentationCallback
-                return const_cast<ExtRemoteTyped&>(info.process).Field("Pcb").Field("InstrumentationCallback").GetPtr();
-            } else {
-                // WOW64 process
-                return GetWow64InstrumentationCallback(info);
+        const auto it = std::find_if(std::begin(m_process_list),
+                                     std::end(m_process_list),
+                                     [&compare_with](WDbgArkRemoteTypedProcess &process) {
+            std::string image_name{};
+            if ( !process.GetProcessImageFileName(&image_name) ) {
+                return false;
             }
-        } else {
-            // 10240+ x86 process only: _EPROCESS->InstrumentationCallback
-            return const_cast<ExtRemoteTyped&>(info.process).Field("InstrumentationCallback").GetPtr();
+
+            image_name = wa::tolower(image_name);
+
+            return (image_name == compare_with);
+        });
+
+        if ( it != std::end(m_process_list) ) {
+            *process = (*it);
+            return true;
         }
     } catch ( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    return 0ULL;
-}
-
-std::pair<bool, std::string> WDbgArkProcess::GetProcessImageFileName(const ExtRemoteTyped &process) {
-    std::string output_name = "";
-
-    try {
-        char buffer[100] = { 0 };
-        ExtRemoteTyped image_file_name = const_cast<ExtRemoteTyped&>(process).Field("ImageFileName");
-        output_name = image_file_name.GetString(buffer,
-                                                static_cast<ULONG>(sizeof(buffer)),
-                                                image_file_name.GetTypeSize(),
-                                                false);
-        return std::make_pair(true, output_name);
-    }
-    catch( const ExtRemoteException &Ex ) {
-        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-    }
-
-    return std::make_pair(false, output_name);
-}
-
-bool WDbgArkProcess::FindProcessInfoByImageFileName(const std::string &process_name, ProcessInfo* info) {
-    std::string compare_with = process_name;
-    std::transform(std::begin(compare_with),
-                   std::end(compare_with),
-                   std::begin(compare_with),
-                   [](char c) {return static_cast<char>(tolower(c)); });
-
-    const auto it = std::find_if(std::begin(m_process_list),
-                                 std::end(m_process_list),
-                                 [&compare_with](const ProcessInfo &proc_info) {
-        return proc_info.image_file_name == compare_with; });
-
-    if ( it != std::end(m_process_list) ) {
-        *info = *it;
-        return true;
-    }
-
     return false;
-}
-
-bool WDbgArkProcess::IsWow64Process(const ExtRemoteTyped &process) {
-    if ( g_Ext->IsCurMachine32() ) {
-        return false;
-    }
-
-    try {
-        return (const_cast<ExtRemoteTyped&>(process).Field(m_wow64_proc_field_name.c_str()).GetPtr() != 0ULL);
-    } catch ( const ExtRemoteException &Ex ) {
-        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-    }
-
-    return false;
-}
-
-uint64_t WDbgArkProcess::GetWow64ProcessPeb32(const ProcessInfo &info) {
-    if ( !info.is_wow64 ) {
-        return 0ULL;
-    }
-
-    return GetWow64ProcessPeb32(info.process);
-}
-
-uint64_t WDbgArkProcess::GetWow64ProcessPeb32(const ExtRemoteTyped &process) {
-    try {
-        if ( m_new_wow64 ) {
-            return const_cast<ExtRemoteTyped&>(process).Field(m_wow64_proc_field_name.c_str()).Field("Peb").GetPtr();
-        } else {
-            return const_cast<ExtRemoteTyped&>(process).Field(m_wow64_proc_field_name.c_str()).GetPtr();
-        }
-    } catch ( const ExtRemoteException &Ex ) {
-        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-    }
-
-    return 0ULL;
-}
-
-uint64_t WDbgArkProcess::GetWow64InfoPtr(const ProcessInfo &info) {
-    if ( !info.is_wow64 ) {
-        return 0ULL;
-    }
-
-    return GetWow64InfoPtr(info.process);
-}
-
-uint64_t WDbgArkProcess::GetWow64InfoPtr(const ExtRemoteTyped &process) {
-    uint64_t wow64peb = GetWow64ProcessPeb32(process);
-
-    if ( !wow64peb ) {
-        return 0ULL;
-    }
-
-    return wow64peb + GetTypeSize("nt!_PEB32");
-}
-
-uint64_t WDbgArkProcess::GetWow64InstrumentationCallback(const ProcessInfo &info) {
-    uint64_t offset = GetWow64InfoPtr(info);
-
-    if ( !offset ) {
-        return 0ULL;
-    }
-
-    if ( FAILED(SetImplicitProcess(info.eprocess)) ) {
-        return 0ULL;
-    }
-
-    // check that PEB32 is not paged out
-    try {
-        ExtRemoteTyped("nt!_PEB32",
-                       GetWow64ProcessPeb32(info.process), false, nullptr, nullptr).Field("Ldr").GetUlong();
-    } catch ( const ExtRemoteException& ) {
-        RevertImplicitProcess();
-        return 0ULL;
-    }
-
-    uint64_t address = 0ULL;
-
-    try {
-        ExtRemoteTyped wow64info((m_dummy_pdb->GetShortName() + "!_WOW64_INFO").c_str(),
-                                 offset,
-                                 false,
-                                 nullptr,
-                                 nullptr);
-        address = static_cast<uint64_t>(wow64info.Field("InstrumentationCallback").GetUlong());
-    } catch ( const ExtRemoteException &Ex ) {
-        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-    }
-
-    RevertImplicitProcess();
-    return address;
 }
 
 }   // namespace wa

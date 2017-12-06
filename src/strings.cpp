@@ -40,30 +40,36 @@ std::string wstring_to_string(const std::wstring& wstr) {
     return std::string(std::begin(wstr), std::end(wstr));
 }
 
-std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped &unicode_string) {
-    std::string output_string("*UNKNOWN*");
+std::pair<HRESULT, std::wstring> UnicodeStringStructToString(const ExtRemoteTyped &unicode_string) {
+    std::wstring output_string{};
 
     try {
         ExtRemoteTyped loc_unicode_string = unicode_string;
-        ExtRemoteTyped buffer = *loc_unicode_string.Field("Buffer");
-        const auto len = loc_unicode_string.Field("Length").GetUshort();
+
+        const size_t len = loc_unicode_string.Field("Length").GetUshort();
         const size_t maxlen = loc_unicode_string.Field("MaximumLength").GetUshort();
 
         if ( len == 0 && maxlen == 1 ) {
             return std::make_pair(S_OK, output_string);
         }
 
-        if ( maxlen >= sizeof(wchar_t) && (maxlen % sizeof(wchar_t) == 0) ) {
-            const size_t max_len_wide = maxlen / sizeof(wchar_t) + 1;
+        if ( len < sizeof(wchar_t) || (len % sizeof(wchar_t) != 0) ) {
+            return std::make_pair(E_INVALIDARG, output_string);
+        }
 
-            auto test_name = std::make_unique<wchar_t[]>(max_len_wide);
-            const size_t read = buffer.ReadBuffer(test_name.get(), static_cast<ULONG>(maxlen));
+        if ( maxlen < sizeof(wchar_t) || (maxlen % sizeof(wchar_t) != 0) ) {
+            return std::make_pair(E_INVALIDARG, output_string);
+        }
 
-            if ( read == maxlen ) {
-                output_string = wstring_to_string(test_name.get());
-            }
+        ExtRemoteTyped buffer = *loc_unicode_string.Field("Buffer");
 
-            return std::make_pair(S_OK, output_string);
+        const size_t max_len_wide = maxlen / sizeof(wchar_t) + 1;   // reserve 1 additional wchar_t
+        auto buf = std::make_unique<wchar_t[]>(max_len_wide);
+
+        const size_t read = buffer.ReadBuffer(buf.get(), static_cast<ULONG>(maxlen));
+
+        if ( read == maxlen ) {
+            return std::make_pair(S_OK, buf.get());
         }
     } catch ( const ExtRemoteException &Ex ) {
         return std::make_pair(Ex.GetStatus(), output_string);

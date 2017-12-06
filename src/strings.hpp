@@ -43,7 +43,7 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 std::wstring string_to_wstring(const std::string& str);
 std::string wstring_to_string(const std::wstring& wstr);
-std::pair<HRESULT, std::string> UnicodeStringStructToString(const ExtRemoteTyped &unicode_string);
+std::pair<HRESULT, std::wstring> UnicodeStringStructToString(const ExtRemoteTyped &unicode_string);
 
 template <class T = char> inline
 std::basic_string<T> tolower(const std::basic_string<T> &str) {

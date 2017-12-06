@@ -300,7 +300,7 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectName(const ExtRemoteT
         return std::make_pair(result_unicode, output_string);
     }
 
-    return std::make_pair(result_unicode, name);
+    return std::make_pair(result_unicode, wstring_to_string(name));     // TODO(swwwolf): do not convert
 }
 
 std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemoteTyped &object) {
@@ -354,7 +354,7 @@ std::pair<HRESULT, std::string> WDbgArkObjHelper::GetObjectTypeName(const ExtRem
         return std::make_pair(result_unicode, output_string);
     }
 
-    return std::make_pair(result_unicode, name);
+    return std::make_pair(result_unicode, wstring_to_string(name));     // TODO(swwwolf): do not convert
 }
 
 //////////////////////////////////////////////////////////////////////////

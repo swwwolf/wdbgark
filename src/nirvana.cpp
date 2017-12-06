@@ -24,6 +24,7 @@
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
+#include "processhlp.hpp"
 #include "process.hpp"
 
 namespace wa {
@@ -58,16 +59,15 @@ EXT_COMMAND(wa_chknirvana, "Checks processes for Hooking Nirvana instrumentation
     display->PrintHeader();
 
     try {
-        for ( const auto &process : process_helper->GetProcessList() ) {
-            auto address = process_helper->GetInstrumentationCallback(process);
+        for ( auto process : process_helper->GetProcessList() ) {
+            if ( FAILED(process.SetImplicitProcess()) ) {
+                err << wa::showminus << __FUNCTION__ << ": failed to set process" << endlerr;
+                continue;
+            }
+
+            const auto address = process.GetInstrumentationCallback();
 
             if ( address ) {
-                const auto result = process_helper->SetImplicitProcess(process.eprocess);
-
-                if ( FAILED(result) ) {
-                    continue;
-                }
-
                 // reload user-mode symbols without output
                 // I'm cheating here executing .cache command
                 ExtCaptureOutputA ignore_output;
@@ -79,18 +79,16 @@ EXT_COMMAND(wa_chknirvana, "Checks processes for Hooking Nirvana instrumentation
                 std::stringstream info;
                 info << std::setw(45);
                 info << "<exec cmd=\"dx -r1 *(nt!_EPROCESS *)" << std::hex << std::showbase;
-                info << process.eprocess << "\">dx" << "</exec>" << " ";
+                info << process.GetDataOffset() << "\">dx" << "</exec>" << " ";
 
-                info << "<exec cmd=\".process /r /p " << std::hex << std::showbase << process.eprocess << " ";
-                info << "\">.process" << "</exec>" << " ";
+                info << "<exec cmd=\".process /r /p " << std::hex << std::showbase << process.GetDataOffset();
+                info << " \">.process" << "</exec>" << " ";
 
                 info << "<exec cmd=\"u " << std::hex << std::showbase << address << " L50";
                 info << "\">u50" << "</exec>";
                 info << "</exec>";
 
                 display->Analyze(address, "Nirvana", info.str());
-
-                process_helper->RevertImplicitProcess();
                 display->PrintFooter();
             }
         }

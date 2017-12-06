@@ -684,7 +684,7 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
 
             const auto ex_callback_fast_ref = notify_routine_list.GetPtr();
 
-            if ( ex_callback_fast_ref != 0 ) {
+            if ( ex_callback_fast_ref != 0ULL ) {
                 const auto unref_object = ExFastRefGetObject(ex_callback_fast_ref);
                 const auto notify_routine = ExtRemoteData(unref_object + GetTypeSize("nt!_EX_RUNDOWN_REF"),
                                                           m_PtrSize).GetPtr();

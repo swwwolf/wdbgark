@@ -101,6 +101,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:noexceptTypes- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -128,6 +129,7 @@
       <SDLCheck>true</SDLCheck>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:noexceptTypes- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,6 +169,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <EnablePREfast>true</EnablePREfast>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:noexceptTypes- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -199,6 +202,7 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <EnablePREfast>true</EnablePREfast>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:noexceptTypes- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -232,6 +236,7 @@
     <ClCompile Include="src\drvmajor.cpp" />
     <ClCompile Include="src\dummypdb.cpp" />
     <ClCompile Include="src\engextcpp\engextcpp.cpp" />
+    <ClCompile Include="src\eop.cpp" />
     <ClCompile Include="src\haltables.cpp" />
     <ClCompile Include="src\idt_gdt.cpp" />
     <ClCompile Include="src\nirvana.cpp" />
@@ -242,6 +247,7 @@
     <ClCompile Include="src\pe.cpp" />
     <ClCompile Include="src\pnptable.cpp" />
     <ClCompile Include="src\process.cpp" />
+    <ClCompile Include="src\processimplicithlp.cpp" />
     <ClCompile Include="src\psppico.cpp" />
     <ClCompile Include="src\resources.cpp" />
     <ClCompile Include="src\scan.cpp" />
@@ -298,6 +304,8 @@
     <ClInclude Include="src\objhelper.hpp" />
     <ClInclude Include="src\pe.hpp" />
     <ClInclude Include="src\process.hpp" />
+    <ClInclude Include="src\processhlp.hpp" />
+    <ClInclude Include="src\processimplicithlp.hpp" />
     <ClInclude Include="src\resources.hpp" />
     <ClInclude Include="src\sdt_w32p.hpp" />
     <ClInclude Include="src\strings.hpp" />

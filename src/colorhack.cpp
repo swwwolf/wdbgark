@@ -260,14 +260,14 @@ WDbgArkColorHack::WDbgArkColorHack() {
         UiColor* loc_ui_color = m_g_ui_colors;
 
         while ( loc_ui_color->description ) {
-            m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorType::UiColorsType));
+            m_internal_colors.emplace_back(ConvertUiColorToInternal(loc_ui_color, UiColorType::UiColorsType));
             loc_ui_color++;
         }
 
         loc_ui_color = m_g_out_mask_ui_colors;
 
         while ( loc_ui_color->description ) {
-            m_internal_colors.push_back(ConvertUiColorToInternal(loc_ui_color, UiColorType::UiColorsOutMaskType));
+            m_internal_colors.emplace_back(ConvertUiColorToInternal(loc_ui_color, UiColorType::UiColorsOutMaskType));
             loc_ui_color++;
         }
 
@@ -419,29 +419,29 @@ void WDbgArkColorHack::PrintMemoryInfo(void) const {
 void WDbgArkColorHack::InitThemes(void) {
     m_themes["default"];
     // backgrounds
-    m_themes["default"].push_back(theme_elem("wbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("normbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("uslbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("errbg", COLOR_HACK_BG_ERROR));     // !!!
-    m_themes["default"].push_back(theme_elem("warnbg", COLOR_HACK_BG_WARNING));  // !!!
-    m_themes["default"].push_back(theme_elem("verbbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("promptbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("promptregbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("extbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("dbgbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("dbgpbg", COLOR_HACK_BG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("symbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("wbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("normbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("uslbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("errbg", COLOR_HACK_BG_ERROR));     // !!!
+    m_themes["default"].emplace_back(theme_elem("warnbg", COLOR_HACK_BG_WARNING));  // !!!
+    m_themes["default"].emplace_back(theme_elem("verbbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("promptbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("promptregbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("extbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("dbgbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("dbgpbg", COLOR_HACK_BG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("symbg", COLOR_HACK_BG_DEFAULT));
     // foregrounds
-    m_themes["default"].push_back(theme_elem("wfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("uslfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("normfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("verbfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("promptfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("promptregfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("extfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("dbgfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("dbgpfg", COLOR_HACK_FG_DEFAULT));
-    m_themes["default"].push_back(theme_elem("symfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("wfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("uslfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("normfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("verbfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("promptfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("promptregfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("extfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("dbgfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("dbgpfg", COLOR_HACK_FG_DEFAULT));
+    m_themes["default"].emplace_back(theme_elem("symfg", COLOR_HACK_FG_DEFAULT));
 }
 
 bool WDbgArkColorHack::SetTheme(const std::string &theme_name) {
