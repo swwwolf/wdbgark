@@ -72,10 +72,6 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
 
     virtual ~WDbgArkRemoteTypedProcess() = default;
 
-    HRESULT SetImplicitProcess() {
-        return WDbgArkImplicitProcess::SetImplicitProcess(*this);
-    }
-
     virtual WDbgArkRemoteTypedProcess& operator=(const DEBUG_TYPED_DATA* Typed) {
         Copy(Typed);
         Init();
@@ -86,6 +82,10 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
         Copy(Typed);
         Init();
         return *this;
+    }
+
+    HRESULT SetImplicitProcess() {
+        return WDbgArkImplicitProcess::SetImplicitProcess(*this);
     }
 
     // provide dummy pdb shared pointer here if you wanna get instrumentation callback info
