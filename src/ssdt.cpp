@@ -129,6 +129,11 @@ EXT_COMMAND(wa_w32psdt,
 
     auto process_helper = std::make_unique<WDbgArkProcess>();
 
+    if ( !process_helper->IsInited() ) {
+        err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;
+        return;
+    }
+
     WDbgArkRemoteTypedProcess set_eprocess;
 
     if ( HasArg("process") ) {
@@ -207,6 +212,11 @@ EXT_COMMAND(wa_w32psdtflt,
     }
 
     auto process_helper = std::make_unique<WDbgArkProcess>();
+
+    if ( !process_helper->IsInited() ) {
+        err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;
+        return;
+    }
 
     WDbgArkRemoteTypedProcess set_eprocess;
 

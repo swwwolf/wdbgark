@@ -287,8 +287,8 @@ bool WDbgArkPe::LoadImage(const unique_buf &buffer, const bool mapped) {
 
             void* section_dst = RtlOffsetToPointer(m_load_base, section_header[i].VirtualAddress);
             void* const section_src = RtlOffsetToPointer(buffer.get(), section_header[i].PointerToRawData);
-            const size_t section_size = static_cast<size_t>min(section_header[i].SizeOfRawData,
-                                                               section_header[i].Misc.VirtualSize);
+            const size_t section_size = std::min<size_t>(static_cast<size_t>(section_header[i].SizeOfRawData),
+                                                         static_cast<size_t>(section_header[i].Misc.VirtualSize));
 
             std::memcpy(section_dst, section_src, section_size);
         }

@@ -87,7 +87,7 @@ class WDbgArkMemTable {
             return false;
         }
 
-        result->reserve(GetTableCount() * GetRoutineCount());
+        result->reserve(static_cast<size_t>(GetTableCount()) * static_cast<size_t>(GetRoutineCount()));
 
         const auto offset = GetTableStart() + GetTableSkipStart();
 
@@ -162,7 +162,7 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
             return false;
         }
 
-        result->reserve(GetTableCount());
+        result->reserve(static_cast<size_t>(GetTableCount()));
 
         const auto offset = GetTableStart() + GetTableSkipStart();
 

@@ -27,6 +27,7 @@
 #define WDRCE_HPP_
 
 #include <engextcpp.hpp>
+#include <comip.h>
 
 #include <string>
 #include <sstream>
@@ -144,12 +145,14 @@ class WDbgArkRce {
     void RevertTempModule();
 
  private:
+    using IDebugDataSpacesPtr = _com_ptr_t<_com_IIID<IDebugDataSpaces, &__uuidof(IDebugDataSpaces)>>;
+
     bool m_inited = false;
     bool m_relocated = false;
     std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{ nullptr };
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
-    ExtCheckedPointer<IDebugDataSpaces> m_Data{ "The extension did not initialize properly." };
+    IDebugDataSpacesPtr m_data{ nullptr };
 
     std::string m_dummy_rce_full_path{};
     std::string m_temp_module_name{ "beep" };

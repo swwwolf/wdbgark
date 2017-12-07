@@ -43,8 +43,7 @@ WDbgArkRce::WDbgArkRce(const std::shared_ptr<WDbgArkSymbolsBase> &symbols_base,
                        const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_symbols_base(symbols_base),
                                                                             m_dummy_pdb(dummy_pdb),
                                                                             m_sym_cache(sym_cache) {
-    if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugDataSpaces), reinterpret_cast<void**>(&m_Data))) ) {
-        m_Data.Set(nullptr);
+    if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugDataSpaces), reinterpret_cast<void**>(&m_data))) ) {
         err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
     }
 }
@@ -73,19 +72,11 @@ WDbgArkRce::~WDbgArkRce() {
         UnHookWorkItem();
         RevertTempModule();
     }
-
-    if ( m_Data.IsSet() ) {
-        EXT_RELEASE(m_Data);
-    }
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::Init() {
     if ( IsInited() ) {
         return true;
-    }
-
-    if ( !m_Data.IsSet() ) {
-        return false;
     }
 
     m_inited = InitWdRce();
@@ -725,7 +716,7 @@ HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const unique_bu
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const void* buffer, const size_t buffer_size) {
     ULONG write_size = 0;
-    const auto result = m_Data->WriteVirtualUncached(address,
+    const auto result = m_data->WriteVirtualUncached(address,
                                                      const_cast<PVOID>(buffer),
                                                      static_cast<ULONG>(buffer_size),
                                                      &write_size);
@@ -739,7 +730,7 @@ HRESULT WDbgArkRce::WriteVirtualUncached(const uint64_t address, const void* buf
 //////////////////////////////////////////////////////////////////////////
 HRESULT WDbgArkRce::ReadVirtualUncached(const uint64_t address, const size_t buffer_size, void* buffer) {
     ULONG read_size = 0;
-    const auto result = m_Data->ReadVirtualUncached(address, buffer, static_cast<ULONG>(buffer_size), &read_size);
+    const auto result = m_data->ReadVirtualUncached(address, buffer, static_cast<ULONG>(buffer_size), &read_size);
 
     if ( SUCCEEDED(result) && buffer_size != static_cast<size_t>(read_size) ) {
         return E_FAIL;
