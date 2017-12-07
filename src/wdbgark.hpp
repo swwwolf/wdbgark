@@ -86,8 +86,10 @@ class WDbgArk : public ExtExtension {
     // this one is called _before_ main class destructor, but ExtExtension class is already dead
     // so, don't output any errors in these routines, don't call g_Ext->m_Something and so on
     void __thiscall Uninitialize() {
-        m_dummy_pdb->RemoveDummyPdbModule(m_symbols3);  // unload dummypdb fake module
-        RemoveSyntheticSymbols();                       // remove our symbols
+        if ( m_symbols3 != nullptr ) {
+            m_dummy_pdb->RemoveDummyPdbModule(m_symbols3);  // unload dummypdb fake module
+            RemoveSyntheticSymbols();                       // remove our symbols
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////
