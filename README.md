@@ -50,12 +50,14 @@ to reload them, ignore checksum problems, prepare them before analysis and you'l
 * [!wa_haltables](https://github.com/swwwolf/wdbgark/wiki/!wa_haltables)
 * [!wa_colorize](https://github.com/swwwolf/wdbgark/wiki/!wa_colorize)
 * !wa_chknirvana
+* !wa_eop
 * !wa_cicallbacks
 * !wa_ciinfo
 * !wa_drvmajor
 * !wa_lxsdt
 * !wa_psppico
 * !wa_systables
+* !wa_apiset
 * !wa_w32psdt
 * !wa_w32psdtflt
 * !wdrce_copyfile
@@ -142,6 +144,7 @@ Extension DLL chain:
 2: kd> !wdbgark.help
 Commands for C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark.dll:
   !help            - Displays information on available extension commands
+  !wa_apiset       - Output user-mode and/or kernel-mode ApiSet map
   !wa_callouts     - Output kernel-mode win32k callouts
   !wa_checkmsr     - Output system MSRs (live debug only!)
   !wa_chknirvana   - Checks processes for Hooking Nirvana instrumentation
@@ -151,6 +154,7 @@ Commands for C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark
                      parameters)
   !wa_crashdmpcall - Output kernel-mode nt!CrashdmpCallTable
   !wa_drvmajor     - Output driver(s) major table
+  !wa_eop          - Checks processes for Elevation of Privilege
   !wa_gdt          - Output processors GDT
   !wa_haltables    - Output kernel-mode HAL tables: nt!HalDispatchTable,
                      nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable
