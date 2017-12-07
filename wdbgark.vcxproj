@@ -107,7 +107,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(WindowsSdkDir)Debuggers\lib\x86;udis86\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dbghelp.lib;libudis86.lib;user32.lib;version.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;libudis86.lib;user32.lib;version.lib;legacy_stdio_definitions.lib;comsuppwd.lib</AdditionalDependencies>
       <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -135,7 +135,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(WindowsSdkDir)Debuggers\lib\x64;udis86\Lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dbghelp.lib;libudis86.lib;user32.lib;version.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;libudis86.lib;user32.lib;version.lib;legacy_stdio_definitions.lib;comsuppwd.lib</AdditionalDependencies>
       <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
@@ -177,7 +177,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(WindowsSdkDir)Debuggers\lib\x86;udis86\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dbghelp.lib;libudis86.lib;user32.lib;version.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;libudis86.lib;user32.lib;version.lib;legacy_stdio_definitions.lib;comsuppw.lib</AdditionalDependencies>
       <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
       <CreateHotPatchableImage>
       </CreateHotPatchableImage>
@@ -210,7 +210,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(WindowsSdkDir)Debuggers\lib\x64;udis86\Lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dbghelp.lib;libudis86.lib;user32.lib;version.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;libudis86.lib;user32.lib;version.lib;legacy_stdio_definitions.lib;comsuppw.lib</AdditionalDependencies>
       <ModuleDefinitionFile>src\wdbgark.def</ModuleDefinitionFile>
       <CreateHotPatchableImage>
       </CreateHotPatchableImage>

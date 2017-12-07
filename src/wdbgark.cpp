@@ -64,8 +64,7 @@ bool WDbgArk::Init() {
         return true;
     }
 
-    if ( m_Client->QueryInterface(__uuidof(IDebugSymbols3), reinterpret_cast<void**>(&m_symbols3_iface)) != S_OK ) {
-        m_symbols3_iface.Set(nullptr);
+    if ( FAILED(m_Client->QueryInterface(__uuidof(IDebugSymbols3), reinterpret_cast<void**>(&m_symbols3))) ) {
         err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
     }
 

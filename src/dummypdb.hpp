@@ -27,6 +27,7 @@
 #define DUMMYPDB_HPP_
 
 #include <engextcpp.hpp>
+#include <comip.h>
 
 #include <string>
 #include <sstream>
@@ -61,7 +62,18 @@ class WDbgArkDummyPdb {
     uint64_t GetModuleBase() const { return m_dummy_pdb_base; }
     uint32_t GetModuleSize() const { return m_dummy_pdb_size; }
 
-    bool RemoveDummyPdbModule(const ExtCheckedPointer<IDebugSymbols3> &symbols3_iface);
+    template <class T>
+    bool RemoveDummyPdbModule(const T& symbols3_iface) {
+        if ( SUCCEEDED(symbols3_iface->GetModuleByModuleName(m_dummy_pdb_name_short.c_str(), 0, nullptr, nullptr)) ) {
+            std::string unload_cmd = "/u " + m_dummy_pdb_name_short;
+
+            if ( FAILED(symbols3_iface->Reload(unload_cmd.c_str())) ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
  private:
     bool InitDummyPdbModule();

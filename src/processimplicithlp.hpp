@@ -31,6 +31,7 @@
 #define PROCESSIMPLICITHLP_HPP_
 
 #include <engextcpp.hpp>
+#include <comip.h>
 
 #include <string>
 
@@ -43,15 +44,14 @@ class WDbgArkRemoteTypedProcess;    // forward declaration
 class WDbgArkImplicitProcess {
  public:
     WDbgArkImplicitProcess() {
-        g_Ext->m_Client->QueryInterface(__uuidof(IDebugSystemObjects2), reinterpret_cast<void**>(&m_System2));
+        if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugSystemObjects2),
+                                                    reinterpret_cast<void**>(&m_system2))) ) {
+            err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
+        }
     }
 
     virtual ~WDbgArkImplicitProcess() {
         RevertImplicitProcess();
-
-        if ( m_System2.IsSet() ) {
-            EXT_RELEASE(m_System2);
-        }
     }
 
  protected:
@@ -64,7 +64,7 @@ class WDbgArkImplicitProcess {
             return E_INVALIDARG;
         }
 
-        auto result = m_System2->GetImplicitProcessDataOffset(&m_old_process);
+        auto result = m_system2->GetImplicitProcessDataOffset(&m_old_process);
 
         if ( !SUCCEEDED(result) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get current process offset" << endlerr;
@@ -76,7 +76,7 @@ class WDbgArkImplicitProcess {
             return S_OK;
         }
 
-        result = m_System2->SetImplicitProcessDataOffset(process_offset);
+        result = m_system2->SetImplicitProcessDataOffset(process_offset);
 
         if ( !SUCCEEDED(result) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to set implicit process to ";
@@ -92,7 +92,7 @@ class WDbgArkImplicitProcess {
         HRESULT result = E_NOT_SET;
 
         if ( m_old_process != 0ULL ) {
-            result = m_System2->SetImplicitProcessDataOffset(m_old_process);
+            result = m_system2->SetImplicitProcessDataOffset(m_old_process);
 
             if ( !SUCCEEDED(result) ) {
                 err << wa::showminus << __FUNCTION__ << ": failed to revert" << endlerr;
@@ -105,8 +105,10 @@ class WDbgArkImplicitProcess {
     }
 
  protected:
+    using IDebugSystemObjects2Ptr = _com_ptr_t<_com_IIID<IDebugSystemObjects2, &__uuidof(IDebugSystemObjects2)>>;
+
     uint64_t m_old_process = 0ULL;
-    ExtCheckedPointer<IDebugSystemObjects2> m_System2{ "The extension did not initialize properly." };
+    IDebugSystemObjects2Ptr m_system2{ nullptr };
 };
 
 }   // namespace wa

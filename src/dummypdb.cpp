@@ -85,16 +85,4 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     return true;
 }
 
-bool WDbgArkDummyPdb::RemoveDummyPdbModule(const ExtCheckedPointer<IDebugSymbols3> &symbols3_iface) {
-    if ( SUCCEEDED(symbols3_iface->GetModuleByModuleName(m_dummy_pdb_name_short.c_str(), 0, nullptr, nullptr)) ) {
-        std::string unload_cmd = "/u " + m_dummy_pdb_name_short;
-
-        if ( !SUCCEEDED(symbols3_iface->Reload(unload_cmd.c_str())) ) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 }   // namespace wa

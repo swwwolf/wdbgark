@@ -62,6 +62,8 @@ namespace wa {
 class WDbgArk : public ExtExtension {
  public:
     //////////////////////////////////////////////////////////////////////////
+    using IDebugSymbols3Ptr = _com_ptr_t<_com_IIID<IDebugSymbols3, &__uuidof(IDebugSymbols3)>>;
+
     using RemoteTypedCallback = std::function<HRESULT(WDbgArk* wdbg_ark_class,
                                                       const ExtRemoteTyped &object,
                                                       void* context)>;
@@ -84,11 +86,8 @@ class WDbgArk : public ExtExtension {
     // this one is called _before_ main class destructor, but ExtExtension class is already dead
     // so, don't output any errors in these routines, don't call g_Ext->m_Something and so on
     void __thiscall Uninitialize() {
-        if ( m_symbols3_iface.IsSet() ) {
-            m_dummy_pdb->RemoveDummyPdbModule(m_symbols3_iface);    // unload dummypdb fake module
-            RemoveSyntheticSymbols();                               // remove our symbols
-            EXT_RELEASE(m_symbols3_iface);
-        }
+        m_dummy_pdb->RemoveDummyPdbModule(m_symbols3);  // unload dummypdb fake module
+        RemoveSyntheticSymbols();                       // remove our symbols
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -242,7 +241,7 @@ class WDbgArk : public ExtExtension {
     std::unique_ptr<WDbgArkSystemVer> m_system_ver{ nullptr };
     std::shared_ptr<WDbgArkSymbolsBase> m_symbols_base{ nullptr };
     std::unique_ptr<WDbgArkRce> m_wdrce{ nullptr };
-    ExtCheckedPointer<IDebugSymbols3> m_symbols3_iface{ "The extension did not initialize properly." };
+    IDebugSymbols3Ptr m_symbols3{ nullptr };
 };
 
 }   // namespace wa

@@ -28,12 +28,8 @@
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
 void WDbgArk::RemoveSyntheticSymbols() {
-    if ( !m_symbols3_iface.IsSet() ) {
-        return;
-    }
-
-    for ( auto &id : m_synthetic_symbols ) {
-        m_symbols3_iface->RemoveSyntheticSymbol(&id);
+    for ( auto& id : m_synthetic_symbols ) {
+        m_symbols3->RemoveSyntheticSymbol(&id);
     }
 }
 //////////////////////////////////////////////////////////////////////////

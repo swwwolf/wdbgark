@@ -40,8 +40,7 @@ WDbgArkBP::WDbgArkBP(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
         return;
     }
 
-    if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugControl), reinterpret_cast<void**>(&m_Control))) ) {
-        m_Control.Set(nullptr);
+    if ( FAILED(g_Ext->m_Client->QueryInterface(__uuidof(IDebugControl), reinterpret_cast<void**>(&m_control))) ) {
         err << wa::showminus << __FUNCTION__ << ": Failed to initialize interface" << endlerr;
         return;
     }
@@ -51,10 +50,6 @@ WDbgArkBP::WDbgArkBP(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
 
 WDbgArkBP::~WDbgArkBP() {
     Invalidate();
-
-    if ( m_Control.IsSet() ) {
-        EXT_RELEASE(m_Control);
-    }
 }
 
 bool WDbgArkBP::IsKnownBp(const uint32_t id) {
@@ -89,7 +84,7 @@ void WDbgArkBP::Invalidate() {
 
     for_each(std::begin(m_bp),
              std::end(m_bp),
-             [&](Breakpoints::value_type &bp) { m_Control->RemoveBreakpoint(bp.second); });
+             [&](Breakpoints::value_type &bp) { m_control->RemoveBreakpoint(bp.second); });
 
     m_bp.clear();
 }
@@ -166,7 +161,7 @@ HRESULT WDbgArkBP::Remove(const uint32_t id) {
     try {
         auto bp = m_bp.at(id);
         m_bp.erase(id);
-        result = m_Control->RemoveBreakpoint(bp);
+        result = m_control->RemoveBreakpoint(bp);
     } catch (const std::out_of_range&) {
         __noop;
     }
@@ -189,7 +184,7 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, const std::string &expression, uin
     std::lock_guard<std::mutex> lock(m_mutex);
 
     IDebugBreakpoint* bp = nullptr;
-    HRESULT result = m_Control->AddBreakpoint(DEBUG_BREAKPOINT_CODE, DEBUG_ANY_ID, &bp);
+    HRESULT result = m_control->AddBreakpoint(DEBUG_BREAKPOINT_CODE, DEBUG_ANY_ID, &bp);
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to add breakpoint" << endlerr;
@@ -200,7 +195,7 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, const std::string &expression, uin
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to enable breakpoint flags" << endlerr;
-        m_Control->RemoveBreakpoint(bp);
+        m_control->RemoveBreakpoint(bp);
         return result;
     }
 
@@ -218,7 +213,7 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, const std::string &expression, uin
         else
             err << expression << endlerr;
 
-        m_Control->RemoveBreakpoint(bp);
+        m_control->RemoveBreakpoint(bp);
         return result;
     }
 
@@ -227,7 +222,7 @@ HRESULT WDbgArkBP::Add(const uint64_t offset, const std::string &expression, uin
 
     if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get breakpoint id" << endlerr;
-        m_Control->RemoveBreakpoint(bp);
+        m_control->RemoveBreakpoint(bp);
         return result;
     }
 

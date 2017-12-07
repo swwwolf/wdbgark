@@ -27,6 +27,7 @@
 #define SRC_BP_HPP_
 
 #include <engextcpp.hpp>
+#include <comip.h>
 
 #include <cstdint>
 #include <string>
@@ -69,12 +70,14 @@ class WDbgArkBP {
     HRESULT Add(const uint64_t offset, const std::string &expression, uint32_t* id);
 
  private:
+    using IDebugControlPtr = _com_ptr_t<_com_IIID<IDebugControl, &__uuidof(IDebugControl)>>;
+
     bool m_inited = false;
     std::mutex m_mutex{};
     Breakpoints m_bp{};
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
     std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};
-    ExtCheckedPointer<IDebugControl> m_Control{ "The extension did not initialize properly." };
+    IDebugControlPtr m_control{ nullptr };
 };
 
 }   // namespace wa
