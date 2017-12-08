@@ -55,16 +55,15 @@ class WDbgArkImplicitProcess {
     }
 
  protected:
+    bool IsSet() const { return m_revert_process != 0ULL; }
+
     HRESULT SetImplicitProcess(const uint64_t process_offset) {
         if ( !process_offset ) {
             return E_INVALIDARG;
         }
 
-        if ( m_old_process != 0ULL ) {
-            return E_INVALIDARG;
-        }
-
-        auto result = m_system2->GetImplicitProcessDataOffset(&m_old_process);
+        uint64_t cur_process = 0ULL;
+        auto result = m_system2->GetImplicitProcessDataOffset(&cur_process);
 
         if ( !SUCCEEDED(result) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get current process offset" << endlerr;
@@ -72,8 +71,12 @@ class WDbgArkImplicitProcess {
         }
 
         // already in process
-        if ( m_old_process == process_offset ) {
+        if ( cur_process == process_offset ) {
             return S_OK;
+        }
+
+        if ( IsSet() ) {
+            return E_INVALIDARG;
         }
 
         result = m_system2->SetImplicitProcessDataOffset(process_offset);
@@ -81,6 +84,9 @@ class WDbgArkImplicitProcess {
         if ( !SUCCEEDED(result) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to set implicit process to ";
             err << std::hex << std::showbase << process_offset << endlerr;
+        } else {
+            m_revert_process = cur_process;
+            m_cur_process = process_offset;
         }
 
         return result;
@@ -91,13 +97,14 @@ class WDbgArkImplicitProcess {
     HRESULT RevertImplicitProcess() {
         HRESULT result = E_NOT_SET;
 
-        if ( m_old_process != 0ULL ) {
-            result = m_system2->SetImplicitProcessDataOffset(m_old_process);
+        if ( IsSet() ) {
+            result = m_system2->SetImplicitProcessDataOffset(m_revert_process);
 
             if ( !SUCCEEDED(result) ) {
                 err << wa::showminus << __FUNCTION__ << ": failed to revert" << endlerr;
             } else {
-                m_old_process = 0ULL;
+                m_revert_process = 0ULL;
+                m_cur_process = 0ULL;
             }
         }
 
@@ -107,7 +114,8 @@ class WDbgArkImplicitProcess {
  protected:
     using IDebugSystemObjects2Ptr = _com_ptr_t<_com_IIID<IDebugSystemObjects2, &__uuidof(IDebugSystemObjects2)>>;
 
-    uint64_t m_old_process = 0ULL;
+    uint64_t m_revert_process = 0ULL;
+    uint64_t m_cur_process = 0ULL;
     IDebugSystemObjects2Ptr m_system2{ nullptr };
 };
 

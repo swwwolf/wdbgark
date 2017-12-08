@@ -100,9 +100,10 @@ WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessAnyApiSetMap() {
         return WDbgArkRemoteTypedProcess();
     }
 
+    // we capture by value because we want to revert process on object destruction
     const auto it = std::find_if(std::begin(m_process_list),
                                  std::end(m_process_list),
-                                 [this](WDbgArkRemoteTypedProcess &process) {
+                                 [this](WDbgArkRemoteTypedProcess process) {
         try {
             if ( FAILED(process.SetImplicitProcess()) ) {
                 return false;
