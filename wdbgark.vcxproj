@@ -279,6 +279,7 @@
     <None Include="README.md" />
     <None Include="src\wdbgark.def" />
     <None Include="test\find_err_wrn.cmd" />
+    <None Include="test\find_suspicious.cmd" />
     <None Include="test\pytest\check_ssdt_names.py" />
     <None Include="test\test_all_x64.cmd" />
     <None Include="test\test_one_dump.cmd" />

@@ -2,6 +2,7 @@
 setlocal enableextensions
 set input=%~dp0result
 @del /Q %input%\*.err
+@del /Q %input%\*.susp
 for /r %input% %%f in (*.*) do call :process "%%f"
 for /r %input% %%f in (*.tmp) do call :whitelist "%%f"
 @del /Q %input%\*.tmp

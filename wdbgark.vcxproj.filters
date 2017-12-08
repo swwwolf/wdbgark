@@ -225,6 +225,9 @@
     <None Include="dummypdb_build\x64\Release\dummypdb_x64.pdb" />
     <None Include="dummypdb_build\Release\dummypdb_x86.sys" />
     <None Include="dummypdb_build\x64\Release\dummypdb_x64.sys" />
+    <None Include="test\find_suspicious.cmd">
+      <Filter>Test</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wdbgark.rc">
