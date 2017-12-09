@@ -266,21 +266,21 @@ void WDbgArkAnalyzeSDT::Analyze(const uint64_t address, const std::string &type)
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 180
+    // width = 190
     AddColumn("Address", 18);
     AddColumn("Type", 25);
     AddColumn("Symbol", 86);
-    AddColumn("Module", 16);
+    AddColumn("Module", 26);
     AddColumn("Suspicious", 10);
     AddColumn("Info", 25);
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeObjType::WDbgArkAnalyzeObjType(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 180
+    // width = 190
     AddColumn("Address", 18);
     AddColumn("Name", 68);
-    AddColumn("Symbol", 68);
+    AddColumn("Symbol", 78);
     AddColumn("Module", 16);
     AddColumn("Suspicious", 10);
 }
@@ -564,11 +564,11 @@ std::string WDbgArkAnalyzeGDT::GetGDTTypeName(const ExtRemoteTyped &gdt_entry) {
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeDriver::WDbgArkAnalyzeDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 180
+    // width = 190
     AddColumn("Address", 18);
     AddColumn("Name", 68);
     AddColumn("Symbol", 68);
-    AddColumn("Module", 16);
+    AddColumn("Module", 26);
     AddColumn("Suspicious", 10);
 }
 

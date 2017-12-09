@@ -19,7 +19,7 @@
     * the COPYING file in the top-level directory.
 */
 
-#include <ctime>
+#include <time.h>
 
 #include "wdbgark.hpp"
 #include "ver.hpp"
@@ -49,17 +49,17 @@ EXT_COMMAND(wa_scan,
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     out << wa::showplus << "WinDBG Anti-RootKit v" << VER_MAJOR << "." << VER_MINOR << endlout;
 
+    const auto time_start = std::time(nullptr);
+    
+    std::tm buf;
+    localtime_s(&buf, &time_start);
+
     char time_buffer[26] = { 0 };
-    const std::time_t time_start = std::time(nullptr);
-
-    out << wa::showplus << "Scan start: ";
-
-    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_start) ) {
+    if ( !asctime_s(&time_buffer[0], sizeof(time_buffer), &buf) ) {
         time_buffer[24] = '\0';  // remove \n
-        out << time_buffer;
     }
 
-    out << endlout;
+    out << wa::showplus << "Scan start: " << time_buffer << endlout;
 
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     Execute("vertarget");
@@ -80,15 +80,14 @@ EXT_COMMAND(wa_scan,
     out << wa::showplus << "--------------------------------------------------------------------------" << endlout;
     out << wa::showplus << "WinDBG Anti-RootKit v" << std::dec << VER_MAJOR << "." << VER_MINOR << endlout;
 
-    const std::time_t time_end = std::time(nullptr);
-    out << wa::showplus << "Scan end: ";
+    const auto time_end = std::time(nullptr);
+    localtime_s(&buf, &time_end);
 
-    if ( !ctime_s(time_buffer, sizeof(time_buffer), &time_end) ) {
+    if ( !asctime_s(&time_buffer[0], sizeof(time_buffer), &buf) ) {
         time_buffer[24] = '\0';  // remove \n
-        out << time_buffer;
     }
 
-    out << endlout;
+    out << wa::showplus << "Scan end: " << time_buffer << endlout;
 
     out << wa::showplus << "Scan took ";
     out << std::fixed << std::setprecision(2) << difftime(time_end, time_start) << " seconds" << endlout;
