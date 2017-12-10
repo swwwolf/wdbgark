@@ -61,7 +61,7 @@ std::pair<HRESULT, std::wstring> UnicodeStringStructToString(const ExtRemoteType
             return std::make_pair(E_INVALIDARG, output_string);
         }
 
-        ExtRemoteTyped buffer = *loc_unicode_string.Field("Buffer");
+        auto buffer = *loc_unicode_string.Field("Buffer");
 
         const size_t max_len_wide = maxlen / sizeof(wchar_t) + 1;   // reserve 1 additional wchar_t
         auto buf = std::make_unique<wchar_t[]>(max_len_wide);

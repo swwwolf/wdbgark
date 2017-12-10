@@ -197,11 +197,11 @@ class WDbgArk : public ExtExtension {
                                            const ExtRemoteTyped &object,
                                            void* context);
 
-    static HRESULT ShutdownListCallback(WDbgArk*,
+    static HRESULT ShutdownListCallback(WDbgArk* wdbg_ark_class,
                                         const ExtRemoteData &object_pointer,
                                         void* context);
 
-    static HRESULT DirectoryObjectTypeCallback(WDbgArk*,
+    static HRESULT DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class,
                                                const ExtRemoteTyped &object,
                                                void* context);
 

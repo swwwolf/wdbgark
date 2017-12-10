@@ -35,12 +35,14 @@ namespace wa {
 WDbgArkApiSet::WDbgArkApiSet(const ExtRemoteTyped &apiset_header,
                              const std::shared_ptr<WDbgArkMemTableTyped> &memtable,
                              const std::shared_ptr<WDbgArkProcess> &process_helper,
-                             const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb)
+                             const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb,
+                             const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : m_version(const_cast<ExtRemoteTyped&>(apiset_header).Field("Version").GetUlong()),
       m_header_offset(apiset_header.m_Offset),
       m_memtable(memtable),
       m_process_helper(process_helper),
-      m_dummy_pdb(dummy_pdb) {
+      m_dummy_pdb(dummy_pdb),
+      m_sym_cache(sym_cache) {
     if ( m_version != API_SET_VERSION_W7 && m_version != API_SET_VERSION_W81 && m_version != API_SET_VERSION_W10 ) {
         return;
     }
@@ -83,7 +85,8 @@ bool WDbgArkApiSet::Process(WDbgArkMemTableTyped::WalkResult &&walk_result) {
 
             const auto [table_start, table_count] = GetDataInfo(entry);
 
-            WDbgArkMemTableTyped table_value(nullptr, table_start, GetApiSetValueEntry());
+            const auto apiset_value_entry = m_dummy_pdb->GetShortName() + "!" + GetApiSetValueEntry();
+            WDbgArkMemTableTyped table_value(m_sym_cache, table_start, apiset_value_entry);
 
             if ( !table_value.IsValid() ) {
                 continue;
@@ -143,11 +146,11 @@ WDbgArkApiSet::DataInfo WDbgArkApiSet::GetDataInfo(ExtRemoteTyped &entry) {
         auto data_offset = m_header_offset + entry.Field("DataOffset").GetUlong();
 
         if ( m_version == API_SET_VERSION_W7 || m_version == API_SET_VERSION_W81 ) {
-            auto apiset_value_array = m_dummy_pdb->GetShortName() + "!" + GetApiSetValueArray();
+            const auto apiset_value_array = m_dummy_pdb->GetShortName() + "!" + GetApiSetValueArray();
             auto value_array = ExtRemoteTyped(apiset_value_array.c_str(),
                                               data_offset,
                                               false,
-                                              nullptr,
+                                              m_sym_cache->GetCookieCache(apiset_value_array),
                                               nullptr);
 
             table_start = value_array.Field("Array").m_Offset;

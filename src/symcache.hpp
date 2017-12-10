@@ -27,7 +27,7 @@
 #define SYMCACHE_HPP_
 
 #include <string>
-#include <map>
+#include <unordered_map>
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -35,15 +35,17 @@ namespace wa {
 //////////////////////////////////////////////////////////////////////////
 class WDbgArkSymCache {
  public:
-    WDbgArkSymCache() {}
+    void Invalidate(void) { m_sym_cache.clear(); }
 
     bool GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, uint64_t* offset);
-    void Invalidate(void) { m_cache.clear(); }
+    uint64_t* GetCookieCache(const std::string &symbol_name);
 
  private:
-     using SymbolCache = std::map<std::string, uint64_t>;   // symbol name : address
+     using SymbolCache = std::unordered_map<std::string, uint64_t>;   // symbol name : address
+     using CookieCache = std::unordered_map<std::string, uint64_t>;   // symbol name : cookie
 
-     SymbolCache m_cache{};
+     SymbolCache m_sym_cache{};
+     CookieCache m_cookie_cache{};
 };
 
 }   // namespace wa

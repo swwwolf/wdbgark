@@ -206,7 +206,7 @@ std::string WDbgArkAnalyzeBase::GetModuleDmlCmd(const uint64_t address,
                                                 const WDbgArkSymbolsBase &symbols_base) {
     std::stringstream module_command_buf;
 
-    module_command_buf << "<link cmd=\"lmDvm " << module_name << "\">" << std::setw(16) << module_name;
+    module_command_buf << "<link cmd=\"lmDvm " << module_name << "\">" << std::setw(26) << module_name;
     module_command_buf << "<altlink name=\"Dump module (" << module_name << ")\"";
 
     uint64_t base = 0;
@@ -237,22 +237,22 @@ std::string WDbgArkAnalyzeBase::GetModuleDmlCmd(const uint64_t address,
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 180
+    // width = 190
     AddColumn("Address", 18);
     AddColumn("Name", 68);
     AddColumn("Symbol", 68);
-    AddColumn("Module", 16);
+    AddColumn("Module", 26);
     AddColumn("Suspicious", 10);
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeSDT::WDbgArkAnalyzeSDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 185
+    // width = 195
     AddColumn("#", 5);
     AddColumn("Address", 18);
     AddColumn("Name", 68);
     AddColumn("Symbol", 68);
-    AddColumn("Module", 16);
+    AddColumn("Module", 26);
     AddColumn("Suspicious", 10);
 }
 void WDbgArkAnalyzeSDT::Analyze(const uint64_t address, const std::string &type) {
@@ -277,11 +277,11 @@ WDbgArkAnalyzeCallback::WDbgArkAnalyzeCallback(const std::shared_ptr<WDbgArkSymC
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeObjType::WDbgArkAnalyzeObjType(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 190
+    // width = 200
     AddColumn("Address", 18);
     AddColumn("Name", 68);
     AddColumn("Symbol", 78);
-    AddColumn("Module", 16);
+    AddColumn("Module", 26);
     AddColumn("Suspicious", 10);
 }
 
@@ -325,11 +325,11 @@ void WDbgArkAnalyzeObjType::Analyze(const ExtRemoteTyped &ex_type_info, const Ex
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeIDT::WDbgArkAnalyzeIDT(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 160
+    // width = 170
     AddColumn("Address", 18);
     AddColumn("CPU / Idx", 11);
     AddColumn("Symbol", 80);
-    AddColumn("Module", 16);
+    AddColumn("Module", 26);
     AddColumn("Suspicious", 10);
     AddColumn("Info", 25);
 }

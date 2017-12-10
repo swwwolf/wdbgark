@@ -54,7 +54,8 @@ class WDbgArkDevice {
  private:
     bool m_inited = false;
     DevicesInformation m_devices_list{};
-    std::unique_ptr<WDbgArkObjHelper> m_obj_helper{};
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
+    std::unique_ptr<WDbgArkObjHelper> m_obj_helper{ nullptr };
 };
 
 }   // namespace wa

@@ -127,17 +127,18 @@ EXT_COMMAND(wa_w32psdt,
 
     out << wa::showplus << "Displaying win32k!W32pServiceTable" << endlout;
 
-    auto process_helper = std::make_unique<WDbgArkProcess>();
+    auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache);
 
     if ( !process_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;
         return;
     }
 
-    WDbgArkRemoteTypedProcess set_eprocess;
+    WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache);
 
     if ( HasArg("process") ) {
-        set_eprocess.Set("nt!_EPROCESS", GetArgU64("process"), false);
+        const std::string proc("nt!_EPROCESS");
+        set_eprocess.Set(proc.c_str(), GetArgU64("process"), false, m_sym_cache->GetCookieCache(proc), nullptr);
     } else {
         set_eprocess = process_helper->FindProcessAnyGUIProcess();
     }
@@ -211,17 +212,18 @@ EXT_COMMAND(wa_w32psdtflt,
         return;
     }
 
-    auto process_helper = std::make_unique<WDbgArkProcess>();
+    auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache);
 
     if ( !process_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;
         return;
     }
 
-    WDbgArkRemoteTypedProcess set_eprocess;
+    WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache);
 
     if ( HasArg("process") ) {
-        set_eprocess.Set("nt!_EPROCESS", GetArgU64("process"), false);
+        const std::string proc("nt!_EPROCESS");
+        set_eprocess.Set(proc.c_str(), GetArgU64("process"), false, m_sym_cache->GetCookieCache(proc), nullptr);
     } else {
         set_eprocess = process_helper->FindProcessAnyGUIProcess();
     }

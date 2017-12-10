@@ -769,16 +769,22 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
                                          ShutdownListCallback);
 }
 
-HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_pointer, void* context) {
+HRESULT WDbgArk::ShutdownListCallback(WDbgArk* wdbg_ark_class, const ExtRemoteData &object_pointer, void* context) {
     WalkCallbackContext* cb_context = static_cast<WalkCallbackContext*>(context);
 
     try {
         const uint64_t object_ptr = const_cast<ExtRemoteData &>(object_pointer).GetPtr();
 
-        ExtRemoteTyped device_object("nt!_DEVICE_OBJECT", object_ptr, false, NULL, NULL);
-        ExtRemoteTyped driver_object_ptr = device_object.Field("DriverObject");
-        ExtRemoteTyped driver_object = *driver_object_ptr;
-        ExtRemoteTyped major_functions = driver_object.Field("MajorFunction");
+        const std::string dev_obj("nt!_DEVICE_OBJECT");
+        ExtRemoteTyped device_object(dev_obj.c_str(),
+                                     object_ptr,
+                                     false,
+                                     wdbg_ark_class->m_sym_cache->GetCookieCache(dev_obj),
+                                     nullptr);
+
+        auto driver_object_ptr = device_object.Field("DriverObject");
+        auto driver_object = *driver_object_ptr;
+        auto major_functions = driver_object.Field("MajorFunction");
 
         std::stringstream info;
 
@@ -817,8 +823,6 @@ HRESULT WDbgArk::ShutdownListCallback(WDbgArk*, const ExtRemoteData &object_poin
 // by PnpProfileNotifyList and PnpDeviceClassNotifyList in Vista+
 void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
     std::string list_head_name;
-    uint64_t offset = 0;
-    const uint32_t offset_to_routine = GetPnpCallbackItemFunctionOffset();
 
     if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
         list_head_name = "nt!IopProfileNotifyList";
@@ -826,6 +830,7 @@ void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
         list_head_name = "nt!PnpProfileNotifyList";
     }
 
+    const uint32_t offset_to_routine = GetPnpCallbackItemFunctionOffset();
     WalkAnyListWithOffsetToRoutine(list_head_name, 0ULL, 0, true, offset_to_routine, type, "", output_list);
 
     if ( m_system_ver->GetStrictVer() <= W2K3_VER ) {
@@ -833,6 +838,8 @@ void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
     } else {
         list_head_name = "nt!PnpDeviceClassNotifyList";
     }
+
+    uint64_t offset = 0;
 
     if ( !m_sym_cache->GetSymbolOffset(list_head_name, true, &offset) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to get " << list_head_name << endlerr;

@@ -58,7 +58,8 @@ class WDbgArkApiSet {
     WDbgArkApiSet(const ExtRemoteTyped &apiset_header,
                   const std::shared_ptr<WDbgArkMemTableTyped> &memtable,
                   const std::shared_ptr<WDbgArkProcess> &process_helper,
-                  const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb);
+                  const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb,
+                  const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     WDbgArkApiSet() = delete;
 
     bool IsInited() const { return m_inited; }
@@ -78,6 +79,7 @@ class WDbgArkApiSet {
     std::shared_ptr<WDbgArkMemTableTyped> m_memtable{ nullptr };
     std::shared_ptr<WDbgArkProcess> m_process_helper{ nullptr };
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
 
     ApiSets m_api_sets{};
 };

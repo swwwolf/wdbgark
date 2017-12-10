@@ -31,7 +31,8 @@
 namespace wa {
 
 WDbgArkDevice::WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
-    : m_obj_helper(std::make_unique<WDbgArkObjHelper>(sym_cache)) {
+    : m_sym_cache(sym_cache),
+      m_obj_helper(std::make_unique<WDbgArkObjHelper>(m_sym_cache)) {
     if ( !m_obj_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to initialize WDbgArkObjHelper" << endlerr;
         return;
@@ -46,7 +47,13 @@ WDbgArkDevice::WDbgArkDevice(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
 
     for ( const auto [offset, object_info] : objs_info ) {
         if ( object_info.type_name == "Device" ) {
-            m_devices_list.try_emplace(offset, ExtRemoteTyped("nt!_DEVICE_OBJECT", offset, false, nullptr, nullptr));
+            const std::string dev_obj("nt!_DEVICE_OBJECT");
+            m_devices_list.try_emplace(offset,
+                                       ExtRemoteTyped(dev_obj.c_str(),
+                                                      offset,
+                                                      false,
+                                                      m_sym_cache->GetCookieCache(dev_obj),
+                                                      nullptr));
         }
     }
 

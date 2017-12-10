@@ -179,10 +179,11 @@ bool WDbgArkRce::InitGlobalData() {
         return false;
     }
 
-    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM",
+    const std::string work_queue("nt!_WORK_QUEUE_ITEM");
+    ExtRemoteTyped expdebuggerworkitem(work_queue.c_str(),
                                        m_debugger_info.expdebuggerworkitem_offset,
                                        false,
-                                       nullptr,
+                                       m_sym_cache->GetCookieCache(work_queue),
                                        nullptr);
 
     const size_t type_size = expdebuggerworkitem.GetTypeSize();
@@ -377,7 +378,11 @@ bool WDbgArkRce::ReInitTempModuleDataSection(const uint64_t address, const size_
 }
 //////////////////////////////////////////////////////////////////////////
 ExtRemoteTyped WDbgArkRce::GetDataSectionTyped() {
-    return ExtRemoteTyped(m_struct_name.c_str(), m_data_section_start, false, nullptr, nullptr);
+    return ExtRemoteTyped(m_struct_name.c_str(),
+                          m_data_section_start,
+                          false,
+                          m_sym_cache->GetCookieCache(m_struct_name),
+                          nullptr);
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::InitRceModule() {
@@ -758,10 +763,11 @@ bool WDbgArkRce::HookWorkItem() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::HookWorkItemRoutine() {
-    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM",
+    const std::string work_queue("nt!_WORK_QUEUE_ITEM");
+    ExtRemoteTyped expdebuggerworkitem(work_queue.c_str(),
                                        m_debugger_info.expdebuggerworkitem_offset,
                                        false,
-                                       nullptr,
+                                       m_sym_cache->GetCookieCache(work_queue),
                                        nullptr);
 
     auto routine = expdebuggerworkitem.Field("WorkerRoutine");
@@ -780,10 +786,11 @@ bool WDbgArkRce::HookWorkItemRoutine() {
 }
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::HookWorkItemParameter() {
-    ExtRemoteTyped expdebuggerworkitem("nt!_WORK_QUEUE_ITEM",
+    const std::string work_queue("nt!_WORK_QUEUE_ITEM");
+    ExtRemoteTyped expdebuggerworkitem(work_queue.c_str(),
                                        m_debugger_info.expdebuggerworkitem_offset,
                                        false,
-                                       nullptr,
+                                       m_sym_cache->GetCookieCache(work_queue),
                                        nullptr);
 
     auto parameter = expdebuggerworkitem.Field("Parameter");

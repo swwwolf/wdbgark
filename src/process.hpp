@@ -36,6 +36,7 @@
 #include <vector>
 #include <memory>
 
+#include "symcache.hpp"
 #include "dummypdb.hpp"
 #include "processhlp.hpp"
 
@@ -43,8 +44,9 @@ namespace wa {
 
 class WDbgArkProcess {
  public:
-    WDbgArkProcess();
-    explicit WDbgArkProcess(const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb);
+    WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
+    explicit WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                            const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb);
 
     bool IsInited(void) const { return m_inited; }
     const auto& GetProcessList() const { return m_process_list; }
@@ -61,6 +63,7 @@ class WDbgArkProcess {
 
     bool m_inited = false;
     ProcessList m_process_list{};
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
 };
 

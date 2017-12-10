@@ -34,7 +34,7 @@ bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool
     *offset = 0ULL;
 
     try {
-        auto value = m_cache.at(symbol_name);
+        auto value = m_sym_cache.at(symbol_name);
         *offset = value;
         return true;
     } catch ( const std::out_of_range& ) {
@@ -45,10 +45,14 @@ bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool
     const auto result = g_Ext->GetSymbolOffset(symbol_name.c_str(), ret_zero, offset);    // may throw
 
     if ( result ) {
-        m_cache.insert({ symbol_name, *offset });
+        m_sym_cache.insert({ symbol_name, *offset });
     }
 
     return result;
+}
+
+uint64_t* WDbgArkSymCache::GetCookieCache(const std::string &symbol_name) {
+    return &m_cookie_cache[symbol_name];
 }
 
 }   // namespace wa

@@ -31,6 +31,7 @@
 #include "strings.hpp"
 
 namespace wa {
+
 uint64_t ExFastRefGetObject(uint64_t fast_ref) {
     if ( g_Ext->IsCurMachine32() ) {
         return fast_ref & ~MAX_FAST_REFS_X86;
@@ -88,8 +89,9 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
             }
         }
 
-        ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", offset, false, nullptr, nullptr);
-        ExtRemoteTyped buckets = directory_object.Field("HashBuckets");
+        const std::string obj_dir("nt!_OBJECT_DIRECTORY");
+        ExtRemoteTyped directory_object(obj_dir.c_str(), offset, false, m_sym_cache->GetCookieCache(obj_dir), nullptr);
+        auto buckets = directory_object.Field("HashBuckets");
 
         const ULONG num_buckets = buckets.GetTypeSize() / g_Ext->m_PtrSize;
 
@@ -98,9 +100,9 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
                 continue;
             }
 
-            for ( ExtRemoteTyped directory_entry = *buckets[i];
-                  directory_entry.m_Offset;
-                  directory_entry = *directory_entry.Field("ChainLink") ) {
+            for ( auto directory_entry = *buckets[i];
+                 directory_entry.m_Offset;
+                 directory_entry = *directory_entry.Field("ChainLink") ) {
                 ObjectInfo object_information;
 
                 object_information.directory_object = directory_object;
@@ -198,7 +200,12 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
             return std::make_pair(E_UNEXPECTED, object_header);
         }
 
-        object_header.Set("nt!_OBJECT_HEADER", object.m_Offset - offset, false, NULL, NULL);
+        const std::string obj_hdr("nt!_OBJECT_HEADER");
+        object_header.Set(obj_hdr.c_str(),
+                          object.m_Offset - offset,
+                          false,
+                          m_sym_cache->GetCookieCache(obj_hdr),
+                          nullptr);
     }
     catch ( const ExtRemoteException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
@@ -210,7 +217,7 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeader(const ExtRe
 
 bool WDbgArkObjHelper::HasObjectHeaderNameInfo(const ExtRemoteTyped &object_header) const {
     try {
-        auto& loc_object_header = const_cast<ExtRemoteTyped&>(object_header);
+        auto loc_object_header = const_cast<ExtRemoteTyped&>(object_header);
 
         if ( m_object_header_old ) {
             if ( loc_object_header.Field("NameInfoOffset").GetUchar() ) {
@@ -232,17 +239,18 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
     ExtRemoteTyped object_header_name_info;
 
     try {
-        auto& loc_object_header = const_cast<ExtRemoteTyped&>(object_header);
+        auto loc_object_header = const_cast<ExtRemoteTyped&>(object_header);
+        const std::string obj_hdr_name_info("nt!_OBJECT_HEADER_NAME_INFO");
 
         if ( m_object_header_old ) {
             auto name_info_offset = loc_object_header.Field("NameInfoOffset");
 
             if ( name_info_offset.GetUchar() ) {
-                object_header_name_info.Set("nt!_OBJECT_HEADER_NAME_INFO",
+                object_header_name_info.Set(obj_hdr_name_info.c_str(),
                                             object_header.m_Offset - name_info_offset.GetUchar(),
                                             false,
-                                            NULL,
-                                            NULL);
+                                            m_sym_cache->GetCookieCache(obj_hdr_name_info),
+                                            nullptr);
 
                 return std::make_pair(S_OK, object_header_name_info);
             }
@@ -254,11 +262,11 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectHeaderNameInfo(con
                     const auto obp_offset = info_mask.GetUchar() & (HeaderNameInfoFlag | (HeaderNameInfoFlag - 1));
                     ExtRemoteData name_info_mask_to_offset(m_ObpInfoMaskToOffset + obp_offset, sizeof(uint8_t));
 
-                    object_header_name_info.Set("nt!_OBJECT_HEADER_NAME_INFO",
+                    object_header_name_info.Set(obj_hdr_name_info.c_str(),
                                                 loc_object_header.m_Offset - name_info_mask_to_offset.GetUchar(),
                                                 false,
-                                                NULL,
-                                                NULL);
+                                                m_sym_cache->GetCookieCache(obj_hdr_name_info),
+                                                nullptr);
 
                     return std::make_pair(S_OK, object_header_name_info);
                 }
@@ -327,7 +335,13 @@ std::pair<HRESULT, ExtRemoteTyped> WDbgArkObjHelper::GetObjectType(const ExtRemo
             }
 
             ExtRemoteData object_type_data(m_ObTypeIndexTableOffset + type_index * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
-            object_type.Set("nt!_OBJECT_TYPE", object_type_data.GetPtr(), false, nullptr, nullptr);
+
+            const std::string obj_type("nt!_OBJECT_TYPE");
+            object_type.Set(obj_type.c_str(),
+                            object_type_data.GetPtr(),
+                            false,
+                            m_sym_cache->GetCookieCache(obj_type),
+                            nullptr);
         }
     }
     catch ( const ExtRemoteException &Ex ) {
@@ -365,7 +379,7 @@ WDbgArkDrvObjHelper::WDbgArkDrvObjHelper(const std::shared_ptr<WDbgArkSymCache> 
                                                                          m_driver(driver) {}
 
 WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetMajorTable() {
-    ExtRemoteTyped major_table = m_driver.Field("MajorFunction");
+    auto major_table = m_driver.Field("MajorFunction");
 
     Table table;
 
@@ -377,7 +391,7 @@ WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetMajorTable() {
 }
 
 WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetFastIoTable() {
-    ExtRemoteTyped fast_io_dispatch = m_driver.Field("FastIoDispatch");
+    auto fast_io_dispatch = m_driver.Field("FastIoDispatch");
     auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
 
     Table table;
@@ -398,7 +412,7 @@ WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetFsFilterCbTable() {
     Table table;
 
     if ( m_driver.Field("DriverExtension").GetPtr() ) {
-        ExtRemoteTyped fs_filter_callbacks = m_driver.Field("DriverExtension").Field("FsFilterCallbacks");
+        auto fs_filter_callbacks = m_driver.Field("DriverExtension").Field("FsFilterCallbacks");
         auto fs_filter_callbacks_ptr = fs_filter_callbacks.GetPtr();
 
         if ( fs_filter_callbacks_ptr ) {

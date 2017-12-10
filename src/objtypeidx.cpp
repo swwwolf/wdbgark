@@ -71,7 +71,12 @@ EXT_COMMAND(wa_objtypeidx, "Output kernel-mode nt!ObTypeIndexTable", "") {
 
         if ( table.Walk(&result) != false ) {
             for ( const auto &address : result ) {
-                ExtRemoteTyped object_type("nt!_OBJECT_TYPE", address, false, NULL, NULL);
+                const std::string obj_type("nt!_OBJECT_TYPE");
+                ExtRemoteTyped object_type(obj_type.c_str(),
+                                           address,
+                                           false,
+                                           m_sym_cache->GetCookieCache(obj_type),
+                                           nullptr);
 
                 if ( !SUCCEEDED(DirectoryObjectTypeCallback(this,
                                                             object_type,

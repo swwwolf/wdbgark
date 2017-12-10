@@ -80,8 +80,14 @@ EXT_COMMAND(wa_drvmajor,
                 display->Analyze(driver);
             }
         } else {
-            auto object_address = m_obj_helper->FindObjectByName(name, 0ULL, "\\", true);
-            display->Analyze(ExtRemoteTyped("nt!_DRIVER_OBJECT", object_address, false, nullptr, nullptr));
+            auto object_address = m_obj_helper->FindObjectByName(name, 0ULL, R"(\)", true);
+
+            const std::string drv_obj("nt!_DRIVER_OBJECT");
+            display->Analyze(ExtRemoteTyped(drv_obj.c_str(),
+                                            object_address,
+                                            false,
+                                            m_sym_cache->GetCookieCache(drv_obj),
+                                            nullptr));
         }
     }
     catch ( const ExtRemoteException &Ex ) {

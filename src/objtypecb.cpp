@@ -66,14 +66,13 @@ EXT_COMMAND(wa_objtypecb,
         if ( type == "*" ) {
             WalkDirectoryObject(object_types_directory_offset, display.get(), DirectoryObjectTypeCallbackListCallback);
         } else {
-            ExtRemoteTyped object_type("nt!_OBJECT_TYPE",
-                                       m_obj_helper->FindObjectByName(type,
-                                                                      object_types_directory_offset,
-                                                                      "\\ObjectTypes\\",
-                                                                      false),
-                                       false,
-                                       NULL,
-                                       NULL);
+            const auto offset = m_obj_helper->FindObjectByName(type,
+                                                               object_types_directory_offset,
+                                                               "\\ObjectTypes\\",
+                                                               false);
+
+            const std::string obj_type("nt!_OBJECT_TYPE");
+            ExtRemoteTyped object_type(obj_type.c_str(), offset, false, m_sym_cache->GetCookieCache(obj_type), nullptr);
 
             if ( !SUCCEEDED(DirectoryObjectTypeCallbackListCallback(this, object_type, display.get())) ) {
                 err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallbackListCallback failed" << endlerr;
@@ -96,31 +95,36 @@ HRESULT WDbgArk::DirectoryObjectTypeCallbackListCallback(WDbgArk* wdbg_ark_class
     WDbgArkAnalyzeBase* display = static_cast<WDbgArkAnalyzeBase*>(context);
 
     try {
-        ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
+        const std::string obj_type("nt!_OBJECT_TYPE");
+        ExtRemoteTyped object_type(obj_type.c_str(),
+                                   object.m_Offset,
+                                   false,
+                                   wdbg_ark_class->m_sym_cache->GetCookieCache(obj_type),
+                                   nullptr);
+
         auto object_type_flags_typed = object_type.Field("TypeInfo").Field("ObjectTypeFlags");
         const auto size = object_type_flags_typed.GetTypeSize();
 
         const auto object_type_flags = static_cast<uint16_t>(object_type_flags_typed.GetData(size));
 
-        if ( !(object_type_flags & OBJTYPE_SUPPORTS_OBJECT_CALLBACKS) )
+        if ( !(object_type_flags & OBJTYPE_SUPPORTS_OBJECT_CALLBACKS) ) {
             return S_OK;
+        }
 
         display->PrintObjectDmlCmd(object);
         display->PrintFooter();
 
-        std::string dummy_pdb_callback_entry_common = wdbg_ark_class->m_dummy_pdb->GetShortName() + \
-            "!_OBJECT_CALLBACK_ENTRY_COMMON";
-
+        const auto entry_common = wdbg_ark_class->m_dummy_pdb->GetShortName() + "!_OBJECT_CALLBACK_ENTRY_COMMON";
         ExtRemoteTypedList list_head(object_type.Field("CallbackList").m_Offset,
-                                     dummy_pdb_callback_entry_common.c_str(),
+                                     entry_common.c_str(),
                                      "CallbackList",
                                      0ULL,
                                      0,
-                                     nullptr,
+                                     wdbg_ark_class->m_sym_cache->GetCookieCache(entry_common),
                                      true);
 
         for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
-            ExtRemoteTyped callback_entry = list_head.GetTypedNode();
+            auto callback_entry = list_head.GetTypedNode();
 
             display->Analyze(callback_entry.Field("PreOperation").GetPtr(), "OB_PRE_OPERATION_CALLBACK", "");
             display->Analyze(callback_entry.Field("PostOperation").GetPtr(), "OB_POST_OPERATION_CALLBACK", "");

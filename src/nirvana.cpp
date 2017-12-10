@@ -48,7 +48,7 @@ EXT_COMMAND(wa_chknirvana, "Checks processes for Hooking Nirvana instrumentation
         return;
     }
 
-    auto process_helper = std::make_unique<WDbgArkProcess>(m_dummy_pdb);
+    auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache, m_dummy_pdb);
 
     if ( !process_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;

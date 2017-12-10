@@ -127,7 +127,7 @@ class WDbgArkMemTable {
     bool m_break_on_null = false;
     bool m_collect_null = false;
 
-    std::shared_ptr<WDbgArkSymCache> m_sym_cache{};
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
 };
 
 class WDbgArkMemTableTyped : public WDbgArkMemTable {
@@ -171,7 +171,7 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
                 result->emplace_back(ExtRemoteTyped(m_type.c_str(),
                                                     offset + tc * m_type_size,
                                                     false,
-                                                    &m_cache_cookie,
+                                                    m_sym_cache->GetCookieCache(m_type),
                                                     nullptr));
             }
         } catch ( const ExtRemoteException &Ex ) {
@@ -184,7 +184,6 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
  private:
     std::string m_type{};
     uint32_t m_type_size = 0UL;
-    uint64_t m_cache_cookie = 0ULL;
 };
 
 }   // namespace wa

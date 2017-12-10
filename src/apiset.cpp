@@ -72,17 +72,18 @@ EXT_COMMAND(wa_apiset,
         // user-mode
         out << wa::showplus << "Displaying user mode ApiSetSchema" << endlout;
 
-        auto process_helper = std::make_shared<WDbgArkProcess>(m_dummy_pdb);
+        auto process_helper = std::make_shared<WDbgArkProcess>(m_sym_cache, m_dummy_pdb);
 
         if ( !process_helper->IsInited() ) {
             err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;
             return;
         }
 
-        WDbgArkRemoteTypedProcess set_eprocess;
+        WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache);
 
         if ( HasArg("process") ) {
-            set_eprocess.Set("nt!_EPROCESS", GetArgU64("process"), false);
+            const std::string proc("nt!_EPROCESS");
+            set_eprocess.Set(proc.c_str(), GetArgU64("process"), false, m_sym_cache->GetCookieCache(proc), nullptr);
         } else {
             set_eprocess = process_helper->FindProcessAnyApiSetMap();
         }
@@ -122,7 +123,12 @@ EXT_COMMAND(wa_apiset,
 void WDbgArk::WalkApiSetTable(const uint64_t header_offset, const std::shared_ptr<WDbgArkProcess> &process_helper) {
     try {
         const auto apiset_namespace = m_dummy_pdb->GetShortName() + "!" + GetApiSetNamespace();
-        ExtRemoteTyped apiset_header(apiset_namespace.c_str(), header_offset, false, nullptr, nullptr);
+        ExtRemoteTyped apiset_header(apiset_namespace.c_str(),
+                                     header_offset,
+                                     false,
+                                     m_sym_cache->GetCookieCache(apiset_namespace),
+                                     nullptr);
+
         const auto version = apiset_header.Field("Version").GetUlong();
 
         out << wa::showplus << "ApiSet version: " << std::hex << std::showbase << version << endlout;
@@ -148,7 +154,11 @@ void WDbgArk::WalkApiSetTable(const uint64_t header_offset, const std::shared_pt
 
         table->SetTableCount(count);
 
-        auto apiset_helper = std::make_unique<WDbgArkApiSet>(apiset_header, table, process_helper, m_dummy_pdb);
+        auto apiset_helper = std::make_unique<WDbgArkApiSet>(apiset_header,
+                                                             table,
+                                                             process_helper,
+                                                             m_dummy_pdb,
+                                                             m_sym_cache);
 
         if ( !apiset_helper->IsInited() ) {
             err << wa::showminus << __FUNCTION__ << ": ApiSet helper" << endlerr;

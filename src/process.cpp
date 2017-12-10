@@ -32,14 +32,14 @@
 
 namespace wa {
 
-WDbgArkProcess::WDbgArkProcess() {
+WDbgArkProcess::WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : m_sym_cache(sym_cache) {
     auto list_head = ExtNtOsInformation::GetKernelProcessList();
 
     m_process_list.reserve(100);
 
     for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
         try {
-            m_process_list.emplace_back(WDbgArkRemoteTypedProcess(list_head.GetTypedNode()));
+            m_process_list.emplace_back(WDbgArkRemoteTypedProcess(m_sym_cache, list_head.GetTypedNode()));
         } catch ( const ExtRemoteException& ) {
             __noop;
         }
@@ -50,7 +50,8 @@ WDbgArkProcess::WDbgArkProcess() {
     }
 }
 
-WDbgArkProcess::WDbgArkProcess(const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb) : WDbgArkProcess() {
+WDbgArkProcess::WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                               const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb) : WDbgArkProcess(sym_cache) {
     m_dummy_pdb = dummy_pdb;
 
     for ( auto& process : m_process_list ) {
@@ -61,10 +62,10 @@ WDbgArkProcess::WDbgArkProcess(const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb
 WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessByImageFileName(const std::string &process_name) {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return WDbgArkRemoteTypedProcess();
+        return WDbgArkRemoteTypedProcess(m_sym_cache);
     }
 
-    WDbgArkRemoteTypedProcess process;
+    WDbgArkRemoteTypedProcess process(m_sym_cache);
     FindProcessByImageFileName(process_name, &process);
 
     return process;
@@ -73,7 +74,7 @@ WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessByImageFileName(const std::
 WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessAnyGUIProcess() {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return WDbgArkRemoteTypedProcess();
+        return WDbgArkRemoteTypedProcess(m_sym_cache);
     }
 
     try {
@@ -91,13 +92,13 @@ WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessAnyGUIProcess() {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
-    return WDbgArkRemoteTypedProcess();
+    return WDbgArkRemoteTypedProcess(m_sym_cache);
 }
 
 WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessAnyApiSetMap() {
     if ( !IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": class is not initialized" << endlerr;
-        return WDbgArkRemoteTypedProcess();
+        return WDbgArkRemoteTypedProcess(m_sym_cache);
     }
 
     // we capture by value because we want to revert process on object destruction
@@ -116,9 +117,12 @@ WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessAnyApiSetMap() {
             }
 
             // check that ApiSetMap is not paged out
-            ExtRemoteTyped apiset_header((m_dummy_pdb->GetShortName() + "!" + GetApiSetNamespace()).c_str(),
+            const auto api_set_namespace = m_dummy_pdb->GetShortName() + "!" + GetApiSetNamespace();
+            ExtRemoteTyped apiset_header(api_set_namespace.c_str(),
                                          offset,
-                                         false);
+                                         false,
+                                         m_sym_cache->GetCookieCache(api_set_namespace),
+                                         nullptr);
 
             size_t apiset_size = 0;
 
@@ -144,7 +148,7 @@ WDbgArkRemoteTypedProcess WDbgArkProcess::FindProcessAnyApiSetMap() {
         return (*it);
     }
 
-    return WDbgArkRemoteTypedProcess();
+    return WDbgArkRemoteTypedProcess(m_sym_cache);
 }
 
 bool WDbgArkProcess::FindProcessByImageFileName(const std::string &process_name, WDbgArkRemoteTypedProcess* process) {

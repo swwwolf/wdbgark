@@ -75,11 +75,11 @@ class WDbgArkObjHelper {
     std::pair<HRESULT, ExtRemoteTyped> GetObjectType(const ExtRemoteTyped &object);
     std::pair<HRESULT, std::string> GetObjectTypeName(const ExtRemoteTyped &object);
     ObjectsInfoResult GetObjectsInfo(const uint64_t directory_address = 0ULL,
-                                     const std::string &root_path = "\\",
+                                     const std::string &root_path = R"(\)",
                                      const bool recursive = false);
     uint64_t FindObjectByName(const std::string &object_name,
                               const uint64_t directory_address = 0ULL,
-                              const std::string &root_path = "\\",
+                              const std::string &root_path = R"(\)",
                               const bool recursive = false);
 
  private:

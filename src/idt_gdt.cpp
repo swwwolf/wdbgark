@@ -713,7 +713,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                                           DEBUG_DATA_KPCR_OFFSET,
                                                                           &kpcr_offset,
                                                                           static_cast<uint32_t>(sizeof(kpcr_offset)),
-                                                                          NULL);
+                                                                          nullptr);
 
             if ( !SUCCEEDED(result) ) {
                 err << wa::showminus << __FUNCTION__ << ": ReadProcessorSystemData failed with error = " << result;
@@ -721,7 +721,8 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 break;
             }
 
-            ExtRemoteTyped pcr("nt!_KPCR", kpcr_offset, false, NULL, NULL);
+            const std::string kpcr("nt!_KPCR");
+            ExtRemoteTyped pcr(kpcr.c_str(), kpcr_offset, false, m_sym_cache->GetCookieCache(kpcr), nullptr);
 
             if ( m_is_cur_machine64 ) {
                 idt_entry_start = pcr.Field("IdtBase").GetPtr();    // _KIDTENTRY64*
@@ -748,11 +749,12 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 if ( m_is_cur_machine64 ) {
                     KIDT_HANDLER_ADDRESS idt_handler;
 
-                    ExtRemoteTyped idt_entry("nt!_KIDTENTRY64",
+                    const std::string entry64("nt!_KIDTENTRY64");
+                    ExtRemoteTyped idt_entry(entry64.c_str(),
                                              idt_entry_start + j * idt_entry_size,
                                              false,
-                                             NULL,
-                                             NULL);
+                                             m_sym_cache->GetCookieCache(entry64),
+                                             nullptr);
 
                     idt_handler.off.OffsetLow = idt_entry.Field("OffsetLow").GetUshort();
                     idt_handler.off.OffsetMiddle = idt_entry.Field("OffsetMiddle").GetUshort();
@@ -763,11 +765,12 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                     info << "<exec cmd=\"dx -r1 *(nt!_KIDTENTRY64 *)" << std::hex << std::showbase;
                     info << idt_entry.m_Offset << "\">dx" << "</exec>" << " ";
                 } else {
-                    ExtRemoteTyped idt_entry("nt!_KIDTENTRY",
+                    const std::string entry32("nt!_KIDTENTRY");
+                    ExtRemoteTyped idt_entry(entry32.c_str(),
                                              idt_entry_start + j * idt_entry_size,
                                              false,
-                                             NULL,
-                                             NULL);
+                                             m_sym_cache->GetCookieCache(entry32),
+                                             nullptr);
 
                     isr_address = static_cast<uint64_t>(MAKEULONG(idt_entry.Field("ExtendedOffset").GetUshort(),
                                                                   idt_entry.Field("Offset").GetUshort()));
@@ -796,6 +799,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                 // now deal with _KINTERRUPTs
                 ExtRemoteTyped interrupt;
                 bool valid_interrupt = false;
+                const std::string kintrpt("nt!_KINTERRUPT");
 
                 if ( isr_address < support_info.start_unexpected_range ||
                      isr_address > support_info.end_unexpected_range ||
@@ -806,18 +810,18 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                         ExtRemoteTyped loc_interrupt;
 
                         if ( support_info.interrupt_object_offset ) {
-                            loc_interrupt.Set("nt!_KINTERRUPT",
+                            loc_interrupt.Set(kintrpt.c_str(),
                                               ExtRemoteData(pcr.Field("Prcb.InterruptObject").m_Offset + \
                                               j * m_PtrSize, m_PtrSize).GetPtr(),
                                               false,
-                                              NULL,
-                                              NULL);
+                                              m_sym_cache->GetCookieCache(kintrpt),
+                                              nullptr);
                         } else {
                             loc_interrupt.Set("nt!_KINTERRUPT",
                                               isr_address - support_info.dispatch_code_offset,
                                               false,
-                                              NULL,
-                                              NULL);
+                                              m_sym_cache->GetCookieCache(kintrpt),
+                                              nullptr);
                         }
 
                         if ( loc_interrupt.m_Offset &&
@@ -864,7 +868,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                     display->Analyze(message_address, processor_index.str(), info_intr.str());
 
                     walkresType output_list;
-                    ExtRemoteTyped list_entry = interrupt.Field("InterruptListEntry");
+                    auto list_entry = interrupt.Field("InterruptListEntry");
 
                     if ( support_info.message_service_offset ) {
                         WalkAnyListWithOffsetToRoutine("",
@@ -1067,7 +1071,8 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
                         const uint32_t gdt_selector,
                         const uint32_t cpu_idx,
                         const uint64_t kpcr_offset,
-                        std::unique_ptr<WDbgArkAnalyzeBase> const &display);
+                        const std::unique_ptr<WDbgArkAnalyzeBase> &display,
+                        const std::shared_ptr<WDbgArkSymCache> &sym_cache);
 
 std::vector<uint32_t> GetGDTSelectors() {
     if ( g_Ext->IsCurMachine64() ) {
@@ -1120,7 +1125,8 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                 continue;
             }
 
-            ExtRemoteTyped pcr("nt!_KPCR", kpcr_offset, false, NULL, NULL);
+            const std::string kpcr("nt!_KPCR");
+            ExtRemoteTyped pcr(kpcr.c_str(), kpcr_offset, false, m_sym_cache->GetCookieCache(kpcr), nullptr);
 
             if ( m_is_cur_machine64 ) {
                 gdt_entry_start = pcr.Field("GdtBase").GetPtr();    // _KGDTENTRY64*
@@ -1138,7 +1144,8 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                                        gdt_selector_x64,
                                        cpu_idx,
                                        kpcr_offset,
-                                       display);
+                                       display,
+                                       m_sym_cache);
 
                     gdt_selector = gdt_selector_x64 + gdt_entry_size;   // because last one is "normal"
                 }
@@ -1151,7 +1158,8 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                                    gdt_selector,
                                    cpu_idx,
                                    kpcr_offset,
-                                   display);
+                                   display,
+                                   m_sym_cache);
             }
         }
     }
@@ -1174,15 +1182,15 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
                         const uint32_t gdt_selector,
                         const uint32_t cpu_idx,
                         const uint64_t kpcr_offset,
-                        std::unique_ptr<WDbgArkAnalyzeBase> const &display) {
-    std::stringstream processor_index;
-    std::stringstream info;
-
+                        const std::unique_ptr<WDbgArkAnalyzeBase> &display,
+                        const std::shared_ptr<WDbgArkSymCache> &sym_cache) {
     ExtRemoteTyped gdt_entry(gdt_entry_name.c_str(),
                              entry_address,
                              false,
-                             NULL,
-                             NULL);
+                             sym_cache->GetCookieCache(gdt_entry_name),
+                             nullptr);
+
+    std::stringstream info;
 
     if ( g_Ext->IsCurMachine64() ) {
         info << std::setw(56);
@@ -1197,6 +1205,7 @@ void DisplayOneGDTEntry(const std::string &gdt_entry_name,
     info << "<exec cmd=\"dx -r1 *(nt!_KPCR *)" << std::hex << std::showbase << kpcr_offset;
     info << "\">pcr" << "</exec>" << " ";
 
+    std::stringstream processor_index;
     processor_index << std::setw(2) << cpu_idx << " / " << std::setw(2);
     processor_index << std::hex << gdt_selector / gdt_entry_size;
 

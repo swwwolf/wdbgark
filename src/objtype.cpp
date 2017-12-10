@@ -68,14 +68,14 @@ EXT_COMMAND(wa_objtype,
                                 reinterpret_cast<void*>(display.get()),
                                 DirectoryObjectTypeCallback);
         } else {
-            ExtRemoteTyped object_type("nt!_OBJECT_TYPE",
-                                       m_obj_helper->FindObjectByName(type,
-                                                                      object_types_directory_offset,
-                                                                      "\\ObjectTypes\\",
-                                                                      false),
+            auto offset = m_obj_helper->FindObjectByName(type, object_types_directory_offset, "\\ObjectTypes\\", false);
+
+            const std::string obj_type("nt!_OBJECT_TYPE");
+            ExtRemoteTyped object_type(obj_type.c_str(),
+                                       offset,
                                        false,
-                                       NULL,
-                                       NULL);
+                                       m_sym_cache->GetCookieCache(obj_type),
+                                       nullptr);
 
             if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
                 err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
@@ -91,13 +91,18 @@ EXT_COMMAND(wa_objtype,
     display->PrintFooter();
 }
 
-HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk*, const ExtRemoteTyped &object, void* context) {
+HRESULT WDbgArk::DirectoryObjectTypeCallback(WDbgArk* wdbg_ark_class, const ExtRemoteTyped &object, void* context) {
     WDbgArkAnalyzeBase* display = reinterpret_cast<WDbgArkAnalyzeBase*>(context);
 
     try {
-        ExtRemoteTyped object_type("nt!_OBJECT_TYPE", object.m_Offset, false, NULL, NULL);
-        ExtRemoteTyped typeinfo = object_type.Field("TypeInfo");
+        const std::string obj_type("nt!_OBJECT_TYPE");
+        ExtRemoteTyped object_type(obj_type.c_str(),
+                                   object.m_Offset,
+                                   false,
+                                   wdbg_ark_class->m_sym_cache->GetCookieCache(obj_type),
+                                   nullptr);
 
+        auto typeinfo = object_type.Field("TypeInfo");
         display->Analyze(typeinfo, object);
     }
     catch ( const ExtRemoteException &Ex ) {

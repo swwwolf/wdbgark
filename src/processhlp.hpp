@@ -37,6 +37,7 @@
 
 #include "manipulators.hpp"
 #include "strings.hpp"
+#include "symcache.hpp"
 #include "dummypdb.hpp"
 #include "processimplicithlp.hpp"
 
@@ -44,31 +45,57 @@ namespace wa {
 
 class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemoteTyped {
  public:
-    WDbgArkRemoteTypedProcess() : WDbgArkImplicitProcess(),
-                                  ExtRemoteTyped() {}
+    WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+        : WDbgArkImplicitProcess(),
+          ExtRemoteTyped() {
+        m_sym_cache = sym_cache;
+    }
 
-    explicit WDbgArkRemoteTypedProcess(PCSTR Expr) : WDbgArkImplicitProcess(),
-                                                     ExtRemoteTyped(Expr) { Init(); }
+    explicit WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache, PCSTR Expr)
+        : WDbgArkImplicitProcess(),
+          ExtRemoteTyped(Expr) {
+        m_sym_cache = sym_cache;
+        Init();
+    }
 
-    explicit WDbgArkRemoteTypedProcess(const DEBUG_TYPED_DATA* Typed) : WDbgArkImplicitProcess(),
-                                                                        ExtRemoteTyped(Typed) { Init(); }
+    explicit WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                                       const DEBUG_TYPED_DATA* Typed)
+        : WDbgArkImplicitProcess(),
+          ExtRemoteTyped(Typed) {
+        m_sym_cache = sym_cache;
+        Init();
+    }
 
-    explicit WDbgArkRemoteTypedProcess(const ExtRemoteTyped &Typed) : WDbgArkImplicitProcess(),
-                                                                      ExtRemoteTyped(Typed) { Init(); }
+    explicit WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                                       const ExtRemoteTyped &Typed)
+        : WDbgArkImplicitProcess(),
+          ExtRemoteTyped(Typed) {
+        m_sym_cache = sym_cache;
+        Init();
+    }
 
-    WDbgArkRemoteTypedProcess(PCSTR Expr, ULONG64 Offset) : WDbgArkImplicitProcess(),
-                                                            ExtRemoteTyped(Expr, Offset) { Init(); }
+    WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache, PCSTR Expr, ULONG64 Offset)
+        : WDbgArkImplicitProcess(),
+          ExtRemoteTyped(Expr, Offset) {
+        m_sym_cache = sym_cache;
+        Init();
+    }
 
-    WDbgArkRemoteTypedProcess(PCSTR Type,
+    WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                              PCSTR Type,
                               ULONG64 Offset,
                               bool PtrTo,
                               PULONG64 CacheCookie = nullptr,
-                              PCSTR LinkField = nullptr) : WDbgArkImplicitProcess(),
-                                                           ExtRemoteTyped(Type,
-                                                                          Offset,
-                                                                          PtrTo,
-                                                                          CacheCookie,
-                                                                          LinkField) { Init(); }
+                              PCSTR LinkField = nullptr)
+        : WDbgArkImplicitProcess(),
+          ExtRemoteTyped(Type,
+                         Offset,
+                         PtrTo,
+                         CacheCookie,
+                         LinkField) {
+        m_sym_cache = sym_cache;
+        Init();
+    }
 
     virtual ~WDbgArkRemoteTypedProcess() = default;
 
@@ -141,14 +168,25 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
                 return false;
             }
 
-            auto segment = ExtRemoteTyped("nt!_SECTION_OBJECT", offset, false).Field("Segment");
+            const std::string sec_obj("nt!_SECTION_OBJECT");
+            auto segment = ExtRemoteTyped(sec_obj.c_str(),
+                                          offset,
+                                          false,
+                                          m_sym_cache->GetCookieCache(sec_obj),
+                                          nullptr).Field("Segment");
+
             offset = segment.GetPtr();
 
             if ( !offset ) {
                 return false;
             }
 
-            auto fp = ExtRemoteTyped("nt!_SEGMENT", offset, false).Field("ControlArea").Field("FilePointer");
+            const std::string segm("nt!_SEGMENT");
+            auto fp = ExtRemoteTyped(segm.c_str(),
+                                     offset,
+                                     false,
+                                     m_sym_cache->GetCookieCache(segm),
+                                     nullptr).Field("ControlArea").Field("FilePointer");
 
             if ( !fp.GetPtr() ) {
                 return false;
@@ -218,12 +256,19 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
 
         // check that PEB32 is not paged out
         try {
-            ExtRemoteTyped("nt!_PEB32", GetWow64ProcessPeb32(), false).Field("Ldr").GetUlong();
+            const std::string peb32("nt!_PEB32");
+            ExtRemoteTyped(peb32.c_str(),
+                           GetWow64ProcessPeb32(),
+                           false,
+                           m_sym_cache->GetCookieCache(peb32),
+                           nullptr).Field("Ldr").GetUlong();
         } catch ( const ExtRemoteException& ) {
             return 0ULL;
         }
 
-        ExtRemoteTyped wow64info((m_dummy_pdb->GetShortName() + "!_WOW64_INFO").c_str(), offset, false);
+        const auto wow_info = m_dummy_pdb->GetShortName() + "!_WOW64_INFO";
+        ExtRemoteTyped wow64info(wow_info.c_str(), offset, false, m_sym_cache->GetCookieCache(wow_info), nullptr);
+
         return static_cast<uint64_t>(wow64info.Field("InstrumentationCallback").GetUlong());
     }
 
@@ -266,6 +311,7 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
  private:
     bool m_new_wow64 = false;
     std::string m_wow64_proc_field_name{};
+    std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
 };
 

@@ -311,16 +311,22 @@ void WDbgArk::WalkDirectoryObject(const uint64_t directory_address,
     }
 
     try {
-        ExtRemoteTyped directory_object("nt!_OBJECT_DIRECTORY", directory_address, false, NULL, NULL);
-        ExtRemoteTyped buckets = directory_object.Field("HashBuckets");
+        const std::string obj_dir("nt!_OBJECT_DIRECTORY");
+        ExtRemoteTyped directory_object(obj_dir.c_str(),
+                                        directory_address,
+                                        false,
+                                        m_sym_cache->GetCookieCache(obj_dir),
+                                        nullptr);
+
+        auto buckets = directory_object.Field("HashBuckets");
 
         const int64_t num_buckets = buckets.GetTypeSize() / m_PtrSize;
 
         for ( int64_t i = 0; i < num_buckets; i++ ) {
-            for ( ExtRemoteTyped directory_entry = *buckets[i];
+            for ( auto directory_entry = *buckets[i];
                   directory_entry.m_Offset;
                   directory_entry = *directory_entry.Field("ChainLink") ) {
-                ExtRemoteTyped object = *directory_entry.Field("Object");
+                auto object = *directory_entry.Field("Object");
 
                 if ( !SUCCEEDED(callback(this, object, context)) ) {
                     err << wa::showminus << __FUNCTION__ << ": error while invoking callback" << endlerr;
@@ -355,9 +361,10 @@ void WDbgArk::WalkDeviceNode(const uint64_t device_node_address,
             }
         }
 
-        ExtRemoteTyped device_node("nt!_DEVICE_NODE", offset, false, NULL, NULL);
+        const std::string dev_node("nt!_DEVICE_NODE");
+        ExtRemoteTyped device_node(dev_node.c_str(), offset, false, m_sym_cache->GetCookieCache(dev_node), nullptr);
 
-        for ( ExtRemoteTyped child_node = *device_node.Field("Child");
+        for ( auto child_node = *device_node.Field("Child");
               child_node.m_Offset;
               child_node = *child_node.Field("Sibling") ) {
             if ( !SUCCEEDED(callback(this, child_node, context)) ) {

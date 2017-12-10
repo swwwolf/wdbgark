@@ -55,7 +55,7 @@ WDbgArkDriver::WDbgArkDriver(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
 
     for ( auto [offset, device] : devices_info ) {
         try {
-            ExtRemoteTyped driver = *device.Field("DriverObject");
+            auto driver = *device.Field("DriverObject");
 
             if ( driver.m_Offset ) {
                 m_drivers_list.insert({ driver.m_Offset, driver });

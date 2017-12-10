@@ -38,7 +38,7 @@ EXT_COMMAND(wa_eop, "Checks processes for Elevation of Privilege", "") {
 
     out << wa::showplus << "Searching for EoP" << endlout;
 
-    auto process_helper = std::make_unique<WDbgArkProcess>();
+    auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache);
 
     if ( !process_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;
