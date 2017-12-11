@@ -726,10 +726,10 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
 
             if ( m_is_cur_machine64 ) {
                 idt_entry_start = pcr.Field("IdtBase").GetPtr();    // _KIDTENTRY64*
-                idt_entry_size = GetTypeSize("nt!_KIDTENTRY64");
+                idt_entry_size = m_sym_cache->GetTypeSize("nt!_KIDTENTRY64");
             } else {
                 idt_entry_start = pcr.Field("IDT").GetPtr();        // _KIDTENTRY*
-                idt_entry_size = GetTypeSize("nt!_KIDTENTRY");
+                idt_entry_size = m_sym_cache->GetTypeSize("nt!_KIDTENTRY");
             }
 
             for ( int j = 0; j <= MAXIMUM_IDTVECTOR; j++ ) {
@@ -1102,10 +1102,10 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
         std::string gdt_entry_name;
 
         if ( m_is_cur_machine64 ) {
-            gdt_entry_size = GetTypeSize("nt!_KGDTENTRY64");
+            gdt_entry_size = m_sym_cache->GetTypeSize("nt!_KGDTENTRY64");
             gdt_entry_name = "nt!_KGDTENTRY64";
         } else {
-            gdt_entry_size = GetTypeSize("nt!_KGDTENTRY");
+            gdt_entry_size = m_sym_cache->GetTypeSize("nt!_KGDTENTRY");
             gdt_entry_name = "nt!_KGDTENTRY";
         }
 

@@ -39,13 +39,16 @@ class WDbgArkSymCache {
 
     bool GetSymbolOffset(const std::string &symbol_name, const bool ret_zero, uint64_t* offset);
     uint64_t* GetCookieCache(const std::string &symbol_name);
+    uint32_t GetTypeSize(const std::string &type);
 
  private:
-     using SymbolCache = std::unordered_map<std::string, uint64_t>;   // symbol name : address
-     using CookieCache = std::unordered_map<std::string, uint64_t>;   // symbol name : cookie
+     using SymbolCache = std::unordered_map<std::string, uint64_t>;     // symbol name : address
+     using CookieCache = std::unordered_map<std::string, uint64_t>;     // symbol name : cookie
+     using TypeSizeCache = std::unordered_map<std::string, uint32_t>;   // symbol name : type
 
      SymbolCache m_sym_cache{};
      CookieCache m_cookie_cache{};
+     TypeSizeCache m_type_size_cache{};
 };
 
 }   // namespace wa

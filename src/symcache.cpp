@@ -34,8 +34,7 @@ bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool
     *offset = 0ULL;
 
     try {
-        auto value = m_sym_cache.at(symbol_name);
-        *offset = value;
+        *offset = m_sym_cache.at(symbol_name);
         return true;
     } catch ( const std::out_of_range& ) {
         __noop;
@@ -44,8 +43,8 @@ bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool
     // not found in cache
     const auto result = g_Ext->GetSymbolOffset(symbol_name.c_str(), ret_zero, offset);    // may throw
 
-    if ( result ) {
-        m_sym_cache.insert({ symbol_name, *offset });
+    if ( result == true ) {
+        m_sym_cache[symbol_name] = *offset;
     }
 
     return result;
@@ -53,6 +52,18 @@ bool WDbgArkSymCache::GetSymbolOffset(const std::string &symbol_name, const bool
 
 uint64_t* WDbgArkSymCache::GetCookieCache(const std::string &symbol_name) {
     return &m_cookie_cache[symbol_name];
+}
+
+uint32_t WDbgArkSymCache::GetTypeSize(const std::string &type) {
+    try {
+        return m_type_size_cache.at(type);
+    } catch ( const std::out_of_range& ) {
+        __noop;
+    }
+
+    // not found in cache
+    const auto result = m_type_size_cache[type] = ::GetTypeSize(type.c_str());
+    return result;
 }
 
 }   // namespace wa

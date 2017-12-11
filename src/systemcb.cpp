@@ -686,8 +686,9 @@ void WDbgArk::WalkExCallbackList(const std::string &list_count_name,
 
             if ( ex_callback_fast_ref != 0ULL ) {
                 const auto unref_object = ExFastRefGetObject(ex_callback_fast_ref);
-                const auto notify_routine = ExtRemoteData(unref_object + GetTypeSize("nt!_EX_RUNDOWN_REF"),
-                                                          m_PtrSize).GetPtr();
+
+                const auto type_size = m_sym_cache->GetTypeSize("nt!_EX_RUNDOWN_REF");
+                const auto notify_routine = ExtRemoteData(unref_object + type_size, m_PtrSize).GetPtr();
 
                 if ( notify_routine != 0 ) {
                     OutputWalkInfo info;
@@ -736,7 +737,7 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemot
     const uint64_t offset_list_head = object.m_Offset + g_Ext->m_PtrSize + g_Ext->m_PtrSize;
 
     // Link + CallbackObject
-    const uint32_t offset_to_routine = GetTypeSize("nt!_LIST_ENTRY") + g_Ext->m_PtrSize;
+    const uint32_t offset_to_routine = wdbg_ark_class->m_sym_cache->GetTypeSize("nt!_LIST_ENTRY") + g_Ext->m_PtrSize;
 
     wdbg_ark_class->WalkAnyListWithOffsetToRoutine(list_head_name,
                                                    offset_list_head,
@@ -764,7 +765,7 @@ void WDbgArk::WalkShutdownList(const std::string &list_head_name, const std::str
     WalkAnyListWithOffsetToObjectPointer(list_head_name,
                                          0ULL,
                                          true,
-                                         GetTypeSize("nt!_LIST_ENTRY"),
+                                         m_sym_cache->GetTypeSize("nt!_LIST_ENTRY"),
                                          &context,
                                          ShutdownListCallback);
 }
@@ -846,7 +847,7 @@ void WDbgArk::WalkPnpLists(const std::string &type, walkresType* output_list) {
     } else {
         for ( int i = 0; i < NOTIFY_DEVICE_CLASS_HASH_BUCKETS; i++ ) {
             WalkAnyListWithOffsetToRoutine(list_head_name,
-                                           offset + i * GetTypeSize("nt!_LIST_ENTRY"),
+                                           offset + i * m_sym_cache->GetTypeSize("nt!_LIST_ENTRY"),
                                            0,
                                            true,
                                            offset_to_routine,

@@ -147,7 +147,7 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
     bool IsValid() const { return (m_table_start != 0ULL && m_type_size != 0UL); }
 
     void SetType(const std::string &type) {
-        m_type_size = ::GetTypeSize(type.c_str());
+        m_type_size = m_sym_cache->GetTypeSize(type.c_str());
 
         if ( m_type_size != 0UL ) {
             m_type = type;

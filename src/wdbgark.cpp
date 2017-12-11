@@ -159,7 +159,7 @@ void WDbgArk::InitCallbackCommands() {
         warn << wa::showqmark << __FUNCTION__ << ": GetFieldOffset failed with nt!_IO_TIMER.TimerRoutine" << endlwarn;
     }
 
-    const uint32_t le_size = GetTypeSize("nt!_LIST_ENTRY");
+    const uint32_t le_size = m_sym_cache->GetTypeSize("nt!_LIST_ENTRY");
 
     m_system_cb_commands = { {
         { "image", { "", "nt!PspLoadImageNotifyRoutine", 0, 0, 0 } },
@@ -185,7 +185,7 @@ void WDbgArk::InitCallbackCommands() {
         { "lego", { "", "nt!PspLegoNotifyRoutine", 0, 0, 0 } },
         { "debugprint", { "", "nt!RtlpDebugPrintCallbackList", le_size, 0, 0 } },
         { "alpcplog", { "", "nt!AlpcpLogCallbackListHead", le_size, 0, 0 } },
-        { "empcb", { "", "nt!EmpCallbackListHead", GetTypeSize("nt!_GUID"), 0, 0 } },
+        { "empcb", { "", "nt!EmpCallbackListHead", m_sym_cache->GetTypeSize("nt!_GUID"), 0, 0 } },
         { "ioperf", { "", "nt!IopPerfIoTrackingListHead", le_size, 0, 0 } },
         { "dbgklkmd", { "", "nt!DbgkLkmdCallbackArray", 0, 0, 0 } },
         { "ioptimer", { "", "nt!IopTimerQueueHead", timer_routine_offset, 0, 0 } } } };

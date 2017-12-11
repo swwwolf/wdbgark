@@ -133,7 +133,7 @@ EXT_COMMAND(wa_callouts, "Output kernel-mode win32k callouts", "") {
 
                 if ( ex_callback_fast_ref ) {
                     ExtRemoteData routine_block(
-                        ExFastRefGetObject(ex_callback_fast_ref) + GetTypeSize("nt!_EX_RUNDOWN_REF"),
+                        ExFastRefGetObject(ex_callback_fast_ref) + m_sym_cache->GetTypeSize("nt!_EX_RUNDOWN_REF"),
                         m_PtrSize);
 
                     display->Analyze(routine_block.GetPtr(), "nt!PsWin32CallBack", "");

@@ -160,7 +160,7 @@ bool WDbgArkRce::InitSymbols() {
 //////////////////////////////////////////////////////////////////////////
 bool WDbgArkRce::InitGlobalData() {
     m_struct_name = m_dummy_pdb->GetShortName() + "!_WORKITEM_GLOBAL_DATA";
-    size_t global_data_size = GetTypeSize(m_struct_name.c_str());
+    size_t global_data_size = m_sym_cache->GetTypeSize(m_struct_name.c_str());
 
     if ( !global_data_size ) {
         err << wa::showminus << __FUNCTION__ << ": Unable to locate _WORKITEM_GLOBAL_DATA" << endlerr;

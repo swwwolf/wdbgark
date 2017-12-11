@@ -239,7 +239,7 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
             return 0ULL;
         }
 
-        return (wow64peb + ::GetTypeSize("nt!_PEB32"));
+        return (wow64peb + m_sym_cache->GetTypeSize("nt!_PEB32"));
     }
 
     uint64_t GetWow64InstrumentationCallback() {
@@ -295,7 +295,7 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
 
  private:
     void Init() {
-        if ( ::GetTypeSize("nt!_EWOW64PROCESS") != 0UL ) {
+        if ( m_sym_cache->GetTypeSize("nt!_EWOW64PROCESS") != 0UL ) {
             m_new_wow64 = true;     // 10586+
         }
 
