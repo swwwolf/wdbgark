@@ -77,7 +77,7 @@ EXT_COMMAND(wa_objtype,
                                        m_sym_cache->GetCookieCache(obj_type),
                                        nullptr);
 
-            if ( !SUCCEEDED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
+            if ( FAILED(DirectoryObjectTypeCallback(this, object_type, reinterpret_cast<void*>(display.get()))) )
                 err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallback failed" << endlerr;
         }
     }

@@ -54,7 +54,7 @@ void WaitForGoInput() {
         char buffer[3] = { 0 };
         const auto result = g_Ext->m_Control->Input(buffer, sizeof(buffer), nullptr);
 
-        if ( !SUCCEEDED(result) ) {
+        if ( FAILED(result) ) {
             continue;
         }
 

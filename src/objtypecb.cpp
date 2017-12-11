@@ -74,7 +74,7 @@ EXT_COMMAND(wa_objtypecb,
             const std::string obj_type("nt!_OBJECT_TYPE");
             ExtRemoteTyped object_type(obj_type.c_str(), offset, false, m_sym_cache->GetCookieCache(obj_type), nullptr);
 
-            if ( !SUCCEEDED(DirectoryObjectTypeCallbackListCallback(this, object_type, display.get())) ) {
+            if ( FAILED(DirectoryObjectTypeCallbackListCallback(this, object_type, display.get())) ) {
                 err << wa::showminus << __FUNCTION__ << ": DirectoryObjectTypeCallbackListCallback failed" << endlerr;
             }
         }

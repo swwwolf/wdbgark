@@ -66,7 +66,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     WDbgArkSymbolsBase symbols_base;
 
     if ( !symbols_base.CheckSymbolsPath(false, m_drop_path) ) {
-        if ( !SUCCEEDED(symbols_base.AppendSymbolPath(m_drop_path)) ) {
+        if ( FAILED(symbols_base.AppendSymbolPath(m_drop_path)) ) {
             err << wa::showminus << __FUNCTION__ << ": AppendSymbolPath failed" << endlerr;
             return false;
         }
@@ -76,7 +76,7 @@ bool WDbgArkDummyPdb::InitDummyPdbModule(void) {
     reload_cmd << "/i " << m_dummy_pdb_name_short << "=" << std::hex << std::showbase << m_dummy_pdb_base;
     reload_cmd << "," << std::hex << std::showbase << m_dummy_pdb_size;
 
-    if ( !SUCCEEDED(g_Ext->m_Symbols->Reload(reload_cmd.str().c_str())) ) {
+    if ( FAILED(g_Ext->m_Symbols->Reload(reload_cmd.str().c_str())) ) {
         err << wa::showminus << __FUNCTION__ << ": Reload failed" << endlerr;
         return false;
     }

@@ -55,7 +55,7 @@ bool WDbgArkSymbolsBase::InitSymbolPath() {
 
         result = g_Ext->m_Symbols->GetSymbolPath(sym_path_buf.get(), sym_buf_size, &sym_buf_size);
 
-        if ( !SUCCEEDED(result) ) {
+        if ( FAILED(result) ) {
             err << wa::showminus << __FUNCTION__ ": GetSymbolPath failed" << endlerr;
         } else {
             m_symbol_path = sym_path_buf.get();
@@ -77,7 +77,7 @@ bool WDbgArkSymbolsBase::InitImagePath() {
 
         result = g_Ext->m_Symbols->GetImagePath(img_path_buf.get(), img_buf_size, &img_buf_size);
 
-        if ( !SUCCEEDED(result) ) {
+        if ( FAILED(result) ) {
             err << wa::showminus << __FUNCTION__ ": GetImagePath failed" << endlerr;
         } else {
             m_image_path = img_path_buf.get();

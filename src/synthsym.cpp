@@ -48,7 +48,7 @@ bool WDbgArk::AddSyntheticSymbolAddressPtr(const uint64_t address, const std::st
                                                        DEBUG_ADDSYNTHSYM_DEFAULT,
                                                        &id);
 
-    if ( !SUCCEEDED(result) ) {
+    if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ << ": failed to add synthetic symbol " << name << endlerr;
     } else {
         m_synthetic_symbols.push_back(id);

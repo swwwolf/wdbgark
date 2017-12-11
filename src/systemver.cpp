@@ -42,7 +42,7 @@ WDbgArkSystemVer::WDbgArkSystemVer() {
                                                            0,
                                                            nullptr);
 
-    if ( !SUCCEEDED(result) ) {
+    if ( FAILED(result) ) {
         err << wa::showminus << __FUNCTION__ ": GetSystemVersion failed with result = " << result << endlerr;
         return;
     }

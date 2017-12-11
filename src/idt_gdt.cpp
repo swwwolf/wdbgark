@@ -715,7 +715,7 @@ EXT_COMMAND(wa_idt, "Output processors IDT", "") {
                                                                           static_cast<uint32_t>(sizeof(kpcr_offset)),
                                                                           nullptr);
 
-            if ( !SUCCEEDED(result) ) {
+            if ( FAILED(result) ) {
                 err << wa::showminus << __FUNCTION__ << ": ReadProcessorSystemData failed with error = " << result;
                 err << endlerr;
                 break;
@@ -1119,7 +1119,7 @@ EXT_COMMAND(wa_gdt, "Output processors GDT", "") {
                                                                           sizeof(kpcr_offset),
                                                                           NULL);
 
-            if ( !SUCCEEDED(result) ) {
+            if ( FAILED(result) ) {
                 err << wa::showminus << __FUNCTION__ << ": CPU " << cpu_idx;
                 err << ": ReadProcessorSystemData failed with error " << result << endlerr;
                 continue;

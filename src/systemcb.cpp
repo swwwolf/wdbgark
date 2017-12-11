@@ -726,7 +726,7 @@ HRESULT WDbgArk::DirectoryObjectCallback(WDbgArk* wdbg_ark_class, const ExtRemot
 
     const auto [result, name] = wdbg_ark_class->m_obj_helper->GetObjectName(object);
 
-    if ( !SUCCEEDED(result) ) {
+    if ( FAILED(result) ) {
         warn << wa::showqmark << __FUNCTION__ << ": failed to get object name" << endlwarn;
     } else {
         list_head_name.append(name);

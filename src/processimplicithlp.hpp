@@ -65,7 +65,7 @@ class WDbgArkImplicitProcess {
         uint64_t cur_process = 0ULL;
         auto result = m_system2->GetImplicitProcessDataOffset(&cur_process);
 
-        if ( !SUCCEEDED(result) ) {
+        if ( FAILED(result) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to get current process offset" << endlerr;
             return result;
         }
@@ -81,7 +81,7 @@ class WDbgArkImplicitProcess {
 
         result = m_system2->SetImplicitProcessDataOffset(process_offset);
 
-        if ( !SUCCEEDED(result) ) {
+        if ( FAILED(result) ) {
             err << wa::showminus << __FUNCTION__ << ": failed to set implicit process to ";
             err << std::hex << std::showbase << process_offset << endlerr;
         } else {
@@ -100,7 +100,7 @@ class WDbgArkImplicitProcess {
         if ( IsSet() ) {
             result = m_system2->SetImplicitProcessDataOffset(m_revert_process);
 
-            if ( !SUCCEEDED(result) ) {
+            if ( FAILED(result) ) {
                 err << wa::showminus << __FUNCTION__ << ": failed to revert" << endlerr;
             } else {
                 m_revert_process = 0ULL;

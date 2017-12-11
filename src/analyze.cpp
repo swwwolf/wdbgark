@@ -110,7 +110,7 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address, const std::string &type
 
         WDbgArkSymbolsBase symbols_base;
 
-        if ( !SUCCEEDED(symbols_base.GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) ) {
+        if ( FAILED(symbols_base.GetModuleNames(address, &image_name, &module_name, &loaded_image_name)) ) {
             suspicious = true;
         }
 
@@ -118,7 +118,7 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address, const std::string &type
 
         const auto [result, name] = symbols_base.GetNameByOffset(address);
 
-        if ( !SUCCEEDED(result) ) {
+        if ( FAILED(result) ) {
             suspicious = true;
         } else {
             symbol_name = name;
@@ -161,7 +161,7 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
 
     const auto [result, name] = m_obj_helper->GetObjectName(object);
 
-    if ( !SUCCEEDED(result) ) {
+    if ( FAILED(result) ) {
         warn << wa::showqmark << __FUNCTION__ ": GetObjectName failed" << endlwarn;
     } else {
         object_name = name;
@@ -170,7 +170,7 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     std::string object_type_name = "*UNKNOWN*";
     const auto [result_type, type_name] = m_obj_helper->GetObjectTypeName(object);
 
-    if ( !SUCCEEDED(result_type) ) {
+    if ( FAILED(result_type) ) {
         warn << wa::showqmark << __FUNCTION__ ": GetObjectTypeName failed" << endlwarn;
     } else {
         object_type_name = type_name;
@@ -675,10 +675,10 @@ void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeProcessToken::WDbgArkAnalyzeProcessToken(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 180
+    // width = 191
     AddColumn("Token", 18);
-    AddColumn("Process name", 20);
-    AddColumn("Process image path", 107);
+    AddColumn("Process name", 25);
+    AddColumn("Process image path", 113);
     AddColumn("Suspicious", 10);
     AddColumn("Info", 25);
 }

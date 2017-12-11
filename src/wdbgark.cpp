@@ -286,7 +286,7 @@ void WDbgArk::WalkAnyListWithOffsetToObjectPointer(const std::string &list_head_
         for ( list_head.StartHead(); list_head.HasNode(); list_head.Next() ) {
             const ExtRemoteData object_pointer(list_head.GetNodeOffset() + offset_to_object_pointer, m_PtrSize);
 
-            if ( !SUCCEEDED(callback(this, object_pointer, context)) ) {
+            if ( FAILED(callback(this, object_pointer, context)) ) {
                 err << wa::showminus << __FUNCTION__ << ": error while invoking callback" << endlerr;
                 return;
             }
@@ -328,7 +328,7 @@ void WDbgArk::WalkDirectoryObject(const uint64_t directory_address,
                   directory_entry = *directory_entry.Field("ChainLink") ) {
                 auto object = *directory_entry.Field("Object");
 
-                if ( !SUCCEEDED(callback(this, object, context)) ) {
+                if ( FAILED(callback(this, object, context)) ) {
                     err << wa::showminus << __FUNCTION__ << ": error while invoking callback" << endlerr;
                     return;
                 }
@@ -367,7 +367,7 @@ void WDbgArk::WalkDeviceNode(const uint64_t device_node_address,
         for ( auto child_node = *device_node.Field("Child");
               child_node.m_Offset;
               child_node = *child_node.Field("Sibling") ) {
-            if ( !SUCCEEDED(callback(this, child_node, context)) ) {
+            if ( FAILED(callback(this, child_node, context)) ) {
                 err << wa::showminus << __FUNCTION__ << ": error while invoking callback" << endlerr;
                 return;
             }
