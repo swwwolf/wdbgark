@@ -20,8 +20,11 @@
 */
 
 /*
-    Output tcpip!IoctlDispatchTable, http!UlIoctlTable, http!UxIoctlTable, srv!SrvSmbDispatchTable,
-    srv!SrvTransaction2DispatchTable, srv!SrvNtTransactionDispatchTable, srv!SrvApiDispatchTable
+    Output:
+
+    tcpip!IoctlDispatchTable, http!UlIoctlTable, http!UxIoctlTable, srv!SrvSmbDispatchTable,
+    srv!SrvTransaction2DispatchTable, srv!SrvNtTransactionDispatchTable, srv!SrvApiDispatchTable,
+    storport!StorportExtensionTable
 */
 
 #include <sstream>
@@ -37,7 +40,7 @@
 
 namespace wa {
 
-using IsSupportedSystemTable = std::function<bool(void)>;
+using IsSupportedSystemTable = std::function<bool(const std::shared_ptr<WDbgArkSymCache>&, const std::string&)>;
 using GetCountSystemTable = std::function<uint32_t(void)>;
 
 typedef struct SystemTableTag {
@@ -55,21 +58,18 @@ typedef struct SystemTableTag {
 using SystemTables = std::vector<SystemTable>;
 
 SystemTables GetSystemTables();
+bool IsTableSupported(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const std::string &table_name);
 
 // tcpip!IoctlDispatchTable
-bool IsTcpipIoctlDispatchTableSupported();
 uint32_t GetTcpipIoctlDispatchTableCount();
 
 // http!UlIoctlTable
-bool IsHttpUlIoctlTableTableSupported();
 uint32_t GetHttpUlIoctlTableCount();
 
 // http!UxIoctlTable
-bool IsHttpUxIoctlTableTableSupported();
 uint32_t GetHttpUxIoctlTableCount();
 
 // srv!*DispatchTable
-bool IsSrvDispatchTableSupported();
 // srv!SrvSmbDispatchTable
 uint32_t GetSrvSmbDispatchTableCount();
 // srv!SrvTransaction2DispatchTable
@@ -78,6 +78,9 @@ uint32_t GetSrvTransaction2DispatchTableCount();
 uint32_t GetSrvNtTransactionDispatchTableCount();
 // srv!SrvApiDispatchTable
 uint32_t GetSrvApiDispatchTableCount();
+
+// storport!StorportExtensionTable
+uint32_t GetStorportExtensionTableCount();
 
 EXT_COMMAND(wa_systables, "Output various kernel-mode system tables", "") {
     RequireKernelMode();
@@ -92,7 +95,7 @@ EXT_COMMAND(wa_systables, "Output various kernel-mode system tables", "") {
         for ( const auto& system_table : system_tables ) {
             out << wa::showplus << "Displaying " << system_table.name << endlout;
 
-            if ( !system_table.is_supported() ) {
+            if ( !system_table.is_supported(m_sym_cache, system_table.name) ) {
                 out << wa::showplus << __FUNCTION__ << ": unsupported Windows version" << endlout;
                 continue;
             }
@@ -152,7 +155,7 @@ EXT_COMMAND(wa_systables, "Output various kernel-mode system tables", "") {
 SystemTables GetSystemTables() {
     return {
         { "tcpip!IoctlDispatchTable",
-          IsTcpipIoctlDispatchTableSupported,
+          IsTableSupported,
           GetTcpipIoctlDispatchTableCount,
           g_Ext->m_PtrSize,
           2 * g_Ext->m_PtrSize,
@@ -162,7 +165,7 @@ SystemTables GetSystemTables() {
           { "tcpip" } },
 
         { "http!UlIoctlTable",
-          IsHttpUlIoctlTableTableSupported,
+          IsTableSupported,
           GetHttpUlIoctlTableCount,
           g_Ext->m_PtrSize,
           2 * g_Ext->m_PtrSize,
@@ -172,7 +175,7 @@ SystemTables GetSystemTables() {
           { "http" } },
 
         { "http!UxIoctlTable",
-          IsHttpUxIoctlTableTableSupported,
+          IsTableSupported,
           GetHttpUxIoctlTableCount,
           g_Ext->m_PtrSize,
           3 * g_Ext->m_PtrSize,
@@ -182,7 +185,7 @@ SystemTables GetSystemTables() {
           { "http" } },
 
         { "srv!SrvSmbDispatchTable",
-          IsSrvDispatchTableSupported,
+          IsTableSupported,
           GetSrvSmbDispatchTableCount,
           0,
           g_Ext->m_PtrSize,
@@ -192,7 +195,7 @@ SystemTables GetSystemTables() {
           { "srv" } },
 
         { "srv!SrvTransaction2DispatchTable",
-          IsSrvDispatchTableSupported,
+          IsTableSupported,
           GetSrvTransaction2DispatchTableCount,
           0,
           g_Ext->m_PtrSize,
@@ -202,7 +205,7 @@ SystemTables GetSystemTables() {
           { "srv" } },
 
         { "srv!SrvNtTransactionDispatchTable",
-          IsSrvDispatchTableSupported,
+          IsTableSupported,
           GetSrvNtTransactionDispatchTableCount,
           g_Ext->m_PtrSize,
           g_Ext->m_PtrSize,
@@ -212,32 +215,38 @@ SystemTables GetSystemTables() {
           { "srv" } },
 
         { "srv!SrvApiDispatchTable",
-          IsSrvDispatchTableSupported,
+          IsTableSupported,
           GetSrvApiDispatchTableCount,
           0,
           g_Ext->m_PtrSize,
           1,
           false,
           true,
-          { "srv" } }
+          { "srv" } },
+
+        { "storport!StorportExtensionTable",
+          IsTableSupported,
+          GetStorportExtensionTableCount,
+          g_Ext->m_PtrSize,
+          g_Ext->m_PtrSize,
+          1,
+          false,
+          false,
+          { "storport" } }
     };
 }
 
-// tcpip!IoctlDispatchTable
-bool IsTcpipIoctlDispatchTableSupported() {
-    WDbgArkSystemVer system_ver;
+bool IsTableSupported(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const std::string &table_name) {
+    uint64_t offset = 0ULL;
 
-    if ( !system_ver.IsInited() ) {
+    if ( !sym_cache->GetSymbolOffset(table_name, true, &offset) ) {
         return false;
     }
 
-    if ( system_ver.GetStrictVer() < VISTA_RTM_VER ) {
-        return false;
-    }
-
-    return true;
+    return (offset != 0ULL);
 }
 
+// tcpip!IoctlDispatchTable
 uint32_t GetTcpipIoctlDispatchTableCount() {
     WDbgArkSystemVer system_ver;
 
@@ -255,20 +264,6 @@ uint32_t GetTcpipIoctlDispatchTableCount() {
 }
 
 // HTTP!UlIoctlTable
-bool IsHttpUlIoctlTableTableSupported() {
-    WDbgArkSystemVer system_ver;
-
-    if ( !system_ver.IsInited() ) {
-        return false;
-    }
-
-    if ( system_ver.IsBuildInRangeStrict(WXP_VER, W10RTM_VER) ) {
-        return true;
-    }
-
-    return false;
-}
-
 uint32_t GetHttpUlIoctlTableCount() {
     WDbgArkSystemVer system_ver;
 
@@ -288,20 +283,6 @@ uint32_t GetHttpUlIoctlTableCount() {
 }
 
 // HTTP!UxIoctlTable
-bool IsHttpUxIoctlTableTableSupported() {
-    WDbgArkSystemVer system_ver;
-
-    if ( !system_ver.IsInited() ) {
-        return false;
-    }
-
-    if ( system_ver.GetStrictVer() >= W10TH2_VER ) {
-        return true;
-    }
-
-    return false;
-}
-
 uint32_t GetHttpUxIoctlTableCount() {
     WDbgArkSystemVer system_ver;
 
@@ -321,20 +302,6 @@ uint32_t GetHttpUxIoctlTableCount() {
 }
 
 // srv!*DispatchTable
-bool IsSrvDispatchTableSupported() {
-    WDbgArkSystemVer system_ver;
-
-    if ( !system_ver.IsInited() ) {
-        return false;
-    }
-
-    if ( system_ver.IsBuildInRangeStrict(WXP_VER, W10RS2_VER) ) {
-        return true;
-    }
-
-    return false;
-}
-
 // srv!SrvSmbDispatchTable
 uint32_t GetSrvSmbDispatchTableCount() {
     WDbgArkSystemVer system_ver;
@@ -389,6 +356,11 @@ uint32_t GetSrvNtTransactionDispatchTableCount() {
 // srv!SrvApiDispatchTable
 uint32_t GetSrvApiDispatchTableCount() {
     return 15;
+}
+
+// storport!StorportExtensionTable
+uint32_t GetStorportExtensionTableCount() {
+    return 10;
 }
 
 }   // namespace wa
