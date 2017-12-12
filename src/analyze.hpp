@@ -124,15 +124,15 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
  private:
     using ObjDmlCmd = std::tuple<std::string, std::string, std::string>;
     std::map<std::string, ObjDmlCmd> m_object_dml_cmd = {
-        { "Type", std::make_tuple("<exec cmd=\"dtx nt!_OBJECT_TYPE ", "\">", "</exec>") },
-        { "Directory", std::make_tuple("<exec cmd=\"dtx nt!_OBJECT_DIRECTORY ", "\">", "</exec>") },
-        { "Process", std::make_tuple("<exec cmd=\"dtx nt!_EPROCESS ", "\">", "</exec>") },
-        { "Thread", std::make_tuple("<exec cmd=\"dtx nt!_ETHREAD ", "\">", "</exec>") },
-        { "Device", std::make_tuple("<exec cmd=\"dtx nt!_DEVICE_OBJECT ", "\">", "</exec>") },
-        { "Driver", std::make_tuple("<exec cmd=\"dtx nt!_DRIVER_OBJECT ", "\">", "</exec>") },
-        { "File", std::make_tuple("<exec cmd=\"dtx nt!_FILE_OBJECT ", "\">", "</exec>") },
-        { "Section", std::make_tuple("<exec cmd=\"dtx nt!_SECTION ", "\">", "</exec>") },
-        { "Key", std::make_tuple("<exec cmd=\"dtx nt!_CM_KEY_BODY ", "\">", "</exec>") }
+        { "Type", std::make_tuple(R"(<exec cmd="dtx nt!_OBJECT_TYPE )", R"(">)", "</exec>") },
+        { "Directory", std::make_tuple(R"(<exec cmd="dtx nt!_OBJECT_DIRECTORY )", R"(">)", "</exec>") },
+        { "Process", std::make_tuple(R"(<exec cmd="dtx nt!_EPROCESS )", R"(">)", "</exec>") },
+        { "Thread", std::make_tuple(R"(<exec cmd="dtx nt!_ETHREAD )", R"(">)", "</exec>") },
+        { "Device", std::make_tuple(R"(<exec cmd="dtx nt!_DEVICE_OBJECT )", R"(">)", "</exec>") },
+        { "Driver", std::make_tuple(R"(<exec cmd="dtx nt!_DRIVER_OBJECT )", R"(">)", "</exec>") },
+        { "File", std::make_tuple(R"(<exec cmd="dtx nt!_FILE_OBJECT )", R"(">)", "</exec>") },
+        { "Section", std::make_tuple(R"(<exec cmd="dtx nt!_SECTION )", R"(">)", "</exec>") },
+        { "Key", std::make_tuple(R"(<exec cmd="dtx nt!_CM_KEY_BODY )", R"(">)", "</exec>") }
     };
 };
 //////////////////////////////////////////////////////////////////////////
@@ -302,6 +302,7 @@ class WDbgArkAnalyzeDriver: public WDbgArkAnalyzeBase {
     void DisplayMajorTable(const ExtRemoteTyped &object);
     void DisplayFastIo(const ExtRemoteTyped &object);
     void DisplayFsFilterCallbacks(const ExtRemoteTyped &object);
+    void DisplayClassCallbacks(const ExtRemoteTyped &object);
 };
 //////////////////////////////////////////////////////////////////////////
 // Process token analyzer

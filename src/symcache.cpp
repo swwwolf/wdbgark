@@ -61,9 +61,16 @@ uint32_t WDbgArkSymCache::GetTypeSize(const std::string &type) {
         __noop;
     }
 
+    const auto type_size = ::GetTypeSize(type.c_str());
+
+    // type not found
+    if ( !type_size ) {
+        return 0UL;
+    }
+
     // not found in cache
-    const auto result = m_type_size_cache[type] = ::GetTypeSize(type.c_str());
-    return result;
+    m_type_size_cache[type] = type_size;
+    return type_size;
 }
 
 }   // namespace wa

@@ -38,6 +38,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <array>
 
 #include "./ddk.h"
 #include "symcache.hpp"
@@ -82,11 +83,11 @@ class WDbgArkObjHelper {
                               const std::string &root_path = R"(\)",
                               const bool recursive = false);
 
- private:
+ protected:
     bool HasObjectHeaderNameInfo(const ExtRemoteTyped &object_header) const;
     std::pair<HRESULT, ExtRemoteTyped> GetObjectHeaderNameInfo(const ExtRemoteTyped &object_header);
 
- private:
+ protected:
     bool m_inited = false;
     bool m_object_header_old = true;
     uint64_t m_ObpInfoMaskToOffset = 0ULL;
@@ -94,7 +95,6 @@ class WDbgArkObjHelper {
     uint8_t m_ObHeaderCookie = 0;
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
 };
-
 //////////////////////////////////////////////////////////////////////////
 // driver object helper class
 //////////////////////////////////////////////////////////////////////////
@@ -103,17 +103,17 @@ class WDbgArkDrvObjHelper : public WDbgArkObjHelper {
     using TableEntry = std::pair<uint64_t, std::string>;   // offset : routine name
     using Table = std::vector<TableEntry>;
 
-    WDbgArkDrvObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const ExtRemoteTyped &driver);
+    explicit WDbgArkDrvObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const ExtRemoteTyped &driver);
     WDbgArkDrvObjHelper() = delete;
 
     Table GetMajorTable();
     Table GetFastIoTable();
     Table GetFsFilterCbTable();
 
- private:
+ protected:
     ExtRemoteTyped m_driver;
 
-    std::vector<std::string> m_major_table_name = {
+    std::array<std::string, 28> m_major_table_name = {
         make_string(IRP_MJ_CREATE),
         make_string(IRP_MJ_CREATE_NAMED_PIPE),
         make_string(IRP_MJ_CLOSE),
@@ -144,7 +144,7 @@ class WDbgArkDrvObjHelper : public WDbgArkObjHelper {
         make_string(IRP_MJ_PNP)
     };
 
-    std::vector<std::string> m_fast_io_table_name = {
+    std::array<std::string, 27> m_fast_io_table_name = {
         make_string(FastIoCheckIfPossible),
         make_string(FastIoRead),
         make_string(FastIoWrite),
@@ -174,7 +174,7 @@ class WDbgArkDrvObjHelper : public WDbgArkObjHelper {
         make_string(ReleaseForCcFlush)
     };
 
-    std::vector<std::string> m_fs_filter_cb_table_name = {
+    std::array<std::string, 12> m_fs_filter_cb_table_name = {
         make_string(PreAcquireForSectionSynchronization),
         make_string(PostAcquireForSectionSynchronization),
         make_string(PreReleaseForSectionSynchronization),
@@ -187,6 +187,96 @@ class WDbgArkDrvObjHelper : public WDbgArkObjHelper {
         make_string(PostAcquireForModifiedPageWriter),
         make_string(PreReleaseForModifiedPageWriter),
         make_string(PostReleaseForModifiedPageWriter)
+    };
+};
+//////////////////////////////////////////////////////////////////////////
+// class driver object helper class
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkClassDrvObjHelper : public WDbgArkDrvObjHelper {
+ public:
+    explicit WDbgArkClassDrvObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache, const ExtRemoteTyped &driver);
+    WDbgArkClassDrvObjHelper() = delete;
+
+    ExtRemoteTyped Get() const { return m_class_driver_extension; }
+    std::string GetClassExtensionDmlCommand() const;
+
+    bool HasClassDriverExtension() const { return m_has_class_driver_extension; }
+    ExtRemoteTyped Field(const std::string &field) { return m_class_driver_extension.Field(field.c_str()); }
+
+    Table GetInitDataTable();
+    
+    // FdoData
+    Table GetInitDataFdoDataTable();
+    Table GetInitDataFdoDataWmiTable();
+
+    // PdoData
+    Table GetInitDataPdoDataTable();
+    Table GetInitDataPdoDataWmiTable();
+
+    Table GetDeviceMajorFunctionTable();
+    Table GetMpDeviceMajorFunctionTable();
+
+ private:
+    bool GetClassDriverExtension();
+
+ private:
+    uint64_t m_class_clientid = 0ULL;
+    bool m_has_class_driver_extension = false;
+    ExtRemoteTyped m_class_driver_extension;
+
+    std::array<std::string, 6> m_init_data_table_name = {
+        make_string(InitData.ClassAddDevice),
+        make_string(InitData.ClassEnumerateDevice),
+        make_string(InitData.ClassQueryId),
+        make_string(InitData.ClassStartIo),
+        make_string(InitData.ClassUnload),
+        make_string(InitData.ClassTick)
+    };
+
+    std::array<std::string, 11> m_init_data_fdo_data_table_name = {
+        make_string(InitData.FdoData.ClassError),
+        make_string(InitData.FdoData.ClassReadWriteVerification),
+        make_string(InitData.FdoData.ClassDeviceControl),
+        make_string(InitData.FdoData.ClassShutdownFlush),
+        make_string(InitData.FdoData.ClassCreateClose),
+        make_string(InitData.FdoData.ClassInitDevice),
+        make_string(InitData.FdoData.ClassStartDevice),
+        make_string(InitData.FdoData.ClassPowerDevice),
+        make_string(InitData.FdoData.ClassStopDevice),
+        make_string(InitData.FdoData.ClassRemoveDevice),
+        make_string(InitData.FdoData.ClassQueryPnpCapabilities)
+    };
+
+    std::array<std::string, 6> m_init_data_fdo_data_wmi_table_name = {
+        make_string(InitData.FdoData.ClassWmiInfo.ClassQueryWmiRegInfo),
+        make_string(InitData.FdoData.ClassWmiInfo.ClassQueryWmiDataBlock),
+        make_string(InitData.FdoData.ClassWmiInfo.ClassSetWmiDataBlock),
+        make_string(InitData.FdoData.ClassWmiInfo.ClassSetWmiDataItem),
+        make_string(InitData.FdoData.ClassWmiInfo.ClassExecuteWmiMethod),
+        make_string(InitData.FdoData.ClassWmiInfo.ClassWmiFunctionControl)
+    };
+
+    std::array<std::string, 11> m_init_data_pdo_data_table_name = {
+        make_string(InitData.PdoData.ClassError),
+        make_string(InitData.PdoData.ClassReadWriteVerification),
+        make_string(InitData.PdoData.ClassDeviceControl),
+        make_string(InitData.PdoData.ClassShutdownFlush),
+        make_string(InitData.PdoData.ClassCreateClose),
+        make_string(InitData.PdoData.ClassInitDevice),
+        make_string(InitData.PdoData.ClassStartDevice),
+        make_string(InitData.PdoData.ClassPowerDevice),
+        make_string(InitData.PdoData.ClassStopDevice),
+        make_string(InitData.PdoData.ClassRemoveDevice),
+        make_string(InitData.PdoData.ClassQueryPnpCapabilities)
+    };
+
+    std::array<std::string, 6> m_init_data_pdo_data_wmi_table_name = {
+        make_string(InitData.PdoData.ClassWmiInfo.ClassQueryWmiRegInfo),
+        make_string(InitData.PdoData.ClassWmiInfo.ClassQueryWmiDataBlock),
+        make_string(InitData.PdoData.ClassWmiInfo.ClassSetWmiDataBlock),
+        make_string(InitData.PdoData.ClassWmiInfo.ClassSetWmiDataItem),
+        make_string(InitData.PdoData.ClassWmiInfo.ClassExecuteWmiMethod),
+        make_string(InitData.PdoData.ClassWmiInfo.ClassWmiFunctionControl)
     };
 };
 

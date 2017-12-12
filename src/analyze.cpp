@@ -179,15 +179,15 @@ void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
     std::stringstream object_command;
 
     try {
-        const auto [type, cmd_start, cmd_end] = m_object_dml_cmd.at(object_type_name);
-        object_command << type << std::hex << std::showbase << object.m_Offset;
-        object_command << cmd_start << std::hex << std::showbase << object.m_Offset << cmd_end;
+        const auto [cmd_start_open, cmd_start_close, cmd_end] = m_object_dml_cmd.at(object_type_name);
+        object_command << cmd_start_open << std::hex << std::showbase << object.m_Offset;
+        object_command << cmd_start_close << std::hex << std::showbase << object.m_Offset << cmd_end;
     } catch ( const std::out_of_range& ) {
         __noop;
     }
 
     if ( object_command.str().empty() ) {
-        object_command << "<exec cmd=\"!object " << std::hex << std::showbase << object.m_Offset << "\">";
+        object_command << R"(<exec cmd="!object )" << std::hex << std::showbase << object.m_Offset << R"(">)";
         object_command << std::hex << std::showbase << object.m_Offset << "0x39 </exec>";
     }
 
@@ -594,6 +594,17 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
             AddTempWhiteList(name);
         }
 
+        auto driver_extension = loc_object.Field("DriverExtension");
+
+        if ( driver_extension.GetPtr() ) {
+            auto key_name = driver_extension.Field("ServiceKeyName");
+            const auto [result_service, sevice_name] = UnicodeStringStructToString(key_name);
+
+            if ( SUCCEEDED(result_service) ) {
+                wout << wa::showplus<wchar_t> << L"ServiceKeyName: " << sevice_name << endlout<wchar_t>;
+            }
+        }
+
         out << wa::showplus << "Driver routines: " << endlout;
         PrintFooter();
 
@@ -601,8 +612,8 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
         display->Analyze(loc_object.Field("DriverStartIo").GetPtr(), "DriverStartIo", "");
         display->Analyze(loc_object.Field("DriverUnload").GetPtr(), "DriverUnload", "");
 
-        if ( loc_object.Field("DriverExtension").GetPtr() ) {
-            display->Analyze(loc_object.Field("DriverExtension").Field("AddDevice").GetPtr(), "AddDevice", "");
+        if ( driver_extension.GetPtr() ) {
+            display->Analyze(driver_extension.Field("AddDevice").GetPtr(), "AddDevice", "");
         }
 
         PrintFooter();
@@ -615,8 +626,12 @@ void WDbgArkAnalyzeDriver::Analyze(const ExtRemoteTyped &object) {
 
         // display FsFilterCallbacks
         DisplayFsFilterCallbacks(object);
-    }
-    catch(const ExtRemoteException &Ex) {
+
+        // display classpnp routines
+        DisplayClassCallbacks(object);
+    } catch ( const ExtRemoteException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    } catch ( const ExtException &Ex ) {
         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
     }
 
@@ -666,6 +681,180 @@ void WDbgArkAnalyzeDriver::DisplayFsFilterCallbacks(const ExtRemoteTyped &object
         PrintFooter();
 
         for ( const auto [address, type] : fs_cb_table ) {
+            display->Analyze(address, type, "");
+        }
+
+        PrintFooter();
+    }
+}
+
+/*
+driverExtension = IoGetDriverObjectExtension(DriverObject, CLASS_DRIVER_EXTENSION_KEY);
+#define CLASS_DRIVER_EXTENSION_KEY ((PVOID) ClassInitialize)
+
+NTKERNELAPI
+PVOID
+IoGetDriverObjectExtension(
+    IN PDRIVER_OBJECT DriverObject,
+    IN PVOID ClientIdentificationAddress
+    )
+
+Routine Description:
+
+    This routine returns a pointer to the client driver object extension.
+    This extension was allocated using IoAllocateDriverObjectExtension. If
+    an extension with the create Id does not exist for the specified driver
+    object then NULL is returned.
+
+Arguments:
+
+    DriverObject - Pointer to driver object owning the extension.
+
+    ClientIdentificationAddress - Supplies the unique identifier which was
+        used to create the extension.
+
+Return Value:
+
+    The function value is a pointer to the client driver object extension,
+    or NULL.
+--
+
+{
+    KIRQL irql;
+    PIO_CLIENT_EXTENSION extension;
+
+    irql = KeAcquireQueuedSpinLock( LockQueueIoDatabaseLock );
+    extension = DriverObject->DriverExtension->ClientDriverExtension;
+    while (extension != NULL) {
+
+        if (extension->ClientIdentificationAddress == ClientIdentificationAddress) {
+            break;
+        }
+
+        extension = extension->NextExtension;
+    }
+
+    KeReleaseQueuedSpinLock( LockQueueIoDatabaseLock, irql );
+
+    if (extension == NULL) {
+        return NULL;
+    }
+
+    return extension + 1;
+}
+*/
+
+void WDbgArkAnalyzeDriver::DisplayClassCallbacks(const ExtRemoteTyped &object) {
+    WDbgArkAnalyzeBase* display = this;
+
+    WDbgArkClassDrvObjHelper class_ext(m_sym_cache, object);
+
+    if ( !class_ext.HasClassDriverExtension() ) {
+        return;
+    }
+
+    *this << class_ext.GetClassExtensionDmlCommand();   // display DML command for Class Driver Extension
+    FlushOut();
+    PrintFooter();
+
+    AddTempWhiteList("classpnp");
+
+    out << wa::showplus << "Class Driver extension routines: " << endlout;
+    PrintFooter();
+
+    display->Analyze(class_ext.Field("ClassFdoQueryWmiRegInfoEx").GetPtr(), "ClassFdoQueryWmiRegInfoEx", "");
+    display->Analyze(class_ext.Field("ClassPdoQueryWmiRegInfoEx").GetPtr(), "ClassPdoQueryWmiRegInfoEx", "");
+    PrintFooter();
+
+    const auto init_data = class_ext.GetInitDataTable();
+
+    if ( !init_data.empty() ) {
+        out << wa::showplus << "Class Driver extension InitData routines: " << endlout;
+        PrintFooter();
+
+        for ( const auto [address, type] : init_data ) {
+            display->Analyze(address, type, "");
+        }
+
+        PrintFooter();
+    }
+
+    // FDO
+    const auto init_data_fdo = class_ext.GetInitDataFdoDataTable();
+
+    if ( !init_data_fdo.empty() ) {
+        out << wa::showplus << "Class Driver extension InitData.FdoData routines: " << endlout;
+        PrintFooter();
+
+        for ( const auto [address, type] : init_data_fdo ) {
+            display->Analyze(address, type, "");
+        }
+
+        PrintFooter();
+    }
+
+    const auto init_data_fdo_wmi = class_ext.GetInitDataFdoDataWmiTable();
+
+    if ( !init_data_fdo_wmi.empty() ) {
+        out << wa::showplus << "Class Driver extension InitData.FdoData.ClassWmiInfo routines: " << endlout;
+        PrintFooter();
+
+        for ( const auto [address, type] : init_data_fdo_wmi ) {
+            display->Analyze(address, type, "");
+        }
+
+        PrintFooter();
+    }
+
+    // PDO
+    const auto init_data_pdo = class_ext.GetInitDataPdoDataTable();
+
+    if ( !init_data_pdo.empty() ) {
+        out << wa::showplus << "Class Driver extension InitData.PdoData routines: " << endlout;
+        PrintFooter();
+
+        for ( const auto [address, type] : init_data_pdo ) {
+            display->Analyze(address, type, "");
+        }
+
+        PrintFooter();
+    }
+
+    const auto init_data_pdo_wmi = class_ext.GetInitDataPdoDataWmiTable();
+
+    if ( !init_data_pdo_wmi.empty() ) {
+        out << wa::showplus << "Class Driver extension InitData.PdoData.ClassWmiInfo routines: " << endlout;
+        PrintFooter();
+
+        for ( const auto [address, type] : init_data_pdo_wmi ) {
+            display->Analyze(address, type, "");
+        }
+
+        PrintFooter();
+    }
+
+    // DeviceMajorFunctionTable
+    const auto dev_major_table = class_ext.GetDeviceMajorFunctionTable();
+
+    if ( !dev_major_table.empty() ) {
+        out << wa::showplus << "Class Driver extension InitData.DeviceMajorFunctionTable routines: " << endlout;
+        PrintFooter();
+
+        for ( const auto [address, type] : dev_major_table ) {
+            display->Analyze(address, type, "");
+        }
+
+        PrintFooter();
+    }
+
+    // MpDeviceMajorFunctionTable
+    const auto mp_dev_major_table = class_ext.GetMpDeviceMajorFunctionTable();
+
+    if ( !mp_dev_major_table.empty() ) {
+        out << wa::showplus << "Class Driver extension InitData.MpDeviceMajorFunctionTable routines: " << endlout;
+        PrintFooter();
+
+        for ( const auto [address, type] : mp_dev_major_table ) {
             display->Analyze(address, type, "");
         }
 

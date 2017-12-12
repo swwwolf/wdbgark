@@ -383,30 +383,40 @@ WDbgArkDrvObjHelper::WDbgArkDrvObjHelper(const std::shared_ptr<WDbgArkSymCache> 
                                                                          m_driver(driver) {}
 
 WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetMajorTable() {
-    auto major_table = m_driver.Field("MajorFunction");
-
     Table table;
 
-    for ( size_t i = 0; i < m_major_table_name.size(); i++ ) {
-        table.push_back({ major_table[static_cast<int64_t>(i)].GetPtr(), m_major_table_name[i] });
+    try {
+        auto major_table = m_driver.Field("MajorFunction");
+
+        for ( size_t i = 0; i < m_major_table_name.size(); i++ ) {
+            table.push_back({ major_table[static_cast<int64_t>(i)].GetPtr(), m_major_table_name[i] });
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
     }
 
     return table;
 }
 
 WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetFastIoTable() {
-    auto fast_io_dispatch = m_driver.Field("FastIoDispatch");
-    auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
-
     Table table;
 
-    if ( fast_io_dispatch_ptr ) {
-        fast_io_dispatch_ptr += fast_io_dispatch.GetFieldOffset("FastIoCheckIfPossible");
+    try {
+        auto fast_io_dispatch = m_driver.Field("FastIoDispatch");
+        auto fast_io_dispatch_ptr = fast_io_dispatch.GetPtr();
 
-        for ( size_t i = 0; i < m_fast_io_table_name.size(); i++ ) {
-            ExtRemoteData fast_io_dispatch_data(fast_io_dispatch_ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
-            table.push_back({ fast_io_dispatch_data.GetPtr(), m_fast_io_table_name[i] });
+        if ( fast_io_dispatch_ptr != 0ULL ) {
+            fast_io_dispatch_ptr = reinterpret_cast<uint64_t>RtlOffsetToPointer(
+                fast_io_dispatch_ptr,
+                fast_io_dispatch.GetFieldOffset("FastIoCheckIfPossible"));
+
+            for ( size_t i = 0; i < m_fast_io_table_name.size(); i++ ) {
+                ExtRemoteData fast_io_dispatch_data(fast_io_dispatch_ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+                table.push_back({ fast_io_dispatch_data.GetPtr(), m_fast_io_table_name[i] });
+            }
         }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
     }
 
     return table;
@@ -415,22 +425,209 @@ WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetFastIoTable() {
 WDbgArkDrvObjHelper::Table WDbgArkDrvObjHelper::GetFsFilterCbTable() {
     Table table;
 
-    if ( m_driver.Field("DriverExtension").GetPtr() ) {
-        auto fs_filter_callbacks = m_driver.Field("DriverExtension").Field("FsFilterCallbacks");
-        auto fs_filter_callbacks_ptr = fs_filter_callbacks.GetPtr();
+    try {
+        if ( m_driver.Field("DriverExtension").GetPtr() ) {
+            auto fs_filter_callbacks = m_driver.Field("DriverExtension").Field("FsFilterCallbacks");
+            auto fs_filter_callbacks_ptr = fs_filter_callbacks.GetPtr();
 
-        if ( fs_filter_callbacks_ptr ) {
-            fs_filter_callbacks_ptr += fs_filter_callbacks.GetFieldOffset("PreAcquireForSectionSynchronization");
+            if ( fs_filter_callbacks_ptr != 0ULL ) {
+                fs_filter_callbacks_ptr = reinterpret_cast<uint64_t>RtlOffsetToPointer(
+                    fs_filter_callbacks_ptr,
+                    fs_filter_callbacks.GetFieldOffset("PreAcquireForSectionSynchronization"));
 
-            for ( size_t i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
-                ExtRemoteData fs_filter_callbacks_data(fs_filter_callbacks_ptr + i * g_Ext->m_PtrSize,
-                                                       g_Ext->m_PtrSize);
-                table.push_back({ fs_filter_callbacks_data.GetPtr(), m_fs_filter_cb_table_name[i] });
+                for ( size_t i = 0; i < m_fs_filter_cb_table_name.size(); i++ ) {
+                    ExtRemoteData fs_filter_callbacks_data(fs_filter_callbacks_ptr + i * g_Ext->m_PtrSize,
+                                                           g_Ext->m_PtrSize);
+                    table.push_back({ fs_filter_callbacks_data.GetPtr(), m_fs_filter_cb_table_name[i] });
+                }
             }
         }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
     }
 
     return table;
+}
+
+WDbgArkClassDrvObjHelper::WDbgArkClassDrvObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
+                                                   const ExtRemoteTyped &driver)
+    : WDbgArkDrvObjHelper(sym_cache, driver) {
+    try {
+        ExtCaptureOutputA ignore_output;
+        ignore_output.Start();
+
+        if ( !m_sym_cache->GetTypeSize("classpnp!_CLASS_DRIVER_EXTENSION") ) {
+            return;
+        }
+
+        ignore_output.Stop();
+
+        m_sym_cache->GetSymbolOffset("classpnp!ClassInitialize", true, &m_class_clientid);
+
+        if ( m_class_clientid != 0ULL ) {
+            m_has_class_driver_extension = GetClassDriverExtension();
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    } catch ( const ExtException& ) {
+        __noop;
+    }
+}
+
+std::string WDbgArkClassDrvObjHelper::GetClassExtensionDmlCommand() const {
+    std::stringstream object_command;
+
+    object_command << R"(<exec cmd="dtx classpnp!_CLASS_DRIVER_EXTENSION )";
+    object_command << std::hex << std::showbase << m_class_driver_extension.m_Offset << R"(">)";
+    object_command << std::hex << std::showbase << m_class_driver_extension.m_Offset << "</exec>";
+
+    return object_command.str();
+}
+
+WDbgArkClassDrvObjHelper::Table WDbgArkClassDrvObjHelper::GetInitDataTable() {
+    Table table;
+
+    try {
+        auto ptr = Field("InitData.ClassAddDevice").m_Offset;
+
+        for ( size_t i = 0; i < m_init_data_table_name.size(); i++ ) {
+            ExtRemoteData data(ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+            table.push_back({ data.GetPtr(), m_init_data_table_name[i] });
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    return table;
+}
+
+WDbgArkClassDrvObjHelper::Table WDbgArkClassDrvObjHelper::GetInitDataFdoDataTable() {
+    Table table;
+
+    try {
+        auto ptr = Field("InitData.FdoData.ClassError").m_Offset;
+
+        for ( size_t i = 0; i < m_init_data_fdo_data_table_name.size(); i++ ) {
+            ExtRemoteData data(ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+            table.push_back({ data.GetPtr(), m_init_data_fdo_data_table_name[i] });
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    return table;
+}
+
+WDbgArkClassDrvObjHelper::Table WDbgArkClassDrvObjHelper::GetInitDataFdoDataWmiTable() {
+    Table table;
+
+    try {
+        auto ptr = Field("InitData.FdoData.ClassWmiInfo.ClassQueryWmiRegInfo").m_Offset;
+
+        for ( size_t i = 0; i < m_init_data_fdo_data_wmi_table_name.size(); i++ ) {
+            ExtRemoteData data(ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+            table.push_back({ data.GetPtr(), m_init_data_fdo_data_wmi_table_name[i] });
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    return table;
+}
+
+WDbgArkClassDrvObjHelper::Table WDbgArkClassDrvObjHelper::GetInitDataPdoDataTable() {
+    Table table;
+
+    try {
+        auto ptr = Field("InitData.PdoData.ClassError").m_Offset;
+
+        for ( size_t i = 0; i < m_init_data_pdo_data_table_name.size(); i++ ) {
+            ExtRemoteData data(ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+            table.push_back({ data.GetPtr(), m_init_data_pdo_data_table_name[i] });
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    return table;
+}
+
+WDbgArkClassDrvObjHelper::Table WDbgArkClassDrvObjHelper::GetInitDataPdoDataWmiTable() {
+    Table table;
+
+    try {
+        auto ptr = Field("InitData.PdoData.ClassWmiInfo.ClassQueryWmiRegInfo").m_Offset;
+
+        for ( size_t i = 0; i < m_init_data_pdo_data_wmi_table_name.size(); i++ ) {
+            ExtRemoteData data(ptr + i * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
+            table.push_back({ data.GetPtr(), m_init_data_pdo_data_wmi_table_name[i] });
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    return table;
+}
+
+WDbgArkClassDrvObjHelper::Table WDbgArkClassDrvObjHelper::GetDeviceMajorFunctionTable() {
+    Table table;
+
+    try {
+        auto major_table = Field("DeviceMajorFunctionTable");
+
+        for ( size_t i = 0; i < m_major_table_name.size(); i++ ) {
+            table.push_back({ major_table[static_cast<int64_t>(i)].GetPtr(), m_major_table_name[i] });
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    return table;
+}
+
+WDbgArkClassDrvObjHelper::Table WDbgArkClassDrvObjHelper::GetMpDeviceMajorFunctionTable() {
+    Table table;
+
+    try {
+        auto major_table = Field("MpDeviceMajorFunctionTable");
+
+        for ( size_t i = 0; i < m_major_table_name.size(); i++ ) {
+            table.push_back({ major_table[static_cast<int64_t>(i)].GetPtr(), m_major_table_name[i] });
+        }
+    } catch ( const ExtRemoteException& ) {
+        __noop;
+    }
+
+    return table;
+}
+
+bool WDbgArkClassDrvObjHelper::GetClassDriverExtension() {
+    auto driver_extension = m_driver.Field("DriverExtension");
+
+    if ( !driver_extension.GetPtr() ) {
+        return false;
+    }
+
+    auto client_driver_extension = driver_extension.Field("ClientDriverExtension");
+
+    while ( client_driver_extension.GetPtr() != 0ULL ) {
+        if ( client_driver_extension.Field("ClientIdentificationAddress").GetPtr() == m_class_clientid ) {
+            break;
+        }
+
+        client_driver_extension = client_driver_extension.Field("NextExtension");
+    }
+
+    if ( !client_driver_extension.GetPtr() ) {
+        return false;
+    }
+
+    const auto offset = reinterpret_cast<uint64_t>RtlOffsetToPointer(client_driver_extension.GetPtr(),
+                                                                     (*client_driver_extension).GetTypeSize());
+
+    const std::string class_ext("classpnp!_CLASS_DRIVER_EXTENSION");
+    m_class_driver_extension.Set(class_ext.c_str(), offset, false, m_sym_cache->GetCookieCache(class_ext), nullptr);
+    return true;
 }
 
 }   // namespace wa
