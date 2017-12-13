@@ -40,6 +40,7 @@
 #include "symcache.hpp"
 #include "dummypdb.hpp"
 #include "processimplicithlp.hpp"
+#include "objhelper.hpp"
 
 namespace wa {
 
@@ -188,11 +189,26 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
                                      m_sym_cache->GetCookieCache(segm),
                                      nullptr).Field("ControlArea").Field("FilePointer");
 
-            if ( !fp.GetPtr() ) {
+            uint64_t fp_offset = 0;
+
+            if ( fp.HasField("Object") ) {
+                fp_offset = ExFastRefGetObject(fp.Field("Object").GetPtr());
+            } else {
+                fp_offset = fp.GetPtr();
+            }
+
+            if ( !offset ) {
                 return false;
             }
 
-            auto file_name = fp.Field("FileName");
+            const std::string file_obj("nt!_FILE_OBJECT");
+            ExtRemoteTyped file_object(file_obj.c_str(),
+                                       fp_offset,
+                                       false,
+                                       m_sym_cache->GetCookieCache(file_obj),
+                                       nullptr);
+
+            auto file_name = file_object.Field("FileName");
             const auto [result, path] = UnicodeStringStructToString(file_name);
 
             if ( SUCCEEDED(result) ) {
