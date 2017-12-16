@@ -44,7 +44,7 @@ namespace wa {
 
 class WDbgArkProcess {
  public:
-    WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
+    explicit WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     explicit WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
                             const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb);
 

@@ -46,57 +46,38 @@ namespace wa {
 
 class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemoteTyped {
  public:
-    WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
-        : WDbgArkImplicitProcess(),
-          ExtRemoteTyped() {
-        m_sym_cache = sym_cache;
-    }
+    explicit WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache) : WDbgArkImplicitProcess(),
+                                                                                            ExtRemoteTyped(),
+                                                                                            m_sym_cache(sym_cache) {}
 
     explicit WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache, PCSTR Expr)
         : WDbgArkImplicitProcess(),
-          ExtRemoteTyped(Expr) {
-        m_sym_cache = sym_cache;
-        Init();
-    }
+          ExtRemoteTyped(Expr),
+          m_sym_cache(sym_cache) { Init(); }
 
     explicit WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
-                                       const DEBUG_TYPED_DATA* Typed)
-        : WDbgArkImplicitProcess(),
-          ExtRemoteTyped(Typed) {
-        m_sym_cache = sym_cache;
-        Init();
-    }
+                                       const DEBUG_TYPED_DATA* Typed) : WDbgArkImplicitProcess(),
+                                                                        ExtRemoteTyped(Typed),
+                                                                        m_sym_cache(sym_cache) { Init(); }
 
     explicit WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
-                                       const ExtRemoteTyped &Typed)
-        : WDbgArkImplicitProcess(),
-          ExtRemoteTyped(Typed) {
-        m_sym_cache = sym_cache;
-        Init();
-    }
+                                       const ExtRemoteTyped &Typed) : WDbgArkImplicitProcess(),
+                                                                      ExtRemoteTyped(Typed),
+                                                                      m_sym_cache(sym_cache) { Init(); }
 
     WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache, PCSTR Expr, ULONG64 Offset)
         : WDbgArkImplicitProcess(),
-          ExtRemoteTyped(Expr, Offset) {
-        m_sym_cache = sym_cache;
-        Init();
-    }
+          ExtRemoteTyped(Expr, Offset),
+          m_sym_cache(sym_cache) { Init(); }
 
     WDbgArkRemoteTypedProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
                               PCSTR Type,
                               ULONG64 Offset,
                               bool PtrTo,
                               PULONG64 CacheCookie = nullptr,
-                              PCSTR LinkField = nullptr)
-        : WDbgArkImplicitProcess(),
-          ExtRemoteTyped(Type,
-                         Offset,
-                         PtrTo,
-                         CacheCookie,
-                         LinkField) {
-        m_sym_cache = sym_cache;
-        Init();
-    }
+                              PCSTR LinkField = nullptr) : WDbgArkImplicitProcess(),
+                                                           ExtRemoteTyped(Type, Offset, PtrTo, CacheCookie, LinkField),
+                                                           m_sym_cache(sym_cache) { Init(); }
 
     virtual ~WDbgArkRemoteTypedProcess() = default;
 
@@ -119,11 +100,36 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
     // provide dummy pdb shared pointer here if you wanna get instrumentation callback info
     void SetDummyPdb(const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb) { m_dummy_pdb = dummy_pdb; }
 
+    uint64_t GetDataOffset() const { return m_Offset; }
+
+    WDbgArkRemoteTypedProcess GetSystemProcess() const {
+        const std::string proc("nt!_EPROCESS");
+
+        return WDbgArkRemoteTypedProcess(m_sym_cache,
+                                         proc.c_str(),
+                                         GetDataOffset(),
+                                         true,
+                                         m_sym_cache->GetCookieCache(proc),
+                                         "ActiveProcessLinks");
+    }
+
+    bool IsSystemProcess() const {
+        return (GetDataOffset() == GetSystemProcess().GetDataOffset());
+    }
+
+    bool IsMinimalProcess() {
+        if ( !HasField("Flags3") ) {
+            return false;
+        }
+
+        return (Field("Flags3").GetUlong() & EPROCESS_FLAGS3_MINIMAL);
+    }
+
     bool GetProcessImageFileName(std::string* image_name) {
         auto img_name = Field("ImageFileName");
 
         char buffer[100] = { 0 };
-        *image_name = img_name.GetString(buffer, static_cast<ULONG>(sizeof(buffer)), img_name.GetTypeSize());
+        image_name->assign(img_name.GetString(buffer, static_cast<ULONG>(sizeof(buffer)), img_name.GetTypeSize()));
 
         return true;
     }
@@ -135,8 +141,7 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
             return false;
         }
 
-        auto name = image_file_name.Field("Name");
-        const auto [result, path] = UnicodeStringStructToString(name);
+        const auto [result, path] = UnicodeStringStructToString(image_file_name.Field("Name"));
 
         if ( SUCCEEDED(result) ) {
             *image_path = path;
@@ -146,82 +151,108 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
         return false;
     }
 
-    bool GetProcessImageFilePathByFileObject(std::wstring* image_path) {
-        if ( HasField("ImageFilePointer") ) {
-            auto img_fp = Field("ImageFilePointer");
+    bool GetProcessFileObjectOld(ExtRemoteTyped* file_object) {
+        auto section = Field("SectionObject");
+        auto offset = section.GetPtr();
 
-            if ( !img_fp.GetPtr() ) {
-                return false;
-            }
-
-            auto file_name = img_fp.Field("FileName");
-            const auto [result, path] = UnicodeStringStructToString(file_name);
-
-            if ( SUCCEEDED(result) ) {
-                *image_path = path;
-                return true;
-            }
-        } else {
-            auto section = Field("SectionObject");
-            auto offset = section.GetPtr();
-
-            if ( !offset ) {
-                return false;
-            }
-
-            const std::string sec_obj("nt!_SECTION_OBJECT");
-            auto segment = ExtRemoteTyped(sec_obj.c_str(),
-                                          offset,
-                                          false,
-                                          m_sym_cache->GetCookieCache(sec_obj),
-                                          nullptr).Field("Segment");
-
-            offset = segment.GetPtr();
-
-            if ( !offset ) {
-                return false;
-            }
-
-            const std::string segm("nt!_SEGMENT");
-            auto fp = ExtRemoteTyped(segm.c_str(),
-                                     offset,
-                                     false,
-                                     m_sym_cache->GetCookieCache(segm),
-                                     nullptr).Field("ControlArea").Field("FilePointer");
-
-            uint64_t fp_offset = 0;
-
-            if ( fp.HasField("Object") ) {
-                fp_offset = ExFastRefGetObject(fp.Field("Object").GetPtr());
-            } else {
-                fp_offset = fp.GetPtr();
-            }
-
-            if ( !offset ) {
-                return false;
-            }
-
-            const std::string file_obj("nt!_FILE_OBJECT");
-            ExtRemoteTyped file_object(file_obj.c_str(),
-                                       fp_offset,
-                                       false,
-                                       m_sym_cache->GetCookieCache(file_obj),
-                                       nullptr);
-
-            auto file_name = file_object.Field("FileName");
-            const auto [result, path] = UnicodeStringStructToString(file_name);
-
-            if ( SUCCEEDED(result) ) {
-                *image_path = path;
-                return true;
-            }
+        if ( !offset ) {
+            return false;
         }
 
-        return false;
+        const std::string sec_obj("nt!_SECTION_OBJECT");
+        auto segment = ExtRemoteTyped(sec_obj.c_str(),
+                                      offset,
+                                      false,
+                                      m_sym_cache->GetCookieCache(sec_obj),
+                                      nullptr).Field("Segment");
+
+        offset = segment.GetPtr();
+
+        if ( !offset ) {
+            return false;
+        }
+
+        const std::string segm("nt!_SEGMENT");
+        auto ca = ExtRemoteTyped(segm.c_str(),
+                                 offset,
+                                 false,
+                                 m_sym_cache->GetCookieCache(segm),
+                                 nullptr).Field("ControlArea");
+
+        if ( !ca.GetPtr() ) {
+            return false;
+        }
+
+        return GetFileObjectByFilePointer(ca.Field("FilePointer"), file_object);
     }
 
-    bool GetProcessImageFilePath(std::wstring* image_path) {
-        auto result = GetSeAuditProcessCreationInfoImagePath(image_path);
+    bool GetProcessFileObjectNew(ExtRemoteTyped* file_object) {
+        auto section = Field("SectionObject");
+        auto offset = section.GetPtr();
+
+        if ( !offset ) {
+            return false;
+        }
+
+        const std::string sec_obj("nt!_SECTION");
+        auto ca = ExtRemoteTyped(sec_obj.c_str(),
+                                 offset,
+                                 false,
+                                 m_sym_cache->GetCookieCache(sec_obj),
+                                 nullptr).Field("u1.ControlArea");
+
+        if ( !ca.GetPtr() ) {
+            return false;
+        }
+
+        return GetFileObjectByFilePointer(ca.Field("FilePointer"), file_object);
+    }
+
+    bool GetProcessFileObject(ExtRemoteTyped* file_object) {
+        auto result = m_new_sec_object ? GetProcessFileObjectNew(file_object) : GetProcessFileObjectOld(file_object);
+        return result;
+    }
+
+    bool GetProcessImageFilePathByImageFilePointer(std::wstring* image_path) {
+        if ( !HasField("ImageFilePointer") ) {
+            return false;
+        }
+
+        auto img_fp = Field("ImageFilePointer");
+
+        if ( !img_fp.GetPtr() ) {
+            return false;
+        }
+
+        const auto [result, path] = UnicodeStringStructToString(img_fp.Field("FileName"));
+
+        if ( FAILED(result) ) {
+            return false;
+        }
+
+        *image_path = path;
+        return true;
+    }
+
+    bool GetProcessImageFilePathByFileObject(std::wstring* image_path) {
+        ExtRemoteTyped file_object;
+
+        if ( !GetProcessFileObject(&file_object) ) {
+            return false;
+        }
+
+        const auto [result, path] = UnicodeStringStructToString(file_object.Field("FileName"));
+
+        if ( FAILED(result) ) {
+            return false;
+        }
+
+        *image_path = path;
+        return true;
+    }
+
+    bool GetProcessImageFilePathByFilePointerFileObject(std::wstring* image_path) {
+        auto result = GetProcessImageFilePathByImageFilePointer(image_path);
 
         if ( !result ) {
             result = GetProcessImageFilePathByFileObject(image_path);
@@ -230,7 +261,15 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
         return result;
     }
 
-    uint64_t GetDataOffset() const { return m_Offset; }
+    bool GetProcessImageFilePath(std::wstring* image_path) {
+        auto result = GetSeAuditProcessCreationInfoImagePath(image_path);
+
+        if ( !result ) {
+            result = GetProcessImageFilePathByFilePointerFileObject(image_path);
+        }
+
+        return result;
+    }
 
     bool IsWow64Process() {
         if ( g_Ext->IsCurMachine32() ) {
@@ -254,8 +293,8 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
         if ( !wow64peb ) {
             return 0ULL;
         }
-
-        return (wow64peb + m_sym_cache->GetTypeSize("nt!_PEB32"));
+        
+        return reinterpret_cast<uint64_t>(RtlOffsetToPointer(wow64peb, m_sym_cache->GetTypeSize("nt!_PEB32")));
     }
 
     uint64_t GetWow64InstrumentationCallback() {
@@ -322,10 +361,36 @@ class WDbgArkRemoteTypedProcess : public WDbgArkImplicitProcess, public ExtRemot
                 m_wow64_proc_field_name = "Wow64Process";
             }
         }
+
+        if ( m_sym_cache->GetTypeSize("nt!_SECTION") != 0UL ) {
+            m_new_sec_object = true;
+        }
+    }
+
+    bool GetFileObjectByFilePointer(const ExtRemoteTyped &file_pointer, ExtRemoteTyped* file_object) {
+        auto fp = const_cast<ExtRemoteTyped&>(file_pointer);
+
+        uint64_t offset = 0;
+
+        if ( fp.HasField("Object") ) {
+            offset = ExFastRefGetObject(fp.Field("Object").GetPtr());
+        } else {
+            offset = fp.GetPtr();
+        }
+
+        if ( !offset ) {
+            return false;
+        }
+
+        const std::string file_obj("nt!_FILE_OBJECT");
+        file_object->Set(file_obj.c_str(), offset, false, m_sym_cache->GetCookieCache(file_obj), nullptr);
+
+        return true;
     }
 
  private:
     bool m_new_wow64 = false;
+    bool m_new_sec_object = false;
     std::string m_wow64_proc_field_name{};
     std::shared_ptr<WDbgArkSymCache> m_sym_cache{ nullptr };
     std::shared_ptr<WDbgArkDummyPdb> m_dummy_pdb{ nullptr };
