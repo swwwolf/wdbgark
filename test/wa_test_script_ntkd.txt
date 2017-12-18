@@ -1,0 +1,9 @@
+.unload wdbgark
+.load wdbgark
+.unload wdbgark
+.load wdbgark
+!wdbgark.wa_ver
+!wdbgark.help
+!wdbgark.wa_scan
+.unload wdbgark
+.logclose
