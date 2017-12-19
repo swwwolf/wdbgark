@@ -58,6 +58,7 @@ to reload them, ignore checksum problems, prepare them before analysis and you'l
 * !wa_psppico
 * !wa_systables
 * !wa_apiset
+* !wa_process_anomaly
 * !wa_w32psdt
 * !wa_w32psdtflt
 * !wdrce_copyfile
@@ -124,8 +125,8 @@ Yeah, it's possible to build all the stuff using simple batch script.
 * Have fun!
 
 ```
-2: kd> .load wdbgark
-2: kd> .chain
+0: kd> .load wdbgark
+0: kd> .chain
 Extension DLL search Path:
 <...>
 Extension DLL chain:
@@ -141,40 +142,41 @@ Extension DLL chain:
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\kext.dll]
     kdexts: image 10.0.16299.15, API 1.0.0, 
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\WINXP\kdexts.dll]
-2: kd> !wdbgark.help
+0: kd> !wdbgark.help
 Commands for C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark.dll:
-  !help            - Displays information on available extension commands
-  !wa_apiset       - Output user-mode and/or kernel-mode ApiSet map
-  !wa_callouts     - Output kernel-mode win32k callouts
-  !wa_checkmsr     - Output system MSRs (live debug only!)
-  !wa_chknirvana   - Checks processes for Hooking Nirvana instrumentation
-  !wa_cicallbacks  - Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks
-  !wa_ciinfo       - Output Code Integrity information
-  !wa_colorize     - Adjust WinDBG colors dynamically (prints info with no
-                     parameters)
-  !wa_crashdmpcall - Output kernel-mode nt!CrashdmpCallTable
-  !wa_drvmajor     - Output driver(s) major table
-  !wa_eop          - Checks processes for Elevation of Privilege
-  !wa_gdt          - Output processors GDT
-  !wa_haltables    - Output kernel-mode HAL tables: nt!HalDispatchTable,
-                     nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable
-  !wa_idt          - Output processors IDT
-  !wa_lxsdt        - Output the Linux Subsystem Service Descriptor Table
-  !wa_objtype      - Output kernel-mode object type(s)
-  !wa_objtypecb    - Output kernel-mode callbacks registered with
-                     ObRegisterCallbacks
-  !wa_objtypeidx   - Output kernel-mode nt!ObTypeIndexTable
-  !wa_pnptable     - Output kernel-mode nt!PlugPlayHandlerTable
-  !wa_psppico      - Output kernel-mode Pico tables
-  !wa_scan         - Scan system (execute all commands)
-  !wa_ssdt         - Output the System Service Descriptor Table
-  !wa_systables    - Output various kernel-mode system tables
-  !wa_systemcb     - Output kernel-mode registered callback(s)
-  !wa_ver          - Shows extension version number
-  !wa_w32psdt      - Output the Win32k Service Descriptor Table
-  !wa_w32psdtflt   - Output the Win32k Service Descriptor Table Filter
-  !wdrce_copyfile  - Copy file (live debug only!)
-  !wdrce_cpuid     - Execute CPUID instruction (live debug only!)
+  !help               - Displays information on available extension commands
+  !wa_apiset          - Output user-mode and/or kernel-mode ApiSet map
+  !wa_callouts        - Output kernel-mode win32k callouts
+  !wa_checkmsr        - Output system MSRs (live debug only!)
+  !wa_chknirvana      - Checks processes for Hooking Nirvana instrumentation
+  !wa_cicallbacks     - Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks
+  !wa_ciinfo          - Output Code Integrity information
+  !wa_colorize        - Adjust WinDBG colors dynamically (prints info with no
+                        parameters)
+  !wa_crashdmpcall    - Output kernel-mode nt!CrashdmpCallTable
+  !wa_drvmajor        - Output driver(s) major table
+  !wa_eop             - Checks processes for Elevation of Privilege
+  !wa_gdt             - Output processors GDT
+  !wa_haltables       - Output kernel-mode HAL tables: nt!HalDispatchTable,
+                        nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable
+  !wa_idt             - Output processors IDT
+  !wa_lxsdt           - Output the Linux Subsystem Service Descriptor Table
+  !wa_objtype         - Output kernel-mode object type(s)
+  !wa_objtypecb       - Output kernel-mode callbacks registered with
+                        ObRegisterCallbacks
+  !wa_objtypeidx      - Output kernel-mode nt!ObTypeIndexTable
+  !wa_pnptable        - Output kernel-mode nt!PlugPlayHandlerTable
+  !wa_process_anomaly - Checks processes for various anomalies
+  !wa_psppico         - Output kernel-mode Pico tables
+  !wa_scan            - Scan system (execute all commands)
+  !wa_ssdt            - Output the System Service Descriptor Table
+  !wa_systables       - Output various kernel-mode system tables
+  !wa_systemcb        - Output kernel-mode registered callback(s)
+  !wa_ver             - Shows extension version number
+  !wa_w32psdt         - Output the Win32k Service Descriptor Table
+  !wa_w32psdtflt      - Output the Win32k Service Descriptor Table Filter
+  !wdrce_copyfile     - Copy file (live debug only!)
+  !wdrce_cpuid        - Execute CPUID instruction (live debug only!)
 !help <cmd> will give more information for a particular command
 ```
 

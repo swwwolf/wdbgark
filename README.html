@@ -1,4 +1,11 @@
-<h1 id="windbg-anti-rootkit-extension">WinDBG Anti-RootKit extension</h1>
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>WinDBG Anti-RootKit extension</title>
+</head>
+<body>
+
+    <h1 id="windbg-anti-rootkit-extension">WinDBG Anti-RootKit extension</h1>
 <p><a href="https://scan.coverity.com/projects/3610"><img src="https://scan.coverity.com/projects/3610/badge.svg" alt="Coverity Scan Build Status" /></a></p>
 <ul>
 <li><a href="#preface">Preface</a></li>
@@ -10,7 +17,8 @@
 <li><a href="#build-using-vs2017">Build using VS2017</a></li>
 <li><a href="#build-using-build">Build using BUILD</a></li>
 <li><a href="#build-using-cmd">Build using CMD</a></li>
-</ul></li>
+</ul>
+</li>
 <li><a href="#using">Using</a></li>
 <li><a href="#faq">FAQ</a></li>
 <li><a href="#help">Help</a></li>
@@ -19,7 +27,13 @@
 <li><a href="#license">License</a></li>
 </ul>
 <h2 id="preface">Preface</h2>
-<p><a href="https://github.com/swwwolf/wdbgark">WDBGARK</a> is an extension (dynamic library) for the <a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/index">Microsoft Debugging Tools for Windows</a>. It main purpose is to view and analyze anomalies in Windows kernel using kernel debugger. It is possible to view various system callbacks, system tables, object types and so on. For more user-friendly view extension uses DML. For the most of commands kernel-mode connection is required. Feel free to use extension with live kernel-mode debugging or with kernel-mode crash dump analysis (some commands will not work). Public symbols are required, so use them, force to reload them, ignore checksum problems, prepare them before analysis and you'll be happy.</p>
+<p><a href="https://github.com/swwwolf/wdbgark">WDBGARK</a> is an extension (dynamic library) for the
+<a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/index">Microsoft Debugging Tools for Windows</a>.
+It main purpose is to view and analyze anomalies in Windows kernel using kernel debugger. It is possible to view
+various system callbacks, system tables, object types and so on. For more user-friendly view extension uses DML.
+For the most of commands kernel-mode connection is required. Feel free to use extension with live kernel-mode debugging
+or with kernel-mode crash dump analysis (some commands will not work). Public symbols are required, so use them, force
+to reload them, ignore checksum problems, prepare them before analysis and you'll be happy.</p>
 <h2 id="requirements">Requirements</h2>
 <ul>
 <li>Microsoft Visual Studio 2017</li>
@@ -52,6 +66,7 @@
 <li>!wa_psppico</li>
 <li>!wa_systables</li>
 <li>!wa_apiset</li>
+<li>!wa_process_anomaly</li>
 <li>!wa_w32psdt</li>
 <li>!wa_w32psdtflt</li>
 <li>!wdrce_copyfile</li>
@@ -67,13 +82,16 @@
 <li>Microsoft Windows 10 (x86/x64)</li>
 </ul>
 <p>Multiple targets debugging is not supported!</p>
-<p>Windows BETA/RC is supported by design, but read a few notes. First, i don't care about checked builds. Second, i don't care if you don't have <a href="https://developer.microsoft.com/en-us/windows/hardware/download-symbols">symbols</a> (public or private). IA64/ARM is unsupported (and will not).</p>
+<p>Windows BETA/RC is supported by design, but read a few notes. First, i don't care about checked builds.
+Second, i don't care if you don't have <a href="https://developer.microsoft.com/en-us/windows/hardware/download-symbols">symbols</a>
+(public or private). IA64/ARM is unsupported (and will not).</p>
 <h2 id="sources-and-build">Sources and build</h2>
 <p>Sources are organized as a Visual Studio 2017 solution.</p>
 <h3 id="build-using-vs2017">Build using VS2017</h3>
 <ul>
 <li>Download and install latest <a href="https://developer.microsoft.com/en-us/windows/hardware/windows-driver-kit">WDK</a></li>
-<li>Select <strong>Build -&gt; Batch Build</strong> from the menu and build dummypdb module (x86 and x64). <img src="https://raw.githubusercontent.com/swwwolf/wdbgark/master/images/batch_build.png" alt="Batch Build" /></li>
+<li>Select <strong>Build -&gt; Batch Build</strong> from the menu and build dummypdb module (x86 and x64).
+<img src="https://raw.githubusercontent.com/swwwolf/wdbgark/master/images/batch_build.png" alt="Batch Build" /></li>
 <li>Choose solution configuration and platform for the main project.</li>
 <li>Build.</li>
 </ul>
@@ -88,12 +106,14 @@
 <li>Make sure that you have already installed PowerShell at least version 3.0.
 <ul>
 <li>If not, then download and install <a href="http://www.microsoft.com/en-US/download/details.aspx?id=40855">Windows Management Framework</a>.</li>
-</ul></li>
-<li>Execute the <a href="release_build.cmd" class="uri">release_build.cmd</a> with a single parameter - a version.</li>
+</ul>
+</li>
+<li>Execute the <a href="release_build.cmd">release_build.cmd</a> with a single parameter - a version.</li>
 <li>Voila! If there were no errors, the archive file will be created (e.g. wdbgark.X.Y.zip).
 <ul>
 <li>If something is wrong, check the path to the Visual Studio 2017 in the script and/or output log file (release_build.log).</li>
-</ul></li>
+</ul>
+</li>
 </ul>
 <h2 id="using">Using</h2>
 <ul>
@@ -104,15 +124,16 @@
 <ul>
 <li>x64: <code>C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\</code></li>
 <li>x86: <code>C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\winext\</code></li>
-</ul></li>
+</ul>
+</li>
 <li>Start WinDBG.</li>
 <li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/ee416588(v=vs.85).aspx">Setup</a> WinDBG to use Microsoft Symbol Server correctly or deal with them manually.</li>
 <li>Load extension by <strong>.load wdbgark</strong> (you can see loaded extensions with a <strong>.chain</strong> command).</li>
 <li>Execute <strong>!wdbgark.help</strong> for help or <strong>!wdbgark.wa_scan</strong> for a full system scan.</li>
 <li>Have fun!</li>
 </ul>
-<pre><code>2: kd&gt; .load wdbgark
-2: kd&gt; .chain
+<pre><code>0: kd&gt; .load wdbgark
+0: kd&gt; .chain
 Extension DLL search Path:
 &lt;...&gt;
 Extension DLL chain:
@@ -128,41 +149,43 @@ Extension DLL chain:
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\kext.dll]
     kdexts: image 10.0.16299.15, API 1.0.0, 
         [path: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\WINXP\kdexts.dll]
-2: kd&gt; !wdbgark.help
+0: kd&gt; !wdbgark.help
 Commands for C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\winext\wdbgark.dll:
-  !help            - Displays information on available extension commands
-  !wa_apiset       - Output user-mode and/or kernel-mode ApiSet map
-  !wa_callouts     - Output kernel-mode win32k callouts
-  !wa_checkmsr     - Output system MSRs (live debug only!)
-  !wa_chknirvana   - Checks processes for Hooking Nirvana instrumentation
-  !wa_cicallbacks  - Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks
-  !wa_ciinfo       - Output Code Integrity information
-  !wa_colorize     - Adjust WinDBG colors dynamically (prints info with no
-                     parameters)
-  !wa_crashdmpcall - Output kernel-mode nt!CrashdmpCallTable
-  !wa_drvmajor     - Output driver(s) major table
-  !wa_eop          - Checks processes for Elevation of Privilege
-  !wa_gdt          - Output processors GDT
-  !wa_haltables    - Output kernel-mode HAL tables: nt!HalDispatchTable,
-                     nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable
-  !wa_idt          - Output processors IDT
-  !wa_lxsdt        - Output the Linux Subsystem Service Descriptor Table
-  !wa_objtype      - Output kernel-mode object type(s)
-  !wa_objtypecb    - Output kernel-mode callbacks registered with
-                     ObRegisterCallbacks
-  !wa_objtypeidx   - Output kernel-mode nt!ObTypeIndexTable
-  !wa_pnptable     - Output kernel-mode nt!PlugPlayHandlerTable
-  !wa_psppico      - Output kernel-mode Pico tables
-  !wa_scan         - Scan system (execute all commands)
-  !wa_ssdt         - Output the System Service Descriptor Table
-  !wa_systables    - Output various kernel-mode system tables
-  !wa_systemcb     - Output kernel-mode registered callback(s)
-  !wa_ver          - Shows extension version number
-  !wa_w32psdt      - Output the Win32k Service Descriptor Table
-  !wa_w32psdtflt   - Output the Win32k Service Descriptor Table Filter
-  !wdrce_copyfile  - Copy file (live debug only!)
-  !wdrce_cpuid     - Execute CPUID instruction (live debug only!)
-!help &lt;cmd&gt; will give more information for a particular command</code></pre>
+  !help               - Displays information on available extension commands
+  !wa_apiset          - Output user-mode and/or kernel-mode ApiSet map
+  !wa_callouts        - Output kernel-mode win32k callouts
+  !wa_checkmsr        - Output system MSRs (live debug only!)
+  !wa_chknirvana      - Checks processes for Hooking Nirvana instrumentation
+  !wa_cicallbacks     - Output kernel-mode nt!g_CiCallbacks or nt!SeCiCallbacks
+  !wa_ciinfo          - Output Code Integrity information
+  !wa_colorize        - Adjust WinDBG colors dynamically (prints info with no
+                        parameters)
+  !wa_crashdmpcall    - Output kernel-mode nt!CrashdmpCallTable
+  !wa_drvmajor        - Output driver(s) major table
+  !wa_eop             - Checks processes for Elevation of Privilege
+  !wa_gdt             - Output processors GDT
+  !wa_haltables       - Output kernel-mode HAL tables: nt!HalDispatchTable,
+                        nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable
+  !wa_idt             - Output processors IDT
+  !wa_lxsdt           - Output the Linux Subsystem Service Descriptor Table
+  !wa_objtype         - Output kernel-mode object type(s)
+  !wa_objtypecb       - Output kernel-mode callbacks registered with
+                        ObRegisterCallbacks
+  !wa_objtypeidx      - Output kernel-mode nt!ObTypeIndexTable
+  !wa_pnptable        - Output kernel-mode nt!PlugPlayHandlerTable
+  !wa_process_anomaly - Checks processes for various anomalies
+  !wa_psppico         - Output kernel-mode Pico tables
+  !wa_scan            - Scan system (execute all commands)
+  !wa_ssdt            - Output the System Service Descriptor Table
+  !wa_systables       - Output various kernel-mode system tables
+  !wa_systemcb        - Output kernel-mode registered callback(s)
+  !wa_ver             - Shows extension version number
+  !wa_w32psdt         - Output the Win32k Service Descriptor Table
+  !wa_w32psdtflt      - Output the Win32k Service Descriptor Table Filter
+  !wdrce_copyfile     - Copy file (live debug only!)
+  !wdrce_cpuid        - Execute CPUID instruction (live debug only!)
+!help &lt;cmd&gt; will give more information for a particular command
+</code></pre>
 <h2 id="faq">FAQ</h2>
 <p>Q: What is the main purpose of the extension?<br />
 A: Well, first is educational only. Second, for fun and profit.</p>
@@ -173,7 +196,8 @@ A: Lost in space of Google Code.</p>
 <p>Q: When did the project start?<br />
 A: February 2013 on Google Code.</p>
 <p>Q: What version should i use?<br />
-A: Please use x64 version only. In the era of x64 i dunno why the heck you may need to use x86 version. x64 WinDBG is able to debug both x86 and x64. Host OS bitness is the only limitation.</p>
+A: Please use x64 version only. In the era of x64 i dunno why the heck you may need to use x86 version. x64 WinDBG is
+able to debug both x86 and x64. Host OS bitness is the only limitation.</p>
 <p>Q: How can i help?<br />
 A: Spread a word. Report issues and feature requests. I'm open for any suggestions. Thanks!</p>
 <p>Q: What kind of memory dump is better to use with an extension?<br />
@@ -193,4 +217,9 @@ A: Feel free to report an issue using GitHub or email to me directly, but please
 <li><a href="https://sww-it.ru/">Blog</a></li>
 </ul>
 <h2 id="license">License</h2>
-<p>This software is released under the GNU GPL v3 License. See the <a href="COPYING">COPYING file</a> for the full license text and <a href="http://www.gnu.org/licenses/gpl-faq.en.html#GPLPluginsInNF">this</a> small addition.</p>
+<p>This software is released under the GNU GPL v3 License. See the <a href="COPYING">COPYING file</a> for the full license text and
+<a href="http://www.gnu.org/licenses/gpl-faq.en.html#GPLPluginsInNF">this</a> small addition.</p>
+
+
+</body>
+</html>
