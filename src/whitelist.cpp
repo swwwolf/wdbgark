@@ -184,7 +184,8 @@ WDbgArkAnalyzeWhiteList::WhiteListEntries GetDriversWhiteList() {
         { "wscvreg", { "nt" } },
         { "vhdmp", { "storport" } },
         { "vmsproxy", { "vmswitch" } },
-        { "udfs", { "nt" } }
+        { "udfs", { "nt" } },
+        { "stornvme", { "storport" } }
     };
 }
 
