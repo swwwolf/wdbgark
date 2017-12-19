@@ -79,7 +79,7 @@ EXT_COMMAND(wa_apiset,
             return;
         }
 
-        WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache);
+        WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache, m_dummy_pdb);
 
         if ( HasArg("process") ) {
             const std::string proc("nt!_EPROCESS");

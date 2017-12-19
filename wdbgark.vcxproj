@@ -248,6 +248,7 @@
     <ClCompile Include="src\pnptable.cpp" />
     <ClCompile Include="src\process.cpp" />
     <ClCompile Include="src\processimplicithlp.cpp" />
+    <ClCompile Include="src\process_anomaly.cpp" />
     <ClCompile Include="src\psppico.cpp" />
     <ClCompile Include="src\resources.cpp" />
     <ClCompile Include="src\scan.cpp" />
@@ -281,8 +282,12 @@
     <None Include="test\find_err_wrn.cmd" />
     <None Include="test\find_suspicious.cmd" />
     <None Include="test\pytest\check_ssdt_names.py" />
-    <None Include="test\test_all_x64.cmd" />
-    <None Include="test\test_one_dump.cmd" />
+    <None Include="test\test_all_ssdt.cmd" />
+    <None Include="test\test_all_x64_ntkd.cmd" />
+    <None Include="test\test_all_x64_windbg.cmd" />
+    <None Include="test\test_one_dump.ps1" />
+    <None Include="test\test_one_x64_ntkd.cmd" />
+    <None Include="test\test_one_x64_windbg.cmd" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wdbgark.rc" />
@@ -324,7 +329,8 @@
     <ClInclude Include="src\winapi.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="test\wa_test_script.txt" />
+    <Text Include="test\wa_test_script_ntkd.txt" />
+    <Text Include="test\wa_test_script_windbg.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

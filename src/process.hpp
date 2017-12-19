@@ -44,9 +44,10 @@ namespace wa {
 
 class WDbgArkProcess {
  public:
-    explicit WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
     explicit WDbgArkProcess(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
                             const std::shared_ptr<WDbgArkDummyPdb> &dummy_pdb);
+
+    WDbgArkProcess() = delete;
 
     bool IsInited(void) const { return m_inited; }
     const auto& GetProcessList() const { return m_process_list; }

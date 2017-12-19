@@ -121,6 +121,7 @@ class WDbgArk : public ExtExtension {
     EXT_COMMAND_METHOD(wa_systables);
     EXT_COMMAND_METHOD(wa_apiset);
     EXT_COMMAND_METHOD(wa_eop);
+    EXT_COMMAND_METHOD(wa_process_anomaly);
 
     //////////////////////////////////////////////////////////////////////////
     // Windows Debugger Remote Code Execution commands

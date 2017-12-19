@@ -97,10 +97,6 @@ bool WDbgArk::Init() {
 
     m_color_hack = std::make_unique<WDbgArkColorHack>();
 
-    if ( !m_color_hack->IsInited() ) {
-        warn << wa::showqmark << __FUNCTION__ ": WDbgArkColorHack init failed" << endlwarn;
-    }
-
     m_dummy_pdb = std::make_shared<WDbgArkDummyPdb>();
 
     if ( !m_dummy_pdb->IsInited() ) {
@@ -136,6 +132,7 @@ void WDbgArk::InitScanCommands() {
         { "!wa_systemcb", std::bind(&WDbgArk::wa_systemcb, this) },
         { "!wa_chknirvana", std::bind(&WDbgArk::wa_chknirvana, this) },
         { "!wa_eop", std::bind(&WDbgArk::wa_eop, this) },
+        { "!wa_process_anomaly", std::bind(&WDbgArk::wa_process_anomaly, this) },
         { "!wa_objtype", std::bind(&WDbgArk::wa_objtype, this) },
         { "!wa_objtypeidx", std::bind(&WDbgArk::wa_objtypeidx, this) },
         { "!wa_objtypecb", std::bind(&WDbgArk::wa_objtypecb, this) },

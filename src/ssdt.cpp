@@ -127,14 +127,14 @@ EXT_COMMAND(wa_w32psdt,
 
     out << wa::showplus << "Displaying win32k!W32pServiceTable" << endlout;
 
-    auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache);
+    auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache, m_dummy_pdb);
 
     if ( !process_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;
         return;
     }
 
-    WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache);
+    WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache, m_dummy_pdb);
 
     if ( HasArg("process") ) {
         const std::string proc("nt!_EPROCESS");
@@ -212,14 +212,14 @@ EXT_COMMAND(wa_w32psdtflt,
         return;
     }
 
-    auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache);
+    auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache, m_dummy_pdb);
 
     if ( !process_helper->IsInited() ) {
         err << wa::showminus << __FUNCTION__ << ": failed to init process helper" << endlerr;
         return;
     }
 
-    WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache);
+    WDbgArkRemoteTypedProcess set_eprocess(m_sym_cache, m_dummy_pdb);
 
     if ( HasArg("process") ) {
         const std::string proc("nt!_EPROCESS");

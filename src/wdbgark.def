@@ -39,5 +39,6 @@ EXPORTS
     wa_systables
     wa_apiset
     wa_eop
+    wa_process_anomaly
     wdrce_cpuid
     wdrce_copyfile

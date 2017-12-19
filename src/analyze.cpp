@@ -75,6 +75,11 @@ std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared
             return std::make_unique<WDbgArkAnalyzeProcessToken>(sym_cache);
         }
 
+        case AnalyzeType::AnalyzeTypeProcessAnomaly:
+        {
+            return std::make_unique<WDbgArkAnalyzeProcessAnomaly>(sym_cache);
+        }
+
         case AnalyzeType::AnalyzeTypeDefault:
         default:
         {
@@ -102,7 +107,7 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address, const std::string &type
     std::string loaded_image_name{};
     std::string module_command_buf{};
 
-    bool suspicious = IsSuspiciousAddress(address);
+    auto suspicious = IsSuspiciousAddress(address);
 
     if ( address ) {
         symbol_name = "*UNKNOWN*";
@@ -954,6 +959,97 @@ void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &proces
 bool WDbgArkAnalyzeProcessToken::IsPrinted(const WDbgArkRemoteTypedProcess &process) {
     const auto [it, inserted] = m_printed.insert(process.GetDataOffset());
     return !(inserted);
+}
+//////////////////////////////////////////////////////////////////////////
+WDbgArkAnalyzeProcessAnomaly::WDbgArkAnalyzeProcessAnomaly(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
+    : WDbgArkAnalyzeBase(sym_cache) {
+    // width = 191
+    AddColumn("Process", 18);
+    AddColumn("Process name", 25);
+    AddColumn("Process image path", 113);
+    AddColumn("Suspicious", 10);
+    AddColumn("Anomaly type", 25);
+}
+
+void WDbgArkAnalyzeProcessAnomaly::Analyze(const WDbgArkRemoteTypedProcess &process) {
+    auto check_process = const_cast<WDbgArkRemoteTypedProcess&>(process);
+
+    try {
+        std::string type{};
+
+        if ( IsSuspiciousProcess(process, &type) ) {
+            std::string image_name{};
+            std::wstring image_path{};
+
+            check_process.GetProcessImageFileName(&image_name);
+            check_process.GetProcessImageFilePath(&image_path);
+
+            std::stringstream proc_ext;
+
+            proc_ext << "<exec cmd=\"dtx nt!_EPROCESS " << std::hex << std::showbase << check_process.GetDataOffset();
+            proc_ext << R"(">)";
+            proc_ext << std::internal << std::setw(18) << std::setfill('0');
+            proc_ext << std::hex << std::showbase << check_process.GetDataOffset();
+            proc_ext << "</exec>";
+
+            *this << proc_ext.str() << image_name << wstring_to_string(image_path) << "Y" << type;
+
+            FlushWarn();
+            PrintFooter();
+        }
+    } catch ( const ExtRemoteException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+}
+
+bool WDbgArkAnalyzeProcessAnomaly::IsSuspiciousProcess(const WDbgArkRemoteTypedProcess &process, std::string* type) {
+    if ( CheckProcessDoppelgang(process) ) {
+        *type = m_anomaly_type_process_doppel;
+        return true;
+    }
+    
+    return false;
+}
+
+bool WDbgArkAnalyzeProcessAnomaly::CheckProcessDoppelgang(const WDbgArkRemoteTypedProcess &process) {
+    auto check_process = const_cast<WDbgArkRemoteTypedProcess&>(process);
+
+    try {
+        // skip System process
+        if ( check_process.IsSystemProcess() ) {
+            return false;
+        }
+
+        // skip Minimal process
+        if ( check_process.IsMinimalProcess() ) {
+            return false;
+        }
+
+        // we need to check FILE_OBJECT for the WriteAccess flag
+        ExtRemoteTyped file_object;
+
+        // this is suspicious, but we are looking just for Doppelganged process
+        if ( !check_process.GetProcessFileObject(&file_object) ) {
+            return false;
+        }
+
+        const auto write_access = file_object.Field("WriteAccess").GetUchar();
+
+        // if process has ImageFilePointer then check the pointer also
+        if ( check_process.HasField("ImageFilePointer") ) {
+            if ( !check_process.Field("ImageFilePointer").GetPtr() && write_access == 1 ) {
+                return true;
+            }
+        } else {
+            if ( write_access == 1 ) {
+                return true;
+            }
+        }
+    } catch ( const ExtRemoteException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+
+    return false;
 }
 
 }   // namespace wa

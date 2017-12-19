@@ -29,14 +29,12 @@
 
 namespace wa {
 
-EXT_COMMAND(wa_eop, "Checks processes for Elevation of Privilege", "") {
+EXT_COMMAND(wa_process_anomaly, "Checks processes for various anomalies", "") {
     RequireKernelMode();
 
     if ( !Init() ) {
         throw ExtStatusException(S_OK, "global init failed");
     }
-
-    out << wa::showplus << "Searching for EoP" << endlout;
 
     auto process_helper = std::make_unique<WDbgArkProcess>(m_sym_cache, m_dummy_pdb);
 
@@ -45,7 +43,7 @@ EXT_COMMAND(wa_eop, "Checks processes for Elevation of Privilege", "") {
         return;
     }
 
-    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeProcessToken);
+    auto display = WDbgArkAnalyzeBase::Create(m_sym_cache, WDbgArkAnalyzeBase::AnalyzeType::AnalyzeTypeProcessAnomaly);
     display->PrintHeader();
 
     try {

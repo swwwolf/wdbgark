@@ -64,7 +64,8 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
         AnalyzeTypeIDT,
         AnalyzeTypeGDT,
         AnalyzeTypeDriver,
-        AnalyzeTypeProcessToken
+        AnalyzeTypeProcessToken,
+        AnalyzeTypeProcessAnomaly
     };
 
     explicit WDbgArkAnalyzeBase(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
@@ -321,6 +322,24 @@ class WDbgArkAnalyzeProcessToken : public WDbgArkAnalyzeBase {
     std::map<uint64_t, WDbgArkRemoteTypedProcess> m_token_process{};    // token : process
     std::set<uint64_t> m_printed{};                                     // printed process
 };
+//////////////////////////////////////////////////////////////////////////
+// Process anomaly analyzer
+//////////////////////////////////////////////////////////////////////////
+class WDbgArkAnalyzeProcessAnomaly : public WDbgArkAnalyzeBase {
+public:
+    explicit WDbgArkAnalyzeProcessAnomaly(const std::shared_ptr<WDbgArkSymCache> &sym_cache);
+    virtual ~WDbgArkAnalyzeProcessAnomaly() = default;
+
+    virtual void Analyze(const WDbgArkRemoteTypedProcess &process);
+
+private:
+    virtual bool IsSuspiciousProcess(const WDbgArkRemoteTypedProcess &process, std::string* type);
+    virtual bool CheckProcessDoppelgang(const WDbgArkRemoteTypedProcess &process);
+
+ private:
+    const std::string m_anomaly_type_process_doppel{ "Doppelganged" };
+};
+
 }   // namespace wa
 
 #endif  // ANALYZE_HPP_

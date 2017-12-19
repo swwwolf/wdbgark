@@ -195,6 +195,9 @@
     <ClCompile Include="src\processimplicithlp.cpp">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
+    <ClCompile Include="src\process_anomaly.cpp">
+      <Filter>Source Files\Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -212,12 +215,6 @@
     <None Include="test\find_err_wrn.cmd">
       <Filter>Test</Filter>
     </None>
-    <None Include="test\test_all_x64.cmd">
-      <Filter>Test</Filter>
-    </None>
-    <None Include="test\test_one_dump.cmd">
-      <Filter>Test</Filter>
-    </None>
     <None Include="test\pytest\check_ssdt_names.py">
       <Filter>Test\pytest</Filter>
     </None>
@@ -226,6 +223,24 @@
     <None Include="dummypdb_build\Release\dummypdb_x86.sys" />
     <None Include="dummypdb_build\x64\Release\dummypdb_x64.sys" />
     <None Include="test\find_suspicious.cmd">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_all_ssdt.cmd">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_all_x64_ntkd.cmd">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_all_x64_windbg.cmd">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_one_dump.ps1">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_one_x64_ntkd.cmd">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_one_x64_windbg.cmd">
       <Filter>Test</Filter>
     </None>
   </ItemGroup>
@@ -339,7 +354,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="test\wa_test_script.txt">
+    <Text Include="test\wa_test_script_ntkd.txt">
+      <Filter>Test</Filter>
+    </Text>
+    <Text Include="test\wa_test_script_windbg.txt">
       <Filter>Test</Filter>
     </Text>
   </ItemGroup>
