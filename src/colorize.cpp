@@ -32,6 +32,10 @@ EXT_COMMAND(wa_colorize,
         throw ExtStatusException(S_OK, "global init failed");
     }
 
+    if ( m_color_hack == nullptr ) {
+        throw ExtStatusException(S_OK, "color hack class empty");
+    }
+
     if ( !m_color_hack->IsInited() ) {
         throw ExtStatusException(S_OK, "color hack init failed");
     }

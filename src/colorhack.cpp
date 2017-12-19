@@ -152,7 +152,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
         char module_file_name[MAX_PATH] = { 0 };
 
         if ( !GetModuleFileName(GetModuleHandle(nullptr), &module_file_name[0], MAX_PATH) ) {
-            throw ExtStatusException(S_OK, "Can't get module file name");
+            throw ExtStatusException(E_UNEXPECTED, "Can't get module file name");
         }
 
         uint16_t windbg_major = 0;
@@ -161,7 +161,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
         uint16_t windbg_revision = 0;
 
         if ( !GetFileVersion(&module_file_name[0], &windbg_major, &windbg_minor, &windbg_build, &windbg_revision) ) {
-            throw ExtStatusException(S_OK, "Can't get module version");
+            throw ExtStatusException(E_UNEXPECTED, "Can't get module version");
         }
 
         m_tp->AddColumn("DML name", 15);
@@ -174,13 +174,13 @@ WDbgArkColorHack::WDbgArkColorHack() {
         const uintptr_t windbg_module_start = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
 
         if ( !windbg_module_start ) {
-            throw ExtStatusException(S_OK, "GetModuleHandle failed");
+            throw ExtStatusException(E_UNEXPECTED, "GetModuleHandle failed");
         }
 
         PIMAGE_NT_HEADERS nth = ImageNtHeader(reinterpret_cast<PVOID>(windbg_module_start));
 
         if ( !nth ) {
-            throw ExtStatusException(S_OK, "Can't get NT header");
+            throw ExtStatusException(E_UNEXPECTED, "Can't get NT header");
         }
 
         const uintptr_t windbg_module_end = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
@@ -209,7 +209,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
         }
 
         if ( !sech_check_in || !sech_search_in ) {
-            throw ExtStatusException(S_OK, "Can't get sections header");
+            throw ExtStatusException(E_UNEXPECTED, "Can't get sections header");
         }
 
         const uintptr_t start_search_in = reinterpret_cast<uintptr_t>(reinterpret_cast<char*>(windbg_module_start) +\
@@ -226,7 +226,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
 
         if ( start_search_in >= windbg_module_end || end_search_in > windbg_module_end ||
              start_check_in >= windbg_module_end || end_check_in > windbg_module_end ) {
-                 throw ExtStatusException(S_OK, "Something is wrong");
+                 throw ExtStatusException(E_UNEXPECTED, "Something is wrong");
         }
 
         uintptr_t* mem_point = reinterpret_cast<uintptr_t*>(start_search_in);
@@ -254,7 +254,7 @@ WDbgArkColorHack::WDbgArkColorHack() {
         }
 
         if ( !m_g_ui_colors || !m_g_out_mask_ui_colors ) {
-            throw ExtStatusException(S_OK, "WinDbg internal structures are not found");
+            throw ExtStatusException(E_UNEXPECTED, "WinDbg internal structures are not found");
         }
 
         UiColor* loc_ui_color = m_g_ui_colors;
@@ -274,7 +274,11 @@ WDbgArkColorHack::WDbgArkColorHack() {
         m_inited = true;
     }
     catch ( const ExtStatusException &Ex ) {
-        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        if ( SUCCEEDED(Ex.GetStatus()) ) {
+            out << wa::showplus << __FUNCTION__ << ": " << Ex.GetMessage() << endlout;
+        } else {
+            err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+        }
     }
     catch( ... ) {
         err << wa::showminus << __FUNCTION__ << ": exception error" << endlerr;
