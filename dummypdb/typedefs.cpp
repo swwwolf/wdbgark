@@ -170,3 +170,133 @@ struct _API_SET_VALUE_ENTRY_W10 {
     ULONG ValueLength;      // host library name length
 } API_SET_VALUE_ENTRY_W10, *PAPI_SET_VALUE_ENTRY_W10;
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Undocumented nt!_SECTION before Windows 10
+// based on Googling, REing and on _MMVAD_SHORT
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Windows XP
+//////////////////////////////////////////////////////////////////////////
+struct _MMADDRESS_NODE_WXP {
+    ULONG_PTR StartingVpn;
+    ULONG_PTR EndingVpn;
+    _MMADDRESS_NODE_WXP* Parent;
+    _MMADDRESS_NODE_WXP* LeftChild;
+    _MMADDRESS_NODE_WXP* RightChild;
+} MMADDRESS_NODE_WXP, *PMMADDRESS_NODE_WXP;
+
+#if defined(_X86_)
+    static_assert(sizeof(_MMADDRESS_NODE_WXP) == 0x14, "Invalid _MMADDRESS_NODE_WXP size");
+#else   // _WIN64
+    static_assert(sizeof(_MMADDRESS_NODE_WXP) == 0x28, "Invalid _MMADDRESS_NODE_WXP size");
+#endif  // _X86_
+
+struct _SECTION_WXP {
+    _MMADDRESS_NODE_WXP Address;
+    PVOID Segment;
+    LARGE_INTEGER SizeOfSection;
+    ULONG Flags;
+    struct {
+        ULONG InitialPageProtection : 12;
+        ULONG SessionId : 20;
+    };
+} SECTION_WXP, *PSECTION_WXP;
+
+#if defined(_X86_)
+    static_assert(sizeof(_SECTION_WXP) == 0x28, "Invalid SECTION_WXP size");
+    static_assert(FIELD_OFFSET(_SECTION_WXP, Segment) == 0x14, "Invalid Segment offset");
+#else   // _WIN64
+    static_assert(sizeof(_SECTION_WXP) == 0x40, "Invalid SECTION_WXP size");
+    static_assert(FIELD_OFFSET(_SECTION_WXP, Segment) == 0x28, "Invalid Segment offset");
+#endif  // _X86_
+
+//////////////////////////////////////////////////////////////////////////
+// Windows 2003, Windows Vista, Windows 7
+//////////////////////////////////////////////////////////////////////////
+struct _MMADDRESS_NODE_W2K3 {
+    union {
+        LONG_PTR Balance : 2;
+        _MMADDRESS_NODE_W2K3* Parent;
+    } u;
+    _MMADDRESS_NODE_W2K3* LeftChild;
+    _MMADDRESS_NODE_W2K3* RightChild;
+    ULONG_PTR StartingVpn;
+    ULONG_PTR EndingVpn;
+} MMADDRESS_NODE_W2K3, *PMMADDRESS_NODE_W2K3;
+
+#if defined(_X86_)
+    static_assert(sizeof(_MMADDRESS_NODE_W2K3) == 0x14, "Invalid _MMADDRESS_NODE_W2K3 size");
+#else   // _WIN64
+    static_assert(sizeof(_MMADDRESS_NODE_W2K3) == 0x28, "Invalid _MMADDRESS_NODE_W2K3 size");
+#endif  // _X86_
+
+struct _SECTION_W2K3 {
+    _MMADDRESS_NODE_W2K3 Address;
+    PVOID Segment;
+    LARGE_INTEGER SizeOfSection;
+    ULONG Flags;
+    struct {
+        ULONG InitialPageProtection : 12;
+        ULONG SessionId : 20;
+    };
+} SECTION_W2K3, *PSECTION_W2K3;
+
+#if defined(_X86_)
+    static_assert(sizeof(_SECTION_W2K3) == 0x28, "Invalid _SECTION_W2K3 size");
+    static_assert(FIELD_OFFSET(_SECTION_W2K3, Segment) == 0x14, "Invalid Segment offset");
+#else   // _WIN64
+    static_assert(sizeof(_SECTION_W2K3) == 0x40, "Invalid _SECTION_W2K3 size");
+    static_assert(FIELD_OFFSET(_SECTION_W2K3, Segment) == 0x28, "Invalid Segment offset");
+#endif  // _X86_
+
+//////////////////////////////////////////////////////////////////////////
+// Windows 8
+//////////////////////////////////////////////////////////////////////////
+struct _SECTION_W8 {
+    RTL_BALANCED_NODE SectionNode;
+    ULONG StartingVpn;
+    ULONG EndingVpn;
+    PVOID Segment;
+    LARGE_INTEGER SizeOfSection;
+    ULONG Flags;
+    struct {
+        ULONG InitialPageProtection : 12;
+        ULONG SessionId : 19;
+        ULONG NoValidationNeeded : 1;
+    };
+} SECTION_W8, *PSECTION_W8;
+
+#if defined(_X86_)
+    static_assert(sizeof(_SECTION_W8) == 0x28, "Invalid _SECTION_W8 size");
+    static_assert(FIELD_OFFSET(_SECTION_W8, Segment) == 0x14, "Invalid Segment offset");
+#else   // _WIN64
+    static_assert(sizeof(_SECTION_W8) == 0x38, "Invalid _SECTION_W8 size");
+    static_assert(FIELD_OFFSET(_SECTION_W8, Segment) == 0x20, "Invalid Segment offset");
+#endif  // _X86_
+
+//////////////////////////////////////////////////////////////////////////
+// Windows 8.1
+//////////////////////////////////////////////////////////////////////////  
+struct _SECTION_W81 {
+    RTL_BALANCED_NODE SectionNode;
+    ULONG_PTR StartingVpn;
+    ULONG_PTR EndingVpn;
+    PVOID Segment;
+    UINT64 SizeOfSection;
+    ULONG Flags;
+    struct {
+        ULONG InitialPageProtection : 12;
+        ULONG SessionId : 19;
+        ULONG NoValidationNeeded : 1;
+    };
+} SECTION_W81, *PSECTION_W81;
+
+#if defined(_X86_)
+    static_assert(sizeof(_SECTION_W81) == 0x28, "Invalid _SECTION_W81 size");
+    static_assert(FIELD_OFFSET(_SECTION_W81, Segment) == 0x14, "Invalid Segment offset");
+#else   // _WIN64
+    static_assert(sizeof(_SECTION_W81) == 0x40, "Invalid _SECTION_W81 size");
+    static_assert(FIELD_OFFSET(_SECTION_W81, Segment) == 0x28, "Invalid Segment offset");
+#endif  // _X86_
