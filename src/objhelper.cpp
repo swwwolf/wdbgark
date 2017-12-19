@@ -64,6 +64,7 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
 
         // Windows 10+
         uint64_t header_cookie_offset = 0;
+
         if ( m_sym_cache->GetSymbolOffset("nt!ObHeaderCookie", true, &header_cookie_offset) ) {
             m_ObHeaderCookie = ExtRemoteData(header_cookie_offset, sizeof(m_ObHeaderCookie)).GetUchar();
         }
@@ -72,6 +73,7 @@ WDbgArkObjHelper::WDbgArkObjHelper(const std::shared_ptr<WDbgArkSymCache> &sym_c
     }
 }
 
+// TODO(swwwolf): make refactoring
 WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint64_t directory_address,
                                                                      const std::string &root_path,
                                                                      const bool recursive) {
@@ -100,49 +102,55 @@ WDbgArkObjHelper::ObjectsInfoResult WDbgArkObjHelper::GetObjectsInfo(const uint6
                 continue;
             }
 
-            for ( auto directory_entry = *buckets[i];
-                  directory_entry.m_Offset;
-                  directory_entry = *directory_entry.Field("ChainLink") ) {
-                try {
-                    ObjectInfo object_information;
+            try {
+                for ( auto directory_entry = *buckets[i];
+                      directory_entry.m_Offset;
+                      directory_entry = *directory_entry.Field("ChainLink") ) {
+                    try {
+                        ObjectInfo obj_info;
 
-                    object_information.directory_object = directory_object;
-                    object_information.object = *directory_entry.Field("Object");
+                        obj_info.directory_object = directory_object;
+                        obj_info.object = *directory_entry.Field("Object");
 
-                    const auto[result, name] = GetObjectName(object_information.object);
+                        const auto [result, name] = GetObjectName(obj_info.object);
 
-                    object_information.obj_name = name;
-                    object_information.full_path = root_path + object_information.obj_name;
+                        obj_info.obj_name = name;
+                        obj_info.full_path = root_path + obj_info.obj_name;
 
-                    const auto[result_type, type_name] = GetObjectTypeName(object_information.object);
+                        const auto [result_type, type_name] = GetObjectTypeName(obj_info.object);
 
-                    object_information.type_name = type_name;
+                        obj_info.type_name = type_name;
 
-                    // workaround for an infinite loop (broken crash dump with broken object directory)
-                    const auto[iter_first, iter_second] = info.equal_range(object_information.object.m_Offset);
+                        // workaround for an infinite loop (broken crash dump with broken object directory)
+                        const auto [iter_first, iter_second] = info.equal_range(obj_info.object.m_Offset);
 
-                    // not in map
-                    if ( iter_first == iter_second ) {
-                        info.insert(iter_first, std::make_pair(object_information.object.m_Offset, object_information));
-                    } else {
-                        // already in map and this is strange
-                        break;
-                    }
-
-                    if ( recursive && object_information.type_name == "Directory" ) {
-                        object_information.full_path += R"(\)";
-
-                        const auto[result_info, recursive_info] = GetObjectsInfo(object_information.object.m_Offset,
-                                                                                 object_information.full_path,
-                                                                                 recursive);
-
-                        if ( SUCCEEDED(result_info) ) {
-                            info.insert(std::begin(recursive_info), std::end(recursive_info));
+                        // not in map
+                        if ( iter_first == iter_second ) {
+                            info.insert(iter_first, std::make_pair(obj_info.object.m_Offset, obj_info));
+                        } else {
+                            // already in map and this is strange
+                            break;
                         }
+
+                        if ( recursive && obj_info.type_name == "Directory" ) {
+                            obj_info.full_path += R"(\)";
+
+                            const auto [result_info, recursive_info] = GetObjectsInfo(obj_info.object.m_Offset,
+                                                                                      obj_info.full_path,
+                                                                                      recursive);
+
+                            if ( SUCCEEDED(result_info) ) {
+                                info.insert(std::begin(recursive_info), std::end(recursive_info));
+                            }
+                        }
+                    } catch ( const ExtRemoteException &Ex ) {
+                        warn << wa::showqmark << __FUNCTION__ << ": " << Ex.GetMessage() << endlwarn;
+                        continue;
                     }
-                } catch ( const ExtRemoteException& ) {
-                    continue;
                 }
+            } catch ( const ExtRemoteException &Ex ) {
+                warn << wa::showqmark << __FUNCTION__ << ": " << Ex.GetMessage() << endlwarn;
+                continue;
             }
         }
     } catch ( const ExtRemoteException &Ex ) {
