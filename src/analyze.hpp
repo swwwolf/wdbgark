@@ -71,7 +71,15 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
     explicit WDbgArkAnalyzeBase(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
         : WDbgArkAnalyzeWhiteList(sym_cache),
           m_sym_cache(sym_cache),
-          m_obj_helper(std::make_unique<WDbgArkObjHelper>(sym_cache)) {}
+          m_obj_helper(std::make_unique<WDbgArkObjHelper>(sym_cache)) {
+        char buffer[MAX_PATH] = { 0 };
+
+        if ( GetCurrentDirectory(MAX_PATH, &buffer[0]) && GetShortPathName(&buffer[0], &buffer[0], MAX_PATH) ) {
+            m_current_directory = buffer;
+            m_current_directory += R"(\)";
+        }
+    }
+
     virtual ~WDbgArkAnalyzeBase() = default;
 
     template<class T>
@@ -124,6 +132,7 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
 
  private:
     using ObjDmlCmd = std::tuple<std::string, std::string, std::string>;
+
     std::map<std::string, ObjDmlCmd> m_object_dml_cmd = {
         { "Type", std::make_tuple(R"(<exec cmd="dtx nt!_OBJECT_TYPE )", R"(">)", "</exec>") },
         { "Directory", std::make_tuple(R"(<exec cmd="dtx nt!_OBJECT_DIRECTORY )", R"(">)", "</exec>") },
@@ -135,6 +144,8 @@ class WDbgArkAnalyzeBase: public WDbgArkBPProxy<char>, public WDbgArkAnalyzeWhit
         { "Section", std::make_tuple(R"(<exec cmd="dtx nt!_SECTION )", R"(">)", "</exec>") },
         { "Key", std::make_tuple(R"(<exec cmd="dtx nt!_CM_KEY_BODY )", R"(">)", "</exec>") }
     };
+
+    std::string m_current_directory{};
 };
 //////////////////////////////////////////////////////////////////////////
 // Default analyzer

@@ -218,15 +218,7 @@ std::string WDbgArkAnalyzeBase::GetModuleDmlCmd(const uint64_t address,
     uint32_t size = 0;
 
     if ( SUCCEEDED(symbols_base.GetModuleStartSize(address, &base, &size)) ) {
-        module_command_buf << "cmd=\".writemem ";
-
-        char current_dir[MAX_PATH] = { 0 };
-
-        if ( GetCurrentDirectory(MAX_PATH, &current_dir[0]) &&
-             GetShortPathName(&current_dir[0], &current_dir[0], MAX_PATH) ) {
-            module_command_buf << &current_dir[0] << "\\";
-        }
-
+        module_command_buf << "cmd=\".writemem " << m_current_directory;
         module_command_buf << module_name << "_" << std::hex << base << "_" << std::hex << size << ".bin" << " ";
         module_command_buf << std::hex << std::showbase << base << " ";
         module_command_buf << "L?" << std::hex << std::showbase << size;
