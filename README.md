@@ -215,6 +215,7 @@ A: Feel free to report an issue using GitHub or email to me directly, but please
 
 * [BPrinter](https://github.com/dattanchu/bprinter). BSD License.
 * [Udis86](https://github.com/vmt/udis86). Simplified BSD License.
+* [TinyXML2](https://github.com/leethomason/tinyxml2). Zlib license.
 
 ## Whoami
 

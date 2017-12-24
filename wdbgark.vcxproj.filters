@@ -43,6 +43,12 @@
     <Filter Include="Header Files\bprinter">
       <UniqueIdentifier>{6d158e8a-2c89-434a-9972-370ca853e2f1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\tinyxml2">
+      <UniqueIdentifier>{0d0744f6-e033-4497-b864-29b50b02f32c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\tinyxml2">
+      <UniqueIdentifier>{0f7e9075-abc6-4db4-b1f6-85886971c214}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\callouts.cpp">
@@ -198,6 +204,9 @@
     <ClCompile Include="src\process_anomaly.cpp">
       <Filter>Source Files\Commands</Filter>
     </ClCompile>
+    <ClCompile Include="src\tinyxml2\tinyxml2.cpp">
+      <Filter>Source Files\tinyxml2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -351,6 +360,9 @@
     </ClInclude>
     <ClInclude Include="src\processimplicithlp.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tinyxml2\tinyxml2.h">
+      <Filter>Header Files\tinyxml2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
