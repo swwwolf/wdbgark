@@ -907,17 +907,25 @@ void WDbgArkAnalyzeDriver::DisplayClassCallbacks(const ExtRemoteTyped &object) {
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeProcessToken::WDbgArkAnalyzeProcessToken(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 191
+    // width = 216
     AddColumn("Token", 18);
     AddColumn("Process name", 25);
     AddColumn("Process image path", 113);
     AddColumn("Suspicious", 10);
+    AddColumn("Anomaly type", 25);
     AddColumn("Info", 25);
+
+    if ( m_sym_cache->GetTypeSize("nt!_SEP_TOKEN_PRIVILEGES") != 0UL ) {
+        m_check_token_privileges = true;
+    }
 }
 
 void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &process) {
     CheckTokenStolen(process);
-    //CheckTokenPrivileges(process);
+
+    if ( m_check_token_privileges == true ) {
+        CheckTokenPrivileges(process);
+    }
 }
 
 bool WDbgArkAnalyzeProcessToken::IsPrinted(const WDbgArkRemoteTypedProcess &process) {
@@ -955,7 +963,7 @@ void WDbgArkAnalyzeProcessToken::CheckTokenStolen(const WDbgArkRemoteTypedProces
                     const auto known_info_cmd = GetProcessDmlInfoCommand(known_process.GetDataOffset(), 41);
 
                     *this << token_cmd << known_image_name << wstring_to_string(known_image_path);
-                    *this << "Y" << known_info_cmd;
+                    *this << "Y" << m_anomaly_type_token_stolen << known_info_cmd;
 
                     FlushWarn();
                     PrintFooter();
@@ -976,7 +984,7 @@ void WDbgArkAnalyzeProcessToken::CheckTokenStolen(const WDbgArkRemoteTypedProces
                     const auto check_info_cmd = GetProcessDmlInfoCommand(check_process.GetDataOffset(), 41);
 
                     *this << token_cmd << check_image_name << wstring_to_string(check_image_path);
-                    *this << "Y" << check_info_cmd;
+                    *this << "Y" << m_anomaly_type_token_stolen << check_info_cmd;
 
                     FlushWarn();
                     PrintFooter();
@@ -988,29 +996,62 @@ void WDbgArkAnalyzeProcessToken::CheckTokenStolen(const WDbgArkRemoteTypedProces
     }
 }
 
-// void WDbgArkAnalyzeProcessToken::CheckTokenPrivileges(const WDbgArkRemoteTypedProcess &process) {
-//     auto check_process = const_cast<WDbgArkRemoteTypedProcess&>(process);
-// 
-//     try {
-//         const auto token_ref = check_process.Field("Token.Object").GetPtr();
-// 
-//         if ( token_ref != 0ULL ) {
-//             const auto offset = ExFastRefGetObject(token_ref);
-// 
-//         }
-//     } catch ( const ExtRemoteException &Ex ) {
-//         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
-//     }
-// }
+void WDbgArkAnalyzeProcessToken::CheckTokenPrivileges(const WDbgArkRemoteTypedProcess &process) {
+    auto check_process = const_cast<WDbgArkRemoteTypedProcess&>(process);
+
+    try {
+        const auto token_ref = check_process.Field("Token.Object").GetPtr();
+
+        if ( token_ref != 0ULL ) {
+            const auto token = ExFastRefGetObject(token_ref);
+
+            const std::string token_str("nt!_TOKEN");
+            auto privileges = ExtRemoteTyped(token_str.c_str(),
+                                             token,
+                                             false,
+                                             m_sym_cache->GetCookieCache(token_str),
+                                             nullptr).Field("Privileges");
+
+            const auto present = privileges.Field("Present").GetUlong64();
+            const auto enabled = privileges.Field("Enabled").GetUlong64();
+            const auto enabled_by_default = privileges.Field("EnabledByDefault").GetUlong64();
+
+            if ( present == UINT64_MAX || enabled == UINT64_MAX || enabled_by_default == UINT64_MAX ) {
+                const auto token_cmd = GetTokenDmlCommand(token);
+
+                std::string image_name{};
+                std::wstring image_path{};
+
+                try {
+                    check_process.GetProcessImageFileName(&image_name);
+                    check_process.GetProcessImageFilePath(&image_path);
+                } catch ( const ExtRemoteException &Ex ) {
+                    err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+                }
+
+                const auto info_cmd = GetProcessDmlInfoCommand(check_process.GetDataOffset(), 41);
+
+                *this << token_cmd << image_name << wstring_to_string(image_path) << "Y" << m_anomaly_type_token_privs;
+                *this << info_cmd;
+
+                FlushWarn();
+                PrintFooter();
+            }
+        }
+    } catch ( const ExtRemoteException &Ex ) {
+        err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+    }
+}
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeProcessAnomaly::WDbgArkAnalyzeProcessAnomaly(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
-    // width = 191
+    // width = 216
     AddColumn("Process", 18);
     AddColumn("Process name", 25);
     AddColumn("Process image path", 113);
     AddColumn("Suspicious", 10);
     AddColumn("Anomaly type", 25);
+    AddColumn("Info", 25);
 }
 
 void WDbgArkAnalyzeProcessAnomaly::Analyze(const WDbgArkRemoteTypedProcess &process) {
@@ -1028,7 +1069,7 @@ void WDbgArkAnalyzeProcessAnomaly::Analyze(const WDbgArkRemoteTypedProcess &proc
 
             const auto process_command = GetProcessDmlCommand(check_process.GetDataOffset());
 
-            *this << process_command << image_name << wstring_to_string(image_path) << "Y" << type;
+            *this << process_command << image_name << wstring_to_string(image_path) << "Y" << type << "";
 
             FlushWarn();
             PrintFooter();

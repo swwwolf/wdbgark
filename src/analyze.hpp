@@ -346,11 +346,15 @@ class WDbgArkAnalyzeProcessToken : public WDbgArkAnalyzeBase {
  private:
     bool IsPrinted(const WDbgArkRemoteTypedProcess &process);
     void CheckTokenStolen(const WDbgArkRemoteTypedProcess &process);
-    //void CheckTokenPrivileges(const WDbgArkRemoteTypedProcess &process);
+    void CheckTokenPrivileges(const WDbgArkRemoteTypedProcess &process);
 
  private:
     std::map<uint64_t, WDbgArkRemoteTypedProcess> m_token_process{};    // token : process
     std::set<uint64_t> m_printed{};                                     // printed process
+    bool m_check_token_privileges = false;
+
+    const std::string m_anomaly_type_token_stolen{ "Stolen token" };
+    const std::string m_anomaly_type_token_privs{ "Suspicious privileges" };
 };
 //////////////////////////////////////////////////////////////////////////
 // Process anomaly analyzer
