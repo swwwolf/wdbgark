@@ -37,6 +37,150 @@
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
+std::string WDbgArkAnalyzeDmlCommand::GetObjectDmlCommand(const ExtRemoteTyped &object) {
+    std::string object_type_name("*UNKNOWN*");
+    const auto [result_type, type_name] = m_obj_helper->GetObjectTypeName(object);
+
+    if ( FAILED(result_type) ) {
+        warn << wa::showqmark << __FUNCTION__ ": GetObjectTypeName failed" << endlwarn;
+    } else {
+        object_type_name = type_name;
+    }
+
+    std::stringstream object_command;
+
+    try {
+        const auto [cmd_start_open, cmd_start_close, cmd_end] = m_object_dml_cmd.at(object_type_name);
+        object_command << cmd_start_open << std::hex << std::showbase << object.m_Offset;
+        object_command << cmd_start_close << std::hex << std::showbase << object.m_Offset << cmd_end;
+    } catch ( const std::out_of_range& ) {
+        __noop;
+    }
+
+    auto result_command = object_command.str();
+
+    if ( result_command.empty() ) {
+        object_command << R"(<exec cmd="!object )" << std::hex << std::showbase << object.m_Offset << R"(">)";
+        object_command << std::hex << std::showbase << object.m_Offset << "0x39 </exec>";
+
+        result_command = object_command.str();
+    }
+
+    return result_command;
+}
+
+std::string WDbgArkAnalyzeDmlCommand::GetModuleDmlCommand(const uint64_t address,
+                                                          const std::string &module_name,
+                                                          const WDbgArkSymbolsBase &symbols_base) {
+    std::stringstream module_command_buf;
+
+    module_command_buf << "<link cmd=\"lmDvm " << module_name << "\">" << std::setw(26) << module_name;
+    module_command_buf << "<altlink name=\"Dump module (" << module_name << ")\"";
+
+    uint64_t base = 0;
+    uint32_t size = 0;
+
+    if ( SUCCEEDED(symbols_base.GetModuleStartSize(address, &base, &size)) ) {
+        module_command_buf << "cmd=\".writemem " << m_current_directory;
+        module_command_buf << module_name << "_" << std::hex << base << "_" << std::hex << size << ".bin" << " ";
+        module_command_buf << std::hex << std::showbase << base << " ";
+        module_command_buf << "L?" << std::hex << std::showbase << size;
+        module_command_buf << "\" />";
+    } else {
+        module_command_buf << "cmd=\"*ERROR*\" />";
+    }
+
+    module_command_buf << "</link>";
+
+    return module_command_buf.str();
+}
+
+std::string WDbgArkAnalyzeDmlCommand::GetTokenDmlCommand(const uint64_t offset) {
+    std::stringstream token_ext;
+
+    token_ext << R"(<exec cmd="!token )" << std::hex << std::showbase << offset << R"(">)";
+    token_ext << std::internal << std::setw(18) << std::setfill('0');
+    token_ext << std::hex << std::showbase << offset << "</exec>";
+
+    return token_ext.str();
+}
+
+std::string WDbgArkAnalyzeDmlCommand::GetProcessDmlCommand(const uint64_t offset) {
+    std::stringstream proc_ext;
+
+    proc_ext << R"(<exec cmd="dtx nt!_EPROCESS )" << std::hex << std::showbase << offset << R"(">)";
+    proc_ext << std::internal << std::setw(18) << std::setfill('0') << std::hex << std::showbase << offset;
+    proc_ext << "</exec>";
+
+    return proc_ext.str();
+}
+
+std::string WDbgArkAnalyzeDmlCommand::GetProcessDmlInfoCommand(const uint64_t offset, const std::streamsize size) {
+    std::stringstream info;
+
+    info << std::setw(size);
+    info << "<exec cmd=\"dtx nt!_EPROCESS " << std::hex << std::showbase;
+    info << offset << "\">dtx" << "</exec>" << " ";
+
+    info << "<exec cmd=\"!process " << std::hex << std::showbase << offset;
+    info << " \">!process" << "</exec>";
+
+    return info.str();
+}
+
+std::string WDbgArkAnalyzeDmlCommand::GetAddressDmlCommand(const uint64_t offset) {
+    std::stringstream addr_ext;
+
+    if ( offset != 0ULL ) {
+        addr_ext << R"(<exec cmd="u )" << std::hex << std::showbase << offset << R"( L10">)";
+    }
+
+    addr_ext << std::internal << std::setw(18) << std::setfill('0') << std::hex << std::showbase << offset;
+
+    if ( offset != 0ULL ) {
+        addr_ext << "</exec>";
+    }
+
+    return addr_ext.str();
+}
+
+std::string WDbgArkAnalyzeDmlCommand::GetGdtAddressDmlCommand(const uint64_t offset, const uint32_t selector) {
+    std::stringstream addr_ext;
+
+    if ( offset != 0ULL ) {
+        if ( g_Ext->IsCurMachine64() ) {
+            if ( selector == KGDT64_SYS_TSS ) {
+                addr_ext << R"(<exec cmd="dtx nt!_KTSS64 )" << std::hex << std::showbase << offset << R"(">)";
+            }
+        } else {
+            if ( selector == KGDT_TSS || selector == KGDT_DF_TSS || selector == KGDT_NMI_TSS ) {
+                addr_ext << R"(<exec cmd="dtx nt!_KTSS )" << std::hex << std::showbase << offset << R"(">)";
+            } else if ( selector == KGDT_R0_PCR ) {
+                addr_ext << R"(<exec cmd="dtx nt!_KPCR )" << std::hex << std::showbase << offset << R"(">)";
+            }
+        }
+    }
+
+    addr_ext << std::internal << std::setw(18) << std::setfill('0') << std::hex << std::showbase << offset;
+
+    if ( offset != 0ULL ) {
+        if ( g_Ext->IsCurMachine64() ) {
+            if ( selector == KGDT64_SYS_TSS ) {
+                addr_ext << "</exec>";
+            }
+        } else {
+            if ( selector == KGDT_TSS ||
+                 selector == KGDT_DF_TSS ||
+                 selector == KGDT_NMI_TSS ||
+                 selector == KGDT_R0_PCR ) {
+                addr_ext << "</exec>";
+            }
+        }
+    }
+
+    return addr_ext.str();
+}
+//////////////////////////////////////////////////////////////////////////
 std::unique_ptr<WDbgArkAnalyzeBase> WDbgArkAnalyzeBase::Create(const std::shared_ptr<WDbgArkSymCache> &sym_cache,
                                                                const AnalyzeType type) {
     switch ( type ) {
@@ -105,7 +249,7 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address, const std::string &type
     std::string module_name{};
     std::string image_name{};
     std::string loaded_image_name{};
-    std::string module_command_buf{};
+    std::string module_command{};
 
     auto suspicious = IsSuspiciousAddress(address);
 
@@ -119,7 +263,7 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address, const std::string &type
             suspicious = true;
         }
 
-        module_command_buf = GetModuleDmlCmd(address, module_name, symbols_base);
+        module_command = GetModuleDmlCommand(address, module_name, symbols_base);
 
         const auto [result, name] = symbols_base.GetNameByOffset(address);
 
@@ -130,19 +274,9 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address, const std::string &type
         }
     }
 
-    std::stringstream addr_ext;
+    const auto address_command = GetAddressDmlCommand(address);
 
-    if ( address ) {
-        addr_ext << "<exec cmd=\"u " << std::hex << std::showbase << address << " L10\">";
-    }
-
-    addr_ext << std::internal << std::setw(18) << std::setfill('0') << std::hex << std::showbase << address;
-
-    if ( address ) {
-        addr_ext << "</exec>";
-    }
-
-    *m_tp << addr_ext.str() << type << symbol_name << module_command_buf;
+    *m_tp << address_command << type << symbol_name << module_command;
 
     if ( suspicious ) {
         *m_tp << "Y";
@@ -162,74 +296,16 @@ void WDbgArkAnalyzeBase::Analyze(const uint64_t address, const std::string &type
 }
 //////////////////////////////////////////////////////////////////////////
 void WDbgArkAnalyzeBase::PrintObjectDmlCmd(const ExtRemoteTyped &object) {
-    std::string object_name = "*UNKNOWN*";
-
-    const auto [result, name] = m_obj_helper->GetObjectName(object);
+    const auto [result, object_name] = m_obj_helper->GetObjectName(object);
 
     if ( FAILED(result) ) {
         warn << wa::showqmark << __FUNCTION__ ": GetObjectName failed" << endlwarn;
-    } else {
-        object_name = name;
     }
 
-    std::string object_type_name = "*UNKNOWN*";
-    const auto [result_type, type_name] = m_obj_helper->GetObjectTypeName(object);
+    const auto object_command = GetObjectDmlCommand(object);
 
-    if ( FAILED(result_type) ) {
-        warn << wa::showqmark << __FUNCTION__ ": GetObjectTypeName failed" << endlwarn;
-    } else {
-        object_type_name = type_name;
-    }
-
-    std::stringstream object_command;
-
-    try {
-        const auto [cmd_start_open, cmd_start_close, cmd_end] = m_object_dml_cmd.at(object_type_name);
-        object_command << cmd_start_open << std::hex << std::showbase << object.m_Offset;
-        object_command << cmd_start_close << std::hex << std::showbase << object.m_Offset << cmd_end;
-    } catch ( const std::out_of_range& ) {
-        __noop;
-    }
-
-    if ( object_command.str().empty() ) {
-        object_command << R"(<exec cmd="!object )" << std::hex << std::showbase << object.m_Offset << R"(">)";
-        object_command << std::hex << std::showbase << object.m_Offset << "0x39 </exec>";
-    }
-
-    std::stringstream object_name_ext;
-
-    if ( !object_name.empty() ) {
-        object_name_ext << object_name;
-    }
-
-    *this << object_command.str() << object_name_ext.str();
+    *this << object_command << object_name;
     m_tp->flush_out();
-}
-//////////////////////////////////////////////////////////////////////////
-std::string WDbgArkAnalyzeBase::GetModuleDmlCmd(const uint64_t address,
-                                                const std::string &module_name,
-                                                const WDbgArkSymbolsBase &symbols_base) {
-    std::stringstream module_command_buf;
-
-    module_command_buf << "<link cmd=\"lmDvm " << module_name << "\">" << std::setw(26) << module_name;
-    module_command_buf << "<altlink name=\"Dump module (" << module_name << ")\"";
-
-    uint64_t base = 0;
-    uint32_t size = 0;
-
-    if ( SUCCEEDED(symbols_base.GetModuleStartSize(address, &base, &size)) ) {
-        module_command_buf << "cmd=\".writemem " << m_current_directory;
-        module_command_buf << module_name << "_" << std::hex << base << "_" << std::hex << size << ".bin" << " ";
-        module_command_buf << std::hex << std::showbase << base << " ";
-        module_command_buf << "L?" << std::hex << std::showbase << size;
-        module_command_buf << "\" />";
-    } else {
-        module_command_buf << "cmd=\"*ERROR*\" />";
-    }
-
-    module_command_buf << "</link>";
-
-    return module_command_buf.str();
 }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeDefault::WDbgArkAnalyzeDefault(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
@@ -257,6 +333,7 @@ void WDbgArkAnalyzeSDT::Analyze(const uint64_t address, const std::string &type)
 
     std::stringstream str_index;
     str_index << std::hex << index++;
+
     *this << str_index.str();
     display->Analyze(address, type, "");
 }
@@ -358,38 +435,7 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
             err << wa::showminus << __FUNCTION__ << ": NormalizeAddress failed" << endlerr;
         }
 
-        std::stringstream addr_ext;
-
-        if ( address ) {
-            if ( g_Ext->IsCurMachine64() ) {
-                if ( selector == KGDT64_SYS_TSS ) {
-                    addr_ext << "<exec cmd=\"dt nt!_KTSS64 " << std::hex << std::showbase << address << "\">";
-                }
-            } else {
-                if ( selector == KGDT_TSS || selector == KGDT_DF_TSS || selector == KGDT_NMI_TSS ) {
-                    addr_ext << "<exec cmd=\"dt nt!_KTSS " << std::hex << std::showbase << address << "\">";
-                } else if ( selector == KGDT_R0_PCR ) {
-                    addr_ext << "<exec cmd=\"dt nt!_KPCR " << std::hex << std::showbase << address << "\">";
-                }
-            }
-        }
-
-        addr_ext << std::internal << std::setw(18) << std::setfill('0') << std::hex << std::showbase << address;
-
-        if ( address ) {
-            if ( g_Ext->IsCurMachine64() ) {
-                if ( selector == KGDT64_SYS_TSS ) {
-                    addr_ext << "</exec>";
-                }
-            } else {
-                if ( selector == KGDT_TSS ||
-                     selector == KGDT_DF_TSS ||
-                     selector == KGDT_NMI_TSS ||
-                     selector == KGDT_R0_PCR ) {
-                     addr_ext << "</exec>";
-                }
-            }
-        }
+        const auto address_command = GetGdtAddressDmlCommand(address, selector);
 
         std::stringstream selector_ext;
         selector_ext << std::hex << std::showbase << selector;
@@ -416,7 +462,7 @@ void WDbgArkAnalyzeGDT::Analyze(const ExtRemoteTyped &gdt_entry,
             present << "NP";
         }
 
-        *this << addr_ext.str() << limit_ext.str() << cpu_idx << selector_ext.str();
+        *this << address_command << limit_ext.str() << cpu_idx << selector_ext.str();
         *this << GetGDTSelectorName(selector) << GetGDTTypeName(gdt_entry);
         *this << dpl.str() << granularity.str() << present.str() << additional_info;
 
@@ -437,7 +483,7 @@ bool WDbgArkAnalyzeGDT::IsGDTPageGranularity(const ExtRemoteTyped &gdt_entry) {
         field_name = "HighWord.Bits.Granularity";
     }
 
-    return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
+    return (loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1);
 }
 
 bool WDbgArkAnalyzeGDT::IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry) {
@@ -450,7 +496,7 @@ bool WDbgArkAnalyzeGDT::IsGDTFlagPresent(const ExtRemoteTyped &gdt_entry) {
         field_name = "HighWord.Bits.Pres";
     }
 
-    return loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1;
+    return (loc_gdt_entry.Field(field_name.c_str()).GetUlong() == 1);
 }
 
 uint32_t WDbgArkAnalyzeGDT::GetGDTDpl(const ExtRemoteTyped &gdt_entry) {
@@ -870,6 +916,16 @@ WDbgArkAnalyzeProcessToken::WDbgArkAnalyzeProcessToken(const std::shared_ptr<WDb
 }
 
 void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &process) {
+    CheckTokenStolen(process);
+    //CheckTokenPrivileges(process);
+}
+
+bool WDbgArkAnalyzeProcessToken::IsPrinted(const WDbgArkRemoteTypedProcess &process) {
+    const auto [it, inserted] = m_printed.insert(process.GetDataOffset());
+    return !(inserted);
+}
+
+void WDbgArkAnalyzeProcessToken::CheckTokenStolen(const WDbgArkRemoteTypedProcess &process) {
     auto check_process = const_cast<WDbgArkRemoteTypedProcess&>(process);
 
     try {
@@ -882,11 +938,7 @@ void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &proces
             if ( !inserted ) {
                 auto [key_token, known_process] = *it;
 
-                std::stringstream token_ext;
-
-                token_ext << R"(<exec cmd="!token )" << std::hex << std::showbase << token << R"(">)";
-                token_ext << std::internal << std::setw(18) << std::setfill('0');
-                token_ext << std::hex << std::showbase << token << "</exec>";
+                const auto token_cmd = GetTokenDmlCommand(token);
 
                 if ( !IsPrinted(known_process) ) {
                     // output first process
@@ -900,16 +952,10 @@ void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &proces
                         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
                     }
 
-                    std::stringstream known_info;
-                    known_info << std::setw(41);
-                    known_info << "<exec cmd=\"dtx nt!_EPROCESS " << std::hex << std::showbase;
-                    known_info << known_process.GetDataOffset() << "\">dtx" << "</exec>" << " ";
-                    
-                    known_info << "<exec cmd=\"!process " << std::hex << std::showbase << known_process.GetDataOffset();
-                    known_info << " \">!process" << "</exec>";
+                    const auto known_info_cmd = GetProcessDmlInfoCommand(known_process.GetDataOffset(), 41);
 
-                    *this << token_ext.str() << known_image_name << wstring_to_string(known_image_path);
-                    *this << "Y" << known_info.str();
+                    *this << token_cmd << known_image_name << wstring_to_string(known_image_path);
+                    *this << "Y" << known_info_cmd;
 
                     FlushWarn();
                     PrintFooter();
@@ -920,14 +966,6 @@ void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &proces
                     std::string check_image_name{};
                     std::wstring check_image_path{};
 
-                    std::stringstream check_info;
-                    check_info << std::setw(41);
-                    check_info << "<exec cmd=\"dtx nt!_EPROCESS " << std::hex << std::showbase;
-                    check_info << check_process.GetDataOffset() << "\">dtx" << "</exec>" << " ";
-
-                    check_info << "<exec cmd=\"!process " << std::hex << std::showbase << check_process.GetDataOffset();
-                    check_info << " \">!process" << "</exec>";
-
                     try {
                         check_process.GetProcessImageFileName(&check_image_name);
                         check_process.GetProcessImageFilePath(&check_image_path);
@@ -935,8 +973,10 @@ void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &proces
                         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
                     }
 
-                    *this << token_ext.str() << check_image_name << wstring_to_string(check_image_path);
-                    *this << "Y" << check_info.str();
+                    const auto check_info_cmd = GetProcessDmlInfoCommand(check_process.GetDataOffset(), 41);
+
+                    *this << token_cmd << check_image_name << wstring_to_string(check_image_path);
+                    *this << "Y" << check_info_cmd;
 
                     FlushWarn();
                     PrintFooter();
@@ -948,10 +988,20 @@ void WDbgArkAnalyzeProcessToken::Analyze(const WDbgArkRemoteTypedProcess &proces
     }
 }
 
-bool WDbgArkAnalyzeProcessToken::IsPrinted(const WDbgArkRemoteTypedProcess &process) {
-    const auto [it, inserted] = m_printed.insert(process.GetDataOffset());
-    return !(inserted);
-}
+// void WDbgArkAnalyzeProcessToken::CheckTokenPrivileges(const WDbgArkRemoteTypedProcess &process) {
+//     auto check_process = const_cast<WDbgArkRemoteTypedProcess&>(process);
+// 
+//     try {
+//         const auto token_ref = check_process.Field("Token.Object").GetPtr();
+// 
+//         if ( token_ref != 0ULL ) {
+//             const auto offset = ExFastRefGetObject(token_ref);
+// 
+//         }
+//     } catch ( const ExtRemoteException &Ex ) {
+//         err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+//     }
+// }
 //////////////////////////////////////////////////////////////////////////
 WDbgArkAnalyzeProcessAnomaly::WDbgArkAnalyzeProcessAnomaly(const std::shared_ptr<WDbgArkSymCache> &sym_cache)
     : WDbgArkAnalyzeBase(sym_cache) {
@@ -976,15 +1026,9 @@ void WDbgArkAnalyzeProcessAnomaly::Analyze(const WDbgArkRemoteTypedProcess &proc
             check_process.GetProcessImageFileName(&image_name);
             check_process.GetProcessImageFilePath(&image_path);
 
-            std::stringstream proc_ext;
+            const auto process_command = GetProcessDmlCommand(check_process.GetDataOffset());
 
-            proc_ext << "<exec cmd=\"dtx nt!_EPROCESS " << std::hex << std::showbase << check_process.GetDataOffset();
-            proc_ext << R"(">)";
-            proc_ext << std::internal << std::setw(18) << std::setfill('0');
-            proc_ext << std::hex << std::showbase << check_process.GetDataOffset();
-            proc_ext << "</exec>";
-
-            *this << proc_ext.str() << image_name << wstring_to_string(image_path) << "Y" << type;
+            *this << process_command << image_name << wstring_to_string(image_path) << "Y" << type;
 
             FlushWarn();
             PrintFooter();
@@ -999,7 +1043,7 @@ bool WDbgArkAnalyzeProcessAnomaly::IsSuspiciousProcess(const WDbgArkRemoteTypedP
         *type = m_anomaly_type_process_doppel;
         return true;
     }
-    
+
     return false;
 }
 
