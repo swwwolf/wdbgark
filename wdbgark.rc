@@ -83,7 +83,7 @@ BEGIN
             VALUE "FileDescription", "WinDBG Anti-RootKit extension"
             VALUE "FileVersion", "2.5.0.0"
             VALUE "InternalName", "wdbgark.dll"
-            VALUE "LegalCopyright", "Copyright © 2013-2017  Vyacheslav Rusakoff"
+            VALUE "LegalCopyright", "Copyright © 2013-2018  Vyacheslav Rusakoff"
             VALUE "OriginalFilename", "wdbgark.dll"
             VALUE "ProductName", "WinDBG Anti-RootKit extension"
             VALUE "ProductVersion", "2.5.0.0"
