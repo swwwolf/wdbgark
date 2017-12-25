@@ -252,6 +252,12 @@
     <None Include="test\test_one_x64_windbg.cmd">
       <Filter>Test</Filter>
     </None>
+    <None Include="test\test_live.ps1">
+      <Filter>Test</Filter>
+    </None>
+    <None Include="test\test_live_x64_ntkd.cmd">
+      <Filter>Test</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wdbgark.rc">

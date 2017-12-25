@@ -286,6 +286,8 @@
     <None Include="test\test_all_ssdt.cmd" />
     <None Include="test\test_all_x64_ntkd.cmd" />
     <None Include="test\test_all_x64_windbg.cmd" />
+    <None Include="test\test_live.ps1" />
+    <None Include="test\test_live_x64_ntkd.cmd" />
     <None Include="test\test_one_dump.ps1" />
     <None Include="test\test_one_x64_ntkd.cmd" />
     <None Include="test\test_one_x64_windbg.cmd" />
