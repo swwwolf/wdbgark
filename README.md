@@ -1,5 +1,6 @@
 # WinDBG Anti-RootKit extension
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/3610/badge.svg)](https://scan.coverity.com/projects/3610)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 * [Preface](#preface)
 * [Requirements](#requirements)
