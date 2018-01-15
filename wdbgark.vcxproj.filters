@@ -207,6 +207,9 @@
     <ClCompile Include="src\tinyxml2\tinyxml2.cpp">
       <Filter>Source Files\tinyxml2</Filter>
     </ClCompile>
+    <ClCompile Include="src\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -369,6 +372,9 @@
     </ClInclude>
     <ClInclude Include="src\tinyxml2\tinyxml2.h">
       <Filter>Header Files\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stdafx.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
