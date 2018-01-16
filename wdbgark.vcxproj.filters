@@ -13,32 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Information">
-      <UniqueIdentifier>{6437a03d-07bb-4c79-9ddb-e6600257b74a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Commands">
-      <UniqueIdentifier>{3f34cb4e-9638-4440-92c6-b40feb4e2d45}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Support">
-      <UniqueIdentifier>{026aa900-18b6-45c7-a7bb-0fb372c1a9fe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Test">
-      <UniqueIdentifier>{52fd52fa-b55f-415d-bf76-0bcc683e6b70}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Test\pytest">
-      <UniqueIdentifier>{504c4e93-0a0e-4ad4-857a-99dba4236087}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Support\Analyze">
-      <UniqueIdentifier>{68960097-3621-4e3c-b29b-450d19b93653}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Analyze">
-      <UniqueIdentifier>{18ae3e2e-ee9d-49a9-b9a5-4933ca428d01}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\engextcpp">
       <UniqueIdentifier>{06fadfc8-2bc3-4e90-8fb9-6395755a0190}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Commands\wdrce">
-      <UniqueIdentifier>{420e3912-4ed2-40bd-85de-f6e6e308cb5f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\bprinter">
       <UniqueIdentifier>{6d158e8a-2c89-434a-9972-370ca853e2f1}</UniqueIdentifier>
@@ -49,217 +25,247 @@
     <Filter Include="Source Files\tinyxml2">
       <UniqueIdentifier>{0f7e9075-abc6-4db4-b1f6-85886971c214}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\precompiled">
+      <UniqueIdentifier>{bab0b55e-92b8-4533-8147-c6ce28378566}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\analyze">
+      <UniqueIdentifier>{18ae3e2e-ee9d-49a9-b9a5-4933ca428d01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="information">
+      <UniqueIdentifier>{6437a03d-07bb-4c79-9ddb-e6600257b74a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\commands">
+      <UniqueIdentifier>{3f34cb4e-9638-4440-92c6-b40feb4e2d45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\commands\wdrce">
+      <UniqueIdentifier>{420e3912-4ed2-40bd-85de-f6e6e308cb5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\support">
+      <UniqueIdentifier>{026aa900-18b6-45c7-a7bb-0fb372c1a9fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\support\Analyze">
+      <UniqueIdentifier>{68960097-3621-4e3c-b29b-450d19b93653}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\precompiled">
+      <UniqueIdentifier>{27dcfede-d9af-4110-9e3f-af470781f3b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{52fd52fa-b55f-415d-bf76-0bcc683e6b70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test\pytest">
+      <UniqueIdentifier>{504c4e93-0a0e-4ad4-857a-99dba4236087}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\callouts.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\checkmsr.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\crashdmpcall.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\haltables.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\idt_gdt.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\objtype.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\objtypecb.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\objtypeidx.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\pnptable.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\scan.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\ssdt.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\systemcb.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\ver.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\colorhack.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\dummypdb.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\objhelper.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\process.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\resources.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\sdt_w32p.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\symbols.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\wdbgark.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\colorize.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\udis.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\drvmajor.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\strings.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\systemver.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\symcache.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\device.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\secicallbacks.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\driver.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\ciinfo.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\pe.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\winapi.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\bp.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\dbgevent.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\nirvana.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\synthsym.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\util.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\psppico.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\analyze.cpp">
-      <Filter>Source Files\Support\Analyze</Filter>
+      <Filter>Source Files\support\Analyze</Filter>
     </ClCompile>
     <ClCompile Include="src\whitelist.cpp">
-      <Filter>Source Files\Support\Analyze</Filter>
+      <Filter>Source Files\support\Analyze</Filter>
     </ClCompile>
     <ClCompile Include="src\engextcpp\engextcpp.cpp">
       <Filter>Source Files\engextcpp</Filter>
     </ClCompile>
     <ClCompile Include="src\wdrce.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\cpuid.cpp">
-      <Filter>Source Files\Commands\wdrce</Filter>
+      <Filter>Source Files\commands\wdrce</Filter>
     </ClCompile>
     <ClCompile Include="src\copyfile.cpp">
-      <Filter>Source Files\Commands\wdrce</Filter>
+      <Filter>Source Files\commands\wdrce</Filter>
     </ClCompile>
     <ClCompile Include="src\systables.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\apiset.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\apisethlp.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\eop.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\processimplicithlp.cpp">
-      <Filter>Source Files\Support</Filter>
+      <Filter>Source Files\support</Filter>
     </ClCompile>
     <ClCompile Include="src\process_anomaly.cpp">
-      <Filter>Source Files\Commands</Filter>
+      <Filter>Source Files\commands</Filter>
     </ClCompile>
     <ClCompile Include="src\tinyxml2\tinyxml2.cpp">
       <Filter>Source Files\tinyxml2</Filter>
     </ClCompile>
     <ClCompile Include="src\stdafx.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\precompiled</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
-      <Filter>Information</Filter>
+      <Filter>information</Filter>
     </None>
     <None Include="COPYING">
-      <Filter>Information</Filter>
+      <Filter>information</Filter>
     </None>
     <None Include="src\wdbgark.def">
       <Filter>Source Files</Filter>
     </None>
     <None Include="README.html">
-      <Filter>Information</Filter>
+      <Filter>information</Filter>
     </None>
     <None Include="test\find_err_wrn.cmd">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\pytest\check_ssdt_names.py">
-      <Filter>Test\pytest</Filter>
+      <Filter>test\pytest</Filter>
     </None>
     <None Include="dummypdb_build\Release\dummypdb_x86.pdb" />
     <None Include="dummypdb_build\x64\Release\dummypdb_x64.pdb" />
     <None Include="dummypdb_build\Release\dummypdb_x86.sys" />
     <None Include="dummypdb_build\x64\Release\dummypdb_x64.sys" />
     <None Include="test\find_suspicious.cmd">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\test_all_ssdt.cmd">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\test_all_x64_ntkd.cmd">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\test_all_x64_windbg.cmd">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\test_one_dump.ps1">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\test_one_x64_ntkd.cmd">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\test_one_x64_windbg.cmd">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\test_live.ps1">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
     <None Include="test\test_live_x64_ntkd.cmd">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -344,13 +350,13 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\analyze.hpp">
-      <Filter>Header Files\Analyze</Filter>
+      <Filter>Header Files\analyze</Filter>
     </ClInclude>
     <ClInclude Include="src\whitelist.hpp">
-      <Filter>Header Files\Analyze</Filter>
+      <Filter>Header Files\analyze</Filter>
     </ClInclude>
     <ClInclude Include="src\bproxy.hpp">
-      <Filter>Header Files\Analyze</Filter>
+      <Filter>Header Files\analyze</Filter>
     </ClInclude>
     <ClInclude Include="src\wdrce.hpp">
       <Filter>Header Files</Filter>
@@ -374,15 +380,15 @@
       <Filter>Header Files\tinyxml2</Filter>
     </ClInclude>
     <ClInclude Include="src\stdafx.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\precompiled</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="test\wa_test_script_ntkd.txt">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </Text>
     <Text Include="test\wa_test_script_windbg.txt">
-      <Filter>Test</Filter>
+      <Filter>test</Filter>
     </Text>
   </ItemGroup>
 </Project>
