@@ -65,35 +65,35 @@ void WDbgArkSystemVer::CheckWindowsBuild(void) {
 bool WDbgArkSystemVer::SetWindowsStrictMinorBuild(void) {
     if ( m_minor_build <= WXP_VER ) {
         m_strict_minor_build = WXP_VER;
-    } else if ( m_minor_build > WXP_VER && m_minor_build <= W2K3_VER ) {
+    } else if ( m_minor_build <= W2K3_VER ) {
         m_strict_minor_build = W2K3_VER;
-    } else if ( m_minor_build > W2K3_VER && m_minor_build <= VISTA_RTM_VER ) {
+    } else if ( m_minor_build <= VISTA_RTM_VER ) {
         m_strict_minor_build = VISTA_RTM_VER;
-    } else if ( m_minor_build > VISTA_RTM_VER && m_minor_build <= VISTA_SP1_VER ) {
+    } else if ( m_minor_build <= VISTA_SP1_VER ) {
         m_strict_minor_build = VISTA_SP1_VER;
-    } else if ( m_minor_build > VISTA_SP1_VER && m_minor_build <= VISTA_SP2_VER ) {
+    } else if ( m_minor_build <= VISTA_SP2_VER ) {
         m_strict_minor_build = VISTA_SP2_VER;
-    } else if ( m_minor_build > VISTA_SP2_VER && m_minor_build <= W7RTM_VER ) {
+    } else if ( m_minor_build <= W7RTM_VER ) {
         m_strict_minor_build = W7RTM_VER;
-    } else if ( m_minor_build > W7RTM_VER && m_minor_build <= W7SP1_VER ) {
+    } else if ( m_minor_build <= W7SP1_VER ) {
         m_strict_minor_build = W7SP1_VER;
-    } else if ( m_minor_build > W7SP1_VER && m_minor_build <= W8RTM_VER ) {
+    } else if ( m_minor_build <= W8RTM_VER ) {
         m_strict_minor_build = W8RTM_VER;
-    } else if ( m_minor_build > W8RTM_VER && m_minor_build <= W81RTM_VER ) {
+    } else if ( m_minor_build <= W81RTM_VER ) {
         m_strict_minor_build = W81RTM_VER;
-    } else if ( m_minor_build > W81RTM_VER && m_minor_build <= W10RTM_VER ) {
+    } else if ( m_minor_build <= W10RTM_VER ) {
         m_strict_minor_build = W10RTM_VER;
-    } else if ( m_minor_build > W10RTM_VER && m_minor_build <= W10TH2_VER ) {
+    } else if ( m_minor_build <= W10TH2_VER ) {
         m_strict_minor_build = W10TH2_VER;
-    } else if ( m_minor_build > W10TH2_VER && m_minor_build <= W10RS1_VER ) {
+    } else if ( m_minor_build <= W10RS1_VER ) {
         m_strict_minor_build = W10RS1_VER;
-    } else if ( m_minor_build > W10RS1_VER && m_minor_build <= W10RS2_VER ) {
+    } else if ( m_minor_build <= W10RS2_VER ) {
         m_strict_minor_build = W10RS2_VER;
-    } else if ( m_minor_build > W10RS2_VER ) {
+    } else {
         m_strict_minor_build = W10RS3_VER;
     }
 
-    return (m_strict_minor_build ? true : false);
+    return true;
 }
 
 }   // namespace wa

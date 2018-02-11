@@ -382,6 +382,9 @@
     <ClInclude Include="src\stdafx.hpp">
       <Filter>Header Files\precompiled</Filter>
     </ClInclude>
+    <ClInclude Include="src\memlist.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="test\wa_test_script_ntkd.txt">

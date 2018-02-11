@@ -20,16 +20,57 @@
 */
 
 /*
-    nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable
+    nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable, hal!HalpRegisteredInterruptControllers
+
+    0: kd> dq HalpRegisteredInterruptControllers
+    fffff803`0593a1b0  fffff7ef`40001478 fffff7ef`400018e8                          <-- LIST_ENTRY
+
+    0: kd> dps fffff7ef`40001478 L20
+    fffff7ef`40001478  fffff7ef`400016c0                                            <-- flink
+    fffff7ef`40001480  fffff803`0593a1b0 hal!HalpRegisteredInterruptControllers     <-- blink
+    fffff7ef`40001488  fffff7ef`400015c8                                            <-- n/a
+    fffff7ef`40001490  00000000`00000028                                            <-- structure size
+    fffff7ef`40001498  fffff803`058ef720 hal!HalpApicInitializeLocalUnit            <-- table start
+    fffff7ef`400014a0  fffff803`058f2a90 hal!HalpApicInitializeIoUnit
+    fffff7ef`400014a8  fffff803`058ef5d0 hal!HalpApicSetPriority
+    fffff7ef`400014b0  fffff803`058eea40 hal!HalpApicGetLocalUnitError
+    fffff7ef`400014b8  fffff803`058eea10 hal!HalpApicClearLocalUnitError
+    fffff7ef`400014c0  00000000`00000000
+    fffff7ef`400014c8  fffff803`058ef610 hal!HalpApicSetLogicalId
+    fffff7ef`400014d0  00000000`00000000
+    fffff7ef`400014d8  fffff803`0591a9d0 hal!HalpApicWriteEndOfInterrupt
+    fffff7ef`400014e0  fffff803`05900100 hal!HalpApic1EndOfInterrupt
+    fffff7ef`400014e8  fffff803`058efc70 hal!HalpApicSetLineState
+    fffff7ef`400014f0  fffff803`058e7c50 hal!HalpApicRequestInterrupt
+    fffff7ef`400014f8  fffff803`058edbe0 hal!HalpApicStartProcessor
+    fffff7ef`40001500  fffff803`058e91b0 hal!HalpApicGenerateMessage
+    fffff7ef`40001508  00000000`00000000
+    fffff7ef`40001510  fffff803`0591ac50 hal!HalpApicSaveLocalInterrupts
+    fffff7ef`40001518  fffff803`0591ab70 hal!HalpApicReplayLocalInterrupts
+    fffff7ef`40001520  fffff803`0591a980 hal!HalpApicDeinitializeLocalUnit
+    fffff7ef`40001528  00000000`00000000
+    fffff7ef`40001530  fffff803`058e70f0 hal!HalpApicQueryAndGetSource              <-- table end
+    fffff7ef`40001538  00000000`00000000
+    fffff7ef`40001540  000000ff`00000002
+    fffff7ef`40001548  0000000f`00000001
+    fffff7ef`40001550  00000000`00000002
+    fffff7ef`40001558  fffff7ef`40011298
+    fffff7ef`40001560  fffff7ef`400117e8
+    fffff7ef`40001568  fffff7ef`400115e0
+    fffff7ef`40001570  fffff7ef`400115e0
 */
 
 #include <sstream>
 #include <map>
+#include <string>
+#include <vector>
+#include <memory>
 
 #include "wdbgark.hpp"
 #include "analyze.hpp"
 #include "manipulators.hpp"
 #include "memtable.hpp"
+#include "memlist.hpp"
 
 namespace wa {
 //////////////////////////////////////////////////////////////////////////
@@ -41,11 +82,15 @@ typedef struct HalDispatchTableInfoTag {
 } HalDispatchTableInfo;
 
 using HalTableInfo = std::map<uint32_t, HalDispatchTableInfo>;
+using HalTables = std::vector<WDbgArkMemTable>;
 //////////////////////////////////////////////////////////////////////////
 HalTableInfo GetHalTableInfo();
+HalTables GetHalTables(const std::unique_ptr<WDbgArkSystemVer> &system_ver,
+                       const std::shared_ptr<WDbgArkSymCache> &sym_cache);
 //////////////////////////////////////////////////////////////////////////
 EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
-            "nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable", "") {
+            "nt!HalDispatchTable, nt!HalPrivateDispatchTable, nt!HalIommuDispatchTable,"\
+            "hal!HalpRegisteredInterruptControllers", "") {
     RequireKernelMode();
 
     if ( !Init() ) {
@@ -59,103 +104,28 @@ EXT_COMMAND(wa_haltables, "Output kernel-mode HAL tables: "\
         return;
     }
 
-    const auto hal_tbl_info = GetHalTableInfo();
-    const auto it = hal_tbl_info.find(m_system_ver->GetStrictVer());
-
-    if ( it == std::end(hal_tbl_info) ) {
-        err << wa::showminus << __FUNCTION__ << ": unable to correlate internal info with the minor build" << endlerr;
-        return;
-    }
-
-    WDbgArkMemTable table_hdt(m_sym_cache, "nt!HalDispatchTable");
-
-    const auto[version, info] = *it;
-
-    if ( table_hdt.IsValid() ) {
-        table_hdt.SetTableSkipStart(info.skip * m_PtrSize);
-        table_hdt.SetTableCount(info.hdt_count);
-        table_hdt.SetRoutineDelta(m_PtrSize);
-        table_hdt.SetCollectNull(true);
-    } else {
-        err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalDispatchTable" << endlerr;
-    }
-
-    WDbgArkMemTable table_hpdt(m_sym_cache, "nt!HalPrivateDispatchTable");
-
-    if ( table_hpdt.IsValid() ) {
-        table_hpdt.SetTableSkipStart(info.skip * m_PtrSize);
-        table_hpdt.SetTableCount(info.hpdt_count);
-        table_hpdt.SetRoutineDelta(m_PtrSize);
-        table_hpdt.SetCollectNull(true);
-    } else {
-        err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalPrivateDispatchTable" << endlerr;
-    }
-
-    WDbgArkMemTable table_hiommu(m_sym_cache, 0ULL);
-
-    if ( m_system_ver->GetStrictVer() >= W81RTM_VER ) {
-        table_hiommu.SetTableStart("nt!HalIommuDispatchTable");
-
-        if ( table_hiommu.IsValid() ) {
-            table_hiommu.SetTableCount(info.hiommu_count);
-            table_hiommu.SetRoutineDelta(m_PtrSize);
-            table_hiommu.SetCollectNull(true);
-        } else {
-            err << wa::showminus << __FUNCTION__ << ": failed to find nt!HalIommuDispatchTable" << endlerr;
-        }
-    }
-
     auto display = WDbgArkAnalyzeBase::Create(m_sym_cache);
 
+    auto hal_tables = GetHalTables(m_system_ver, m_sym_cache);
+
     try {
-        out << wa::showplus << "nt!HalDispatchTable: " << std::hex << std::showbase << table_hdt.GetTableStart();
-        out << endlout;
-        display->PrintHeader();
-
-        WDbgArkMemTable::WalkResult output_list_hdt;
-
-        if ( table_hdt.Walk(&output_list_hdt) != false ) {
-            for ( const auto &address : output_list_hdt ) {
-                display->Analyze(address, "", "");
-                display->PrintFooter();
-            }
-        } else {
-            err << wa::showminus << __FUNCTION__ << ": failed to walk nt!HalDispatchTable" << endlerr;
-        }
-
-        out << wa::showplus << "nt!HalPrivateDispatchTable: " << std::hex << std::showbase;
-        out << table_hpdt.GetTableStart() << endlout;
-        display->PrintHeader();
-
-        WDbgArkMemTable::WalkResult output_list_hpdt;
-
-        if ( table_hpdt.Walk(&output_list_hpdt) != false ) {
-            for ( const auto &address : output_list_hpdt ) {
-                display->Analyze(address, "", "");
-                display->PrintFooter();
-            }
-        } else {
-            err << wa::showminus << __FUNCTION__ << ": failed to walk nt!HalPrivateDispatchTable" << endlerr;
-        }
-
-        if ( m_system_ver->GetStrictVer() >= W81RTM_VER ) {
-            out << wa::showplus << "nt!HalIommuDispatchTable: ";
-            out << std::hex << std::showbase << table_hiommu.GetTableStart() << endlout;
+        for ( auto& table : hal_tables ) {
+            const auto table_name = table.GetTableName();
+            out << wa::showplus << table_name << ": " << std::hex << std::showbase << table.GetTableStart() << endlout;
             display->PrintHeader();
 
-            WDbgArkMemTable::WalkResult output_list_hiommu;
+            WDbgArkMemTable::WalkResult result;
 
-            if ( table_hiommu.Walk(&output_list_hiommu) != false ) {
-                for ( const auto &address : output_list_hiommu ) {
+            if ( table.Walk(&result) != false ) {
+                for ( const auto& address : result ) {
                     display->Analyze(address, "", "");
                     display->PrintFooter();
                 }
             } else {
-                err << wa::showminus << __FUNCTION__ << ": failed to walk nt!HalIommuDispatchTable" << endlerr;
+                err << wa::showminus << __FUNCTION__ << ": failed to walk " << table_name << endlerr;
             }
         }
-    }
-    catch( const ExtInterruptException& ) {
+    } catch( const ExtInterruptException& ) {
         throw;
     }
 
@@ -185,6 +155,99 @@ HalTableInfo GetHalTableInfo() {
         { W10RS2_VER, { 0x16, 0x7F, 0x13, 0x1 } },
         { W10RS3_VER, { 0x16, 0x89, 0x13, 0x1 } }
         } };
+}
+
+HalTables GetHalTables(const std::unique_ptr<WDbgArkSystemVer> &system_ver,
+                       const std::shared_ptr<WDbgArkSymCache> &sym_cache) {
+    HalTables hal_tables{};
+
+    const auto hal_tbl_info = GetHalTableInfo();
+    const auto it = hal_tbl_info.find(system_ver->GetStrictVer());
+
+    if ( it == std::end(hal_tbl_info) ) {
+        err << wa::showminus << __FUNCTION__ << ": unable to correlate internal info with the minor build" << endlerr;
+        return hal_tables;
+    }
+
+    const auto [version, info] = *it;
+
+    WDbgArkMemTable table_hdt(sym_cache, "nt!HalDispatchTable");
+
+    if ( table_hdt.IsValid() ) {
+        table_hdt.SetTableSkipStart(info.skip * g_Ext->m_PtrSize);
+        table_hdt.SetTableCount(info.hdt_count);
+        table_hdt.SetRoutineDelta(g_Ext->m_PtrSize);
+        table_hdt.SetCollectNull(true);
+
+        hal_tables.push_back(table_hdt);
+    } else {
+        err << wa::showminus << __FUNCTION__ << ": unable to find nt!HalDispatchTable" << endlerr;
+    }
+
+    WDbgArkMemTable table_hpdt(sym_cache, "nt!HalPrivateDispatchTable");
+
+    if ( table_hpdt.IsValid() ) {
+        table_hpdt.SetTableSkipStart(info.skip * g_Ext->m_PtrSize);
+        table_hpdt.SetTableCount(info.hpdt_count);
+        table_hpdt.SetRoutineDelta(g_Ext->m_PtrSize);
+        table_hpdt.SetCollectNull(true);
+
+        hal_tables.push_back(table_hpdt);
+    } else {
+        err << wa::showminus << __FUNCTION__ << ": unable to find nt!HalPrivateDispatchTable" << endlerr;
+    }
+
+    if ( system_ver->GetStrictVer() >= W81RTM_VER ) {
+        WDbgArkMemTable table_hiommu(sym_cache, 0ULL);
+
+        table_hiommu.SetTableStart("nt!HalIommuDispatchTable");
+
+        if ( table_hiommu.IsValid() ) {
+            table_hiommu.SetTableCount(info.hiommu_count);
+            table_hiommu.SetRoutineDelta(g_Ext->m_PtrSize);
+            table_hiommu.SetCollectNull(true);
+
+            hal_tables.push_back(table_hiommu);
+        } else {
+            err << wa::showminus << __FUNCTION__ << ": unable to find nt!HalIommuDispatchTable" << endlerr;
+        }
+    }
+
+    if ( system_ver->GetStrictVer() >= W8RTM_VER ) {
+        std::string list_name("hal!HalpRegisteredInterruptControllers");
+        WDbgArkMemList list_hric(sym_cache, list_name);
+
+        if ( list_hric.IsValid() ) {
+            WDbgArkMemList::WalkResult list_result;
+            const auto le_size = sym_cache->GetTypeSize("nt!_LIST_ENTRY");
+
+            if ( list_hric.WalkNodes(&list_result) != false ) {
+                size_t i = 0;
+
+                for ( const auto& node : list_result ) {
+                    WDbgArkMemTable table_hric(sym_cache, node);
+
+                    if ( table_hric.IsValid() ) {
+                        table_hric.SetTableName(list_name + "[" + std::to_string(i) + "]");
+                        table_hric.SetTableSkipStart(le_size + 2 * g_Ext->m_PtrSize);
+                        table_hric.SetTableCount(20);
+                        table_hric.SetRoutineDelta(g_Ext->m_PtrSize);
+                        table_hric.SetCollectNull(true);
+
+                        hal_tables.push_back(table_hric);
+                    }
+
+                    ++i;
+                }
+            } else {
+                err << wa::showminus << __FUNCTION__ << ": failed to walk " << list_hric.GetListHeadName() << endlerr;
+            }
+        } else {
+            err << wa::showminus << __FUNCTION__ << ": unable to find " << list_hric.GetListHeadName() << endlerr;
+        }
+    }
+
+    return hal_tables;
 }
 
 }   // namespace wa

@@ -58,11 +58,16 @@ class WDbgArkMemTable {
     void SetTableStart(const uint64_t table_start) { m_table_start = table_start; }
     void SetTableStart(const std::string &table_start) {
         if ( !m_sym_cache->GetSymbolOffset(table_start, true, &m_table_start) ) {
-            err << wa::showminus << __FUNCTION__ << ": failed to find " << table_start << endlerr;
+            err << wa::showminus << __FUNCTION__ << ": unable to find " << table_start << endlerr;
+        } else {
+            m_table_name = table_start;
         }
     }
 
     uint64_t GetTableStart() const { return m_table_start; }
+
+    void SetTableName(const std::string &name) { m_table_name = name; }
+    std::string GetTableName() const { return m_table_name; }
 
     void SetTableSkipStart(const uint32_t skip_start) { m_offset_table_skip_start = skip_start; }
     uint32_t GetTableSkipStart() const { return m_offset_table_skip_start; }
@@ -91,11 +96,11 @@ class WDbgArkMemTable {
 
         const auto offset = GetTableStart() + GetTableSkipStart();
 
-        try {
-            bool terminate = false;
+        bool terminate = false;
 
-            for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
-                for ( uint32_t rc = 0; rc < GetRoutineCount(); rc++ ) {
+        for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
+            for ( uint32_t rc = 0; rc < GetRoutineCount(); rc++ ) {
+                try {
                     ExtRemoteData data(offset + tc * GetRoutineDelta() + rc * g_Ext->m_PtrSize, g_Ext->m_PtrSize);
                     const auto ptr = data.GetPtr();
 
@@ -105,14 +110,14 @@ class WDbgArkMemTable {
                         terminate = true;
                         break;
                     }
-                }
-
-                if ( terminate == true ) {
-                    break;
+                } catch ( const ExtRemoteException &Ex ) {
+                    err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
                 }
             }
-        } catch ( const ExtRemoteException &Ex ) {
-            err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
+
+            if ( terminate == true ) {
+                break;
+            }
         }
 
         return !result->empty();
@@ -120,6 +125,7 @@ class WDbgArkMemTable {
 
  protected:
     uint64_t m_table_start = 0ULL;
+    std::string m_table_name{};
     uint32_t m_offset_table_skip_start = 0UL;
     uint32_t m_table_count = 0UL;
     uint32_t m_routine_delta = 0UL;
@@ -166,16 +172,16 @@ class WDbgArkMemTableTyped : public WDbgArkMemTable {
 
         const auto offset = GetTableStart() + GetTableSkipStart();
 
-        try {
-            for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
+        for ( uint32_t tc = 0; tc < GetTableCount(); tc++ ) {
+            try {
                 result->emplace_back(ExtRemoteTyped(m_type.c_str(),
                                                     offset + tc * m_type_size,
                                                     false,
                                                     m_sym_cache->GetCookieCache(m_type),
                                                     nullptr));
+            } catch ( const ExtRemoteException &Ex ) {
+                err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
             }
-        } catch ( const ExtRemoteException &Ex ) {
-            err << wa::showminus << __FUNCTION__ << ": " << Ex.GetMessage() << endlerr;
         }
 
         return !result->empty();

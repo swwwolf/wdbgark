@@ -323,6 +323,7 @@
     <ClInclude Include="src\driver.hpp" />
     <ClInclude Include="src\dummypdb.hpp" />
     <ClInclude Include="src\manipulators.hpp" />
+    <ClInclude Include="src\memlist.hpp" />
     <ClInclude Include="src\memtable.hpp" />
     <ClInclude Include="src\objhelper.hpp" />
     <ClInclude Include="src\pe.hpp" />
